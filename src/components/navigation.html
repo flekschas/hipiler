@@ -1,0 +1,15 @@
+<template bindable="router">
+  <require from="components/svg-icon.html"></require>
+  <nav>
+    <ul class="no-list-style flex-c">
+      <li repeat.for="row of router.navigation" class="${row.isActive ? 'is-active' : ''} ${row.config.showIcon ? 'is-icon-only' : ''}">
+        <a href.bind="row.href" if.bind="row.config.showIcon">
+          <svg-icon icon-id.bind="row.config.iconId"></svg-icon>
+        </a>
+        <a href.bind="row.href" if.bind="!row.config.showIcon">
+          ${row.title}
+        </a>
+      </li>
+    </ul>
+  </nav>
+</template>

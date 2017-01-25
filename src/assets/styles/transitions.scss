@@ -1,0 +1,11 @@
+// Bezier curves
+$ease-in-out-cubic: cubic-bezier(0.3, 0.1, 0.6, 1);
+$ease-in-out-quadric: cubic-bezier(0.2, 0.1, 0.2, 1);
+
+// Transition speeds
+$transition-very-fast: 0.15s;
+$transition-fast: 0.2s;
+$transition-semi-fast: 0.25s;
+$transition-normal: 0.33s;
+$transition-slow: 0.66s;
+$transition-slowest: 1s;

@@ -1,0 +1,90 @@
+@import 'colors';
+@import 'transitions';
+
+.matrix-view,
+.pattern-view,
+.stats-view {
+  padding: 0 0.5rem;
+}
+
+.matrix-view,
+.pattern-view {
+}
+
+.matrix-view {
+  flex-basis: 40%;
+  padding-left: 0;
+}
+
+.pattern-view {
+  flex-grow: 1;
+  border-left: 1px solid $lighter-gray;
+}
+
+.stats-view {
+  flex-basis: 20rem;
+  border-left: 1px solid $lighter-gray;
+  padding-right: 0;
+}
+
+.matrix-view,
+.pattern-view,
+.stats-view {
+  h2.small {
+    font-size: 1rem;
+    line-height: 2rem;
+    color: $lighter-gray;
+    font-weight: normal;
+    text-transform: uppercase;
+  }
+}
+
+.column-resizer {
+  position: absolute;
+  z-index: 2;
+  top: 0;
+  left: -0.25rem;
+  display: block;
+  width: 0.5rem;
+  height: 2rem;
+  background: $lighter-gray;
+  transform: translateX(0);
+  transition: background $transition-very-fast $ease-in-out-cubic,
+              transform $transition-very-fast $ease-in-out-cubic,
+              width $transition-very-fast $ease-in-out-cubic;
+
+  &:hover,
+  &:active,
+  &:focus {
+    transform: translateX(-0.25rem);
+    width: 1rem;
+  }
+}
+
+.is-col-drag-pattern .pattern-view .column-resizer,
+.is-col-drag-stats .stats-view .column-resizer {
+  transition: background $transition-very-fast $ease-in-out-cubic,
+              width $transition-very-fast $ease-in-out-cubic;
+}
+
+.is-col-drag-pattern-highlight .pattern-view .column-resizer,
+.is-col-drag-stats-highlight .stats-view .column-resizer {
+  background: $primary;
+}
+
+.drag-indicator {
+  position: absolute;
+  z-index: 1;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 1px;
+  background: $primary;
+  opacity: 0;
+  transition: opacity $transition-very-fast $ease-in-out-cubic;
+}
+
+.is-col-drag-pattern .pattern-view .drag-indicator,
+.is-col-drag-stats .stats-view .drag-indicator {
+  opacity: 1;
+}

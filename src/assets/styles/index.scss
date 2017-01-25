@@ -1,0 +1,13 @@
+// Components
+@import 'colors';
+@import 'transitions';
+
+// Base style
+@import 'base';
+
+// Global app styles
+@import 'app';
+
+// Specific component styles
+@import 'navigation';
+@import 'decompose';

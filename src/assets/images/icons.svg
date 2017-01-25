@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg">
+  <symbol id="home" viewBox="0 0 16 16">
+    <path
+      d="M8.24.627c-.058-.05-.13-.08-.205-.085-.098-.01-.2.02-.273.085L4.544 3.385V1.047H3.088v3.586L.12 7.176l.48.552L8 1.383l7.4 6.345.48-.552L8.24.626z"
+      fill="currentColor"/>
+    <path
+      d="M8 1.998l-5.82 4.91v8.552H6.5v-6h3v6h4.32V6.91"
+      fill="currentColor"/>
+  </symbol>
+</svg>

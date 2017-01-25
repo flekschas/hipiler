@@ -1,0 +1,60 @@
+@import 'colors';
+@import 'transitions';
+
+html {
+  font-family: 'Rubik', sans-serif;
+  font-size: 16px;
+  background: #fff;
+}
+
+#drag-drop-notifier {
+  position: fixed;
+  z-index: -1;
+  font-size: 2em;
+  font-weight: bold;
+  text-transform: uppercase;
+  color: $dark-gray;
+  background: $light-gray;
+}
+
+#toolbar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3rem;
+  padding: 0 0.5rem;
+  border-bottom: 1px solid $lighter-gray;
+  color: $gray;
+  background: $white;
+  line-height: 3rem;
+
+  h1 {
+    font-weight: normal;
+    font-size: 1.5rem;
+    line-height: inherit;
+  }
+}
+
+#main {
+  position: absolute;
+  top: 3rem;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  padding: .5rem;
+  background: $white;
+}
+
+#toolbar,
+#main {
+  transition: opacity $transition-very-fast $ease-in-out-cubic;
+}
+
+
+body.is-dragging-over {
+  #toolbar,
+  #main {
+    opacity: 0.33;
+  }
+}

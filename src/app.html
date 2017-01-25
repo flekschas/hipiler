@@ -1,0 +1,24 @@
+<template>
+  <div
+    class="full-wh"
+    mousemove.trigger="mouseMoveHandler($event)"
+    mouseup.trigger="mouseUpHandler($event)">
+    <require from="assets/styles/index.css"></require>
+
+    <require from="components/navigation.html"></require>
+
+    <div id="drag-drop-notifier" class="full-wh flex-c flex-jc-c flex-a-c">
+      <span>Drop JSON state</span>
+    </div>
+
+    <header id="toolbar" class="flex-c flex-jc-sb">
+      <h1>Matrix Decomposition Methods</h1>
+
+      <navigation class="primary-nav" router.bind="router"></navigation>
+    </header>
+
+    <main id="main">
+      <router-view></router-view>
+    </main>
+  </div>
+</template>

@@ -1,0 +1,180 @@
+@import 'colors';
+
+/* =====  1 Global Rules & Definitions  ===================================== */
+
+/* -----  1.1 Font Definitions  --------------------------------------------- */
+
+/* We're using Google Fonts for performance reasons */
+
+/* -----  1.2 Reset & Normalization  ---------------------------------------- */
+
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  border: none;
+  box-sizing: border-box;
+  list-style: none;
+}
+
+article, aside, details, figcaption, figure,
+footer, header, main, menu, nav, section, summary {
+  /* Add correct display for IE 9- and some newer browsers */
+  display: block;
+}
+
+::-moz-selection {
+  background: $orange;
+  color: $black;
+}
+
+::selection {
+  background: $orange;
+  color: $black;
+}
+
+body {
+  text-rendering: optimizeLegibility;
+}
+
+/* -----  1.3 General Typography  ------------------------------------------- */
+
+h1, h2, h3, h4, h5, h6,
+p, ul, ol, figure, pre {
+  /* Reset font-sizes and normalize margins */
+  font-size: inherit;
+  line-height: inherit;
+  margin: 0 0 1em;
+}
+
+/* Headings */
+h1, h2, h3 {
+  font-weight: 700;
+}
+
+h1 {
+  font-weight: 700;
+  font-size: 2.5rem;
+  line-height: 1.25;
+  margin-bottom: 3rem;
+}
+
+h2 {
+  font-size: 1.75rem;
+  line-height: 2.2rem;
+}
+
+h3 {
+  font-size: 1.25em;
+  line-height: 1.2;
+}
+
+h4 {
+  font-size: 1em;
+}
+
+/* Links */
+a {
+  color: inherit;
+  text-decoration: none;
+  border-bottom: 1px solid $orange;
+}
+
+a:hover, a:focus, a:active {
+  color: $orange;
+}
+
+b, strong {
+  font-weight: 700;
+}
+
+/* -----  1.4 Images & Figures  --------------------------------------------- */
+
+img {
+  border-style: none;
+  width: 100%;
+  height: auto;
+}
+
+figcaption {
+  font-size: .75rem;
+  line-height: 1.5rem;
+}
+
+
+
+
+/* =====  2 Global Styles  ================================================== */
+
+.rel {
+  position: relative;
+}
+
+.fw,
+.full-wh {
+  width: 100%;
+}
+
+.fh,
+.full-wh {
+  height: 100%;
+}
+
+.flex-c {
+  display: flex;
+}
+
+.flex-jc-c {
+  justify-content: center;
+}
+
+.flex-jc-sb {
+  justify-content: space-between;
+}
+
+.flex-a-c {
+  align-items: center;
+}
+
+.flex-a-s {
+  align-items: stretch;
+}
+
+.flex-i-g-1 {
+  flex-grow: 1;
+}
+
+.no-list-style {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.inline-list li {
+  display: inline-block;
+}
+
+.float-list li {
+  display: block;
+  float: left;
+}
+
+.draggable {
+  &:hover {
+    cursor: pointer;
+  }
+}
+
+body.dragging,
+.draggable:active {
+  cursor: move !important;
+}
+
+body.dragging-horizontal,
+.draggable.horizontal-only:active {
+  cursor: ew-resize !important;
+}
+
+body.dragging-vertical,
+.draggable.vertical-only:active {
+  cursor: ns-resize !important;
+}
