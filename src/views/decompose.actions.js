@@ -1,4 +1,4 @@
-export const UPDATE_WIDTH = 'UPDATE';
+export const UPDATE_WIDTH = 'UPDATE_WIDTH';
 
 export const updateWidth = (column, width) => {
   return {

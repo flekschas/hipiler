@@ -144,9 +144,24 @@
             "main": "index"
           },
           {
+            "name": "redux-persist",
+            "path": "../node_modules/redux-persist/dist",
+            "main": "redux-persist"
+          },
+          {
             "name": "redux-undo",
             "path": "../node_modules/redux-undo/lib",
             "main": "index"
+          },
+          {
+            "name": "hglib",
+            "path": "../node_modules/higlass/dist/scripts",
+            "main": "hglib"
+          },
+          {
+            "name": "localForage",
+            "path": "../node_modules/localforage/dist",
+            "main": "localforage"
           }
         ]
       }

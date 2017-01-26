@@ -5,6 +5,10 @@
 .pattern-view,
 .stats-view {
   padding: 0 0.5rem;
+
+  &.is-transitionable {
+    transition: flex-basis $transition-very-fast $ease-in-out-cubic;
+  }
 }
 
 .matrix-view,
@@ -31,6 +35,9 @@
 .pattern-view,
 .stats-view {
   h2.small {
+    position: relative;
+    z-index: 1;
+    margin-bottom: 0.25rem;
     font-size: 1rem;
     line-height: 2rem;
     color: $lighter-gray;
@@ -63,13 +70,20 @@
 
 .is-col-drag-pattern .pattern-view .column-resizer,
 .is-col-drag-stats .stats-view .column-resizer {
-  transition: background $transition-very-fast $ease-in-out-cubic,
-              width $transition-very-fast $ease-in-out-cubic;
+  transition: background $transition-very-fast $ease-in-out-cubic;
+  width: 1rem;
 }
 
 .is-col-drag-pattern-highlight .pattern-view .column-resizer,
 .is-col-drag-stats-highlight .stats-view .column-resizer {
   background: $primary;
+  width: 1rem;
+
+  &:hover,
+  &:active,
+  &:focus {
+    transform: none;
+  }
 }
 
 .drag-indicator {
@@ -87,4 +101,10 @@
 .is-col-drag-pattern .pattern-view .drag-indicator,
 .is-col-drag-stats .stats-view .drag-indicator {
   opacity: 1;
+}
+
+#higlass {
+  background: yellow;
+  margin-top: -2.25rem;
+  padding-top: 2.25rem;
 }

@@ -6,11 +6,12 @@ import { EventAggregator } from 'aurelia-event-aggregator';
 // Injectables
 import Font from 'services/font';
 import States from 'services/states';
-import { updateWidth } from 'views/decompose.actions';
 
-// Utils
+// Utils etc.
 import $ from 'utils/dom-el';
 import { requestNextAnimationFrame } from 'utils/request-animation-frame';
+import { updateWidth } from 'views/decompose.actions';
+import { COLUMN_NAMES } from 'views/decompose.defaults';
 
 const logger = LogManager.getLogger('decompose');
 
@@ -26,8 +27,6 @@ export class Decompose {
     // Link the Redux store
     this.store = states.store;
     this.store.subscribe(this.update.bind(this));
-    this.undo = states.undo.bind(states);
-    this.redo = states.redo.bind(states);
 
     this.pattern = {};
     this.stats = {};
@@ -35,28 +34,28 @@ export class Decompose {
 
   attached () {
     this.$baseEl = new $(this.baseEl);
-    this.updateCss();
+
+    requestNextAnimationFrame(() => {
+      new $(this.matrixColEl).addClass('is-transitionable');
+      new $(this.patternColEl).addClass('is-transitionable');
+      new $(this.statsColEl).addClass('is-transitionable');
+    });
+
+    this.updateCss(this.store.getState().present.decompose.columns);
   }
 
   update () {
-    logger.debug('update');
-    this.updateCss();
-  }
-
-  updateCss () {
-    let columns;
-
     try {
-      columns = this.store.getState().present.decompose.columns;
+      this.updateCss(this.store.getState().present.decompose.columns);
     } catch (e) {
       logger.error('State invalid', e);
     }
+  }
 
-    const columnNames = Object.keys(columns);
-
-    for (let columnName of columnNames) {
+  updateCss (columns) {
+    for (let columnName of COLUMN_NAMES) {
       this.css[columnName] = {
-        flexBasis: `${columns[columnName].width}${columns[columnName].widthUnit}`
+        flexBasis: `${columns[`${columnName}Width`]}${columns[`${columnName}WidthUnit`]}`
       };
     }
   }
@@ -89,27 +88,61 @@ export class Decompose {
   }
 
   columnDragEndHandler (event) {
-    const target = this.dragging.target;
+    let target;
+
+    try {
+      target = this.dragging.target;
+    } catch (e) {
+      logger.error(e);
+      return;
+    }
 
     this.dragging.dX = event.clientX - this.dragging.x;
 
-    this.updateColumnWidth(this.dragging);
-
-    this.$baseEl.removeClass(`is-col-drag-${target}-highlight`);
-
-    requestNextAnimationFrame(() => {
-      this.$baseEl.removeClass(`is-col-drag-${target}`);
-    });
-
     this.mouseMoveListener.dispose();
 
-    this[this.dragging.target].dragBtnCss = {
+    const draggerRect = this[`${target}Dragger`].getBoundingClientRect();
+    const dragIndicatorRect = this[`${target}DragIndicator`].getBoundingClientRect();
+
+    this[target].dragBtnCss = {
+      ...this[target].dragBtnCss,
+      position: 'fixed',
+      top: `${draggerRect.top}px`,
+      left: `${draggerRect.left}px`,
       transform: null
     };
 
-    this[this.dragging.target].dragIndicatorCss = {
+    this[target].dragIndicatorCss = {
+      ...this[target].dragIndicatorCss,
+      position: 'fixed',
+      top: `${dragIndicatorRect.top}px`,
+      left: `${dragIndicatorRect.left}px`,
       transform: null
     };
+
+    this.updateColumnWidth(this.dragging);
+
+    setTimeout(() => {
+      this.$baseEl.removeClass(`is-col-drag-${target}-highlight`);
+
+      this[target].dragBtnCss = {
+        ...this[target].dragBtnCss,
+        position: null,
+        top: null,
+        left: null
+      };
+
+      this[target].dragIndicatorCss = {
+        ...this[target].dragIndicatorCss,
+        position: null,
+        top: null,
+        left: null
+      };
+
+      requestNextAnimationFrame(() => {
+        this.$baseEl.removeClass(`is-col-drag-${target}`);
+      });
+    }, 2500);
 
     this.dragging = undefined;
   }

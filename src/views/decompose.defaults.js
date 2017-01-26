@@ -1,12 +1,16 @@
+export const COLUMN_NAMES = [
+  'matrix',
+  'stats'
+];
+
+export const COLUMNS = {
+  matrixWidth: 40,
+  matrixWidthUnit: '%',
+  statsWidth: 20,
+  statsWidthUnit: 'rem'
+};
+
 export default {
-  columns: {
-    matrix: {
-      width: 40,
-      widthUnit: '%'
-    },
-    stats: {
-      width: 20,
-      widthUnit: 'rem'
-    }
-  }
+  COLUMN_NAMES,
+  COLUMNS
 };
