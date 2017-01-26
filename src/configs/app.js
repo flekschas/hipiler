@@ -32,5 +32,17 @@ export const routes = [
     title: 'Decompose',
     moduleId: 'views/decompose',
     nav: true
+  },
+  {
+    route: 'higlass',
+    name: 'higlass',
+    title: 'Higlass',
+    moduleId: 'views/higlass',
+    nav: false
   }
 ];
+
+export default {
+  environments,
+  routes
+};
