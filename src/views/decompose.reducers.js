@@ -6,11 +6,10 @@ import { COLUMNS } from 'views/decompose.defaults';
 export function columns (state = { ...COLUMNS }, action) {
   switch (action.type) {
     case UPDATE_WIDTH:
-      const newState = { ...state };
-
-      newState[`${action.payload.column}Width`] = action.payload.width;
-
-      return newState;
+      return {
+        ...state,
+        [`${action.payload.column}Width`]: action.payload.width
+      };
     default:
       return state;
   }

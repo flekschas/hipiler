@@ -1,5 +1,6 @@
 // Aurelia
 import { inject } from 'aurelia-framework';
+import { LogManager } from 'aurelia-framework';
 
 // Injectables
 import States from 'services/states';
@@ -7,11 +8,11 @@ import States from 'services/states';
 // Utils etc.
 import hglib from 'hglib';  // eslint-disable-line
 
+const logger = LogManager.getLogger('decompose');
+
 @inject(States)
 export class HiGlass {
-  constructor () {
-    this.message = 'About!';
-
+  constructor (states) {
     // Link the Redux store
     this.store = states.store;
     this.store.subscribe(this.update.bind(this));
