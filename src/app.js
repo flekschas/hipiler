@@ -8,6 +8,8 @@ import Font from 'services/font';
 import States from 'services/states';
 
 // Utils
+import $ from 'utils/dom-el';
+import { updateConfigs } from 'app.actions';
 import { routes } from 'configs/app';
 import dragDrop from 'utils/drag-drop';
 import readJsonFile from 'utils/read-json-file';
@@ -77,7 +79,33 @@ export class App {
     this.events.publish('app.mouseMove', event);
   }
 
-  updateState (json) {
-    logger.debug('ass', json);
+  showGlobalError (msg, duration) {
+    if (this.globalErrorDisplay) {
+      clearTimeout(this.globalErrorDisplay);
+      logger.debug('Called nougats');
+    }
+
+    this.globalError = true;
+    this.globalErrorMsg = msg;
+
+    $(document.body).addClass('is-global-error');
+
+    this.globalErrorDisplay = setTimeout(() => {
+      this.corruptConfig = false;
+      this.globalErrorMsg = undefined;
+      $(document.body).removeClass('is-global-error');
+    }, duration);
+  }
+
+  updateState (config) {
+    if (this.validateConfig(config)) {
+      this.store.dispatch(updateConfigs(config));
+    } else {
+      this.showGlobalError('Corrupted Config File', 3000);
+    }
+  }
+
+  validateConfig (config) {
+    return typeof config.mdm === 'object' && typeof config.hgl === 'object';
   }
 }

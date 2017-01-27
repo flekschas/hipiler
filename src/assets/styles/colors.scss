@@ -11,6 +11,10 @@ $darker-gray: #444;
 $darkest-gray: #222;
 
 $orange: #ff5500;
+$red: #f60029;
 
 $primary: $orange;
 $secondary: $orange;
+
+$error-text: darken($red, 25%);
+$error-bg: lighten($red, 25%);

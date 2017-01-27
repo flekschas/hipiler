@@ -7,14 +7,32 @@ html {
   background: #fff;
 }
 
-#drag-drop-notifier {
+#drag-drop-notifier,
+#global-error {
   position: fixed;
   z-index: -1;
   font-size: 2em;
   font-weight: bold;
   text-transform: uppercase;
+}
+
+#drag-drop-notifier {
   color: $dark-gray;
   background: $light-gray;
+}
+
+#global-error {
+  color: $error-text;
+  background: $error-bg;
+  opacity: 0;
+  transition: opacity $transition-very-fast $ease-in-out-cubic;
+}
+
+body.is-global-error {
+  #global-error {
+    z-index: 2;
+    opacity: 1;
+  }
 }
 
 #toolbar {
@@ -50,7 +68,6 @@ html {
 #main {
   transition: opacity $transition-very-fast $ease-in-out-cubic;
 }
-
 
 body.is-dragging-over {
   #toolbar,
