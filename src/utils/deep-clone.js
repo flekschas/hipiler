@@ -22,13 +22,13 @@ function extend (target, source) {
 
   for (let name in source) {
     target[name] = typeof target[name] === 'undefined' ?
-      extend(source[name], null) : target[name];
+      extend(undefined, source[name]) : target[name];
   }
 
   return target;
 }
 
-export default function (obj) {
-  let copy;
-  return extend(copy, obj);
+export default function (source) {
+  let target;
+  return extend(target, source);
 }
