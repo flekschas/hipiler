@@ -2,7 +2,7 @@ import $ from './dom-el';
 import hasParent from './has-parent';
 
 export default function dragDrop (el, dropCallback) {
-  const $el = new $(el);
+  const $el = $(el);
 
   document.addEventListener('dragenter', (event) => {
     if (hasParent(event.target, el)) {
