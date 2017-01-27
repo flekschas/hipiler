@@ -149,6 +149,11 @@
             "main": "redux-persist"
           },
           {
+            "name": "redux-thunk",
+            "path": "../node_modules/redux-thunk/dist",
+            "main": "redux-thunk"
+          },
+          {
             "name": "redux-undo",
             "path": "../node_modules/redux-undo/lib",
             "main": "index"

@@ -1,7 +1,8 @@
 // Third party
 import localForage from 'localForage';
-import { createStore } from 'redux';
+import { applyMiddleware, compose, createStore } from 'redux';
 import { persistStore, autoRehydrate, getStoredState } from 'redux-persist';
+import thunk from 'redux-thunk';
 import undoable from 'redux-undo';
 import { ActionCreators } from 'redux-undo';
 
@@ -16,7 +17,14 @@ const CONFIG = {
 export default class States {
   constructor () {
     getStoredState(CONFIG, (err, state) => {
-      this.store = createStore(undoable(appReducer), state, autoRehydrate());
+      this.store = createStore(
+        undoable(appReducer),
+        state,
+        compose(
+          autoRehydrate(),
+          applyMiddleware(thunk)
+        )
+      );
 
       persistStore(this.store, CONFIG);
     });
