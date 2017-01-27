@@ -9,3 +9,14 @@ export const updateWidth = (column, width) => {
     }
   };
 };
+
+export const UPDATE_MDM_CONFIG = 'UPDATE_MDM_CONFIG';
+
+export const updateConfig = (config) => {
+  return {
+    type: UPDATE_MDM_CONFIG,
+    payload: {
+      config
+    }
+  };
+};
