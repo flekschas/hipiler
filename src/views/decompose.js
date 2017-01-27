@@ -9,6 +9,7 @@ import States from 'services/states';
 
 // Utils etc.
 import $ from 'utils/dom-el';
+import { transition } from 'configs/app';
 import { requestNextAnimationFrame } from 'utils/request-animation-frame';
 import { updateWidth } from 'views/decompose.actions';
 import { COLUMN_NAMES } from 'views/decompose.defaults';
@@ -142,7 +143,7 @@ export class Decompose {
       requestNextAnimationFrame(() => {
         this.$baseEl.removeClass(`is-col-drag-${target}`);
       });
-    }, 2500);
+    }, transition.fast);
 
     this.dragging = undefined;
   }

@@ -42,6 +42,15 @@ export const routes = [
   }
 ];
 
+export const transition = {
+  veryFast: 150,
+  fast: 200,
+  semiFast: 250,
+  normal: 330,
+  slow: 660,
+  slowest: 1000
+};
+
 export default {
   environments,
   routes
