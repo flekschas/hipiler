@@ -11,7 +11,7 @@ export const environments = {
 
 export const routes = [
   {
-    route: ['', 'home'],
+    route: '',
     name: 'home',
     title: 'Home',
     moduleId: 'views/home',
