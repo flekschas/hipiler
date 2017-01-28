@@ -32,13 +32,29 @@
     border-bottom: 0;
   }
 
-  .is-icon-only {
-    width: 1.7rem;
-    height: 3rem;
-  }
-
   svg {
     width: 100%;
     height: 100%;
+  }
+
+  .is-icon-only {
+    width: 2.75rem;
+    height: 3rem;
+    padding: 0 0.5rem;
+  }
+
+  .is-left-separated {
+    position: relative;
+    margin-left: 0.25rem;
+
+    &::before {
+      position: absolute;
+      content: '';
+      top: 0.25rem;
+      left: 0;
+      bottom: 0.25rem;
+      width: 1px;
+      background: $gray-lighter;
+    }
   }
 }

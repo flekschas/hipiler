@@ -1,13 +1,21 @@
-<template bindable="router">
+<template bindable="router, externalLinks">
   <require from="components/svg-icon.html"></require>
   <nav>
     <ul class="no-list-style flex-c">
-      <li repeat.for="row of router.navigation" class="${row.isActive ? 'is-active' : ''} ${row.config.showIcon ? 'is-icon-only' : ''}">
-        <a href.bind="row.href" if.bind="row.config.showIcon">
-          <svg-icon icon-id.bind="row.config.iconId"></svg-icon>
+      <li repeat.for="link of router.navigation" class="${link.isActive ? 'is-active' : ''} ${link.config.showIcon ? 'is-icon-only' : ''}">
+        <a href.bind="link.href" if.bind="link.config.showIcon">
+          <svg-icon icon-id.bind="link.config.iconId"></svg-icon>
         </a>
-        <a href.bind="row.href" if.bind="!row.config.showIcon">
-          ${row.title}
+        <a href.bind="link.href" if.bind="!link.config.showIcon">
+          ${link.config.navTitle ? link.config.navTitle : link.title}
+        </a>
+      </li>
+      <li repeat.for="link of externalLinks" class="${link.showIcon ? 'is-icon-only' : ''} ${$index === 0 ? 'is-left-separated' : ''}">
+        <a target="_blank" href.bind="link.href" if.bind="link.showIcon" title="${link.title}">
+          <svg-icon icon-id.bind="link.iconId"></svg-icon>
+        </a>
+        <a target="_blank" href.bind="link.href" if.bind="!link.showIcon">
+          ${link.title}
         </a>
       </li>
     </ul>
