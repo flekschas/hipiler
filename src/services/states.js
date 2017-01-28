@@ -14,20 +14,25 @@ const CONFIG = {
   keyPrefix: 'matrixDecompositionMethods.'
 };
 
+let STORE;
+
 export default class States {
   constructor () {
-    getStoredState(CONFIG, (err, state) => {
-      this.store = createStore(
-        undoable(appReducer),
-        state,
-        compose(
-          autoRehydrate(),
-          applyMiddleware(thunk)
-        )
-      );
+    this.store = getStoredState(CONFIG)
+      .then((err, state) => {
+        STORE = createStore(
+          undoable(appReducer),
+          state,
+          compose(
+            autoRehydrate(),
+            applyMiddleware(thunk)
+          )
+        );
 
-      persistStore(this.store, CONFIG);
-    });
+        persistStore(STORE, CONFIG);
+
+        return STORE;
+      });
   }
 
   undo () {

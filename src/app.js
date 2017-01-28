@@ -20,10 +20,14 @@ const logger = LogManager.getLogger('decompose');
 export class App {
   constructor (eventAggregator, font, states) {
     this.events = eventAggregator;
+
     this.font = font;
-    this.states = states;
-    this.undo = states.undo.bind(states);
-    this.redo = states.redo.bind(states);
+
+    states.store.then(store => {
+      this.store = store;
+      this.undo = states.undo.bind(states);
+      this.redo = states.redo.bind(states);
+    });
   }
 
   attached () {

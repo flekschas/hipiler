@@ -26,8 +26,10 @@ export class Decompose {
     this.css = {};
 
     // Link the Redux store
-    this.store = states.store;
-    this.store.subscribe(this.update.bind(this));
+    states.store.then(store => {
+      this.store = store;
+      this.store.subscribe(this.update.bind(this));
+    });
 
     this.pattern = {};
     this.stats = {};

@@ -8,14 +8,16 @@ import States from 'services/states';
 // Utils etc.
 import hglib from 'hglib';  // eslint-disable-line
 
-const logger = LogManager.getLogger('decompose');
+const logger = LogManager.getLogger('higlass');
 
 @inject(States)
 export class HiGlass {
   constructor (states) {
     // Link the Redux store
-    this.store = states.store;
-    this.store.subscribe(this.update.bind(this));
+    states.store.then(store => {
+      this.store = store;
+      this.store.subscribe(this.update.bind(this));
+    });
 
     this.higlass = {};
   }
