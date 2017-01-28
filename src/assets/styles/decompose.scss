@@ -22,12 +22,12 @@
 
 .pattern-view {
   flex-grow: 1;
-  border-left: 1px solid $lighter-gray;
+  border-left: 1px solid $gray-lighter;
 }
 
 .stats-view {
   flex-basis: 20rem;
-  border-left: 1px solid $lighter-gray;
+  border-left: 1px solid $gray-lighter;
   padding-right: 0;
 }
 
@@ -40,7 +40,7 @@
     margin-bottom: 0.25rem;
     font-size: 1rem;
     line-height: 2rem;
-    color: $lighter-gray;
+    color: $gray-lighter;
     font-weight: normal;
     text-transform: uppercase;
   }
@@ -54,7 +54,7 @@
   display: block;
   width: 0.5rem;
   height: 2rem;
-  background: $lighter-gray;
+  background: $gray-lighter;
   transform: translateX(0);
   transition: background $transition-very-fast $ease-in-out-cubic,
               transform $transition-very-fast $ease-in-out-cubic,

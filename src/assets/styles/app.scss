@@ -17,8 +17,8 @@ html {
 }
 
 #drag-drop-notifier {
-  color: $dark-gray;
-  background: $light-gray;
+  color: $gray-dark;
+  background: $gray-light;
 }
 
 #global-error {
@@ -42,7 +42,7 @@ body.is-global-error {
   right: 0;
   height: 3rem;
   padding: 0 0.5rem;
-  border-bottom: 1px solid $lighter-gray;
+  border-bottom: 1px solid $gray-lighter;
   color: $gray;
   background: $white;
   line-height: 3rem;
