@@ -11,6 +11,7 @@ import States from 'services/states';
 import $ from 'utils/dom-el';
 import { updateConfigs } from 'app.actions';
 import { routes } from 'configs/app';
+import { externalLinks } from 'configs/nav';
 import dragDrop from 'utils/drag-drop';
 import readJsonFile from 'utils/read-json-file';
 
@@ -28,6 +29,8 @@ export class App {
       this.undo = states.undo.bind(states);
       this.redo = states.redo.bind(states);
     });
+
+    this.externalLinks = externalLinks;
   }
 
   attached () {
