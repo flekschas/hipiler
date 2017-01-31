@@ -15,7 +15,7 @@ import { externalLinks } from 'configs/nav';
 import dragDrop from 'utils/drag-drop';
 import readJsonFile from 'utils/read-json-file';
 
-const logger = LogManager.getLogger('decompose');
+const logger = LogManager.getLogger('app');
 
 @inject(EventAggregator, Font, States)
 export class App {
@@ -107,6 +107,7 @@ export class App {
   updateState (config) {
     if (this.validateConfig(config)) {
       this.store.dispatch(updateConfigs(config));
+      this.router.navigateToRoute('decompose');
     } else {
       this.showGlobalError('Corrupted Config File', 3000);
     }
