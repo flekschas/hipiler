@@ -12,7 +12,7 @@
     "aurelia-animator-css": "1.0.0",
     "aurelia-bootstrapper": "1.0.0",
     "bluebird": "3.4.7",
-    "higlass": ">=0.4.8",
+    "higlass": "hms-dbmi/higlass#flekschas/state-change-animate",
     "redux": "3.6.0",
     "redux-persist": "4.1.0",
     "redux-promise-middleware": "4.2.0",
