@@ -1,7 +1,7 @@
 import { combineReducers } from 'redux';
 
-import { UPDATE_HGL_CONFIG } from 'components/higlass.actions';
-import { CONFIG } from 'components/higlass.defaults';
+import { UPDATE_HGL_CONFIG } from 'components/higlass/actions';
+import { CONFIG } from 'components/higlass/defaults';
 
 import deepClone from 'utils/deep-clone';
 
