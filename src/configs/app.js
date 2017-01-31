@@ -15,7 +15,7 @@ export const routes = [
     name: 'home',
     title: 'Home',
     moduleId: 'views/home',
-    nav: true
+    nav: false
   },
   {
     route: 'about',
@@ -37,13 +37,6 @@ export const routes = [
     name: 'decompose',
     title: 'Decompose',
     moduleId: 'views/decompose',
-    nav: false
-  },
-  {
-    route: 'higlass',
-    name: 'higlass',
-    title: 'Higlass',
-    moduleId: 'views/higlass',
     nav: false
   }
 ];

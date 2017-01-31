@@ -6,15 +6,15 @@ import { LogManager } from 'aurelia-framework';
 import States from 'services/states';
 
 // Utils etc.
-import hglib from 'hglib';  // eslint-disable-line
+import { HgComponent as HG } from 'hglib';  // eslint-disable-line
 
 const logger = LogManager.getLogger('higlass');
 
 @inject(States)
-export class HiGlass {
+export class Higlass {
   constructor (states) {
     // Link the Redux store
-    states.store.then(store => {
+    this.storeLoaded = states.store.then(store => {
       this.store = store;
       this.store.subscribe(this.update.bind(this));
     });
@@ -22,15 +22,20 @@ export class HiGlass {
     this.higlass = {};
   }
 
+  attached () {
+    this.storeLoaded.then(() => this.update());
+  }
+
   update () {
     try {
-      this.updateConfig(this.store.getState().present.higlass.config);
+      this.updateConfig(this.store.getState().present.decompose.higlass.config);
     } catch (e) {
-      logger.error('State invalid', e);
+      logger.error('State is invalid', e);
     }
   }
 
   updateConfig (newConfig) {
+    logger.debug(newConfig);
     if (this.higlass.config !== newConfig) {
       this.higlass.config = newConfig;
       this.launchHg(this.higlass.config);
@@ -38,9 +43,6 @@ export class HiGlass {
   }
 
   launchHg (config) {
-    return new hglib.HgComponent(
-      document.querySelector('#higlass'),
-      config
-    );
+    return new HG(this.baseEl, config);
   }
 }

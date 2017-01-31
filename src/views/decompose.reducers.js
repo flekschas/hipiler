@@ -3,6 +3,8 @@ import { combineReducers } from 'redux';
 import { UPDATE_WIDTH } from 'views/decompose.actions';
 import { COLUMNS } from 'views/decompose.defaults';
 
+import higlass from 'components/higlass.reducers';
+
 export function columns (state = { ...COLUMNS }, action) {
   switch (action.type) {
     case UPDATE_WIDTH:
@@ -16,5 +18,6 @@ export function columns (state = { ...COLUMNS }, action) {
 }
 
 export default combineReducers({
-  columns
+  columns,
+  higlass
 });
