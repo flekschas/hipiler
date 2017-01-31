@@ -1,7 +1,6 @@
 import { combineReducers } from 'redux';
 
 import decompose from 'views/decompose.reducers';
-import higlass from 'views/higlass.reducers';
 
 /**
  * The global / app reducer
@@ -21,7 +20,6 @@ import higlass from 'views/higlass.reducers';
  */
 export default combineReducers({
   // Views
-  decompose,
-  higlass
+  decompose
   // Components
 });
