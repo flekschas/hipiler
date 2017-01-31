@@ -35,7 +35,7 @@ body.is-global-error {
   }
 }
 
-#toolbar {
+#topbar {
   position: absolute;
   top: 0;
   left: 0;
@@ -48,9 +48,30 @@ body.is-global-error {
   line-height: 3rem;
 
   h1 {
+    position: relative;
     font-weight: normal;
     font-size: 1.5rem;
     line-height: inherit;
+
+    a {
+      border-bottom: 0;
+    }
+
+    &.is-active {
+      &::before {
+        position: absolute;
+        content: '';
+        right: 0;
+        bottom: 0;
+        left: 0;
+        height: 3px;
+        background: $primary;
+      }
+
+      a {
+        color: $black;
+      }
+    }
   }
 }
 
@@ -64,13 +85,13 @@ body.is-global-error {
   background: $white;
 }
 
-#toolbar,
+#topbar,
 #main {
   transition: opacity $transition-very-fast $ease-in-out-cubic;
 }
 
 body.is-dragging-over {
-  #toolbar,
+  #topbar,
   #main {
     opacity: 0.33;
   }

@@ -15,8 +15,15 @@
       <span>${globalErrorMsg}</span>
     </div>
 
-    <header id="toolbar" class="flex-c flex-jc-sb">
-      <h1>Matrix Decomposition Methods</h1>
+    <header id="topbar" class="flex-c flex-jc-sb">
+      <div class="flex-c">
+        <h1 class="${router.currentInstruction.config.name === 'home' ? 'is-active' : ''}">
+          <a route-href="route: home">
+            ${isRoute('decompose') ? 'MDM' : 'Matrix Decomposition Methods'}
+          </a>
+        </h1>
+        <button if.bind="router.currentInstruction.config.name === 'decompose'">Running</button>
+      </div>
 
       <navigation
         class="primary-nav"
