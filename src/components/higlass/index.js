@@ -6,6 +6,7 @@ import { LogManager } from 'aurelia-framework';
 import States from 'services/states';
 
 // Utils etc.
+import $ from 'utils/dom-el';
 import debounce from 'utils/debounce';
 import { create as higlass } from 'hglib';  // eslint-disable-line
 
@@ -35,12 +36,8 @@ export class Higlass {
     if (this.columns !== newColumns) {
       this.columns = newColumns;
 
-      if (this.api) {
-        console.log(this.api);
-        this.api.refresh();
-      } else {
-        this.renderDb(this.higlass.config);
-      }
+      // For HiGlass to rerender
+      $(window).dispatch('resize', 'HTMLEvents');
     }
   }
 
