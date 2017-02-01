@@ -12,7 +12,6 @@
     "aurelia-animator-css": "1.0.1",
     "aurelia-bootstrapper": "2.0.1",
     "bluebird": "3.4.7",
-    "domtastic": "0.12.3",
     "higlass": "hms-dbmi/higlass#flekschas/public-api",
     "redux": "3.6.0",
     "redux-persist": "4.1.0",
