@@ -5,6 +5,7 @@
 .matrix-view,
 .fragments-view,
 .stats-view {
+  min-width: 3rem;
   padding: 0 0.5rem;
 
   &.is-transitionable {
@@ -18,6 +19,7 @@
 
 .matrix-view {
   flex-basis: 40%;
+  min-width: 2.5rem;
   padding-left: 0;
 }
 
@@ -29,22 +31,8 @@
 .stats-view {
   flex-basis: 20rem;
   border-left: 1px solid $gray-lighter;
+  min-width: 2.5rem;
   padding-right: 0;
-}
-
-.matrix-view,
-.fragments-view,
-.stats-view {
-  h2.small {
-    position: relative;
-    z-index: 1;
-    margin-bottom: 0.25rem;
-    font-size: 1rem;
-    line-height: 2rem;
-    color: $gray-lighter;
-    font-weight: normal;
-    text-transform: uppercase;
-  }
 }
 
 .column-resizer {
@@ -106,19 +94,31 @@
 
 .column-header {
   height: 2rem;
-  margin-left: -0.25rem;
 
-  &:hover h2,
-  &:hover h2.small {
+  &:hover h2 {
     margin-top: -2rem;
   }
 
-  h2,
-  h2.small {
-    margin: 0 0 0 0.25rem;
+  h2 {
+    margin: 0;
   }
 
   h2 {
+    @include truncate();
+
+    position: absolute;
+    z-index: 1;
+    top: 0;
+    right: 0;
+    left: 0;
+    height: 2rem;
+    min-width: 2rem;
+    font-size: 1rem;
+    line-height: 2rem;
+    color: $gray-lighter;
+    font-weight: normal;
+    text-transform: uppercase;
+    background: $white;
     transition: margin $transition-very-fast $ease-in-out-cubic;
   }
 
@@ -138,6 +138,12 @@
   }
 
   .controls {
+    position: absolute;
+    top: 0;
+    right: 0;
+    left: 0;
+    height: 2rem;
+    min-width: 2rem;
     margin: 0;
   }
 
