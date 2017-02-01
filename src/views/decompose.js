@@ -165,7 +165,7 @@ export class Decompose {
     }
 
     if (column === 'stats') {
-      width = 10;
+      width = this.baseEl.getBoundingClientRect().width / 16;
     }
 
     this.store.dispatch(updateWidth(columnToUpdate, width));
