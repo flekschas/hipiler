@@ -1,11 +1,11 @@
 export const UPDATE_CONFIG = 'UPDATE_CONFIG';
 
-import { updateConfig as updateHglConfig } from 'components/higlass.actions';
-import { updateConfig as updateMdmConfig } from 'views/decompose.actions';
+import { updateConfig as updateHglConfig } from 'components/higlass/actions';
+import { updateConfig as updateFgmConfig } from 'components/fragments/actions';
 
 export const updateConfigs = (config) => {
   return function (dispath) {
     dispath(updateHglConfig(config.hgl));
-    dispath(updateMdmConfig(config.mdm));
+    dispath(updateFgmConfig(config.fgm));
   };
 };
