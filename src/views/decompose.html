@@ -27,30 +27,30 @@
         </header>
         <higlass class="full-wh no-overflow"></higlass>
       </div>
-      <div class="pattern-view rel" ref="patternColEl">
+      <div class="fragments-view rel" ref="fragmentsColEl">
         <button
           class="column-resizer draggable horizontal-only"
-          ref="patternDragger"
-          mousedown.trigger="columnDragStartHandler($event, 'pattern')"
-          css.one-way="pattern.dragBtnCss"></button>
+          ref="fragmentsDragger"
+          mousedown.trigger="columnDragStartHandler($event, 'fragments')"
+          css.one-way="fragments.dragBtnCss"></button>
         <div
           class="drag-indicator"
-          ref="patternDragIndicator"
-          css.one-way="pattern.dragIndicatorCss"></div>
+          ref="fragmentsDragIndicator"
+          css.one-way="fragments.dragIndicatorCss"></div>
         <header class="column-header no-overflow">
           <h2 class="small">Fragments</h2>
           <ul class="flex-c controls">
             <li>
               <button
                 class="is-icon-only"
-                click.delegate="maximizeColumn('matrix')">
+                click.delegate="maximizeColumn('fragments')">
                 <svg-icon icon-id="max-horizontal"></svg-icon>
               </button>
             </li>
             <li>
               <button
                 class="is-icon-only"
-                click.delegate="minimizeColumn('matrix')">
+                click.delegate="minimizeColumn('fragments')">
                 <svg-icon icon-id="min-horizontal"></svg-icon>
               </button>
             </li>
@@ -75,14 +75,14 @@
           <li>
             <button
               class="is-icon-only"
-              click.delegate="maximizeColumn('matrix')">
+              click.delegate="maximizeColumn('stats')">
               <svg-icon icon-id="max-horizontal"></svg-icon>
             </button>
           </li>
           <li>
             <button
               class="is-icon-only"
-              click.delegate="minimizeColumn('matrix')">
+              click.delegate="minimizeColumn('stats')">
               <svg-icon icon-id="min-horizontal"></svg-icon>
             </button>
           </li>

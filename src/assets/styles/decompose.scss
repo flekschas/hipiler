@@ -1,8 +1,9 @@
+@import 'mixins/truncate';
 @import 'colors';
 @import 'transitions';
 
 .matrix-view,
-.pattern-view,
+.fragments-view,
 .stats-view {
   padding: 0 0.5rem;
 
@@ -12,7 +13,7 @@
 }
 
 .matrix-view,
-.pattern-view {
+.fragments-view {
 }
 
 .matrix-view {
@@ -20,7 +21,7 @@
   padding-left: 0;
 }
 
-.pattern-view {
+.fragments-view {
   flex-grow: 1;
   border-left: 1px solid $gray-lighter;
 }
@@ -32,7 +33,7 @@
 }
 
 .matrix-view,
-.pattern-view,
+.fragments-view,
 .stats-view {
   h2.small {
     position: relative;
@@ -68,13 +69,13 @@
   }
 }
 
-.is-col-drag-pattern .pattern-view .column-resizer,
+.is-col-drag-fragments .fragments-view .column-resizer,
 .is-col-drag-stats .stats-view .column-resizer {
   transition: background $transition-very-fast $ease-in-out-cubic;
   width: 1rem;
 }
 
-.is-col-drag-pattern-highlight .pattern-view .column-resizer,
+.is-col-drag-fragments-highlight .fragments-view .column-resizer,
 .is-col-drag-stats-highlight .stats-view .column-resizer {
   background: $primary;
   width: 1rem;
@@ -98,7 +99,7 @@
   transition: opacity $transition-very-fast $ease-in-out-cubic;
 }
 
-.is-col-drag-pattern .pattern-view .drag-indicator,
+.is-col-drag-fragments .fragments-view .drag-indicator,
 .is-col-drag-stats .stats-view .drag-indicator {
   opacity: 1;
 }
@@ -127,6 +128,8 @@
     color: $gray;
     border: none;
     background: none;
+    transition: color $transition-very-fast $ease-in-out-cubic,
+                background $transition-very-fast $ease-in-out-cubic;
 
     &:hover {
       color: $black;

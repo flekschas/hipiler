@@ -30,7 +30,7 @@ export class Decompose {
 
     this.update();
 
-    this.pattern = {};
+    this.fragments = {};
     this.stats = {};
   }
 
@@ -39,7 +39,7 @@ export class Decompose {
 
     requestNextAnimationFrame(() => {
       new $(this.matrixColEl).addClass('is-transitionable');
-      new $(this.patternColEl).addClass('is-transitionable');
+      new $(this.fragmentsColEl).addClass('is-transitionable');
       new $(this.statsColEl).addClass('is-transitionable');
     });
   }
@@ -147,8 +147,41 @@ export class Decompose {
     this.dragging = undefined;
   }
 
+  maximizeColumn (column) {
+    let columnToUpdate = column;
+    let width = 99;
+
+    if (column === 'matrix') {
+      this.minimizeColumn('fragments');
+      this.minimizeColumn('stats');
+    }
+
+    if (column === 'fragments') {
+      this.minimizeColumn('matrix');
+      this.minimizeColumn('stats');
+    }
+
+    if (column === 'stats') {
+      width = 10;
+    }
+
+    this.store.dispatch(updateWidth(columnToUpdate, width));
+  }
+
+  minimizeColumn (column) {
+    let columnToUpdate = column;
+    let width = 1;
+
+    if (column === 'fragments') {
+      columnToUpdate = 'matrix';
+      width = 99;
+    }
+
+    this.store.dispatch(updateWidth(columnToUpdate, width));
+  }
+
   updateColumnWidth (dragged) {
-    if (dragged.target === 'pattern') {
+    if (dragged.target === 'fragments') {
       const visWidth = this.visEl.getBoundingClientRect().width;
       const matrixWidth = this.matrixColEl.getBoundingClientRect().width;
 
