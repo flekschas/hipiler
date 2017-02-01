@@ -9,6 +9,7 @@ import States from 'services/states';
 
 // Utils etc.
 import $ from 'utils/dom-el';
+import debounce from 'utils/debounce';
 import { transition } from 'configs/app';
 import { requestNextAnimationFrame } from 'utils/request-animation-frame';
 import { updateWidth } from 'views/decompose.actions';
@@ -28,10 +29,12 @@ export class Decompose {
     this.store = states.store;
     this.store.subscribe(this.update.bind(this));
 
-    this.update();
-
     this.fragments = {};
     this.stats = {};
+
+    this.updateCssDb = debounce(this.updateCss.bind(this), 50);
+
+    this.update();
   }
 
   attached () {
@@ -46,7 +49,7 @@ export class Decompose {
 
   update () {
     try {
-      this.updateCss(this.store.getState().present.decompose.columns);
+      this.updateCssDb(this.store.getState().present.decompose.columns);
     } catch (e) {
       logger.error('State invalid', e);
     }
