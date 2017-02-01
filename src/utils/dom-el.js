@@ -5,6 +5,18 @@ const DomEl = {
 
       this.node.className += `${space}${className}`;
     }
+
+    return this;
+  },
+
+  dispatch (eventName, eventType, blubbles, cancelable) {
+    const event = document.createEvent(eventType || 'Event');
+
+    event.initEvent(eventName, blubbles || true, cancelable);
+
+    this.node.dispatchEvent(event);
+
+    return this;
   },
 
   hasClass (className, pos) {
@@ -27,6 +39,8 @@ const DomEl = {
     if (re.index >= 0) {
       this.node.className = `${this.node.className.substr(0, re.index)} ${this.node.className.substr(re.index + re.match.length)}`.trim();
     }
+
+    return this;
   }
 };
 
