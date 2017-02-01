@@ -10,11 +10,16 @@ $gray-dark: #666;
 $gray-darker: #444;
 $gray-darkest: #222;
 
+$green: #40bf00;
 $orange: #ff5500;
 $red: #f60029;
+$yellow: #ffcc00;
 
 $primary: $orange;
 $secondary: $orange;
+
+$active: $green;
+$ready: $yellow;
 
 $error-text: darken($red, 25%);
 $error-bg: lighten($red, 25%);

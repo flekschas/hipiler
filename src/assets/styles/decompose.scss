@@ -102,3 +102,27 @@
 .is-col-drag-stats .stats-view .drag-indicator {
   opacity: 1;
 }
+
+.column-header {
+  height: 2rem;
+
+  &:hover h2 {
+    margin-top: -2rem;
+  }
+
+  h2 {
+    transition: margin $transition-very-fast $ease-in-out-cubic;
+  }
+
+  button {
+    color: $gray-dark;
+    border: none;
+    background: none;
+  }
+
+  .is-icon-only svg {
+    width: 1.5rem;
+    height: 1.5rem;
+    padding: 0.25rem;
+  }
+}

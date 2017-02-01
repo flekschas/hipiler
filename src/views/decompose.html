@@ -1,11 +1,27 @@
 <template>
-  <require from="components/higlass"></require>
+  <require from="components/fragments/index"></require>
+  <require from="components/higlass/index"></require>
+  <require from="components/svg-icon.html"></require>
 
   <div class="full-wh flex-c flex-jc-sb flex-a-s" ref="baseEl">
     <div class="vis-view flex-c flex-jc-sb flex-a-s flex-i-g-1" ref="visEl">
       <div class="matrix-view rel" css.one-way="css.matrix" ref="matrixColEl">
-        <h2 class="small">Matrix</h2>
-        <higlass class="full-wh"></higlass>
+        <header class="column-header no-overflow">
+          <h2 class="small">Matrix</h2>
+          <ul class="flex-c">
+            <li>
+              <button class="is-icon-only">
+                <svg-icon icon-id="play"></svg-icon>
+              </button>
+            </li>
+            <li>
+              <button class="is-icon-only">
+                <svg-icon icon-id="reset"></svg-icon>
+              </button>
+            </li>
+          </ul>
+        </header>
+        <higlass class="full-wh no-overflow"></higlass>
       </div>
       <div class="pattern-view rel" ref="patternColEl">
         <button
@@ -17,7 +33,22 @@
           class="drag-indicator"
           ref="patternDragIndicator"
           css.one-way="pattern.dragIndicatorCss"></div>
-        <h2 class="small">Pattern</h2>
+        <header class="column-header no-overflow">
+          <h2 class="small">Fragments</h2>
+          <ul class="flex-c">
+            <li>
+              <button class="is-icon-only">
+                <svg-icon icon-id="play"></svg-icon>
+              </button>
+            </li>
+            <li>
+              <button class="is-icon-only">
+                <svg-icon icon-id="reset"></svg-icon>
+              </button>
+            </li>
+          </ul>
+        </header>
+        <main></main>
       </div>
     </div>
     <div class="stats-view rel" css.one-way="css.stats" ref="statsColEl">
@@ -30,7 +61,22 @@
         class="drag-indicator"
         ref="statsDragIndicator"
         css.one-way="stats.dragIndicatorCss"></div>
-      <h2 class="small">Statistics</h2>
+      <header class="column-header no-overflow">
+        <h2 class="small">Statistics</h2>
+        <ul class="flex-c">
+          <li>
+            <button class="is-icon-only">
+              <svg-icon icon-id="play"></svg-icon>
+            </button>
+          </li>
+          <li>
+            <button class="is-icon-only">
+              <svg-icon icon-id="reset"></svg-icon>
+            </button>
+          </li>
+        </ul>
+      </header>
+      <main></main>
     </div>
   </div>
 </template>
