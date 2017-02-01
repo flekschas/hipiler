@@ -25,11 +25,10 @@ export class Decompose {
 
     this.css = {};
 
-    // Link the Redux store
-    states.store.then(store => {
-      this.store = store;
-      this.store.subscribe(this.update.bind(this));
-    });
+    this.store = states.store;
+    this.store.subscribe(this.update.bind(this));
+
+    this.update();
 
     this.pattern = {};
     this.stats = {};
@@ -43,8 +42,6 @@ export class Decompose {
       new $(this.patternColEl).addClass('is-transitionable');
       new $(this.statsColEl).addClass('is-transitionable');
     });
-
-    this.updateCss(this.store.getState().present.decompose.columns);
   }
 
   update () {

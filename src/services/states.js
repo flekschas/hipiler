@@ -1,7 +1,7 @@
 // Third party
 import localForage from 'localForage';
 import { applyMiddleware, compose, createStore } from 'redux';
-import { persistStore, autoRehydrate, getStoredState } from 'redux-persist';
+import { autoRehydrate, persistStore, purgeStoredState } from 'redux-persist';
 import thunk from 'redux-thunk';
 import undoable from 'redux-undo';
 import { ActionCreators } from 'redux-undo';
@@ -14,25 +14,23 @@ const CONFIG = {
   keyPrefix: 'matrixDecompositionMethods.'
 };
 
-let STORE;
+// let STORE;
 
 export default class States {
   constructor () {
-    this.store = getStoredState(CONFIG)
-      .then((err, state) => {
-        STORE = createStore(
-          undoable(appReducer),
-          state,
-          compose(
-            autoRehydrate(),
-            applyMiddleware(thunk)
-          )
-        );
+    this.store = createStore(
+      undoable(appReducer),
+      undefined,
+      compose(
+        autoRehydrate(),
+        applyMiddleware(thunk)
+      )
+    );
 
-        persistStore(STORE, CONFIG);
-
-        return STORE;
-      });
+    persistStore(this.store, CONFIG, (err, state) => {
+      // Rehydration is done
+      this.isRehydrated = Object.keys(true).length > 0;
+    });
   }
 
   undo () {
@@ -41,5 +39,15 @@ export default class States {
 
   redo () {
     this.store.dispatch(ActionCreators.redo());
+  }
+
+  reset () {
+    return purgeStoredState(CONFIG)
+      .then(() => {
+        console.log('alles gelöscht dude');
+      })
+      .catch(() => {
+        console.error('WOOOT löschen fehlgeschlagen');
+      });
   }
 }
