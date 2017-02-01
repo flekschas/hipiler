@@ -105,9 +105,16 @@
 
 .column-header {
   height: 2rem;
+  margin-left: -0.25rem;
 
-  &:hover h2 {
+  &:hover h2,
+  &:hover h2.small {
     margin-top: -2rem;
+  }
+
+  h2,
+  h2.small {
+    margin: 0 0 0 0.25rem;
   }
 
   h2 {
@@ -115,9 +122,20 @@
   }
 
   button {
-    color: $gray-dark;
+    min-width: 2rem;
+    height: 2rem;
+    color: $gray;
     border: none;
     background: none;
+
+    &:hover {
+      color: $black;
+      background: $gray-lighter;
+    }
+  }
+
+  .controls {
+    margin: 0;
   }
 
   .is-icon-only svg {

@@ -8,15 +8,19 @@
       <div class="matrix-view rel" css.one-way="css.matrix" ref="matrixColEl">
         <header class="column-header no-overflow">
           <h2 class="small">Matrix</h2>
-          <ul class="flex-c">
+          <ul class="flex-c controls">
             <li>
-              <button class="is-icon-only">
-                <svg-icon icon-id="play"></svg-icon>
+              <button
+                class="is-icon-only"
+                click.delegate="maximizeColumn('matrix')">
+                <svg-icon icon-id="max-horizontal"></svg-icon>
               </button>
             </li>
             <li>
-              <button class="is-icon-only">
-                <svg-icon icon-id="reset"></svg-icon>
+              <button
+                class="is-icon-only"
+                click.delegate="minimizeColumn('matrix')">
+                <svg-icon icon-id="min-horizontal"></svg-icon>
               </button>
             </li>
           </ul>
@@ -35,15 +39,19 @@
           css.one-way="pattern.dragIndicatorCss"></div>
         <header class="column-header no-overflow">
           <h2 class="small">Fragments</h2>
-          <ul class="flex-c">
+          <ul class="flex-c controls">
             <li>
-              <button class="is-icon-only">
-                <svg-icon icon-id="play"></svg-icon>
+              <button
+                class="is-icon-only"
+                click.delegate="maximizeColumn('matrix')">
+                <svg-icon icon-id="max-horizontal"></svg-icon>
               </button>
             </li>
             <li>
-              <button class="is-icon-only">
-                <svg-icon icon-id="reset"></svg-icon>
+              <button
+                class="is-icon-only"
+                click.delegate="minimizeColumn('matrix')">
+                <svg-icon icon-id="min-horizontal"></svg-icon>
               </button>
             </li>
           </ul>
@@ -63,15 +71,19 @@
         css.one-way="stats.dragIndicatorCss"></div>
       <header class="column-header no-overflow">
         <h2 class="small">Statistics</h2>
-        <ul class="flex-c">
+        <ul class="flex-c controls">
           <li>
-            <button class="is-icon-only">
-              <svg-icon icon-id="play"></svg-icon>
+            <button
+              class="is-icon-only"
+              click.delegate="maximizeColumn('matrix')">
+              <svg-icon icon-id="max-horizontal"></svg-icon>
             </button>
           </li>
           <li>
-            <button class="is-icon-only">
-              <svg-icon icon-id="reset"></svg-icon>
+            <button
+              class="is-icon-only"
+              click.delegate="minimizeColumn('matrix')">
+              <svg-icon icon-id="min-horizontal"></svg-icon>
             </button>
           </li>
         </ul>
