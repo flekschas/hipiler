@@ -106,7 +106,6 @@ export class App {
   showGlobalError (msg, duration) {
     if (this.globalErrorDisplay) {
       clearTimeout(this.globalErrorDisplay);
-      logger.debug('Called nougats');
     }
 
     this.globalError = true;
@@ -132,8 +131,6 @@ export class App {
     } catch (e) {
       this.decomposeIsReady = false;
     }
-
-    logger.debug(this.decomposeIsReady, state);
   }
 
   updateState (config) {
