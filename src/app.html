@@ -6,6 +6,7 @@
     <require from="assets/styles/index.css"></require>
 
     <require from="components/navigation.html"></require>
+    <require from="components/svg-icon.html"></require>
 
     <div id="drag-drop-notifier" class="full-wh flex-c flex-jc-c flex-a-c">
       <span>Drop JSON state</span>
@@ -17,12 +18,31 @@
 
     <header id="topbar" class="flex-c flex-jc-sb">
       <div class="flex-c">
-        <h1 class="${router.currentInstruction.config.name === 'home' ? 'is-active' : ''}">
+        <h1 class="${currentRoute === 'home' ? 'is-active' : ''}">
           <a route-href="route: home">
-            ${isRoute('decompose') ? 'MDM' : 'Matrix Decomposition Methods'}
+            ${currentRoute === 'decompose' ? 'MDM' : 'Matrix Decomposition Methods'}
           </a>
         </h1>
-        <button if.bind="router.currentInstruction.config.name === 'decompose'">Running</button>
+        <div
+          class="flex-c state state-active"
+          if.bind="currentRoute === 'decompose'">
+          <svg-icon class="icon-inline" icon-id="play"></svg-icon>
+          Running
+        </div>
+        <button
+          class="flex-c state state-ready"
+          click.delegate="resumeDecomposition()"
+          if.bind="currentRoute !== 'decompose' && decomposeIsReady">
+          <svg-icon class="icon-inline" icon-id="play"></svg-icon>
+          Resume
+        </button>
+        <button
+          class="flex-c state"
+          click.delegate="reset()"
+          if.bind="currentRoute !== 'decompose' && decomposeIsReady">
+          <svg-icon class="icon-inline" icon-id="reset"></svg-icon>
+          Reset
+        </button>
       </div>
 
       <navigation
@@ -30,6 +50,19 @@
         router.bind="router"
         external-links.bind="externalLinks">
       </navigation>
+    </header>
+
+    <header
+      id="infobar"
+      class="flex-c flex-jc-c flex-a-c"
+      if.bind="!decomposeIsReady">
+      <span>Drag &amp; drop a <a route-href="route: docs">config file</a> to start decomposing</span>
+      <button
+        class="btn"
+        click.delegate="reset()"
+        if.bind="isRehydrated">
+        Reset
+      </button>
     </header>
 
     <main id="main">

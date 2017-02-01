@@ -73,6 +73,74 @@ body.is-global-error {
       }
     }
   }
+
+  .state {
+    margin: 0.5rem 0 0.5rem 0.5rem;
+    padding: 0 0.5rem;
+    color: $gray-dark;
+    font-size: 0.8em;
+    text-transform: uppercase;
+    line-height: 2rem;
+    border-radius: 2rem;
+    background: $white;
+    box-shadow: inset 0 0 0 1px $gray-lightest;
+
+    &.state-indicator::after {
+      content: '';
+      margin: 0.75rem 0 0 0.25rem;
+      width: 0.5rem;
+      height: 0.5rem;
+      border-radius: 0.5rem;
+      background: $gray-lighter;
+    }
+
+    &.state-active {
+      color: darken($active, 15%);
+      background: lighten(desaturate($active, 25%), 50%);
+      box-shadow: inset 0 0 0 1px transparentize(darken($active, 15%), 0.9);
+
+      &.state-indicator::after {
+        background: $active;
+      }
+    }
+
+    &.state-ready {
+      color: darken($ready, 20%);
+      background: lighten(desaturate($ready, 15%), 40%);
+      box-shadow: inset 0 0 0 1px transparentize(darken($ready, 10%), 0.8);
+
+      &.state-indicator::after {
+        background: $ready;
+      }
+    }
+
+    .icon-inline {
+      margin-right: 0.25rem;
+
+      svg {
+        height: 1.85rem;
+      }
+    }
+  }
+}
+
+#infobar {
+  position: absolute;
+  top: 3rem;
+  right: 0;
+  left: 0;
+  height: 3rem;
+  line-height: 3rem;
+  color: $gray-dark;
+  background: $gray-lighter;
+
+  a {
+    border-bottom-color: $gray-light;
+
+    &:hover {
+      border-bottom-color: $primary;
+    }
+  }
 }
 
 #main {
@@ -85,6 +153,10 @@ body.is-global-error {
   background: $white;
 }
 
+#infobar + #main {
+  top: 6rem;
+}
+
 #topbar,
 #main {
   transition: opacity $transition-very-fast $ease-in-out-cubic;
@@ -92,6 +164,7 @@ body.is-global-error {
 
 body.is-dragging-over {
   #topbar,
+  #infobar,
   #main {
     opacity: 0.33;
   }

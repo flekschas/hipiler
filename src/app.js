@@ -24,11 +24,16 @@ export class App {
 
     this.font = font;
 
-    states.store.then(store => {
-      this.store = store;
-      this.undo = states.undo.bind(states);
-      this.redo = states.redo.bind(states);
-    });
+    this.store = states.store;
+    this.store.subscribe(this.update.bind(this));
+
+    this.undo = states.undo.bind(states);
+    this.redo = states.redo.bind(states);
+    this.reset = states.reset.bind(states);
+
+    this.isRehydrated = states.isRehydrated;
+
+    this.update();
 
     this.externalLinks = externalLinks;
   }
@@ -66,6 +71,14 @@ export class App {
     config.map(routes);
   }
 
+  get currentRoute () {
+    try {
+      return this.router.currentInstruction.config.name;
+    } catch (e) {
+      return undefined;
+    }
+  }
+
   keyDownHandler (event) {
     if (event.keyCode === 90 && (event.ctrlKey || event.metaKey)) {
       event.preventDefault();
@@ -86,6 +99,10 @@ export class App {
     this.events.publish('app.mouseMove', event);
   }
 
+  resumeDecomposition () {
+    this.router.navigateToRoute('decompose');
+  }
+
   showGlobalError (msg, duration) {
     if (this.globalErrorDisplay) {
       clearTimeout(this.globalErrorDisplay);
@@ -104,8 +121,23 @@ export class App {
     }, duration);
   }
 
+  update () {
+    const state = this.store.getState().present;
+
+    try {
+      this.decomposeIsReady = this.validateConfig(
+        state.decompose.fragments.config,
+        state.decompose.higlass.config
+      );
+    } catch (e) {
+      this.decomposeIsReady = false;
+    }
+
+    logger.debug(this.decomposeIsReady, state);
+  }
+
   updateState (config) {
-    if (this.validateConfig(config)) {
+    if (this.validateConfig(config.fgm, config.hgl)) {
       this.store.dispatch(updateConfigs(config));
       this.router.navigateToRoute('decompose');
     } else {
@@ -113,7 +145,11 @@ export class App {
     }
   }
 
-  validateConfig (config) {
-    return typeof config.mdm === 'object' && typeof config.hgl === 'object';
+  validateConfig (fgm, hgl) {
+    try {
+      return Object.keys(fgm).length || Object.keys(hgl).length;
+    } catch (e) {
+      return false;
+    }
   }
 }
