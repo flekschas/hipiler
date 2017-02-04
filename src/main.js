@@ -23,3 +23,7 @@ export function configure (aurelia) {
 
   aurelia.start().then(() => aurelia.setRoot());
 }
+
+export default {
+  configure
+};

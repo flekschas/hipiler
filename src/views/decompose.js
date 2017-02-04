@@ -1,6 +1,5 @@
 // Aurelia
-import { inject } from 'aurelia-framework';
-import { LogManager } from 'aurelia-framework';
+import { inject, LogManager } from 'aurelia-framework';
 import { EventAggregator } from 'aurelia-event-aggregator';
 
 // Injectables
@@ -19,7 +18,7 @@ const logger = LogManager.getLogger('decompose');
 
 
 @inject(EventAggregator, Font, States)
-export class Decompose {
+export default class Decompose {
   constructor (eventAggregator, font, states) {
     this.events = eventAggregator;
     this.font = font;
@@ -56,11 +55,11 @@ export class Decompose {
   }
 
   updateCss (columns) {
-    for (let columnName of COLUMN_NAMES) {
+    COLUMN_NAMES.forEach((columnName) => {
       this.css[columnName] = {
         flexBasis: `${columns[`${columnName}Width`]}${columns[`${columnName}WidthUnit`]}`
       };
-    }
+    });
   }
 
   columnDragStartHandler (event, target) {
@@ -82,7 +81,7 @@ export class Decompose {
     const dX = event.clientX - this.dragging.x;
 
     this[this.dragging.target].dragBtnCss = {
-      transform: `translateX(${dX - this.font.size * 0.25}px)`
+      transform: `translateX(${dX - (this.font.size * 0.25)}px)`
     };
 
     this[this.dragging.target].dragIndicatorCss = {

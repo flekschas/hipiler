@@ -1,6 +1,5 @@
 // Aurelia
-import { inject } from 'aurelia-framework';
-import { LogManager } from 'aurelia-framework';
+import { inject, LogManager } from 'aurelia-framework';
 import { EventAggregator } from 'aurelia-event-aggregator';
 
 // Injectable
@@ -18,7 +17,7 @@ import readJsonFile from 'utils/read-json-file';
 const logger = LogManager.getLogger('app');
 
 @inject(EventAggregator, Font, States)
-export class App {
+export default class App {
   constructor (eventAggregator, font, states) {
     this.events = eventAggregator;
 

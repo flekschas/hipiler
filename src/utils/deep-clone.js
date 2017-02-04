@@ -20,10 +20,10 @@ function extend (target, source) {
 
   target = target || new source.constructor();
 
-  for (let name in source) {
-    target[name] = typeof target[name] === 'undefined' ?
-      extend(undefined, source[name]) : target[name];
-  }
+  Object.keys(source).forEach((attr) => {
+    target[attr] = typeof target[attr] === 'undefined' ?
+      extend(undefined, source[attr]) : target[attr];
+  });
 
   return target;
 }

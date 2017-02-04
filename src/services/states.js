@@ -3,8 +3,7 @@ import localForage from 'localForage';
 import { applyMiddleware, compose, createStore } from 'redux';
 import { autoRehydrate, persistStore, purgeStoredState } from 'redux-persist';
 import thunk from 'redux-thunk';
-import undoable from 'redux-undo';
-import { ActionCreators } from 'redux-undo';
+import undoable, { ActionCreators } from 'redux-undo';
 
 import appReducer from 'app.reducer';
 
@@ -13,8 +12,6 @@ const CONFIG = {
   debounce: 75,
   keyPrefix: 'matrixDecompositionMethods.'
 };
-
-// let STORE;
 
 export default class States {
   constructor () {
@@ -42,12 +39,6 @@ export default class States {
   }
 
   reset () {
-    return purgeStoredState(CONFIG)
-      .then(() => {
-        console.log('alles gelöscht dude');
-      })
-      .catch(() => {
-        console.error('WOOOT löschen fehlgeschlagen');
-      });
+    return purgeStoredState(CONFIG);
   }
 }

@@ -6,7 +6,7 @@ import States from 'services/states';
 
 
 @inject(States)
-export class Docs {
+export default class Docs {
   constructor (states) {
     this.store = states.store;
     this.store.subscribe(this.update.bind(this));

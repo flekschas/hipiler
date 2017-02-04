@@ -1,6 +1,5 @@
 // Aurelia
-import { inject } from 'aurelia-framework';
-import { LogManager } from 'aurelia-framework';
+import { inject, LogManager } from 'aurelia-framework';
 
 // Injectables
 import States from 'services/states';
@@ -17,7 +16,7 @@ const OPTIONS = {
 };
 
 @inject(States)
-export class Higlass {
+export default class Higlass {
   constructor (states) {
     // Link the Redux store
     this.store = states.store;
@@ -58,6 +57,6 @@ export class Higlass {
   }
 
   render (config) {
-    higlass(this.baseEl, config, OPTIONS, api => this.api = api);
+    higlass(this.baseEl, config, OPTIONS, (api) => { this.api = api; });
   }
 }
