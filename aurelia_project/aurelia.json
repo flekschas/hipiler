@@ -134,6 +134,11 @@
             "env": "dev"
           },
           {
+            "name": "d3",
+            "path": "../node_modules/d3/build",
+            "main": "d3"
+          },
+          {
             "name": "hglib",
             "path": "../node_modules/higlass/dist/scripts",
             "main": "hglib"
