@@ -167,6 +167,21 @@
             "name": "redux-undo",
             "path": "../node_modules/redux-undo/lib",
             "main": "index"
+          },
+          {
+            "name": "science",
+            "path": "../node_modules/science",
+            "main": "science.v1.js"
+          },
+          {
+            "name": "three",
+            "path": "../node_modules/three/build",
+            "main": "three"
+          },
+          {
+            "name": "three-orbit-controls",
+            "path": "../node_modules/three-orbit-controls",
+            "main": "index"
           }
         ]
       }
