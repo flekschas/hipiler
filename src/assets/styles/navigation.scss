@@ -23,6 +23,11 @@
         color: $black;
       }
     }
+
+    &:last-child {
+      padding-right: 0;
+      margin-right: 0;
+    }
   }
 
   a {
@@ -38,7 +43,7 @@
   }
 
   .is-icon-only {
-    width: 2.75rem;
+    width: 2.5rem;
     height: 3rem;
     padding: 0 0.5rem;
   }
