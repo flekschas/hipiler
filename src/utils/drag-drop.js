@@ -1,12 +1,13 @@
 import $ from './dom-el';
 import hasParent from './has-parent';
 
-export default function dragDrop (el, dropCallback) {
-  const $el = $(el);
+export default function dragDrop (baseEl, dropEl, dropCallback) {
+  const $baseEl = $(baseEl);
 
   document.addEventListener('dragenter', (event) => {
-    if (hasParent(event.target, el)) {
-      $el.addClass('is-dragging-over');
+    if (hasParent(event.target, baseEl)) {
+      $baseEl.addClass('is-dragging-over');
+      isDragging = true;
     }
   });
 
@@ -15,16 +16,18 @@ export default function dragDrop (el, dropCallback) {
   });
 
   document.addEventListener('dragleave', () => {
-    $el.removeClass('is-dragging-over');
+    if (isDragging && hasParent(event.target, dropEl)) {
+      $baseEl.removeClass('is-dragging-over');
+    }
   });
 
   document.addEventListener('drop', (event) => {
     event.preventDefault();
 
-    if (hasParent(event.target, el)) {
+    if (hasParent(event.target, baseEl)) {
       dropCallback(event);
     }
 
-    $el.removeClass('is-dragging-over');
+    $baseEl.removeClass('is-dragging-over');
   }, false);
 }

@@ -47,7 +47,7 @@ export default class App {
     );
 
     // Drag and drop handler
-    dragDrop(document.body, (event) => {
+    dragDrop(document.body, this.dragDropArea, (event) => {
       let results;
 
       try {

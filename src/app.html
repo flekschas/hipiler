@@ -8,8 +8,11 @@
     <require from="components/navigation.html"></require>
     <require from="components/svg-icon.html"></require>
 
-    <div id="drag-drop-notifier" class="full-wh flex-c flex-jc-c flex-a-c">
-      <span>Drop JSON state</span>
+    <div
+      id="drag-drop-notifier"
+      class="full-wh flex-c flex-jc-c flex-a-c">
+      <div class="full-dim" ref="dragDropArea"></div>
+      <span>Drop Config JSON</span>
     </div>
 
     <div id="global-error" class="full-wh flex-c flex-jc-c flex-a-c">
