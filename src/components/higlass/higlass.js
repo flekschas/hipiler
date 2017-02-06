@@ -7,7 +7,7 @@ import States from 'services/states';
 // Utils etc.
 import $ from 'utils/dom-el';
 import debounce from 'utils/debounce';
-import { create as higlass } from 'hglib';  // eslint-disable-line
+import { createHgComponent as hg } from 'hglib';  // eslint-disable-line
 
 const logger = LogManager.getLogger('higlass');
 
@@ -16,7 +16,7 @@ const OPTIONS = {
 };
 
 @inject(States)
-export default class Higlass {
+export class Higlass {
   constructor (states) {
     // Link the Redux store
     this.store = states.store;
@@ -57,6 +57,6 @@ export default class Higlass {
   }
 
   render (config) {
-    higlass(this.baseEl, config, OPTIONS, (api) => { this.api = api; });
+    hg(this.baseEl, config, OPTIONS, (api) => { this.api = api; });
   }
 }

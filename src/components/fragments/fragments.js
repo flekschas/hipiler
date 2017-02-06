@@ -46,7 +46,7 @@ import {
 const logger = LogManager.getLogger('fragments');
 
 @inject(States, MpState)
-export default class Fragments {
+export class Fragments {
   constructor (states, mpState) {
     // Link the Redux store
     this.store = states.store;
