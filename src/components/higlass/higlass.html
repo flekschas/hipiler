@@ -1,3 +1,30 @@
 <template>
-  <div class="full-wh rel" ref="baseEl"></div>
+  <require from="components/svg-icon.html"></require>
+
+  <div class="loading-indicator" class="${isLoading ? 'is-active' : ''}"></div>
+  <div class="full-wh flex-c flex-d-c" ref="baseEl">
+    <main class="flex-i-g-1 rel">
+      <div class="full-dim" ref="plotEl"></div>
+    </main>
+    <footer class="settings-bar">
+      <ul class="flex-c settings-list">
+        <li class="flex-c flex-d-c">
+          <label for="settings-hg-grayscale">Grayscale</label>
+          <input type="checkbox" id="settings-hg-grayscale">
+        </li>
+        <li class="flex-c flex-d-c">
+          <label for="settings-hg-colors">Colors</label>
+          <input type="checkbox" id="hg-settings-hg-colors">
+        </li>
+        <li if.bind="currentRoute !== 'matrix'">
+          <a
+            route-href="route: matrix"
+            target="_blank"
+            class="btn is-icon-only">
+            <svg-icon icon-id="external"></svg-icon>
+          </a>
+        </li>
+      </ul>
+    </footer>
+  </div>
 </template>

@@ -8,6 +8,7 @@ import States from 'services/states';
 import $ from 'utils/dom-el';
 import debounce from 'utils/debounce';
 import { createHgComponent as hg } from 'hglib';  // eslint-disable-line
+import { requestNextAnimationFrame } from 'utils/request-animation-frame';
 
 const logger = LogManager.getLogger('higlass');
 
@@ -25,6 +26,7 @@ export class Higlass {
     this.higlass = {};
 
     this.renderDb = debounce(this.render.bind(this), 50);
+    this.checkColumnsDb = debounce(this.checkColumns.bind(this), 150);
   }
 
   attached () {
@@ -36,13 +38,15 @@ export class Higlass {
       this.columns = newColumns;
 
       // For HiGlass to rerender
-      $(window).dispatch('resize', 'HTMLEvents');
+      requestNextAnimationFrame(() => {
+        $(window).dispatch('resize', 'HTMLEvents');
+      });
     }
   }
 
   update () {
     try {
-      this.checkColumns(this.store.getState().present.decompose.columns);
+      this.checkColumnsDb(this.store.getState().present.decompose.columns);
       this.updateConfig(this.store.getState().present.decompose.higlass.config);
     } catch (e) {
       logger.error('State is invalid', e);
@@ -57,6 +61,6 @@ export class Higlass {
   }
 
   render (config) {
-    hg(this.baseEl, config, OPTIONS, (api) => { this.api = api; });
+    hg(this.plotEl, config, OPTIONS, (api) => { this.api = api; });
   }
 }
