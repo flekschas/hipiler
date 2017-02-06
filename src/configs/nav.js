@@ -6,3 +6,7 @@ export const externalLinks = [
     iconId: 'github'
   }
 ];
+
+export default {
+  externalLinks
+};
