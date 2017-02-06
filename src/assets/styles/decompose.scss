@@ -77,7 +77,7 @@
 
 .drag-indicator {
   position: absolute;
-  z-index: 1;
+  z-index: 2;
   top: 0;
   left: 0;
   bottom: 0;
@@ -92,7 +92,51 @@
   opacity: 1;
 }
 
+
+.column-content {
+  .error-indicator,
+  .loading-indicator {
+    height: 0;
+    overflow: hidden;
+    opacity: 0;
+    transition: opacity $transition-very-fast $ease-in-out-cubic;
+
+    &.is-active {
+      height: 100%;
+      opacity: 1;
+    }
+
+    svg {
+      width: 3rem;
+      height: 3rem;
+    }
+  }
+
+  .error-indicator {
+    z-index: 3;
+    color: $error-text;
+    background: transparentize($error-bg, 0.2);
+  }
+
+  .loading-indicator {
+    z-index: 1;
+    background: $white;
+
+    svg {
+      circle{
+        stroke: $gray-light;
+      }
+
+      .one,
+      .two {
+        fill: $white;
+      }
+    }
+  }
+}
+
 .column-header {
+  z-index: 2;
   height: 2rem;
 
   &:hover h2 {
