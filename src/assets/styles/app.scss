@@ -81,9 +81,9 @@ body.is-global-error {
     font-size: 0.8em;
     text-transform: uppercase;
     line-height: 2rem;
-    border-radius: 2rem;
-    background: $white;
-    box-shadow: inset 0 0 0 1px $gray-lightest;
+    border: 0;
+    background: none;
+
 
     &.state-indicator::after {
       content: '';
@@ -95,23 +95,11 @@ body.is-global-error {
     }
 
     &.state-active {
-      color: darken($active, 15%);
-      background: lighten(desaturate($active, 25%), 50%);
-      box-shadow: inset 0 0 0 1px transparentize(darken($active, 15%), 0.9);
-
-      &.state-indicator::after {
-        background: $active;
-      }
+      color: $primary;
     }
 
     &.state-ready {
-      color: darken($ready, 20%);
-      background: lighten(desaturate($ready, 15%), 40%);
-      box-shadow: inset 0 0 0 1px transparentize(darken($ready, 10%), 0.8);
-
-      &.state-indicator::after {
-        background: $ready;
-      }
+      color: $primary;
     }
 
     .icon-inline {
