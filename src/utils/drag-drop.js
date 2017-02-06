@@ -3,6 +3,7 @@ import hasParent from './has-parent';
 
 export default function dragDrop (baseEl, dropEl, dropCallback) {
   const $baseEl = $(baseEl);
+  let isDragging = false;
 
   document.addEventListener('dragenter', (event) => {
     if (hasParent(event.target, baseEl)) {
