@@ -41,7 +41,7 @@ const Pile = {
 
   coverMatrixMode: 0,
 
-  geometry: BufferGeometry(),
+  geometry: new BufferGeometry(),
 
   globalMatrix: [],
 
@@ -612,11 +612,11 @@ const Pile = {
      // CREATE + ADD MESH
     this.geometry.addAttribute(
       'position',
-      BufferAttribute(makeBuffer3f(vertexPositions), 3)
+      new BufferAttribute(makeBuffer3f(vertexPositions), 3)
     );
     this.geometry.addAttribute(
       'customColor',
-      BufferAttribute(makeBuffer3f(vertexColors), 3)
+      new BufferAttribute(makeBuffer3f(vertexColors), 3)
     );
     this.mesh = Mesh(this.geometry, SHADER_MATERIAL);
     this.mesh.scale.set(this.scale, this.scale, this.scale);
@@ -635,7 +635,7 @@ const Pile = {
 
         o.add(f);
 
-        let textGeom = TextGeometry(
+        let textGeom = new TextGeometry(
           command.name,
           {
             size: 8,
@@ -645,8 +645,8 @@ const Pile = {
           }
         );
 
-        let textMaterial = MeshBasicMaterial({ color: 0xffffff });
-        let label = Mesh(textGeom, textMaterial);
+        let textMaterial = new MeshBasicMaterial({ color: 0xffffff });
+        let label = new Mesh(textGeom, textMaterial);
 
         o.position.set(
           (
