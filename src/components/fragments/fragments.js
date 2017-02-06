@@ -112,6 +112,16 @@ export class Fragments {
     this.initShader();
 
     this.plotEl.appendChild(this.canvas);
+
+    logger.debug('Hallo?');
+  }
+
+  /* ---------------------------- Custom Methods ---------------------------- */
+
+  allCoverChanged () {
+    this.setPileMode(this.coverMatrixMenu.selectedIndex, this.mp.piles);
+    this.redrawPiles(this.mp.piles);
+    this.render();
   }
 
   get baseElDim () {
@@ -127,415 +137,10 @@ export class Fragments {
     this.pdMax = this.maxDistance;
   }
 
-  /**
-   * Starts all animations in pilingAnimations array.
-   */
-  startAnimations () {
-    clearInterval(this.interval);
-
-    this.interval = setInterval(() => {
-      this.pilingAnimations.forEach((pileAnimation, index) => {
-        pileAnimation.step();
-        if (pileAnimation.done) {
-          this.pilingAnimations.splice(index, 1);
-        }
-      });
-
-      if (this.pilingAnimations.length === 0) {
-        clearInterval(this.interval);
-        this.interval = undefined;
-        this.updateLayout();
-        this.pilingAnimations = [];
-      }
-
-      this.render();
-    }, 500 / FPS);
-  }
-
-  /**
-   * Piles a set of matrices onto a target pile removes it from source pile, and
-   * updates the layout.
-   *
-   * @param {array} matrices - [description]
-   * @param {[type]} targetPile - [description]
-   */
-  pileUp (matrices, targetPile) {
-    // Needs refactoring
-    // this.pilingAnimations.push(new PilingAnimation(targetPile, matrices));
-
-    let matricesToPile = matrices.slice(0);
-    let m;
-    let sourcePile;
-
-    for (let i = 0; i < matricesToPile.length; i++) {
-      m = matricesToPile[i];
-      sourcePile = m.pile;
-      sourcePile.removeMatrices([m]);
-      if (sourcePile.size() === 0 && sourcePile !== targetPile) {
-        this.destroyPile(sourcePile);
-      }
-    }
-
-    targetPile.addMatrices(matricesToPile);
-    this.sortTime(targetPile);
-
-    this.redrawPiles(this.mp.piles);
-    this.updateLayout(0, true);
-    this.render();
-  }
-
-  /**
-   * Piles all matrices prior to the selected one, including the selected one.
-   *
-   * @param {[type]} p - [description]
-   */
-  pileBackwards (pile) {
-    let pileIndex = this.mp.piles.indexOf(pile);
-    let matrices = [];
-
-    if (pile.size() === 1) {
-      for (let j = pileIndex; j >= 0; j--) {
-        if (j === 0 || this.mp.piles[j - 1].size() > 1) {
-          this.pileUp(matrices, this.mp.piles[j]);
-          return;
-        }
-
-        matrices.push(...this.mp.piles[j].getMatrices());
-      }
-    } else if (this.mp.piles.indexOf(pile) > 0) {
-      this.pileUp(
-        pile.pileMatrices,
-        this.mp.piles[this.mp.piles.indexOf(pile) - 1]
-      );
-    }
-
-    this.startAnimations();
-  }
-
-  depile (pile) {
-    let newPiles = [];
-
-    let matrices = [];
-    let ix = this.mp.piles.indexOf(pile);
-
-    matrices.push(...pile.pileMatrices);
-
-    if (matrices.length === 1) {
-      return;
-    }
-
-    for (let i = matrices.length - 1; i > 0; i--) {
-      pile.removeMatrices([matrices[i]]);
-      const pileNew = Pile(
-        this.pileIDCount,
-        this.scene,
-        this._zoomFac
-      );
-
-      this.pileIDCount += 1;
-
-      pileNew.colored = pile.colored;
-      this.mp.piles.splice(ix + 1, 0, pileNew);
-
-      pileNew.addMatrices([matrices[i]]);
-      pileNew.draw();
-      newPiles.push(pileNew);
-    }
-
-    pile.draw();
-    this.updateLayout(0, true);
-
-    // Need refactoring
-    // if (animated) {
-    //   pilingAnimations.push(
-    //     new DepileAnimation(
-    //       newPiles,
-    //       {
-    //         x: pile.x,
-    //         y: pile.y
-    //       }
-    //     )
-    //   );
-    //   startAnimations();
-    // }
-
-    this.render();
-  }
-
-  /**
-   * Splits a pile at the position of the passed matrix. The passed matrix
-   * becomes the base for the new pile.
-   *
-   * @param   {[type]}    matrix    [description]
-   * @param   {[type]}    animated  [description]
-   * @return  {[type]}              [description]
-   */
-  splitPile (matrix, animated) {
-    if (!animated) {
-      let pSource = matrix.pile;
-      let pNew = new Pile(
-        this.mp.piles.length,
-        this.mp.scene,
-        this._zoomFac
-      );
-      pNew.colored = pSource.colored;
-      this.mp.piles.splice(this.mp.piles.indexOf(pSource) + 1, 0, pNew);
-
-      let m = [];
-      for (let i = pSource.getMatrixPosition(matrix); i < pSource.size(); i++) {
-        m.push(pSource.getMatrix(i));
-      }
-
-      this.pileUp(m, pNew);
-      this.updateLayout(this.mp.piles.indexOf(pNew) - 1, true);
-
-      pNew.draw();
-      pSource.draw();
-
-      this.render();
-    } else {
-      this.pilingAnimations.push(SplitAnimation(matrix));
-      this.startAnimations();
-    }
-  }
-
-  removeFromPile (pile) {
-    logger.warning('`removeFromPile()` not implemented yet.');
-  }
-
-  deselectAllMatrices () {
-    this.selectedMatrices.forEach(
-      matrix => matrix.frame.attr('class', 'matrixbackground')
-    );
-
-    this.selectedMatrices = [];
-  }
-
-  updateLayout (pileIndex) {
-    this.mp.piles.forEach((pile, index) => {
-      const pos = this.getLayoutPosition(index);
-      pile.moveTo(pos.x, pos.y, PILING_DIRECTION !== 'vertical');
-    });
-  }
-
-  /**
-   * Index indicates the matrix index, not its position in the layout
-   *
-   * @param {number} matrixIndex - Index of matrix.
-   * @return {??} Matrix position.
-   */
-  getMatrixPosition (matrixIndex) {
-    return this.getLayoutPosition(this.matrixPos[matrixIndex]);
-  }
-
-  getLayoutPosition (index) {
-    let x;
-    let y;
-
-    if (PILING_DIRECTION === 'horizontal') {
-      x = MARGIN_LEFT;
-      y = MARGIN_TOP;
-
-      for (let i = 0; i < index; i++) {
-        x += this._matrixWidth + (this.mp.piles[i].size() * 2) + MATRIX_GAP_HORIZONTAL + 10;
-        if (
-          (
-            x + this._matrixWidth + (this.mp.piles[i].size() * 2) + MATRIX_GAP_HORIZONTAL
-          ) > this._courseWidth
-        ) {
-          x = this._matrixWidth;
-          y += this._matrixWidth + MATRIX_GAP_VERTICAL;
-        }
-      }
-      return { x, y };
-    }
-
-    let col = Math.floor(index % this._cols);
-    y = MARGIN_TOP;
-    let currh = 0;
-    let temp;
-
-    for (let i = 0; i < this.mp.piles.length; i++) {
-      if (i > 0 && i % this._cols === 0) {  // when new row starts
-        if (i > index) {
-          break;
-        } else {
-          y += currh + this._matrixWidth + MATRIX_GAP_VERTICAL;
-          currh = 0;
-        }
-      }
-
-      temp = this.mp.piles[i].size() * 2;  // 2 = preview height
-
-      if (temp > currh) {
-        currh = temp;
-      }
-    }
-
-    return {
-      x: MARGIN_LEFT + (col * (this._matrixWidth + MATRIX_GAP_HORIZONTAL)) + this._matrixWidthHalf,
-      y: y + currh
-    };
-  }
-
-  // Sorts matrices in pile according to time
-  sortTime (pile) {
-    pile.pileMatrices.sort(this.matrixTimeComparator);
-  }
-
-  matrixTimeComparator (a, b) {
-    return parseInt(a.id, 10) - parseInt(b.id, 10);
-  }
-
-  hidedistance () {
-    this.mp.matrices.forEach(matrix => matrix.g_course.style('opacity', '1'));
-  }
-
-  setPileMode (mode, piles) {
-    for (let i = 0; i < piles.length; i++) {
-      piles[i].setCoverMatrixMode(mode);
-    }
-  }
-
-  setSimilarityPiling (value) {
-    this.calculatePiles(value);
-  }
-
-  destroyPile (p) {
-    p.destroy();
-    let i = this.mp.piles.indexOf(p);
-    this.mp.piles.splice(i, 1);
-    if (this.previousHoveredPile === p) {
-      this.previousHoveredPile = undefined;
-    }
-    if (this.hoveredGapPile === p) {
-      this.hoveredGapPile = undefined;
-    }
-  }
-
   calculatePiles (value) {
     this.isLoading = true;
 
     this.setPiling(calculateClusterPiling(value, this.mp.matrices, this.dMat));
-  }
-
-  getCurrentPiling () {
-    const piling = [];
-
-    this.mp.piles.forEach(
-      pile => piling.push(this.mp.matrices.indexOf(pile.getMatrix(0)))
-    );
-
-    return piling;
-  }
-
-  setPiling (newPiling) {
-    this.mp.piles.forEach(pile => this.destroyPile(pile));
-
-    this.mp.piles = [];
-
-    let matrices = [];
-    let l = 0;
-
-    for (let i = 1; i <= newPiling.length; i++) {
-      matrices = [];
-
-      if (i < newPiling.length) {
-        for (let j = l; j < newPiling[i]; j++) {
-          matrices.push(matrices[j]);
-        }
-      } else if (l < matrices.length) {
-        for (let j = l; j < matrices.length; j++) {
-          matrices.push(matrices[j]);
-        }
-      } else {
-        break;
-      }
-
-      const newPile = Pile(
-        this.mp.piles.length, this.mp.scene, this._zoomFac
-      );
-
-      this.mp.piles.push(newPile);
-      newPile.addMatrices(matrices);
-
-      this.sortTime(newPile);
-      newPile.setCoverMatrixMode(this.coverMatrixMenu.selectedIndex);
-      newPile.draw();
-
-      l = newPiling[i];
-    }
-
-    this.isLoading = true;
-
-    this.updateLayout(0, false);
-    this.render();
-  }
-
-  isSameOrdering (o1, o2) {
-    if (!o1 || !o2) {
-      return false;
-    }
-
-    if (o1.length !== o2.length) {
-      return false;
-    }
-
-    let same = true;
-
-    for (let i = 0; i < o1.length; i++) {
-      if (o1[i] !== o2[i]) {
-        same = false;
-        break;
-      }
-    }
-
-    return same;
-  }
-
-  distance (m1, m2, focusNodes) {
-    let d = 0;
-    let a;
-    let b;
-
-    focusNodes.forEach((node, index) => {
-      a = node;
-      for (let j = index; j < focusNodes.length; j++) {
-        b = focusNodes[j];
-        d += (m1.matrix[a][b] - m2.matrix[a][b]) ** 2;
-      }
-    });
-
-    return Math.sqrt(d);
-  }
-
-  setNodeOrder (piles, order) {
-    for (let i = 0; i < piles.length; i++) {
-      piles[i].setNodeOrder(order);
-    }
-  }
-
-  setPilingMethod (method) {
-    this.pilingMethod = method;
-  }
-
-  // takes a seed pile and shows how similar
-  // all the other piles/matrices are.
-  // the similarity between two piles is the
-  // mean of the distances between all matrices
-  // from p1 to all matrices to p2 (bigraph)
-  showMatrixSimilarity (pile) {
-    let pileIndex = this.mp.piles.indexOf(pile);
-
-    this.mp.piles.forEach((otherPile, index) => {
-      otherPile.showSimilarity(
-        this.pileDistanceColor(this.pdMat[pileIndex][index])
-      );
-    });
-  }
-
-  unshowMatrixSimilarity () {
-    this.mp.piles.forEach(pile => pile.resetSimilarity());
   }
 
   canvasClickHandler (event) {
@@ -882,6 +487,94 @@ export class Fragments {
     this.render();
   }
 
+  depile (pile) {
+    let newPiles = [];
+
+    let matrices = [];
+    let ix = this.mp.piles.indexOf(pile);
+
+    matrices.push(...pile.pileMatrices);
+
+    if (matrices.length === 1) {
+      return;
+    }
+
+    for (let i = matrices.length - 1; i > 0; i--) {
+      pile.removeMatrices([matrices[i]]);
+      const pileNew = Pile(
+        this.pileIDCount,
+        this.scene,
+        this._zoomFac
+      );
+
+      this.pileIDCount += 1;
+
+      pileNew.colored = pile.colored;
+      this.mp.piles.splice(ix + 1, 0, pileNew);
+
+      pileNew.addMatrices([matrices[i]]);
+      pileNew.draw();
+      newPiles.push(pileNew);
+    }
+
+    pile.draw();
+    this.updateLayout(0, true);
+
+    // Need refactoring
+    // if (animated) {
+    //   pilingAnimations.push(
+    //     new DepileAnimation(
+    //       newPiles,
+    //       {
+    //         x: pile.x,
+    //         y: pile.y
+    //       }
+    //     )
+    //   );
+    //   startAnimations();
+    // }
+
+    this.render();
+  }
+
+  deselectAllMatrices () {
+    this.selectedMatrices.forEach(
+      matrix => matrix.frame.attr('class', 'matrixbackground')
+    );
+
+    this.selectedMatrices = [];
+  }
+
+  destroyPile (pile) {
+    pile.destroy();
+
+    this.mp.piles.splice(this.mp.piles.indexOf(pile), 1);
+
+    if (this.previousHoveredPile === pile) {
+      this.previousHoveredPile = undefined;
+    }
+
+    if (this.hoveredGapPile === pile) {
+      this.hoveredGapPile = undefined;
+    }
+  }
+
+  distance (m1, m2, focusNodes) {
+    let d = 0;
+    let a;
+    let b;
+
+    focusNodes.forEach((node, index) => {
+      a = node;
+      for (let j = index; j < focusNodes.length; j++) {
+        b = focusNodes[j];
+        d += (m1.matrix[a][b] - m2.matrix[a][b]) ** 2;
+      }
+    });
+
+    return Math.sqrt(d);
+  }
+
   focusOn (nodes) {
     this.mp.focusNodes = nodes;
 
@@ -908,6 +601,126 @@ export class Fragments {
     this.redrawPiles(this.mp.piles);
     this.updateLayout(0, true);
     this.render();
+  }
+
+  fragmentSizeChanged (event) {
+    logger.debug(event);
+  }
+
+  /**
+   * Get and save the client rectangle of the base element.
+   *
+   * @return {object} Client rectangle object of the base element.
+   */
+  getBaseElDim () {
+    this._baseElDim = this.baseEl.getBoundingClientRect();
+
+    return this.baseElDim;
+  }
+
+  getLayoutPosition (index) {
+    let x;
+    let y;
+
+    if (PILING_DIRECTION === 'horizontal') {
+      x = MARGIN_LEFT;
+      y = MARGIN_TOP;
+
+      for (let i = 0; i < index; i++) {
+        x += this._matrixWidth + (this.mp.piles[i].size() * 2) + MATRIX_GAP_HORIZONTAL + 10;
+        if (
+          (
+            x + this._matrixWidth + (this.mp.piles[i].size() * 2) + MATRIX_GAP_HORIZONTAL
+          ) > this._courseWidth
+        ) {
+          x = this._matrixWidth;
+          y += this._matrixWidth + MATRIX_GAP_VERTICAL;
+        }
+      }
+      return { x, y };
+    }
+
+    let col = Math.floor(index % this._cols);
+    y = MARGIN_TOP;
+    let currh = 0;
+    let temp;
+
+    for (let i = 0; i < this.mp.piles.length; i++) {
+      if (i > 0 && i % this._cols === 0) {  // when new row starts
+        if (i > index) {
+          break;
+        } else {
+          y += currh + this._matrixWidth + MATRIX_GAP_VERTICAL;
+          currh = 0;
+        }
+      }
+
+      temp = this.mp.piles[i].size() * 2;  // 2 = preview height
+
+      if (temp > currh) {
+        currh = temp;
+      }
+    }
+
+    return {
+      x: MARGIN_LEFT + (col * (this._matrixWidth + MATRIX_GAP_HORIZONTAL)) + this._matrixWidthHalf,
+      y: y + currh
+    };
+  }
+
+  getCurrentPiling () {
+    const piling = [];
+
+    this.mp.piles.forEach(
+      pile => piling.push(this.mp.matrices.indexOf(pile.getMatrix(0)))
+    );
+
+    return piling;
+  }
+
+  /**
+   * Index indicates the matrix index, not its position in the layout
+   *
+   * @param {number} matrixIndex - Index of matrix.
+   * @return {??} Matrix position.
+   */
+  getMatrixPosition (matrixIndex) {
+    return this.getLayoutPosition(this.matrixPos[matrixIndex]);
+  }
+
+  hidedistance () {
+    this.mp.matrices.forEach(matrix => matrix.g_course.style('opacity', '1'));
+  }
+
+  highlightNoPile () {
+    this.mp.scene.remove(this.highlightFrame);
+  }
+
+  highlightPile (pile) {
+    this.highlightFrame.position.set(pile.x, pile.y, 0);
+    this.highlightFrame.visible = true;
+    this.mp.scene.add(this.highlightFrame);
+  }
+
+  initEventListeners () {
+    this.canvas.addEventListener(
+      'click', this.canvasClickHandler.bind(this)
+    );
+    this.canvas.addEventListener(
+      'dblclick', this.canvasDblClickHandler.bind(this)
+    );
+    this.canvas.addEventListener(
+      'mousedown', this.canvasMouseDownHandler.bind(this)
+    );
+    this.canvas.addEventListener(
+      'mousemove', this.canvasMouseMoveHandler.bind(this)
+    );
+    this.canvas.addEventListener(
+      'mouseup', this.canvasMouseUpHandler.bind(this)
+    );
+    this.canvas.addEventListener(
+      'mousewheel', this.canvasMouseWheelHandler.bind(this), false
+    );
   }
 
   initPlot (data) {
@@ -963,25 +776,21 @@ export class Fragments {
     this.render();
   }
 
-  initEventListeners () {
-    this.canvas.addEventListener(
-      'click', this.canvasClickHandler.bind(this)
-    );
-    this.canvas.addEventListener(
-      'dblclick', this.canvasDblClickHandler.bind(this)
-    );
-    this.canvas.addEventListener(
-      'mousedown', this.canvasMouseDownHandler.bind(this)
-    );
-    this.canvas.addEventListener(
-      'mousemove', this.canvasMouseMoveHandler.bind(this)
-    );
-    this.canvas.addEventListener(
-      'mouseup', this.canvasMouseUpHandler.bind(this)
-    );
-    this.canvas.addEventListener(
-      'mousewheel', this.canvasMouseWheelHandler.bind(this), false
-    );
+  initShader () {
+    try {
+      ShaderMaterial({
+        attributes: SHADER_ATTRIBUTES,
+        vertexShader: document.querySelector('#shader-vertex').textContent,
+        fragmentShader: document.querySelector('#shader-fragment').textContent,
+        blending: NormalBlending,
+        depthTest: true,
+        transparent: true,
+        side: DoubleSide,
+        linewidth: 2
+      });
+    } catch (e) {
+      logger.error('Failed to initialize shader.', e);
+    }
   }
 
   initWebGl () {
@@ -1010,31 +819,96 @@ export class Fragments {
     this.mp.scene.add(this.camera);
   }
 
-  initShader () {
-    try {
-      ShaderMaterial({
-        attributes: SHADER_ATTRIBUTES,
-        vertexShader: document.querySelector('#shader-vertex').textContent,
-        fragmentShader: document.querySelector('#shader-fragment').textContent,
-        blending: NormalBlending,
-        depthTest: true,
-        transparent: true,
-        side: DoubleSide,
-        linewidth: 2
-      });
-    } catch (e) {
-      logger.error('Failed to initialize shader.', e);
+  isSameOrdering (o1, o2) {
+    if (!o1 || !o2) {
+      return false;
     }
+
+    if (o1.length !== o2.length) {
+      return false;
+    }
+
+    let same = true;
+
+    for (let i = 0; i < o1.length; i++) {
+      if (o1[i] !== o2[i]) {
+        same = false;
+        break;
+      }
+    }
+
+    return same;
   }
 
-  highlightPile (pile) {
-    this.highlightFrame.position.set(pile.x, pile.y, 0);
-    this.highlightFrame.visible = true;
-    this.mp.scene.add(this.highlightFrame);
+  matrixTimeComparator (a, b) {
+    return parseInt(a.id, 10) - parseInt(b.id, 10);
+  }
+  /**
+   * Piles all matrices prior to the selected one, including the selected one.
+   *
+   * @param {[type]} p - [description]
+   */
+  pileBackwards (pile) {
+    let pileIndex = this.mp.piles.indexOf(pile);
+    let matrices = [];
+
+    if (pile.size() === 1) {
+      for (let j = pileIndex; j >= 0; j--) {
+        if (j === 0 || this.mp.piles[j - 1].size() > 1) {
+          this.pileUp(matrices, this.mp.piles[j]);
+          return;
+        }
+
+        matrices.push(...this.mp.piles[j].getMatrices());
+      }
+    } else if (this.mp.piles.indexOf(pile) > 0) {
+      this.pileUp(
+        pile.pileMatrices,
+        this.mp.piles[this.mp.piles.indexOf(pile) - 1]
+      );
+    }
+
+    this.startAnimations();
   }
 
-  highlightNoPile () {
-    this.mp.scene.remove(this.highlightFrame);
+  /**
+   * Piles a set of matrices onto a target pile removes it from source pile, and
+   * updates the layout.
+   *
+   * @param {array} matrices - [description]
+   * @param {[type]} targetPile - [description]
+   */
+  pileUp (matrices, targetPile) {
+    // Needs refactoring
+    // this.pilingAnimations.push(new PilingAnimation(targetPile, matrices));
+
+    let matricesToPile = matrices.slice(0);
+    let m;
+    let sourcePile;
+
+    for (let i = 0; i < matricesToPile.length; i++) {
+      m = matricesToPile[i];
+      sourcePile = m.pile;
+      sourcePile.removeMatrices([m]);
+      if (sourcePile.size() === 0 && sourcePile !== targetPile) {
+        this.destroyPile(sourcePile);
+      }
+    }
+
+    targetPile.addMatrices(matricesToPile);
+    this.sortTime(targetPile);
+
+    this.redrawPiles(this.mp.piles);
+    this.updateLayout(0, true);
+    this.render();
+  }
+
+  redrawPiles (piles) {
+    piles.forEach(pile => pile.draw());
+  }
+
+  removeFromPile (pile) {
+    logger.warning('`removeFromPile()` not implemented yet.');
   }
 
   render () {
@@ -1045,18 +919,161 @@ export class Fragments {
     });
   }
 
-  allCoverChanged () {
-    this.setPileMode(this.coverMatrixMenu.selectedIndex, this.mp.piles);
-    this.redrawPiles(this.mp.piles);
+  setPileMode (mode, piles) {
+    for (let i = 0; i < piles.length; i++) {
+      piles[i].setCoverMatrixMode(mode);
+    }
+  }
+
+  setSimilarityPiling (value) {
+    this.calculatePiles(value);
+  }
+
+  // Sorts matrices in pile according to time
+  sortTime (pile) {
+    pile.pileMatrices.sort(this.matrixTimeComparator);
+  }
+
+  /**
+   * Splits a pile at the position of the passed matrix. The passed matrix
+   * becomes the base for the new pile.
+   *
+   * @param   {[type]}    matrix    [description]
+   * @param   {[type]}    animated  [description]
+   * @return  {[type]}              [description]
+   */
+  splitPile (matrix, animated) {
+    if (!animated) {
+      let pSource = matrix.pile;
+      let pNew = new Pile(
+        this.mp.piles.length,
+        this.mp.scene,
+        this._zoomFac
+      );
+      pNew.colored = pSource.colored;
+      this.mp.piles.splice(this.mp.piles.indexOf(pSource) + 1, 0, pNew);
+
+      let m = [];
+      for (let i = pSource.getMatrixPosition(matrix); i < pSource.size(); i++) {
+        m.push(pSource.getMatrix(i));
+      }
+
+      this.pileUp(m, pNew);
+      this.updateLayout(this.mp.piles.indexOf(pNew) - 1, true);
+
+      pNew.draw();
+      pSource.draw();
+
+      this.render();
+    } else {
+      this.pilingAnimations.push(SplitAnimation(matrix));
+      this.startAnimations();
+    }
+  }
+
+  /**
+   * Starts all animations in pilingAnimations array.
+   */
+  startAnimations () {
+    clearInterval(this.interval);
+
+    this.interval = setInterval(() => {
+      this.pilingAnimations.forEach((pileAnimation, index) => {
+        pileAnimation.step();
+        if (pileAnimation.done) {
+          this.pilingAnimations.splice(index, 1);
+        }
+      });
+
+      if (this.pilingAnimations.length === 0) {
+        clearInterval(this.interval);
+        this.interval = undefined;
+        this.updateLayout();
+        this.pilingAnimations = [];
+      }
+
+      this.render();
+    }, 500 / FPS);
+  }
+
+  setPiling (newPiling) {
+    this.mp.piles.forEach(pile => this.destroyPile(pile));
+
+    this.mp.piles = [];
+
+    let matrices = [];
+    let l = 0;
+
+    for (let i = 1; i <= newPiling.length; i++) {
+      matrices = [];
+
+      if (i < newPiling.length) {
+        for (let j = l; j < newPiling[i]; j++) {
+          matrices.push(matrices[j]);
+        }
+      } else if (l < matrices.length) {
+        for (let j = l; j < matrices.length; j++) {
+          matrices.push(matrices[j]);
+        }
+      } else {
+        break;
+      }
+
+      const newPile = Pile(
+        this.mp.piles.length, this.mp.scene, this._zoomFac
+      );
+
+      this.mp.piles.push(newPile);
+      newPile.addMatrices(matrices);
+
+      this.sortTime(newPile);
+      newPile.setCoverMatrixMode(this.coverMatrixMenu.selectedIndex);
+      newPile.draw();
+
+      l = newPiling[i];
+    }
+
+    this.isLoading = true;
+
+    this.updateLayout(0, false);
     this.render();
   }
 
-  redrawPiles (piles) {
-    piles.forEach(pile => pile.draw());
+  setNodeOrder (piles, order) {
+    for (let i = 0; i < piles.length; i++) {
+      piles[i].setNodeOrder(order);
+    }
   }
 
-  fragmentSizeChanged (event) {
-    logger.debug(event);
+  setPilingMethod (method) {
+    this.pilingMethod = method;
+  }
+
+  // takes a seed pile and shows how similar
+  // all the other piles/matrices are.
+  // the similarity between two piles is the
+  // mean of the distances between all matrices
+  // from p1 to all matrices to p2 (bigraph)
+  showMatrixSimilarity (pile) {
+    let pileIndex = this.mp.piles.indexOf(pile);
+
+    this.mp.piles.forEach((otherPile, index) => {
+      otherPile.showSimilarity(
+        this.pileDistanceColor(this.pdMat[pileIndex][index])
+      );
+    });
+  }
+
+  unshowMatrixSimilarity () {
+    this.mp.piles.forEach(pile => pile.resetSimilarity());
+  }
+
+  update () {
+    try {
+      this.updateConfig(this.store.getState().present.decompose.fragments.config);
+    } catch (e) {
+      logger.error('State is invalid', e);
+    }
   }
 
   updateCellSize (newSize) {
@@ -1084,22 +1101,17 @@ export class Fragments {
     this.render();
   }
 
-  update () {
-    try {
-      this.updateConfig(this.store.getState().present.decompose.fragments.config);
-    } catch (e) {
-      logger.error('State is invalid', e);
-    }
-  }
-
-  getBaseElDim () {
-    this._baseElDim = this.baseEl.getBoundingClientRect();
-  }
-
   updateConfig (newConfig) {
     if (this.fragments.config !== newConfig) {
       this.fragments.config = newConfig;
       this.render(this.fragments.config);
     }
+  }
+
+  updateLayout (pileIndex) {
+    this.mp.piles.forEach((pile, index) => {
+      const pos = this.getLayoutPosition(index);
+      pile.moveTo(pos.x, pos.y, PILING_DIRECTION !== 'vertical');
+    });
   }
 }
