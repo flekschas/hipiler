@@ -1,5 +1,6 @@
 <template bindable="router, externalLinks">
   <require from="components/svg-icon.html"></require>
+
   <nav>
     <ul class="no-list-style flex-c">
       <li repeat.for="link of router.navigation" class="${link.isActive ? 'is-active' : ''} ${link.config.showIcon ? 'is-icon-only' : ''}">
