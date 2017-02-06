@@ -1,6 +1,14 @@
 // Aurelia
 import { inject, LogManager } from 'aurelia-framework';
-import THREE from 'three';
+import {
+  DoubleSide,
+  NormalBlending,
+  OrthographicCamera,
+  Raycaster,
+  ShaderMaterial,
+  Vector3,
+  WebGLRenderer
+} from 'three';
 
 // Injectables
 import States from 'services/states';
@@ -600,8 +608,8 @@ export default class Fragments {
     this.mp.scene.updateMatrixWorld();
     this.camera.updateProjectionMatrix();
 
-    this.mouse = new THREE.Vector3();
-    let dir = new THREE.Vector3();
+    this.mouse = Vector3();
+    let dir = Vector3();
 
     this.mouse.set(
       ((event.clientX / this.baseElDim.width) * 2) - 1,
@@ -977,7 +985,7 @@ export default class Fragments {
   }
 
   initWebGl () {
-    this.camera = new THREE.OrthographicCamera(
+    this.camera = OrthographicCamera(
       this.baseElDim.width / -2,
       this.baseElDim.width / 2,
       this.baseElDim.height / 2,
@@ -991,27 +999,27 @@ export default class Fragments {
     let topScrollLimit = MARGIN_TOP - (this.baseElDim.height / 2);
     this.camera.position.y = topScrollLimit;
 
-    this.renderer = new THREE.WebGLRenderer({ antialias: true });
+    this.renderer = WebGLRenderer({ antialias: true });
     this.renderer.setSize(this.baseElDim.width, this.baseElDim.height);
     this.renderer.setClearColor(0xffffff, 1);
 
     this.canvas = this.renderer.domElement;
-    this.origin = new THREE.Vector3();
-    this.raycaster = new THREE.Raycaster();
+    this.origin = Vector3();
+    this.raycaster = Raycaster();
 
     this.mp.scene.add(this.camera);
   }
 
   initShader () {
     try {
-      THREE.ShaderMaterial({
+      ShaderMaterial({
         attributes: SHADER_ATTRIBUTES,
         vertexShader: document.querySelector('#shader-vertex').textContent,
         fragmentShader: document.querySelector('#shader-fragment').textContent,
-        blending: THREE.NormalBlending,
+        blending: NormalBlending,
         depthTest: true,
         transparent: true,
-        side: THREE.DoubleSide,
+        side: DoubleSide,
         linewidth: 2
       });
     } catch (e) {

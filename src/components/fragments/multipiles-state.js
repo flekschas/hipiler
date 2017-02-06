@@ -1,4 +1,5 @@
-import THREE from 'three';
+import { Scene } from 'three';
+
 
 const State = {
   activeMatrixInPileIndex: undefined,
@@ -32,7 +33,7 @@ const State = {
   piles: [],
   pilingMethod: 'clustered',
   previousHoveredPile: undefined,
-  scene: new THREE.Scene(),
+  scene: new Scene(),
   selectedMatrices: [],
   visiblePileTools: []
 };

@@ -1,5 +1,7 @@
 import science from 'science';
-import THREE from 'three';
+import {
+  BufferAttribute, BufferGeometry, Mesh, MeshBasicMaterial, TextGeometry
+} from 'three';
 
 import menuCommands from 'components/fragments/pile-menu-commands';
 
@@ -39,7 +41,7 @@ const Pile = {
 
   coverMatrixMode: 0,
 
-  geometry: new THREE.BufferGeometry(),
+  geometry: BufferGeometry(),
 
   globalMatrix: [],
 
@@ -173,7 +175,7 @@ const Pile = {
       mpState.scene.remove(this.mesh);
     }
 
-    this.geometry = new THREE.BufferGeometry();
+    this.geometry = BufferGeometry();
 
     let vertexPositions = [];
     let vertexColors = [];
@@ -610,13 +612,13 @@ const Pile = {
      // CREATE + ADD MESH
     this.geometry.addAttribute(
       'position',
-      new THREE.BufferAttribute(makeBuffer3f(vertexPositions), 3)
+      BufferAttribute(makeBuffer3f(vertexPositions), 3)
     );
     this.geometry.addAttribute(
       'customColor',
-      new THREE.BufferAttribute(makeBuffer3f(vertexColors), 3)
+      BufferAttribute(makeBuffer3f(vertexColors), 3)
     );
-    this.mesh = new THREE.Mesh(this.geometry, SHADER_MATERIAL);
+    this.mesh = Mesh(this.geometry, SHADER_MATERIAL);
     this.mesh.scale.set(this.scale, this.scale, this.scale);
 
     if (this === mpState.hoveredPile) {
@@ -633,7 +635,7 @@ const Pile = {
 
         o.add(f);
 
-        let textGeom = new THREE.TextGeometry(
+        let textGeom = TextGeometry(
           command.name,
           {
             size: 8,
@@ -643,8 +645,8 @@ const Pile = {
           }
         );
 
-        let textMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
-        let label = new THREE.Mesh(textGeom, textMaterial);
+        let textMaterial = MeshBasicMaterial({ color: 0xffffff });
+        let label = Mesh(textGeom, textMaterial);
 
         o.position.set(
           (
