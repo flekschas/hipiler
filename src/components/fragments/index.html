@@ -1,3 +1,42 @@
 <template>
-  <div class="full-wh" ref="baseEl"></div>
+  <div class="loading-indicator" class="${isLoading ? 'is-active' : ''}"></div>
+  <div class="full-wh flex-c flex-d-c" ref="baseEl">
+    <header class="control-bar">Controls</header>
+    <main id="fragment-plot" class="flex-i-g-1" ref="plotEl"></main>
+    <footer class="settings-bar">
+      <ul class="flex-c">
+        <li>
+          <label for="settings-frag-size">Fragment Size</label>
+          <input
+            id="settings-frag-size"
+            type="range"
+            min="1"
+            max="10"
+            step="1"
+            value.one-way="fragmentSize"
+            change.delegate="fragmentSizeChanged()">
+        </li>
+        <li>
+          <label for="settings-frag-is-animated">Animate</label>
+          <input type="checkbox" id="settings-frag-is-animated">
+        </li>
+      </ul>
+    </footer>
+  </div>
+
+  <script type="x-shader/x-vertex" id="shader-vertex">
+     attribute vec3 customColor;
+     varying vec3 vColor;
+     void main() {
+        vColor = customColor;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+     }
+  </script>
+
+  <script type="x-shader/x-fragment" id="shader-fragment">
+     varying vec3 vColor;
+     void main() {
+       gl_FragColor = vec4( vColor, 1);
+     }
+  </script>
 </template>
