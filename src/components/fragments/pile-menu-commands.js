@@ -1,10 +1,10 @@
 import States from 'services/states';
 
-import { depile, setPileMode } from 'components/fragments/actions';
+import { depile, setPileMode } from 'components/fragments/fragments-actions';
 
 import {
   MODE_MEAN, MODE_TREND, MODE_VARIANCE
-} from 'components/fragments/defaults';
+} from 'components/fragments/fragments-defaults';
 
 export const DEPILE = {
   name: 'Depile',

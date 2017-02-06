@@ -11,8 +11,8 @@ import $ from 'utils/dom-el';
 import debounce from 'utils/debounce';
 import { transition } from 'configs/app';
 import { requestNextAnimationFrame } from 'utils/request-animation-frame';
-import { updateWidth } from 'views/decompose.actions';
-import { COLUMN_NAMES } from 'views/decompose.defaults';
+import { updateWidth } from 'views/decompose-actions';
+import { COLUMN_NAMES } from 'views/decompose-defaults';
 
 const logger = LogManager.getLogger('decompose');
 

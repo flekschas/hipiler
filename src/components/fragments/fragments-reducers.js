@@ -1,13 +1,13 @@
 import { combineReducers } from 'redux';
 
-import { UPDATE_HGL_CONFIG } from 'components/higlass/actions';
-import { CONFIG } from 'components/higlass/defaults';
+import { UPDATE_FGM_CONFIG } from 'components/fragments/fragments-actions';
+import { CONFIG } from 'components/fragments/fragments-defaults';
 
 import deepClone from 'utils/deep-clone';
 
 export function config (state = { ...CONFIG }, action) {
   switch (action.type) {
-    case UPDATE_HGL_CONFIG:
+    case UPDATE_FGM_CONFIG:
       return { ...state, ...deepClone(action.payload.config) };
 
     default:

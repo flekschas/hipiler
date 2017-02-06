@@ -12,12 +12,12 @@ import {
 
 // Injectables
 import States from 'services/states';
-import MpState from 'components/fragments/multipiles-state';
+import MpState from 'components/fragments/fragments-state';
 
 // Utils etc.
 import {
   SplitAnimation
-} from 'components/fragments/animations';
+} from 'components/fragments/fragments-animations';
 
 import {
   CELL_SIZE,
@@ -31,7 +31,7 @@ import {
   PILING_DIRECTION,
   PREVIEW_SIZE,
   SHADER_ATTRIBUTES
-} from 'components/fragments/defaults';
+} from 'components/fragments/fragments-defaults';
 
 import Pile from 'components/fragments/pile';
 
@@ -41,7 +41,7 @@ import {
   calculateClusterPiling,
   calculateDistance,
   createRectFrame
-} from 'components/fragments/utils';
+} from 'components/fragments/fragments-utils';
 
 const logger = LogManager.getLogger('fragments');
 

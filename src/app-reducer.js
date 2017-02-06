@@ -1,6 +1,6 @@
 import { combineReducers } from 'redux';
 
-import decompose from 'views/decompose.reducers';
+import decompose from 'views/decompose-reducers';
 
 /**
  * The global / app reducer

@@ -8,7 +8,7 @@ import States from 'services/states';
 
 // Utils
 import $ from 'utils/dom-el';
-import { updateConfigs } from 'app.actions';
+import { updateConfigs } from 'app-actions';
 import { routes } from 'configs/app';
 import { externalLinks } from 'configs/nav';
 import dragDrop from 'utils/drag-drop';

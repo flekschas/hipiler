@@ -1,5 +1,10 @@
-import { updateConfig as updateHglConfig } from 'components/higlass/actions';
-import { updateConfig as updateFgmConfig } from 'components/fragments/actions';
+import {
+  updateConfig as updateHglConfig
+} from 'components/higlass/higlass-actions';
+
+import {
+  updateConfig as updateFgmConfig
+} from 'components/fragments/fragments-actions';
 
 export const UPDATE_CONFIG = 'UPDATE_CONFIG';
 

@@ -5,7 +5,7 @@ import { autoRehydrate, persistStore, purgeStoredState } from 'redux-persist';
 import thunk from 'redux-thunk';
 import undoable, { ActionCreators } from 'redux-undo';
 
-import appReducer from 'app.reducer';
+import appReducer from 'app-reducer';
 
 const CONFIG = {
   storage: localForage,

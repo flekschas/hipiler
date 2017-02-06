@@ -1,4 +1,4 @@
-import { DURATION, FPS } from 'components/fragments/defaults';
+import { DURATION, FPS } from 'components/fragments/fragments-defaults';
 
 import Pile from 'components/fragments/pile';
 

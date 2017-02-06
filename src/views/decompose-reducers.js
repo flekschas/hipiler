@@ -1,10 +1,10 @@
 import { combineReducers } from 'redux';
 
-import { UPDATE_WIDTH } from 'views/decompose.actions';
-import { COLUMNS } from 'views/decompose.defaults';
+import { UPDATE_WIDTH } from 'views/decompose-actions';
+import { COLUMNS } from 'views/decompose-defaults';
 
-import fragments from 'components/fragments/reducers';
-import higlass from 'components/higlass/reducers';
+import fragments from 'components/fragments/fragments-reducers';
+import higlass from 'components/higlass/higlass-reducers';
 
 export function columns (state = { ...COLUMNS }, action) {
   switch (action.type) {

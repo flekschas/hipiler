@@ -19,9 +19,9 @@ import {
   PILING_DIRECTION,
   PREVIEW_SIZE,
   SHADER_MATERIAL
-} from 'components/fragments/defaults';
+} from 'components/fragments/fragments-defaults';
 
-import mpState from 'components/fragments/multipiles-state';
+import mpState from 'components/fragments/fragments-state';
 
 import {
   addBufferedRect,
@@ -30,7 +30,7 @@ import {
   createRectFrame,
   createText,
   makeBuffer3f
-} from 'components/fragments/utils';
+} from 'components/fragments/fragments-utils';
 
 const Pile = {
   /********************************* Variables ********************************/

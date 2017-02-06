@@ -4,7 +4,15 @@ export const CELL_SIZE_HALF = CELL_SIZE / 2;
 
 export const CELL_THRESHOLD = 0.0;  // only cells above are shown
 
-export const CONFIG = {};  // Could be removed?
+/**
+ * External config to initialize fragments.
+ *
+ * @description
+ * The config is different from the visual state of the app.
+ *
+ * @type  {Object}
+ */
+export const CONFIG = {};
 
 export const DIAGONAL_VALUE = 0.11;
 
@@ -89,8 +97,38 @@ export const LABEL_TEXT_SPEC = {
 };
 
 export default {
+  CELL_SIZE,
+  CELL_SIZE_HALF,
+  CELL_THRESHOLD,
   CONFIG,
+  DIAGONAL_VALUE,
   DURATION,
+  FILE,
   FPS,
+  LABEL_DIST,
+  LABEL_WIDTH,
+  LETTER_SPACE,
+  MARGIN_BOTTOM,
+  MARGIN_LEFT,
+  MARGIN_RIGHT,
+  MARGIN_TOP,
+  MATRIX_GAP_HORIZONTAL,
+  MATRIX_GAP_VERTICAL,
+  MODE_BARCHART,
+  MODE_DIFFERENCE,
+  MODE_DIRECT_DIFFERENCE,
+  MODE_MEAN,
+  MODE_TREND,
+  MODE_VARIANCE,
+  ORDER_DATA,
+  ORDER_GLOBAL,
+  ORDER_LOCAL,
+  PILE_TOOL_SIZE,
+  PILING_DIRECTION,
+  PREVIEW_SIZE,
+  SHADER_ATTRIBUTES,
+  SHOW_MATRICES,
+  SVG_MENU_HEIGHT,
+  TIMELINE_HEIGHT,
   LABEL_TEXT_SPEC
 };
