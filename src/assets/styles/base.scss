@@ -108,10 +108,29 @@ figcaption {
   line-height: 1.5rem;
 }
 
+/* =====  Global Styles  ==================================================== */
 
+a.btn {
+  padding: 0.25rem 0.5rem;
+  border: 0;
+  border-radius: 0.25rem;
+  background: $gray-lightest;
+  transition: color $transition-very-fast $ease-in-out-cubic,
+              background $transition-very-fast $ease-in-out-cubic;
 
+  &:hover {
+    border: 0;
+    color: $primary;
+    background: lighten($primary, 40%);
+  }
 
-/* =====  2 Global Styles  ================================================== */
+  &.is-icon-only {
+    svg {
+      width: 1em;
+      height: 1em;
+    }
+  }
+}
 
 .rel {
   position: relative;
