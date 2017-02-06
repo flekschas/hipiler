@@ -1,7 +1,16 @@
 <template>
   <require from="components/svg-icon.html"></require>
 
-  <div class="loading-indicator" class="${isLoading ? 'is-active' : ''}"></div>
+  <div class="flex-c flex-a-c flex-jc-c full-dim error-indicator ${isErrored ? 'is-active' : ''}">
+    <div class="flex-c flex-d-c flex-jc-c flex-a-c">
+      <svg-icon icon-id="warning"></svg-icon>
+      <span>${errorMsg}</span>
+    </div>
+  </div>
+  <div class="flex-c flex-a-c flex-jc-c full-dim loading-indicator ${isLoading ? 'is-active' : ''}">
+    <spinner if.bind="isLoading"></spinner>
+  </div>
+
   <div class="full-wh flex-c flex-d-c" ref="baseEl">
     <main class="flex-i-g-1 rel">
       <div class="full-dim" ref="plotEl"></div>

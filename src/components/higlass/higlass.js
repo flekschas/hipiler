@@ -27,10 +27,14 @@ export class Higlass {
 
     this.renderDb = debounce(this.render.bind(this), 50);
     this.checkColumnsDb = debounce(this.checkColumns.bind(this), 150);
+
+    this.isLoading = true;
   }
 
   attached () {
     this.update();
+
+    setTimeout(() => { this.isLoading = false; }, 150);
   }
 
   checkColumns (newColumns) {
