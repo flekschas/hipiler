@@ -13,7 +13,7 @@
     "aurelia-bootstrapper": "2.0.1",
     "bluebird": "3.4.7",
     "d3": "^4.5.0",
-    "higlass": "hms-dbmi/higlass#flekschas/public-api",
+    "higlass": "hms-dbmi/higlass#flekschas/style-header-and-menu",
     "redux": "3.6.0",
     "redux-persist": "4.1.0",
     "redux-promise-middleware": "4.2.0",
