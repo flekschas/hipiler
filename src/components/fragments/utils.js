@@ -1,4 +1,15 @@
-import d3 from 'd3';
+import { scaleLinear } from 'd3';
+import {
+  Geometry,
+  Line,
+  LineBasicMaterial,
+  LinePieces,
+  Mesh,
+  MeshBasicMaterial,
+  PlaneBufferGeometry,
+  TextGeometry,
+  Vector3
+} from 'three';
 
 export function calculateClusterPiling (
   threshold, matrices, distanceMatrix
@@ -39,7 +50,7 @@ export function calculateDistance (matrices, nodes) {
   return { distanceMatrix, maxDistance };
 }
 
-export const cellValue = d3.scaleLinear().range([0, 1]).nice();
+export const cellValue = scaleLinear().range([0, 1]).nice();
 
 export function distance (matrices, m1, m2, nodes, dMat) {
   if (dMat[m1][m2] !== -1) {
@@ -65,3 +76,118 @@ export function distance (matrices, m1, m2, nodes, dMat) {
 
   return d;
 }
+
+export function addBufferedRect (array, x, y, z, w, h, colorArray, c) {
+  const wh = w / 2;
+  const hh = h / 2;
+
+  array.push(
+    [x - wh, y - hh, z],
+    [x + wh, y - hh, z],
+    [x + wh, y + hh, z],
+    [x + wh, y + hh, z],
+    [x - wh, y + hh, z],
+    [x - wh, y - hh, z]
+  );
+
+  colorArray.push(
+    [c[0], c[1], c[2]],
+    [c[0], c[1], c[2]],
+    [c[0], c[1], c[2]],
+    [c[0], c[1], c[2]],
+    [c[0], c[1], c[2]],
+    [c[0], c[1], c[2]]
+  );
+}
+
+export function makeBuffer3f (array) {
+  const buffer = new Float32Array(array.length * 3);  // three components per vertex
+
+  array.forEach((entry, index) => {
+    buffer[(index * 3) + 0] = entry[0];
+    buffer[(index * 3) + 1] = entry[1];
+    buffer[(index * 3) + 2] = entry[2];
+  });
+
+  return buffer;
+}
+
+export function createRectFrame (w, h, color, lineThickness) {
+  const wh = w / 2;
+  const hh = h / 2;
+
+  let geom = new Geometry();
+
+  geom.vertices = [
+    new Vector3(-wh, -hh, 0),
+    new Vector3(-wh, hh, 0),
+    new Vector3(wh, hh, 0),
+    new Vector3(wh, -hh, 0),
+    new Vector3(-wh, -hh, 0)
+  ];
+
+  let material = new LineBasicMaterial({
+    color,
+    linewidth: lineThickness,
+    linejoin: 'round',
+    linecap: 'round'
+  });
+
+  return new Line(geom, material);
+}
+
+export function createRect (w, h, color) {
+  let geom = new PlaneBufferGeometry(w, h, 1, 1);
+  let m = new MeshBasicMaterial({
+    color,
+    transparent: true,
+    opacity: 1
+  });
+  return new Mesh(geom, m);
+}
+
+export function createText (string, x, y, z, size, color, weight) {
+  if (!weight) {
+    weight = 'normal';
+  }
+
+  let textGeom = new TextGeometry(string, {
+    size,
+    height: 1,
+    weight,
+    curveSegments: 5,
+    font: 'helvetiker',
+    bevelEnabled: false
+  });
+
+  let textMaterial = new MeshBasicMaterial({ color });
+  let label = new Mesh(textGeom, textMaterial);
+
+  label.position.set(x, y, z);
+
+  return label;
+}
+
+export function createMarker (x, y, z, color) {
+  let l = 10;
+  let geom = new Geometry();
+
+  geom.vertices = [
+    new Vector3(-l, 0, 0),
+    new Vector3(l, 0, 0),
+    new Vector3(0, -l, 0),
+    new Vector3(0, l, 0)
+  ];
+
+  let material = new LineBasicMaterial({
+    color,
+    linewidth: 1
+  });
+
+  let m = new Line(geom, material, LinePieces);
+
+  m.position.set(x, y, z);
+
+  return m;
+}
+
