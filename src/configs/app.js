@@ -38,6 +38,13 @@ export const routes = [
     title: 'Decompose',
     moduleId: 'views/decompose',
     nav: false
+  },
+  {
+    route: 'matrix',
+    name: 'matrix',
+    title: 'Matrix',
+    moduleId: 'views/matrix',
+    nav: false
   }
 ];
 

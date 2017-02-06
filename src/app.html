@@ -1,6 +1,6 @@
 <template>
   <div
-    class="full-wh"
+    class="full-wh ${currentRoute === 'matrix' ? 'matrix-full-screen-view' : ''}"
     mousemove.trigger="mouseMoveHandler($event)"
     mouseup.trigger="mouseUpHandler($event)">
     <require from="assets/styles/index.css"></require>
@@ -23,26 +23,26 @@
       <div class="flex-c">
         <h1 class="${currentRoute === 'home' ? 'is-active' : ''}">
           <a route-href="route: home">
-            ${currentRoute === 'decompose' ? 'MDM' : 'Matrix Decomposition Methods'}
+            ${currentRoute === 'decompose' || currentRoute === 'matrix' ? 'MDM' : 'Matrix Decomposition Methods'}
           </a>
         </h1>
         <div
           class="flex-c state state-active"
-          if.bind="currentRoute === 'decompose'">
+          if.bind="currentRoute === 'decompose' || currentRoute === 'matrix'">
           <svg-icon class="icon-inline" icon-id="play"></svg-icon>
           Running
         </div>
         <button
           class="flex-c state state-ready"
           click.delegate="resumeDecomposition()"
-          if.bind="currentRoute !== 'decompose' && decomposeIsReady">
+          if.bind="currentRoute !== 'decompose' && currentRoute !== 'matrix' && decomposeIsReady">
           <svg-icon class="icon-inline" icon-id="play"></svg-icon>
           Resume
         </button>
         <button
           class="flex-c state"
           click.delegate="reset()"
-          if.bind="currentRoute !== 'decompose' && decomposeIsReady">
+          if.bind="currentRoute !== 'decompose' && currentRoute !== 'matrix' && decomposeIsReady">
           <svg-icon class="icon-inline" icon-id="reset"></svg-icon>
           Reset
         </button>
@@ -51,7 +51,8 @@
       <navigation
         class="primary-nav"
         router.bind="router"
-        external-links.bind="externalLinks">
+        external-links.bind="externalLinks"
+        if.bind="currentRoute !== 'matrix'">
       </navigation>
     </header>
 
