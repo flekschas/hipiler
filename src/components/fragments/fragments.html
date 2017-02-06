@@ -1,11 +1,10 @@
 <template>
   <div class="loading-indicator" class="${isLoading ? 'is-active' : ''}"></div>
   <div class="full-wh flex-c flex-d-c" ref="baseEl">
-    <header class="control-bar">Controls</header>
-    <main id="fragment-plot" class="flex-i-g-1" ref="plotEl"></main>
+    <main class="flex-i-g-1 fragment-plot" ref="plotEl"></main>
     <footer class="settings-bar">
-      <ul class="flex-c">
-        <li>
+      <ul class="flex-c settings-list">
+        <li class="flex-c flex-d-c">
           <label for="settings-frag-size">Fragment Size</label>
           <input
             id="settings-frag-size"
@@ -16,7 +15,7 @@
             value.one-way="fragmentSize"
             change.delegate="fragmentSizeChanged()">
         </li>
-        <li>
+        <li class="flex-c flex-d-c">
           <label for="settings-frag-is-animated">Animate</label>
           <input type="checkbox" id="settings-frag-is-animated">
         </li>
