@@ -9,6 +9,7 @@
   ],
   "parser": "babel-eslint",
   "rules": {
+    "new-cap": ["error", { "capIsNew": false }],
     "class-methods-use-this": 0,
     "import/no-extraneous-dependencies": 0,
     "import/extensions": 0,
