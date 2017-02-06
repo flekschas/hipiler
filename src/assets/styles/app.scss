@@ -14,24 +14,61 @@ html {
   font-size: 2em;
   font-weight: bold;
   text-transform: uppercase;
+  height: 0;
+  opacity: 0;
+  transition: opacity $transition-very-fast $ease-in-out-cubic;
 }
 
 #drag-drop-notifier {
-  color: $gray-dark;
-  background: $gray-light;
+  color: $white;
+  background: transparentize($primary, 0.25);
 }
 
 #global-error {
   color: $error-text;
   background: $error-bg;
-  opacity: 0;
-  transition: opacity $transition-very-fast $ease-in-out-cubic;
 }
 
-body.is-global-error {
-  #global-error {
-    z-index: 2;
-    opacity: 1;
+body.is-dragging-over #drag-drop-notifier,
+body.is-global-error #global-error {
+  z-index: 10;
+  height: 100%;
+  opacity: 1;
+
+  span {
+    transform: scale(1);
+  }
+}
+
+body.is-dragging-over #drag-drop-notifier {
+  animation: pulsePrimary 1.5s $ease-in-out-cubic infinite;
+
+  span {
+    animation: pulseText 1.5s $ease-in-out-cubic infinite;
+  }
+}
+
+@keyframes pulsePrimary {
+  50% {
+    background: transparentize($primary, 0.25);
+  }
+  60% {
+    background: transparentize($primary, 0.05);
+  }
+  100% {
+    background: transparentize($primary, 0.25);
+  }
+}
+
+@keyframes pulseText {
+  50% {
+    transform: scale(1);
+  }
+  60% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
   }
 }
 
@@ -148,12 +185,4 @@ body.is-global-error {
 #topbar,
 #main {
   transition: opacity $transition-very-fast $ease-in-out-cubic;
-}
-
-body.is-dragging-over {
-  #topbar,
-  #infobar,
-  #main {
-    opacity: 0.33;
-  }
 }
