@@ -116,18 +116,32 @@ export class Fragments {
     logger.debug('Hallo?');
   }
 
+
+  /* --------------------------- Custom Variables --------------------------- */
+
+  get baseElDim () {
+    return this._baseElDim;
+  }
+
+
   /* ---------------------------- Custom Methods ---------------------------- */
 
+  /**
+   * [allCoverChanged description]
+   *
+   * @return {[type]} [description]
+   */
   allCoverChanged () {
     this.setPileMode(this.coverMatrixMenu.selectedIndex, this.mp.piles);
     this.redrawPiles(this.mp.piles);
     this.render();
   }
 
-  get baseElDim () {
-    return this._baseElDim;
-  }
-
+  /**
+   * [calculateDistanceMatrix description]
+   *
+   * @return {[type]} [description]
+   */
   calculateDistanceMatrix () {
     const data = calculateDistance(this.graphMatrices, this.mp.focusNodes);
 
@@ -137,12 +151,24 @@ export class Fragments {
     this.pdMax = this.maxDistance;
   }
 
+  /**
+   * [calculatePiles description]
+   *
+   * @param {[type]} value - [description]
+   * @return {[type]} [description]
+   */
   calculatePiles (value) {
     this.isLoading = true;
 
     this.setPiling(calculateClusterPiling(value, this.mp.matrices, this.dMat));
   }
 
+  /**
+   * [canvasClickHandler description]
+   *
+   * @param {[type]} event - [description]
+   * @return {[type]} [description]
+   */
   canvasClickHandler (event) {
     if (this.mouseDown) {
       return;
@@ -165,6 +191,12 @@ export class Fragments {
     }
   }
 
+  /**
+   * [canvasDblClickHandler description]
+   *
+   * @param {[type]} event - [description]
+   * @return {[type]} [description]
+   */
   canvasDblClickHandler (event) {
     event.preventDefault();
 
@@ -180,6 +212,12 @@ export class Fragments {
     this.depile(pile);
   }
 
+  /**
+   * [canvasMouseDownHandler description]
+   *
+   * @param {[type]} event - [description]
+   * @return {[type]} [description]
+   */
   canvasMouseDownHandler (event) {
     this.mouseWentDown = true;
     this.mouseDown = true;
@@ -203,6 +241,12 @@ export class Fragments {
     }
   }
 
+  /**
+   * [canvasMouseMoveHandler description]
+   *
+   * @param {[type]} event - [description]
+   * @return {[type]} [description]
+   */
   canvasMouseMoveHandler (event) {
     event.preventDefault();
 
@@ -398,6 +442,12 @@ export class Fragments {
     this.render();
   }
 
+  /**
+   * [canvasMouseUpHandler description]
+   *
+   * @param {[type]} event - [description]
+   * @return {[type]} [description]
+   */
   canvasMouseUpHandler (event) {
     event.preventDefault();
 
@@ -474,6 +524,12 @@ export class Fragments {
     this.lassoActive = false;
   }
 
+  /**
+   * [canvasMouseWheelHandler description]
+   *
+   * @param {[type]} event - [description]
+   * @return {[type]} [description]
+   */
   canvasMouseWheelHandler (event) {
     event.preventDefault();
 
@@ -487,6 +543,12 @@ export class Fragments {
     this.render();
   }
 
+  /**
+   * [depile description]
+   *
+   * @param {[type]} pile - [description]
+   * @return {[type]} [description]
+   */
   depile (pile) {
     let newPiles = [];
 
@@ -537,6 +599,11 @@ export class Fragments {
     this.render();
   }
 
+  /**
+   * [deselectAllMatrices description]
+   *
+   * @return {[type]} [description]
+   */
   deselectAllMatrices () {
     this.selectedMatrices.forEach(
       matrix => matrix.frame.attr('class', 'matrixbackground')
@@ -545,6 +612,12 @@ export class Fragments {
     this.selectedMatrices = [];
   }
 
+  /**
+   * [destroyPile description]
+   *
+   * @param {[type]} pile - [description]
+   * @return {[type]} [description]
+   */
   destroyPile (pile) {
     pile.destroy();
 
@@ -559,6 +632,14 @@ export class Fragments {
     }
   }
 
+  /**
+   * [distance description]
+   *
+   * @param {[type]} m1         - [description]
+   * @param {[type]} m2         - [description]
+   * @param {[type]} focusNodes - [description]
+   * @return {[type]} [description]
+   */
   distance (m1, m2, focusNodes) {
     let d = 0;
     let a;
@@ -575,6 +656,12 @@ export class Fragments {
     return Math.sqrt(d);
   }
 
+  /**
+   * [focusOn description]
+   *
+   * @param {[type]} nodes - [description]
+   * @return {[type]} [description]
+   */
   focusOn (nodes) {
     this.mp.focusNodes = nodes;
 
@@ -603,6 +690,12 @@ export class Fragments {
     this.render();
   }
 
+  /**
+   * [fragmentSizeChanged description]
+   *
+   * @param {[type]} event - [description]
+   * @return {[type]} [description]
+   */
   fragmentSizeChanged (event) {
     logger.debug(event);
   }
@@ -618,6 +711,12 @@ export class Fragments {
     return this.baseElDim;
   }
 
+  /**
+   * [getLayoutPosition description]
+   *
+   * @param {[type]} index - [description]
+   * @return {[type]} [description]
+   */
   getLayoutPosition (index) {
     let x;
     let y;
@@ -668,6 +767,11 @@ export class Fragments {
     };
   }
 
+  /**
+   * [getCurrentPiling description]
+   *
+   * @return {[type]} [description]
+   */
   getCurrentPiling () {
     const piling = [];
 
@@ -688,20 +792,41 @@ export class Fragments {
     return this.getLayoutPosition(this.matrixPos[matrixIndex]);
   }
 
+  /**
+   * [hidedistance description]
+   *
+   * @return {[type]} [description]
+   */
   hidedistance () {
     this.mp.matrices.forEach(matrix => matrix.g_course.style('opacity', '1'));
   }
 
+  /**
+   * [highlightNoPile description]
+   *
+   * @return {[type]} [description]
+   */
   highlightNoPile () {
     this.mp.scene.remove(this.highlightFrame);
   }
 
+  /**
+   * [highlightPile description]
+   *
+   * @param {[type]} pile - [description]
+   * @return {[type]} [description]
+   */
   highlightPile (pile) {
     this.highlightFrame.position.set(pile.x, pile.y, 0);
     this.highlightFrame.visible = true;
     this.mp.scene.add(this.highlightFrame);
   }
 
+  /**
+   * [initEventListeners description]
+   *
+   * @return {[type]} [description]
+   */
   initEventListeners () {
     this.canvas.addEventListener(
       'click', this.canvasClickHandler.bind(this)
@@ -723,6 +848,12 @@ export class Fragments {
     );
   }
 
+  /**
+   * [initPlot description]
+   *
+   * @param {[type]} data - [description]
+   * @return {[type]} [description]
+   */
   initPlot (data) {
     this.mp.nodes = data.nodes;
 
@@ -776,6 +907,11 @@ export class Fragments {
     this.render();
   }
 
+  /**
+   * [initShader description]
+   *
+   * @return {[type]} [description]
+   */
   initShader () {
     try {
       ShaderMaterial({
@@ -793,6 +929,11 @@ export class Fragments {
     }
   }
 
+  /**
+   * [initWebGl description]
+   *
+   * @return {[type]} [description]
+   */
   initWebGl () {
     this.camera = OrthographicCamera(
       this.baseElDim.width / -2,
@@ -819,6 +960,13 @@ export class Fragments {
     this.mp.scene.add(this.camera);
   }
 
+  /**
+   * [isSameOrdering description]
+   *
+   * @param {[type]} o1 - [description]
+   * @param {[type]} o2 - [description]
+   * @return  {Boolean}          - [description]
+   */
   isSameOrdering (o1, o2) {
     if (!o1 || !o2) {
       return false;
@@ -840,9 +988,17 @@ export class Fragments {
     return same;
   }
 
+  /**
+   * [matrixTimeComparator description]
+   *
+   * @param {[type]} a - [description]
+   * @param {[type]} b - [description]
+   * @return {[type]} [description]
+   */
   matrixTimeComparator (a, b) {
     return parseInt(a.id, 10) - parseInt(b.id, 10);
   }
+
   /**
    * Piles all matrices prior to the selected one, including the selected one.
    *
@@ -896,21 +1052,38 @@ export class Fragments {
     }
 
     targetPile.addMatrices(matricesToPile);
-    this.sortTime(targetPile);
+    this.sortByOriginalOrder(targetPile);
 
     this.redrawPiles(this.mp.piles);
     this.updateLayout(0, true);
     this.render();
   }
 
+  /**
+   * [redrawPiles description]
+   *
+   * @param {[type]} piles - [description]
+   * @return {[type]} [description]
+   */
   redrawPiles (piles) {
     piles.forEach(pile => pile.draw());
   }
 
+  /**
+   * [removeFromPile description]
+   *
+   * @param {[type]} pile - [description]
+   * @return {[type]} [description]
+   */
   removeFromPile (pile) {
     logger.warning('`removeFromPile()` not implemented yet.');
   }
 
+  /**
+   * [render description]
+   *
+   * @return {[type]} [description]
+   */
   render () {
     this.renderer.render(this.mp.scene, this.camera);
 
@@ -919,18 +1092,34 @@ export class Fragments {
     });
   }
 
+  /**
+   * [setPileMode description]
+   *
+   * @param {[type]} mode  - [description]
+   * @param {[type]} piles - [description]
+   */
   setPileMode (mode, piles) {
     for (let i = 0; i < piles.length; i++) {
       piles[i].setCoverMatrixMode(mode);
     }
   }
 
+  /**
+   * [setSimilarityPiling description]
+   *
+   * @param {[type]} value - [description]
+   */
   setSimilarityPiling (value) {
     this.calculatePiles(value);
   }
 
-  // Sorts matrices in pile according to time
-  sortTime (pile) {
+  /**
+   * Sorts matrices in pile according to time
+   *
+   * @param {[type]} pile - [description]
+   * @return {[type]} [description]
+   */
+  sortByOriginalOrder (pile) {
     pile.pileMatrices.sort(this.matrixTimeComparator);
   }
 
@@ -938,9 +1127,9 @@ export class Fragments {
    * Splits a pile at the position of the passed matrix. The passed matrix
    * becomes the base for the new pile.
    *
-   * @param   {[type]}    matrix    [description]
-   * @param   {[type]}    animated  [description]
-   * @return  {[type]}              [description]
+   * @param {[type]} matrix   - [description]
+   * @param {[type]} animated - [description]
+   * @return {[type]} [description]
    */
   splitPile (matrix, animated) {
     if (!animated) {
@@ -996,6 +1185,11 @@ export class Fragments {
     }, 500 / FPS);
   }
 
+  /**
+   * [setPiling description]
+   *
+   * @param {[type]} newPiling - [description]
+   */
   setPiling (newPiling) {
     this.mp.piles.forEach(pile => this.destroyPile(pile));
 
@@ -1026,7 +1220,7 @@ export class Fragments {
       this.mp.piles.push(newPile);
       newPile.addMatrices(matrices);
 
-      this.sortTime(newPile);
+      this.sortByOriginalOrder(newPile);
       newPile.setCoverMatrixMode(this.coverMatrixMenu.selectedIndex);
       newPile.draw();
 
@@ -1039,21 +1233,38 @@ export class Fragments {
     this.render();
   }
 
+  /**
+   * [setNodeOrder description]
+   *
+   * @param {[type]} piles - [description]
+   * @param {[type]} order - [description]
+   */
   setNodeOrder (piles, order) {
     for (let i = 0; i < piles.length; i++) {
       piles[i].setNodeOrder(order);
     }
   }
 
+  /**
+   * [setPilingMethod description]
+   *
+   * @param {[type]} method - [description]
+   */
   setPilingMethod (method) {
     this.pilingMethod = method;
   }
 
-  // takes a seed pile and shows how similar
-  // all the other piles/matrices are.
-  // the similarity between two piles is the
-  // mean of the distances between all matrices
-  // from p1 to all matrices to p2 (bigraph)
+  /**
+   * [showMatrixSimilarity description]
+   *
+   * @description
+   * Takes a seed pile and shows how similarall the other piles / matrices are.
+   * The similarity between two piles is themean of the distances between all
+   * matrices from p1 to all matrices to p2 (bigraph).
+   *
+   * @param {[type]} pile - [description]
+   * @return {[type]} [description]
+   */
   showMatrixSimilarity (pile) {
     let pileIndex = this.mp.piles.indexOf(pile);
 
@@ -1064,10 +1275,20 @@ export class Fragments {
     });
   }
 
+  /**
+   * [unshowMatrixSimilarity description]
+   *
+   * @return {[type]} [description]
+   */
   unshowMatrixSimilarity () {
     this.mp.piles.forEach(pile => pile.resetSimilarity());
   }
 
+  /**
+   * [update description]
+   *
+   * @return {[type]} [description]
+   */
   update () {
     try {
       this.updateConfig(this.store.getState().present.decompose.fragments.config);
@@ -1076,6 +1297,12 @@ export class Fragments {
     }
   }
 
+  /**
+   * [updateCellSize description]
+   *
+   * @param {[type]} newSize - [description]
+   * @return {[type]} [description]
+   */
   updateCellSize (newSize) {
     this.cellSize = newSize;
 
@@ -1101,6 +1328,12 @@ export class Fragments {
     this.render();
   }
 
+  /**
+   * [updateConfig description]
+   *
+   * @param {[type]} newConfig - [description]
+   * @return {[type]} [description]
+   */
   updateConfig (newConfig) {
     if (this.fragments.config !== newConfig) {
       this.fragments.config = newConfig;
@@ -1108,6 +1341,12 @@ export class Fragments {
     }
   }
 
+  /**
+   * [updateLayout description]
+   *
+   * @param {[type]} pileIndex - [description]
+   * @return {[type]} [description]
+   */
   updateLayout (pileIndex) {
     this.mp.piles.forEach((pile, index) => {
       const pos = this.getLayoutPosition(index);
