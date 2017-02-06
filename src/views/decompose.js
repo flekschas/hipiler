@@ -18,7 +18,7 @@ const logger = LogManager.getLogger('decompose');
 
 
 @inject(EventAggregator, Font, States)
-export default class Decompose {
+export class Decompose {
   constructor (eventAggregator, font, states) {
     this.events = eventAggregator;
     this.font = font;
