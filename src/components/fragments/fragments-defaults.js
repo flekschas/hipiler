@@ -18,6 +18,8 @@ export const DIAGONAL_VALUE = 0.11;
 
 export const DURATION = 500;
 
+export const FONT_URL = 'src/assets/fonts/rubik-regular.json';
+
 export const FPS = 25;
 
 export const LABEL_DIST = 60;
@@ -27,8 +29,7 @@ export const LABEL_WIDTH = 130;
 export const LABEL_TEXT_SPEC = {
   size: 6,
   height: 1,
-  curveSegments: 3,
-  font: 'helvetiker'
+  curveSegments: 3
 };
 
 export const LETTER_SPACE = 6;
@@ -111,6 +112,7 @@ export default {
   CONFIG,
   DIAGONAL_VALUE,
   DURATION,
+  FONT_URL,
   FPS,
   LABEL_DIST,
   LABEL_TEXT_SPEC,

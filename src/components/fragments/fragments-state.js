@@ -10,6 +10,7 @@ const State = {
   dragPile: undefined,
   dynamicdata: undefined,
   focusNodes: [],
+  font: undefined,
   graphMatrices: [],
   hoveredCell: undefined,
   hoveredGapPile: undefined,
