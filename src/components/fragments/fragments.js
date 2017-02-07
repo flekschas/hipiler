@@ -10,11 +10,16 @@ import {
   WebGLRenderer
 } from 'three';
 
+// Third party
+import { json } from 'd3';
+
 // Injectables
 import States from 'services/states';
 import MpState from 'components/fragments/fragments-state';
 
 // Utils etc.
+import { setCellSize } from 'components/fragments/fragments-actions';
+
 import {
   SplitAnimation
 } from 'components/fragments/fragments-animations';
@@ -30,7 +35,7 @@ import {
   MODE_DIRECT_DIFFERENCE,
   PILING_DIRECTION,
   PREVIEW_SIZE,
-  SHADER_ATTRIBUTES
+  WEB_GL_CONFIG
 } from 'components/fragments/fragments-defaults';
 
 import Pile from 'components/fragments/pile';
@@ -51,7 +56,6 @@ export class Fragments {
     // Link the Redux store
     this.store = states.store;
     this.store.subscribe(this.update.bind(this));
-    this.update();
 
     this.fragments = {};
 
@@ -89,6 +93,7 @@ export class Fragments {
     this.pileIDCount = 0;
     this.startPile = 0;
     this.maxValue = 0;
+    this.numPixels = 0;
 
     // If the user changes the focus nodes, matrix similarity must be recalculated
     // before automatic piling. Distance calculation is performed on the server.
@@ -102,25 +107,68 @@ export class Fragments {
     this.mouseDown = false;
     this.lassoActive = false;
     this.mouseWentDown = false;
+
+    this.isLoading = true;
+
+    this.update();
   }
 
   attached () {
-    this.getBaseElDim();
+    this.getPlotElDim();
 
+    this.initShader();
     this.initWebGl();
     this.initEventListeners();
-    this.initShader();
 
     this.plotEl.appendChild(this.canvas);
 
-    logger.debug('Hallo?');
+    this.isLoading = false;
   }
 
 
   /* --------------------------- Custom Variables --------------------------- */
 
-  get baseElDim () {
-    return this._baseElDim;
+  get plotElDim () {
+    return this._plotElDim;
+  }
+
+  get numColumns () {
+    return Math.floor(
+      (this.plotElDim.width - MARGIN_LEFT - MARGIN_RIGHT) /
+      (this.plotElDim.width + MATRIX_GAP_HORIZONTAL)
+    ) - 1;
+  }
+
+  get isErrored () {
+    return this._isErrored;
+  }
+
+  set isErrored (value) {
+    if (value && this.isLoading) {
+      this.isLoading = false;
+    }
+
+    this._isErrored = !!value;
+  }
+
+  get isInitialized () {
+    return this._isInitialized;
+  }
+
+  set isInitialized (value) {
+    if (value && this.isLoading) {
+      this.isLoading = false;
+    }
+
+    this._isInitialized = !!value;
+  }
+
+  get matrixWidth () {
+    return this.numPixels * this.cellSize;
+  }
+
+  get matrixWidthHalf () {
+    return this.matrixWidth / 2;
   }
 
 
@@ -261,8 +309,8 @@ export class Fragments {
     let dir = Vector3();
 
     this.mouse.set(
-      ((event.clientX / this.baseElDim.width) * 2) - 1,
-      (-(event.clientY / this.baseElDim.width) * 2) + 1,
+      ((event.clientX / this.plotElDim.width) * 2) - 1,
+      (-(event.clientY / this.plotElDim.width) * 2) + 1,
       -1
     );
 
@@ -337,8 +385,8 @@ export class Fragments {
         let y = pileMesh.position.y;
 
         // TEST FOR PREVIEWS
-        if (this.mouse.y > y + this._matrixWidthHalf) {
-          let d = this.mouse.y - (y + this._matrixWidthHalf);
+        if (this.mouse.y > y + this.matrixWidthHalf) {
+          let d = this.mouse.y - (y + this.matrixWidthHalf);
           let i = Math.floor(d / PREVIEW_SIZE);
           this.hoveredPile.showSingle(this.hoveredPile.getMatrix(i));
           this.hoveredMatrix = this.hoveredPile.getMatrix(i);
@@ -348,7 +396,7 @@ export class Fragments {
         }
 
         // TEST FOR GAPS
-        if (this.mouse.x > x + this._matrixWidthHalf) {
+        if (this.mouse.x > x + this.matrixWidthHalf) {
           this.hoveredGapPile = this.hoveredPile;
         } else if (this.hoveredGapPile) {
           let p = this.hoveredGapPile;
@@ -362,8 +410,8 @@ export class Fragments {
 
         if (event.shiftKey) {
           // test which cell is hovered.
-          let col = Math.floor((this.mouse.x - (x - this._matrixWidthHalf)) / this.cellSize);
-          let row = Math.floor(-(this.mouse.y - (y + this._matrixWidthHalf)) / this.cellSize);
+          let col = Math.floor((this.mouse.x - (x - this.matrixWidthHalf)) / this.cellSize);
+          let row = Math.floor(-(this.mouse.y - (y + this.matrixWidthHalf)) / this.cellSize);
           if (
             row >= 0 ||
             row < this.mp.focusNodes.length ||
@@ -666,20 +714,15 @@ export class Fragments {
     this.mp.focusNodes = nodes;
 
     // update sizes
-    this._matrixWidth = this.cellSize * this.mp.focusNodes.length;
-    this._matrixWidthHalf = this._matrixWidth / 2;
-
-    this._cols = Math.floor(
-      (this.baseElDim.width - MARGIN_LEFT - MARGIN_RIGHT) /
-      (this.baseElDim.width + MATRIX_GAP_HORIZONTAL)
-    ) - 1;
+    this.matrixWidth = this.cellSize * this.mp.focusNodes.length;
+    this.matrixWidthHalf = this.matrixWidth / 2;
 
     this.mp.calculateDistanceMatrix();
 
     // update highlight frame
     this.mp.scene.remove(this.highlightFrame);
     this.highlightFrame = createRectFrame(
-      this._matrixWidth, this._matrixWidth, 0x000000, 10
+      this.matrixWidth, this.matrixWidth, 0x000000, 10
     );
     this.mp.scene.add(this.highlightFrame);
 
@@ -705,10 +748,10 @@ export class Fragments {
    *
    * @return {object} Client rectangle object of the base element.
    */
-  getBaseElDim () {
-    this._baseElDim = this.baseEl.getBoundingClientRect();
+  getPlotElDim () {
+    this._plotElDim = this.plotEl.getBoundingClientRect();
 
-    return this.baseElDim;
+    return this.plotElDim;
   }
 
   /**
@@ -726,30 +769,30 @@ export class Fragments {
       y = MARGIN_TOP;
 
       for (let i = 0; i < index; i++) {
-        x += this._matrixWidth + (this.mp.piles[i].size() * 2) + MATRIX_GAP_HORIZONTAL + 10;
+        x += this.matrixWidth + (this.mp.piles[i].size() * 2) + MATRIX_GAP_HORIZONTAL + 10;
         if (
           (
-            x + this._matrixWidth + (this.mp.piles[i].size() * 2) + MATRIX_GAP_HORIZONTAL
+            x + this.matrixWidth + (this.mp.piles[i].size() * 2) + MATRIX_GAP_HORIZONTAL
           ) > this._courseWidth
         ) {
-          x = this._matrixWidth;
-          y += this._matrixWidth + MATRIX_GAP_VERTICAL;
+          x = this.matrixWidth;
+          y += this.matrixWidth + MATRIX_GAP_VERTICAL;
         }
       }
       return { x, y };
     }
 
-    let col = Math.floor(index % this._cols);
+    let col = Math.floor(index % this.numColumns);
     y = MARGIN_TOP;
     let currh = 0;
     let temp;
 
     for (let i = 0; i < this.mp.piles.length; i++) {
-      if (i > 0 && i % this._cols === 0) {  // when new row starts
+      if (i > 0 && i % this.numColumns === 0) {  // when new row starts
         if (i > index) {
           break;
         } else {
-          y += currh + this._matrixWidth + MATRIX_GAP_VERTICAL;
+          y += currh + this.matrixWidth + MATRIX_GAP_VERTICAL;
           currh = 0;
         }
       }
@@ -762,7 +805,7 @@ export class Fragments {
     }
 
     return {
-      x: MARGIN_LEFT + (col * (this._matrixWidth + MATRIX_GAP_HORIZONTAL)) + this._matrixWidthHalf,
+      x: MARGIN_LEFT + (col * (this.matrixWidth + MATRIX_GAP_HORIZONTAL)) + this.matrixWidthHalf,
       y: y + currh
     };
   }
@@ -849,39 +892,16 @@ export class Fragments {
   }
 
   /**
-   * [initPlot description]
+   * Initialize the fragment plot.
    *
-   * @param {[type]} data - [description]
-   * @return {[type]} [description]
+   * @param {object} data - Data object with the fragments.
    */
   initPlot (data) {
-    this.mp.nodes = data.nodes;
-
-    this.mp.nodes.forEach((node, index) => {
-      this.mp.focusNodes.push(index);
-      node.name = node.name.trim();
-    });
-
-    data.fragments.forEach((fragment) => {
-      this.mp.dataMatrices.push(fragment.matrix);
-    });
-
-    this.calculateDistanceMatrix();
-
-    this.numPixels = data.dim;
-
-    // INIT LAYOUT
-    this._matrixWidth = this.numPixels * this.cellSize;
-    this._matrixWidthHalf = this._matrixWidth / 2;
+    this.numPixels = data.dims;
 
     this.highlightFrame = createRectFrame(
-      this._matrixWidth, this._matrixWidth, 0xff8100, 10
+      this.matrixWidth, this.matrixWidth, 0xff8100, 10
     );
-
-    this._cols = Math.floor(
-      (this.baseElDim.width - MARGIN_LEFT - MARGIN_RIGHT) /
-      (this.baseElDim.width + MATRIX_GAP_HORIZONTAL)
-    ) - 1;
 
     // INIT PILES & MATRICES (each single matrix is a pile)
     data.fragments.forEach((fragment, index) => {
@@ -895,16 +915,19 @@ export class Fragments {
 
       this.mp.piles.push(pile);
       this.mp.matrices.push(matrix);
+      this.mp.dataMatrices.push(fragment.matrix);
 
       pile.addMatrices([matrix]);
       pile.draw();
     });
 
+    this.calculateDistanceMatrix();
+
     this.updateLayout(0, false);
 
-    this.isLoading = false;
-
     this.render();
+
+    this.isInitialized = true;
   }
 
   /**
@@ -914,8 +937,7 @@ export class Fragments {
    */
   initShader () {
     try {
-      ShaderMaterial({
-        attributes: SHADER_ATTRIBUTES,
+      this.shaderMaterial = new ShaderMaterial({
         vertexShader: document.querySelector('#shader-vertex').textContent,
         fragmentShader: document.querySelector('#shader-fragment').textContent,
         blending: NormalBlending,
@@ -925,37 +947,38 @@ export class Fragments {
         linewidth: 2
       });
     } catch (e) {
+      this.isErrored = true;
+      this.errorMsg = 'Failed to initialize shader.';
+
       logger.error('Failed to initialize shader.', e);
     }
   }
 
   /**
-   * [initWebGl description]
-   *
-   * @return {[type]} [description]
+   * Initialize the canvas container.
    */
   initWebGl () {
-    this.camera = OrthographicCamera(
-      this.baseElDim.width / -2,
-      this.baseElDim.width / 2,
-      this.baseElDim.height / 2,
-      this.baseElDim.height / -2,
+    this.camera = new OrthographicCamera(
+      this.plotElDim.width / -2,
+      this.plotElDim.width / 2,
+      this.plotElDim.height / 2,
+      this.plotElDim.height / -2,
       1,
       11
     );
 
     this.camera.position.z = 10;
-    this.camera.position.x = (this.baseElDim.width / 2) - 50;
-    let topScrollLimit = MARGIN_TOP - (this.baseElDim.height / 2);
-    this.camera.position.y = topScrollLimit;
+    this.camera.position.x = (this.plotElDim.width / 2) - 50;
+    this.topScrollLimit = MARGIN_TOP - (this.plotElDim.height / 2);
+    this.camera.position.y = this.topScrollLimit;
 
-    this.renderer = WebGLRenderer({ antialias: true });
-    this.renderer.setSize(this.baseElDim.width, this.baseElDim.height);
-    this.renderer.setClearColor(0xffffff, 1);
+    this.renderer = new WebGLRenderer(WEB_GL_CONFIG);
+    this.renderer.setSize(this.plotElDim.width, this.plotElDim.height);
+    this.renderer.setClearColor(0xffffff, 0);
 
     this.canvas = this.renderer.domElement;
-    this.origin = Vector3();
-    this.raycaster = Raycaster();
+    this.origin = new Vector3();
+    this.raycaster = new Raycaster();
 
     this.mp.scene.add(this.camera);
   }
@@ -986,6 +1009,40 @@ export class Fragments {
     }
 
     return same;
+  }
+
+  /**
+   * Load fragments.
+   *
+   * @param {object} config - Config.
+   * @return {object} A promise resolving to `true` if the data is successfully
+   *   loaded.
+   */
+  loadData (config) {
+    logger.debug('load data config', config);
+
+    this.data = new Promise((resolve, reject) => {
+      let dataUrl;
+
+      const queryString = this.prepareQueryString(config.queries);
+
+      try {
+        dataUrl = `${config.endpoint}${queryString}`;
+      } catch (e) {
+        this.showError('Config is broken');
+        reject(this.errorMsg);
+      }
+
+      json(dataUrl, (error, results) => {
+        if (error) {
+          this.showError('Could not load data');
+          reject(error);
+        } else {
+          this.data = results;
+          resolve(results);
+        }
+      });
+    });
   }
 
   /**
@@ -1060,6 +1117,25 @@ export class Fragments {
   }
 
   /**
+   * Build query string from object and URI encode values
+   *
+   * @param {object} queries - Key-value list of queries.
+   * @return {string} Query string.
+   */
+  prepareQueryString (queries) {
+    try {
+      return `?${
+        Object
+          .keys(queries)
+          .map(query => `${query}=${encodeURIComponent(queries[query])}`)
+          .join('&')
+      }`;
+    } catch (e) {
+      return '';
+    }
+  }
+
+  /**
    * [redrawPiles description]
    *
    * @param {[type]} piles - [description]
@@ -1111,6 +1187,16 @@ export class Fragments {
    */
   setSimilarityPiling (value) {
     this.calculatePiles(value);
+  }
+
+  /**
+   * Helper method to show an error message
+   *
+   * @param {string} message - Error to be shown
+   */
+  showError (message) {
+    this.isErrored = true;
+    this.errorMsg = message;
   }
 
   /**
@@ -1291,41 +1377,46 @@ export class Fragments {
    */
   update () {
     try {
+      this.updateCellSize(this.store.getState().present.decompose.fragments.cellSize);
       this.updateConfig(this.store.getState().present.decompose.fragments.config);
     } catch (e) {
       logger.error('State is invalid', e);
     }
   }
 
+  cellSizeChanged (event) {
+    try {
+      this.store.dispatch(setCellSize(parseInt(event.target.value, 10)));
+    } catch (e) {
+      // Somthing weird happened so we'll simply ignore the change
+    }
+  }
+
   /**
-   * [updateCellSize description]
+   * Update the cell size and rerender the piles
    *
-   * @param {[type]} newSize - [description]
-   * @return {[type]} [description]
+   * @param {number} newSize - New cell size
    */
   updateCellSize (newSize) {
     this.cellSize = newSize;
 
-    this.labelTextSpec.size = this.cellSize - 1;
-    this._matrixWidth = this.mp.focusNodes.length * this.cellSize;
-    this._matrixWidthHalf = this._matrixWidth / 2;
+    logger.debug('CELL SIZE', this.cellSize);
 
-    this._cols = Math.floor(
-      (this.baseElDim.width - MARGIN_LEFT - MARGIN_RIGHT) /
-      (this.baseElDim.width + MATRIX_GAP_HORIZONTAL)
-    ) - 1;
+    if (this.isInitialized) {
+      this.labelTextSpec.size = this.cellSize - 1;
 
-    this.mp.piles.forEach(pile => pile.updateCellSize());
+      this.mp.piles.forEach(pile => pile.updateCellSize());
 
-    this.mp.scene.remove(this.highlightFrame);
-    this.highlightFrame = createRectFrame(
-      this._matrixWidth, this._matrixWidth, 0xff8100, 10
-    );
-    this.mp.scene.add(this.highlightFrame);
+      this.mp.scene.remove(this.highlightFrame);
+      this.highlightFrame = createRectFrame(
+        this.matrixWidth, this.matrixWidth, 0xff8100, 10
+      );
+      this.mp.scene.add(this.highlightFrame);
 
-    this.updateLayout(0, true);
-    this.redrawPiles(this.mp.piles);
-    this.render();
+      this.updateLayout(0, true);
+      this.redrawPiles(this.mp.piles);
+      this.render();
+    }
   }
 
   /**
@@ -1337,7 +1428,7 @@ export class Fragments {
   updateConfig (newConfig) {
     if (this.fragments.config !== newConfig) {
       this.fragments.config = newConfig;
-      this.render(this.fragments.config);
+      this.loadData(this.fragments.config);
     }
   }
 
