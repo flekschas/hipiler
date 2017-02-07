@@ -18,13 +18,18 @@ export const DIAGONAL_VALUE = 0.11;
 
 export const DURATION = 500;
 
-export const FILE = 'data/Parkinsons_Patient_RC4101_1_graphdat.json';
-
 export const FPS = 25;
 
 export const LABEL_DIST = 60;
 
 export const LABEL_WIDTH = 130;
+
+export const LABEL_TEXT_SPEC = {
+  size: 6,
+  height: 1,
+  curveSegments: 3,
+  font: 'helvetiker'
+};
 
 export const LETTER_SPACE = 6;
 
@@ -89,11 +94,14 @@ export const SVG_MENU_HEIGHT = 30;
 
 export const TIMELINE_HEIGHT = 130;
 
-export const LABEL_TEXT_SPEC = {
-  size: 6,
-  height: 1,
-  curveSegments: 3,
-  font: 'helvetiker'
+/**
+ * Three.js's WebGL config
+ *
+ * @type  {Object}
+ */
+export const WEB_GL_CONFIG = {
+  alpha: true,
+  antialias: true
 };
 
 export default {
@@ -103,9 +111,9 @@ export default {
   CONFIG,
   DIAGONAL_VALUE,
   DURATION,
-  FILE,
   FPS,
   LABEL_DIST,
+  LABEL_TEXT_SPEC,
   LABEL_WIDTH,
   LETTER_SPACE,
   MARGIN_BOTTOM,
@@ -130,5 +138,5 @@ export default {
   SHOW_MATRICES,
   SVG_MENU_HEIGHT,
   TIMELINE_HEIGHT,
-  LABEL_TEXT_SPEC
+  WEB_GL_CONFIG
 };
