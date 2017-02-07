@@ -5,11 +5,11 @@ export const depile = pile => ({
   payload: { pile }
 });
 
-export const UPDATE_FGM_CONFIG = 'UPDATE_FGM_CONFIG';
+export const SET_CELL_SIZE = 'SET_CELL_SIZE';
 
-export const updateConfig = config => ({
-  type: UPDATE_FGM_CONFIG,
-  payload: { config }
+export const setCellSize = cellSize => ({
+  type: SET_CELL_SIZE,
+  payload: { cellSize }
 });
 
 export const SET_PILE_MODE = 'SET_PILE_MODE';
@@ -17,4 +17,11 @@ export const SET_PILE_MODE = 'SET_PILE_MODE';
 export const setPileMode = (mode, pile) => ({
   type: SET_PILE_MODE,
   payload: { mode, pile }
+});
+
+export const UPDATE_FGM_CONFIG = 'UPDATE_FGM_CONFIG';
+
+export const updateConfig = config => ({
+  type: UPDATE_FGM_CONFIG,
+  payload: { config }
 });

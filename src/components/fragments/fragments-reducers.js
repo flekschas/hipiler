@@ -1,9 +1,27 @@
 import { combineReducers } from 'redux';
 
-import { UPDATE_FGM_CONFIG } from 'components/fragments/fragments-actions';
-import { CONFIG } from 'components/fragments/fragments-defaults';
+import {
+  SET_CELL_SIZE,
+  UPDATE_FGM_CONFIG
+} from 'components/fragments/fragments-actions';
+
+import {
+  CELL_SIZE,
+  CONFIG
+} from 'components/fragments/fragments-defaults';
 
 import deepClone from 'utils/deep-clone';
+
+
+export function cellSize (state = CELL_SIZE, action) {
+  switch (action.type) {
+    case SET_CELL_SIZE:
+      return action.payload.cellSize;
+
+    default:
+      return state;
+  }
+}
 
 export function config (state = { ...CONFIG }, action) {
   switch (action.type) {
@@ -15,6 +33,8 @@ export function config (state = { ...CONFIG }, action) {
   }
 }
 
+
 export default combineReducers({
+  cellSize,
   config
 });

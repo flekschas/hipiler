@@ -13,19 +13,21 @@
   </div>
 
   <div class="full-wh flex-c flex-d-c" ref="baseEl">
-    <main class="flex-i-g-1 fragment-plot" ref="plotEl"></main>
+    <main class="flex-i-g-1 rel fragment-plot">
+      <div class="full-dim" background-color="yellow" ref="plotEl"></div>
+    </main>
     <footer class="settings-bar">
       <ul class="flex-c settings-list">
         <li class="flex-c flex-d-c">
-          <label for="settings-frag-size">Fragment Size</label>
+          <label for="settings-frag-size">Fragment Size (${cellSize})</label>
           <input
             id="settings-frag-size"
             type="range"
             min="1"
             max="10"
             step="1"
-            value.one-way="fragmentSize"
-            change.delegate="fragmentSizeChanged()">
+            value.one-way="cellSize"
+            change.delegate="cellSizeChanged($event)">
         </li>
         <li class="flex-c flex-d-c">
           <label for="settings-frag-is-animated">Animate</label>
