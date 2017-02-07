@@ -18,6 +18,7 @@ import {
   PILE_TOOL_SIZE,
   PILING_DIRECTION,
   PREVIEW_SIZE,
+  SHADER_ATTRIBUTES,
   SHADER_MATERIAL
 } from 'components/fragments/fragments-defaults';
 
@@ -41,7 +42,9 @@ const Pile = {
 
   coverMatrixMode: 0,
 
-  geometry: new BufferGeometry(),
+  geometry: new BufferGeometry({
+    attributes: SHADER_ATTRIBUTES
+  }),
 
   globalMatrix: [],
 
@@ -175,7 +178,9 @@ const Pile = {
       mpState.scene.remove(this.mesh);
     }
 
-    this.geometry = BufferGeometry();
+    this.geometry = BufferGeometry({
+      attributes: SHADER_ATTRIBUTES
+    });
 
     let vertexPositions = [];
     let vertexColors = [];
