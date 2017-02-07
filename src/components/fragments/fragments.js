@@ -110,7 +110,26 @@ export class Fragments {
 
     this.isLoading = true;
 
+    // The following setup allows us to imitate deferred objects. I.e., we can
+    // resolve promises outside their scope.
+    this.resolve = {};
+    this.reject = {};
+
+    this.isDataLoaded = new Promise((resolve, reject) => {
+      this.resolve.isDataLoaded = resolve;
+      this.reject.isDataLoaded = reject;
+    });
+
+    this.isAttached = new Promise((resolve, reject) => {
+      this.resolve.isAttached = resolve;
+      this.reject.isAttached = reject;
+    });
+
     this.update();
+
+    Promise
+      .all([this.isDataLoaded, this.isAttached])
+      .then(() => { this.initPlot(this.data); });
   }
 
   attached () {
@@ -125,6 +144,8 @@ export class Fragments {
     this.plotEl.appendChild(this.canvas);
 
     this.isLoading = false;
+
+    this.resolve.isAttached(true);
   }
 
 
@@ -926,7 +947,6 @@ export class Fragments {
 
       this.mp.piles.push(pile);
       this.mp.matrices.push(matrix);
-      this.mp.dataMatrices.push(fragment.matrix);
 
       pile.addMatrices([matrix]);
       pile.draw();
@@ -1030,7 +1050,7 @@ export class Fragments {
    *   loaded.
    */
   loadData (config) {
-    this.data = new Promise((resolve, reject) => {
+    const loadData = new Promise((resolve, reject) => {
       let dataUrl;
 
       const queryString = this.prepareQueryString(config.queries);
@@ -1047,11 +1067,15 @@ export class Fragments {
           this.showError('Could not load data');
           reject(error);
         } else {
-          this.data = results;
+          this.data = results;  // Just for convenience
           resolve(results);
         }
       });
     });
+
+    loadData
+      .then(results => this.resolve.isDataLoaded(results))
+      .catch(error => this.reject.isDataLoaded(error));
   }
 
   /**
@@ -1396,7 +1420,6 @@ export class Fragments {
     }
   }
 
-
   /**
    * Update the display mode of all piles.
    *
@@ -1404,8 +1427,6 @@ export class Fragments {
    */
   updateAllPilesDisplayMode (allPilesDisplayMode) {
     this.allPilesDisplayMode = allPilesDisplayMode;
-
-    logger.debug('allPilesDisplayMode', this.allPilesDisplayMode);
 
     if (this.isInitialized) {
       this.setPileMode(this.allPilesDisplayMode, this.mp.piles);
