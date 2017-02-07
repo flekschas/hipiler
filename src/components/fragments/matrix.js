@@ -1,13 +1,16 @@
+import { ANNOTATION_COLOR } from 'components/fragments/matrix-defaults';
+
+
 const Matrix = {
   /********************************* Variables ********************************/
 
-  color: '#aaa',  // annotation color of matrix
+  color: ANNOTATION_COLOR,
 
   id: undefined,
 
   matrix: undefined,
 
-  nodValues: [],
+  nodeValues: [],
 
   pile: undefined
 };
