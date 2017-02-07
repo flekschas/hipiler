@@ -12,6 +12,13 @@ export const setCellSize = cellSize => ({
   payload: { cellSize }
 });
 
+export const SET_ALL_PILES_DISPLAY_MODE = 'SET_ALL_PILES_DISPLAY_MODE';
+
+export const setAllPilesDisplayMode = allPilesDisplayMode => ({
+  type: SET_ALL_PILES_DISPLAY_MODE,
+  payload: { allPilesDisplayMode }
+});
+
 export const SET_PILE_MODE = 'SET_PILE_MODE';
 
 export const setPileMode = (mode, pile) => ({

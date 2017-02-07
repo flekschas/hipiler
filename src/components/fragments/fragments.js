@@ -18,7 +18,9 @@ import States from 'services/states';
 import MpState from 'components/fragments/fragments-state';
 
 // Utils etc.
-import { setCellSize } from 'components/fragments/fragments-actions';
+import {
+  setCellSize, setAllPilesDisplayMode
+} from 'components/fragments/fragments-actions';
 
 import {
   SplitAnimation
@@ -76,8 +78,6 @@ export class Fragments {
     this.openedPileMatrices = [];
     this.shiftDown = false;
     this.rightClick = false;
-    this.orderMenu = document.getElementById('allNodeOrder');
-    this.coverMatrixMenu = document.getElementById('allCover');
     this.allPileOrdering = [];
      // Array containing the orderings for all piles, when not all nodes are
      // focused on.
@@ -114,6 +114,8 @@ export class Fragments {
   }
 
   attached () {
+    this.orderMenu = document.getElementById('allNodeOrder');
+
     this.getPlotElDim();
 
     this.initShader();
@@ -175,14 +177,20 @@ export class Fragments {
   /* ---------------------------- Custom Methods ---------------------------- */
 
   /**
-   * [allCoverChanged description]
+   * Handle all piles display mode changes
    *
-   * @return {[type]} [description]
+   * @param {object} event - Change event object.
    */
-  allCoverChanged () {
-    this.setPileMode(this.coverMatrixMenu.selectedIndex, this.mp.piles);
-    this.redrawPiles(this.mp.piles);
-    this.render();
+  allPilesDisplayModeChangedHandler (event) {
+    try {
+      this.store.dispatch(
+        setAllPilesDisplayMode(
+          parseInt(event.target.selectedOptions[0].value, 10)
+        )
+      );
+    } catch (e) {
+      logger.error('Display mode could not be set.');
+    }
   }
 
   /**
@@ -305,8 +313,8 @@ export class Fragments {
     this.mp.scene.updateMatrixWorld();
     this.camera.updateProjectionMatrix();
 
-    this.mouse = Vector3();
-    let dir = Vector3();
+    this.mouse = new Vector3();
+    let dir = new Vector3();
 
     this.mouse.set(
       ((event.clientX / this.plotElDim.width) * 2) - 1,
@@ -435,7 +443,7 @@ export class Fragments {
             !this.previousHoveredPile ||
             this.previousHoveredPile !== this.hoveredPile
           ) &&
-          this.coverMatrixMenu.selectedIndex === MODE_DIRECT_DIFFERENCE) {
+          this.allPilesDisplayMode === MODE_DIRECT_DIFFERENCE) {
           this.redrawPiles(this.mp.piles);
         }
 
@@ -457,7 +465,7 @@ export class Fragments {
           this.previousHoveredPile = undefined;
         }
 
-        if (this.coverMatrixMenu.selectedIndex === MODE_DIRECT_DIFFERENCE) {
+        if (this.allPilesDisplayMode === MODE_DIRECT_DIFFERENCE) {
           this.redrawPiles(this.mp.piles);
         }
       }
@@ -589,6 +597,19 @@ export class Fragments {
     }
 
     this.render();
+  }
+
+  /**
+   * Cell size changed handler.
+   *
+   * @param {object} event - Chaneg event object.
+   */
+  cellSizeChangedHandler (event) {
+    try {
+      this.store.dispatch(setCellSize(parseInt(event.target.value, 10)));
+    } catch (e) {
+      // Somthing weird happened so we'll simply ignore the change
+    }
   }
 
   /**
@@ -731,16 +752,6 @@ export class Fragments {
     this.redrawPiles(this.mp.piles);
     this.updateLayout(0, true);
     this.render();
-  }
-
-  /**
-   * [fragmentSizeChanged description]
-   *
-   * @param {[type]} event - [description]
-   * @return {[type]} [description]
-   */
-  fragmentSizeChanged (event) {
-    logger.debug(event);
   }
 
   /**
@@ -1019,8 +1030,6 @@ export class Fragments {
    *   loaded.
    */
   loadData (config) {
-    logger.debug('load data config', config);
-
     this.data = new Promise((resolve, reject) => {
       let dataUrl;
 
@@ -1307,7 +1316,7 @@ export class Fragments {
       newPile.addMatrices(matrices);
 
       this.sortByOriginalOrder(newPile);
-      newPile.setCoverMatrixMode(this.coverMatrixMenu.selectedIndex);
+      newPile.setCoverMatrixMode(this.allPilesDisplayMode);
       newPile.draw();
 
       l = newPiling[i];
@@ -1377,18 +1386,31 @@ export class Fragments {
    */
   update () {
     try {
-      this.updateCellSize(this.store.getState().present.decompose.fragments.cellSize);
-      this.updateConfig(this.store.getState().present.decompose.fragments.config);
+      const state = this.store.getState().present.decompose.fragments;
+
+      this.updateAllPilesDisplayMode(state.allPilesDisplayMode);
+      this.updateCellSize(state.cellSize);
+      this.updateConfig(state.config);
     } catch (e) {
       logger.error('State is invalid', e);
     }
   }
 
-  cellSizeChanged (event) {
-    try {
-      this.store.dispatch(setCellSize(parseInt(event.target.value, 10)));
-    } catch (e) {
-      // Somthing weird happened so we'll simply ignore the change
+
+  /**
+   * Update the display mode of all piles.
+   *
+   * @param {number} allPilesDisplayMode - Display mode number.
+   */
+  updateAllPilesDisplayMode (allPilesDisplayMode) {
+    this.allPilesDisplayMode = allPilesDisplayMode;
+
+    logger.debug('allPilesDisplayMode', this.allPilesDisplayMode);
+
+    if (this.isInitialized) {
+      this.setPileMode(this.allPilesDisplayMode, this.mp.piles);
+      this.redrawPiles(this.mp.piles);
+      this.render();
     }
   }
 
@@ -1399,8 +1421,6 @@ export class Fragments {
    */
   updateCellSize (newSize) {
     this.cellSize = newSize;
-
-    logger.debug('CELL SIZE', this.cellSize);
 
     if (this.isInitialized) {
       this.labelTextSpec.size = this.cellSize - 1;
