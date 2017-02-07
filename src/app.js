@@ -62,6 +62,8 @@ export default class App {
     });
 
     document.addEventListener('keydown', this.keyDownHandler.bind(this));
+    document.addEventListener('mousemove', this.mouseMoveHandler.bind(this));
+    document.addEventListener('mouseup', this.mouseUpHandler.bind(this));
   }
 
   configureRouter (config, router) {

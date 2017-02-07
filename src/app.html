@@ -1,8 +1,6 @@
 <template>
   <div
-    class="full-wh ${currentRoute === 'matrix' ? 'matrix-full-screen-view' : ''}"
-    mousemove.trigger="mouseMoveHandler($event)"
-    mouseup.trigger="mouseUpHandler($event)">
+    class="full-wh ${currentRoute === 'matrix' ? 'matrix-full-screen-view' : ''}">
     <require from="assets/styles/index.css"></require>
 
     <require from="components/navigation.html"></require>
