@@ -6,8 +6,6 @@ import {
 import menuCommands from 'components/fragments/pile-menu-commands';
 
 import {
-  CELL_SIZE_HALF,
-  CELL_SIZE,
   LETTER_SPACE,
   MATRIX_GAP_HORIZONTAL,
   MODE_BARCHART,
@@ -22,7 +20,7 @@ import {
   SHADER_MATERIAL
 } from 'components/fragments/fragments-defaults';
 
-import mpState from 'components/fragments/fragments-state';
+import fgmState from 'components/fragments/fragments-state';
 
 import {
   addBufferedRect,
@@ -36,21 +34,25 @@ import {
 const Pile = {
   /********************************* Variables ********************************/
 
-  cellFrame: createRectFrame(CELL_SIZE, CELL_SIZE, 0xff0000, 1),
+  cellFrame: createRectFrame(fgmState.cellSize, fgmState.cellSize, 0xff0000, 1),
 
   colored: false,
 
   coverMatrixMode: 0,
 
+  dims: 0,
+
   geometry: new BufferGeometry({
     attributes: SHADER_ATTRIBUTES
   }),
 
-  globalMatrix: [],
+  coverMatrix: [],
 
   highlighted: false,
 
   id: undefined,
+
+  matrixFrame: undefined,
 
   mesh: undefined,
 
@@ -60,40 +62,49 @@ const Pile = {
 
   render: true,
 
-  requireOrderUpdate: true,
-
   scale: undefined,
 
   scene: undefined,
 
   showNodeLabels: false,
 
-  singleMatrix: undefined,
-
   x: 0,
 
   y: 0,
+
+
+  /****************************** Getter / Setter *****************************/
+
+  get matrixWidth () {
+    return this.dims * fgmState.cellSize;
+  },
+
+  get matrixWidthHalf () {
+    return this.matrixWidth / 2;
+  },
+
+  get singleMatrix () {
+    if (this.pileMatrices.length === 1) {
+      return this.pileMatrices[0];
+    }
+
+    return false;
+  },
+
 
   /********************************** Methods *********************************/
 
   /**
    * Adds a set of matrices to this pile.
    *
-   * @param {[type]} mpState.matrices - Array of mpState.matrices.
+   * @param {array} matrices - Array of fgmState.matrices.
    * @return {object} Self.
    */
   addMatrices (matrices) {
-    let m;
+    this.pileMatrices.push(...matrices);
+    matrices.forEach((matrix) => { matrix.pile = this; });
 
-    for (let i = 0; i < mpState.matrices.length; i++) {
-      m = mpState.matrices[i];
-      this.pileMatrices.push(m);
-      m.pile = this;
-    }
-
-    this.singleMatrix = undefined;
-    this.requireOrderUpdate = true;
-    this.calculateGlobalMatrix();
+    this.calculateCoverMatrix();
 
     return this;
   },
@@ -101,33 +112,33 @@ const Pile = {
   /**
    * Calculate global matrix.
    *
-   * @return {??}  [description]
+   * @return {object} Self.
    */
-  calculateGlobalMatrix () {
-    this.globalMatrix = [];
-    let numNodes = this.nodeOrder.length;
+  calculateCoverMatrix () {
+    // Create empty this.dims x this.dims matrix
+    this.coverMatrix = Array(this.dims).fill(new Float32Array(this.dims));
 
-    for (let i = 0; i < numNodes; i++) {
-      this.localNodeOrder.push(0);
-      this.globalMatrix[i] = [];
-      for (let j = 0; j < numNodes; j++) {
-        this.globalMatrix[i][j] = 0;
-      }
-    }
+    let numMatrices = this.pileMatrices.length || 1;
 
-    let times = this.pileMatrices.length;
-
-    for (let i = 0; i < numNodes; i++) {
-      for (let j = i; j < numNodes; j++) {
-        for (let t = 0; t < times; t++) {
-          this.globalMatrix[i][j] += Math.abs(
-            this.pileMatrices[t].matrix[i][j]
+    // Create empty matrix
+    for (let i = 0; i < this.dims; i++) {
+      // Sum up the values across all matrices
+      for (let j = i; j < this.dims; j++) {
+        this.pileMatrices.forEach((pileMatrix) => {
+          this.coverMatrix[i][j] += Math.abs(
+            pileMatrix.matrix[i][j]
           );
-        }
-        this.globalMatrix[i][j] /= times;
-        this.globalMatrix[j][i] = this.globalMatrix[i][j];
+        });
+
+        // Average values
+        this.coverMatrix[i][j] /= numMatrices;
+
+        // Fill up lower half of the matrix
+        this.coverMatrix[j][i] = this.coverMatrix[i][j];
       }
     }
+
+    return this;
   },
 
   /**
@@ -146,9 +157,9 @@ const Pile = {
    * @return {object} Self.
    */
   destroy () {
-    mpState.pileMeshes.splice(mpState.pileMeshes.indexOf(this.mesh), 1);
+    fgmState.pileMeshes.splice(fgmState.pileMeshes.indexOf(this.mesh), 1);
     this.geometry.dispose();
-    mpState.scene.remove(this.mesh);
+    fgmState.scene.remove(this.mesh);
     this.render = false;
     this.pileMatrices = [];
 
@@ -161,66 +172,52 @@ const Pile = {
    * @return {object} Self.
    */
   draw () {
-    let thisNodes = [];
-
-    for (let i = 0; i < this.nodeOrder.length; i++) {
-      if (mpState.focusNodes.indexOf(this.nodeOrder[i]) > -1) {
-        thisNodes.push(this.nodeOrder[i]);
-      }
-    }
-
-    let numMats = this.pileMatrices.length;
-    let numNodes = thisNodes.length;
+    const numMatrices = this.pileMatrices.length;
+    const vertexPositions = [];
+    const vertexColors = [];
+    let x;
+    let y;
+    let valueInv;  // Inverse value, i.e., 1 - abs(value)
+    let value;
+    let color;
 
     // UPDATE COVER MATRIX CELLS + PILE PREVIEWS
     if (this.mesh) {
-      mpState.pileMeshes.splice(mpState.pileMeshes.indexOf(this.mesh), 1);
-      mpState.scene.remove(this.mesh);
+      fgmState.pileMeshes.splice(fgmState.pileMeshes.indexOf(this.mesh), 1);
+      fgmState.scene.remove(this.mesh);
     }
 
-    this.geometry = BufferGeometry({
+    this.geometry = new BufferGeometry({
       attributes: SHADER_ATTRIBUTES
     });
 
-    let vertexPositions = [];
-    let vertexColors = [];
-    let x;
-    let y;
-    let c;
-    let v;
-    let ni;
-    let nj;
-
-    if (this.pileMatrices.length === 1) {
-      this.singleMatrix = this.pileMatrices[0];
-    }
-
     if (this.singleMatrix) {
       // Show that single matrix
-      let m = this.singleMatrix.matrix;
+      const matrix = this.singleMatrix.matrix;
 
-      for (let i = 0; i < numNodes; i++) {
-        ni = thisNodes[i];
-        x = -mpState.matrixWidthHalf + (CELL_SIZE / 2) + (i * CELL_SIZE);
+      for (let i = 0; i < this.dims; i++) {
+        // ni = thisNodes[i];
+        x = -this.matrixWidthHalf + (fgmState.cellSize / 2) + (i * fgmState.cellSize);
 
-        for (let j = i; j < numNodes; j++) {
-          nj = thisNodes[j];
-          y = mpState.matrixWidthHalf - (CELL_SIZE / 2) - (j * CELL_SIZE);
+        for (let j = i; j < this.dims; j++) {
+          // nj = thisNodes[j];
+          y = this.matrixWidthHalf - (fgmState.cellSize / 2) - (j * fgmState.cellSize);
 
           if (
             this.coverMatrixMode === MODE_DIFFERENCE &&
-            mpState.piles.indexOf(this) > 0
+            fgmState.piles.indexOf(this) > 0
           ) {
-            v = (
-              this.globalMatrix[ni][nj] -
-              mpState.piles[mpState.piles.indexOf(this) - 1].globalMatrix[ni][nj]
+            value = (
+              this.coverMatrix[i][j] -
+              fgmState.piles[fgmState.piles.indexOf(this) - 1].coverMatrix[i][j]
             );
-            c = 1 - Math.abs(v);
-            let col;
-            if (v > 0) {
-              col = [c, c, 1];
+
+            valueInv = 1 - Math.abs(value);
+
+            if (value > 0) {
+              color = [valueInv, valueInv, 1];
             } else {
-              col = [1, c, c];
+              color = [1, valueInv, valueInv];
             }
 
             addBufferedRect(
@@ -228,10 +225,10 @@ const Pile = {
               x,
               y,
               0,
-              CELL_SIZE,
-              CELL_SIZE,
+              fgmState.cellSize,
+              fgmState.cellSize,
               vertexColors,
-              col
+              color
             );
 
             addBufferedRect(
@@ -239,28 +236,28 @@ const Pile = {
               -y,
               -x,
               0,
-              CELL_SIZE,
-              CELL_SIZE,
+              fgmState.cellSize,
+              fgmState.cellSize,
               vertexColors,
-              col
+              color
             );
           } else if (
             this.coverMatrixMode === MODE_DIRECT_DIFFERENCE &&
-            mpState.hoveredPile &&
-            this !== mpState.hoveredPile
+            fgmState.hoveredPile &&
+            this !== fgmState.hoveredPile
           ) {
-            v = (
-              mpState.piles[
-                mpState.piles.indexOf(mpState.hoveredPile)
-              ].globalMatrix[ni][nj] -
-              this.globalMatrix[ni][nj]
+            value = (
+              fgmState.piles[
+                fgmState.piles.indexOf(fgmState.hoveredPile)
+              ].coverMatrix[i][j] -
+              this.coverMatrix[i][j]
             );
-            c = 1 - Math.abs(v);
-            let col;
-            if (v < 0) {
-              col = [c, c, 1];
+            valueInv = 1 - Math.abs(value);
+
+            if (valueInv < 0) {
+              color = [valueInv, valueInv, 1];
             } else {
-              col = [1, c, c];
+              color = [1, valueInv, valueInv];
             }
 
             addBufferedRect(
@@ -268,10 +265,10 @@ const Pile = {
               x,
               y,
               0,
-              CELL_SIZE,
-              CELL_SIZE,
+              fgmState.cellSize,
+              fgmState.cellSize,
               vertexColors,
-              col
+              color
             );
 
             addBufferedRect(
@@ -279,58 +276,58 @@ const Pile = {
               -y,
               -x,
               0,
-              CELL_SIZE,
-              CELL_SIZE,
+              fgmState.cellSize,
+              fgmState.cellSize,
               vertexColors,
-              col
+              color
             );
           } else {
-            c = 1 - cellValue(m[ni][nj]);
+            valueInv = 1 - cellValue(matrix[i][j]);
             addBufferedRect(
               vertexPositions,
               x,
               y,
               0,
-              CELL_SIZE,
-              CELL_SIZE,
+              fgmState.cellSize,
+              fgmState.cellSize,
               vertexColors,
-              [c, c, c]
+              [valueInv, valueInv, valueInv]
             );
             addBufferedRect(
               vertexPositions,
               -y,
               -x,
               0,
-              CELL_SIZE,
-              CELL_SIZE,
+              fgmState.cellSize,
+              fgmState.cellSize,
               vertexColors,
-              [c, c, c]
+              [valueInv, valueInv, valueInv]
             );
           }
         }
       }
     } else {
       // Show cover matrix
-      for (let i = 0; i < numNodes; i++) {
-        ni = thisNodes[i];
-        x = -mpState.matrixWidthHalf + (CELL_SIZE / 2) + (i * CELL_SIZE);
+      for (let i = 0; i < this.dims; i++) {
+        // ni = thisNodes[i];
+        x = -this.matrixWidthHalf + (fgmState.cellSize / 2) + (i * fgmState.cellSize);
 
-        for (let j = i; j < numNodes; j++) {
-          nj = thisNodes[j];
-          v = 0;
-          y = mpState.matrixWidthHalf - (CELL_SIZE / 2) - (j * CELL_SIZE);
+        for (let j = i; j < this.dims; j++) {
+          // nj = thisNodes[j];
+          value = 0;
+          y = this.matrixWidthHalf - (fgmState.cellSize / 2) - (j * fgmState.cellSize);
 
           if (this.coverMatrixMode === MODE_TREND) {
-            v = (
-              this.pileMatrices[this.pileMatrices.length - 1].matrix[ni][nj] -
-              this.pileMatrices[0].matrix[ni][nj]
+            value = (
+              this.pileMatrices[this.pileMatrices.length - 1].matrix[i][j] -
+              this.pileMatrices[0].matrix[i][j]
             );
-            c = 1 - Math.abs(v);
-            let col;
-            if (v > 0) {
-              col = [c, c, 1];
+            valueInv = 1 - Math.abs(value);
+
+            if (value > 0) {
+              color = [valueInv, valueInv, 1];
             } else {
-              col = [1, c, c];
+              color = [1, valueInv, valueInv];
             }
 
             addBufferedRect(
@@ -338,10 +335,10 @@ const Pile = {
               x,
               y,
               0,
-              CELL_SIZE,
-              CELL_SIZE,
+              fgmState.cellSize,
+              fgmState.cellSize,
               vertexColors,
-              col
+              color
             );
 
             addBufferedRect(
@@ -349,31 +346,31 @@ const Pile = {
               -y,
               -x,
               0,
-              CELL_SIZE,
-              CELL_SIZE,
+              fgmState.cellSize,
+              fgmState.cellSize,
               vertexColors,
-              col
+              color
             );
           } else if (this.coverMatrixMode === MODE_VARIABILITY) {
-            v = 0;
+            value = 0;
             const arr = [];
 
-            for (let t = 1; t < numMats; t++) {
-              arr.push(this.pileMatrices[t].matrix[ni][nj]);
+            for (let t = 1; t < numMatrices; t++) {
+              arr.push(this.pileMatrices[t].matrix[i][j]);
             }
 
-            v = science.standard_deviation(arr);
-            c = 1 - Math.abs(cellValue(v));
+            value = science.standard_deviation(arr);
+            valueInv = 1 - Math.abs(cellValue(value));
 
             addBufferedRect(
               vertexPositions,
               x,
               y,
               0,
-              CELL_SIZE,
-              CELL_SIZE,
+              fgmState.cellSize,
+              fgmState.cellSize,
               vertexColors,
-              [c, c, 1]
+              [valueInv, valueInv, 1]
             );
 
             addBufferedRect(
@@ -381,31 +378,31 @@ const Pile = {
               -y,
               -x,
               0,
-              CELL_SIZE,
-              CELL_SIZE,
+              fgmState.cellSize,
+              fgmState.cellSize,
               vertexColors,
-              [c, c, 1]
+              [valueInv, valueInv, 1]
             );
           } else if (this.coverMatrixMode === MODE_BARCHART) {
-            let d = CELL_SIZE / numMats;
+            let d = fgmState.cellSize / numMatrices;
 
-            for (let t = 0; t < numMats; t++) {
-              v = 1 - this.pileMatrices[t].matrix[ni][nj];
+            for (let t = 0; t < numMatrices; t++) {
+              value = 1 - this.pileMatrices[t].matrix[i][j];
 
-              x = -mpState.matrixWidthHalf + (i * CELL_SIZE) + (d * t) + (d / 2);
-              y = +mpState.matrixWidthHalf - ((j + 0.5) * CELL_SIZE);
+              x = -this.matrixWidthHalf + (i * fgmState.cellSize) + (d * t) + (d / 2);
+              y = +this.matrixWidthHalf - ((j + 0.5) * fgmState.cellSize);
               addBufferedRect(vertexPositions,
                 x,
                 y,
                 0,
                 d,
-                (1 - v) * CELL_SIZE,
+                (1 - value) * fgmState.cellSize,
                 vertexColors,
-                [v, v, v]
+                [value, value, value]
               );
 
-              x = -mpState.matrixWidthHalf + (j * CELL_SIZE) + (d * t) + (d / 2);
-              y = +mpState.matrixWidthHalf - ((i + 0.5) * CELL_SIZE);
+              x = -this.matrixWidthHalf + (j * fgmState.cellSize) + (d * t) + (d / 2);
+              y = +this.matrixWidthHalf - ((i + 0.5) * fgmState.cellSize);
 
               addBufferedRect(
                 vertexPositions,
@@ -413,25 +410,26 @@ const Pile = {
                 y,
                 0,
                 d,
-                (1 - v) * CELL_SIZE,
+                (1 - value) * fgmState.cellSize,
                 vertexColors,
-                [v, v, v]
+                [value, value, value]
               );
             }
           } else if (
             this.coverMatrixMode === MODE_DIFFERENCE &&
-            mpState.piles.indexOf(this) > 0
+            fgmState.piles.indexOf(this) > 0
           ) {
-            v = (
-              this.globalMatrix[ni][nj] -
-              mpState.piles[mpState.piles.indexOf(this) - 1].globalMatrix[ni][nj]
+            value = (
+              this.coverMatrix[i][j] -
+              fgmState.piles[fgmState.piles.indexOf(this) - 1].coverMatrix[i][j]
             );
-            c = 1 - Math.abs(v);
-            let col;
-            if (v > 0) {
-              col = [c, c, 1];
+
+            valueInv = 1 - Math.abs(value);
+
+            if (value > 0) {
+              color = [valueInv, valueInv, 1];
             } else {
-              col = [1, c, c];
+              color = [1, valueInv, valueInv];
             }
 
             addBufferedRect(
@@ -439,39 +437,38 @@ const Pile = {
               x,
               y,
               0,
-              CELL_SIZE,
-              CELL_SIZE,
+              fgmState.cellSize,
+              fgmState.cellSize,
               vertexColors,
-              col
+              color
             );
             addBufferedRect(
               vertexPositions,
               -y,
               -x,
               0,
-              CELL_SIZE,
-              CELL_SIZE,
+              fgmState.cellSize,
+              fgmState.cellSize,
               vertexColors,
-              col
+              color
             );
           } else if (
             this.coverMatrixMode === MODE_DIRECT_DIFFERENCE &&
-            mpState.hoveredPile &&
-            this !== mpState.hoveredPile
+            fgmState.hoveredPile &&
+            this !== fgmState.hoveredPile
           ) {
-            v = (
-              mpState.piles[
-                mpState.piles.indexOf(mpState.hoveredPile)
-              ].globalMatrix[ni][nj] -
-              this.globalMatrix[ni][nj]
+            value = (
+              fgmState.piles[
+                fgmState.piles.indexOf(fgmState.hoveredPile)
+              ].coverMatrix[i][j] -
+              this.coverMatrix[i][j]
             );
-            c = 1 - Math.abs(v);
-            let col;
+            valueInv = 1 - Math.abs(value);
 
-            if (v < 0) {
-              col = [c, c, 1];
+            if (value < 0) {
+              color = [valueInv, valueInv, 1];
             } else {
-              col = [1, c, c];
+              color = [1, valueInv, valueInv];
             }
 
             addBufferedRect(
@@ -479,46 +476,46 @@ const Pile = {
               x,
               y,
               0,
-              CELL_SIZE,
-              CELL_SIZE,
+              fgmState.cellSize,
+              fgmState.cellSize,
               vertexColors,
-              col
+              color
             );
             addBufferedRect(
               vertexPositions,
               -y,
               -x,
               0,
-              CELL_SIZE,
-              CELL_SIZE,
+              fgmState.cellSize,
+              fgmState.cellSize,
               vertexColors,
-              col
+              color
             );
           } else {
-            for (let t = 0; t < numMats; t++) {
-              v += this.pileMatrices[t].matrix[ni][nj];
+            for (let t = 0; t < numMatrices; t++) {
+              value += this.pileMatrices[t].matrix[i][j];
             }
-            v /= numMats;
-            c = 1 - Math.max(0, cellValue(v));
+            value /= numMatrices;
+            valueInv = 1 - Math.max(0, cellValue(value));
 
             addBufferedRect(
               vertexPositions,
               x,
               y,
               0,
-              CELL_SIZE,
-              CELL_SIZE,
+              fgmState.cellSize,
+              fgmState.cellSize,
               vertexColors,
-              [c, c, c]
+              [valueInv, valueInv, valueInv]
             );
             addBufferedRect(vertexPositions,
               -y,
               -x,
               0,
-              CELL_SIZE,
-              CELL_SIZE,
+              fgmState.cellSize,
+              fgmState.cellSize,
               vertexColors,
-              [c, c, c]
+              [valueInv, valueInv, valueInv]
             );
           }
         }
@@ -526,92 +523,84 @@ const Pile = {
     }
 
     // UPDATE PREVIEWS
-    let m;
-    let highlight;
-    for (let t = 0; t < numMats && this.pileMatrices.length > 1; t++) {
-      m = this.pileMatrices[t].matrix;
-      y = mpState.matrixWidthHalf + (PREVIEW_SIZE * (t + 1));
+    if (this.pileMatrices > 1) {
+      this.pileMatrices.forEach((matrix, index) => {
+        y = this.matrixWidthHalf + (PREVIEW_SIZE * (index + 1));
 
-      // test if matrix is single, if so highlight its preview
-      highlight = false;
-      if (this.pileMatrices[t] === this.singleMatrix) {
-        highlight = true;
-      }
+        for (let i = 0; i < this.dims; i++) {
+          value = 0;
 
-      for (let i = 0; i < numNodes; i++) {
-        v = 0;
-        ni = thisNodes[i];
-        for (let j = 0; j < numNodes; j++) {
-          v += m[ni][thisNodes[j]];
-        }
-        c = 1 - cellValue(v / numNodes);
-        if (highlight) {
-          c -= (1 - c) * 0.7;
-        }
-        x = -mpState.matrixWidthHalf + (CELL_SIZE * i) + (CELL_SIZE / 2);
+          for (let j = 0; j < this.dims; j++) {
+            value += matrix[i][j];
+          }
 
-        if (PILING_DIRECTION === 'vertical') {
-          addBufferedRect(
-            vertexPositions,
-            x,
-            y,
-            0.5,
-            CELL_SIZE,
-            PREVIEW_SIZE,
-            vertexColors,
-            [1, 1, 1]
-          );
-          addBufferedRect(
-            vertexPositions,
-            x,
-            y,
-            0.5,
-            CELL_SIZE,
-            PREVIEW_SIZE - 0.3,
-            vertexColors,
-            [c, c, c]
-          );
-        } else {
-          addBufferedRect(
-            vertexPositions,
-            y,
-            x,
-            0.5,
-            PREVIEW_SIZE,
-            CELL_SIZE,
-            vertexColors,
-            [1, 1, 1]
-          );
-          addBufferedRect(
-            vertexPositions,
-            y,
-            x,
-            0.5,
-            PREVIEW_SIZE - 0.3,
-            CELL_SIZE,
-            vertexColors,
-            [c, c, c]
-          );
+          valueInv = 1 - cellValue(value / this.dims);
+
+          x = -this.matrixWidthHalf + (fgmState.cellSize * i) + (fgmState.cellSize / 2);
+
+          if (PILING_DIRECTION === 'vertical') {
+            addBufferedRect(
+              vertexPositions,
+              x,
+              y,
+              0.5,
+              fgmState.cellSize,
+              PREVIEW_SIZE,
+              vertexColors,
+              [1, 1, 1]
+            );
+            addBufferedRect(
+              vertexPositions,
+              x,
+              y,
+              0.5,
+              fgmState.cellSize,
+              PREVIEW_SIZE - 0.3,
+              vertexColors,
+              [valueInv, valueInv, valueInv]
+            );
+          } else {
+            addBufferedRect(
+              vertexPositions,
+              y,
+              x,
+              0.5,
+              PREVIEW_SIZE,
+              fgmState.cellSize,
+              vertexColors,
+              [1, 1, 1]
+            );
+            addBufferedRect(
+              vertexPositions,
+              y,
+              x,
+              0.5,
+              PREVIEW_SIZE - 0.3,
+              fgmState.cellSize,
+              vertexColors,
+              [valueInv, valueInv, valueInv]
+            );
+          }
         }
-      }
+      });
     }
 
     // CREATE GAP to next matrix
-    if (mpState.hoveredGapPile && mpState.hoveredGapPile === this) {
-      c = [1, 0.7, 0.7];
+    if (fgmState.hoveredGapPile && fgmState.hoveredGapPile === this) {
+      valueInv = [1, 0.7, 0.7];
     } else {
-      c = [1, 1, 1];
+      valueInv = [1, 1, 1];
     }
 
     addBufferedRect(
       vertexPositions,
-      mpState.matrixWidthHalf + (MATRIX_GAP_HORIZONTAL / 2),
+      this.matrixWidthHalf + (MATRIX_GAP_HORIZONTAL / 2),
       0,
       -1,
       MATRIX_GAP_HORIZONTAL,
-      mpState.matrixWidth,
+      this.matrixWidth,
       vertexColors,
-      c
+      valueInv
     );
 
      // CREATE + ADD MESH
@@ -619,14 +608,16 @@ const Pile = {
       'position',
       new BufferAttribute(makeBuffer3f(vertexPositions), 3)
     );
+
     this.geometry.addAttribute(
       'customColor',
       new BufferAttribute(makeBuffer3f(vertexColors), 3)
     );
-    this.mesh = Mesh(this.geometry, SHADER_MATERIAL);
+
+    this.mesh = new Mesh(this.geometry, SHADER_MATERIAL);
     this.mesh.scale.set(this.scale, this.scale, this.scale);
 
-    if (this === mpState.hoveredPile) {
+    if (this === fgmState.hoveredPile) {
       menuCommands.forEach((command, index) => {
         command.pile = this;
 
@@ -656,13 +647,13 @@ const Pile = {
         o.position.set(
           (
             this.x -
-            mpState.matrixWidthHalf -
+            this.matrixWidthHalf -
             (command.name.length * LETTER_SPACE / 2)
           ),
           (
             this.y -
             2 +
-            mpState.matrixWidthHalf -
+            this.matrixWidthHalf -
             (PILE_TOOL_SIZE / 2) -
             (index * PILE_TOOL_SIZE)
           ),
@@ -675,19 +666,19 @@ const Pile = {
         o.add(label);
         o.pileTool = command;
         o.scale.set(1 / this.scale, 1 / this.scale, 0.9);
-        mpState.visiblePileTools.push(o);
-        mpState.scene.add(o);
+        fgmState.visiblePileTools.push(o);
+        fgmState.scene.add(o);
       });
     }
 
     // ADD PILE ID LABEL
     let label = createText(
-      mpState.piles.indexOf(this) + 1,
-      -mpState.matrixWidthHalf - 2,
-      -mpState.matrixWidthHalf - 14,
+      fgmState.piles.indexOf(this) + 1,
+      -this.matrixWidthHalf - 2,
+      -this.matrixWidthHalf - 14,
       0,
       9,
-      '0x888888'
+      0x888888
     );
     label.scale.set(1 / this.scale, 1 / this.scale, 1 / this.scale);
     this.mesh.add(label);
@@ -696,37 +687,37 @@ const Pile = {
     let labelText = '';
     if (this.pileMatrices.length > 1) {
       if (this.singleMatrix) {
-        labelText = `${mpState.matrices.indexOf(
+        labelText = `${fgmState.matrices.indexOf(
           this.singleMatrix
         )}/${this.pileMatrices.length}`;
       } else {
         labelText = `${(
-          mpState.matrices.indexOf(this.pileMatrices[0]) + 1
+          fgmState.matrices.indexOf(this.pileMatrices[0]) + 1
         )}-${(
-          mpState.matrices.indexOf(this.pileMatrices[this.pileMatrices.length - 1]) + 1
+          fgmState.matrices.indexOf(this.pileMatrices[this.pileMatrices.length - 1]) + 1
         )} (${this.pileMatrices.length})`;
       }
 
       label = createText(
         labelText,
-        -mpState.matrixWidthHalf + 20,
-        -mpState.matrixWidthHalf - 12,
+        -this.matrixWidthHalf + 20,
+        -this.matrixWidthHalf - 12,
         0,
         7,
-        '0xffffff'
+        0xffffff
       );
       label.scale.set(1 / this.scale, 1 / this.scale, 1 / this.scale);
       this.mesh.add(label);
     }
 
     // FINISH
-    this.mesh.add(this.matFrame);
-    this.matFrame.position.set(-1, -1, 0.1);
+    this.mesh.add(this.matrixFrame);
+    this.matrixFrame.position.set(-1, -1, 0.1);
 
     this.mesh.pile = this;
-    mpState.pileMeshes.push(this.mesh);
+    fgmState.pileMeshes.push(this.mesh);
     this.mesh.position.set(this.x, this.y, 0);
-    mpState.scene.add(this.mesh);
+    fgmState.scene.add(this.mesh);
   },
 
   /**
@@ -761,9 +752,9 @@ const Pile = {
   },
 
   /**
-   * Get mpState.matrices of the pile.
+   * Get fgmState.matrices of the pile.
    *
-   * @return {array} List of mpState.matrices.
+   * @return {array} List of fgmState.matrices.
    */
   getMatrices () {
     return this.pileMatrices;
@@ -836,18 +827,18 @@ const Pile = {
   },
 
   /**
-   * Remove the specifid mpState.matrices from the pile.
+   * Remove the specifid fgmState.matrices from the pile.
    *
    * @description
    * If any were the visible matrix, then make the remaining last element of the
    * pile visible. redraw the remaining labels at the correct positions.
    *
-   * @param {array} mpState.matrices - Array of mpState.matrices.
+   * @param {array} fgmState.matrices - Array of fgmState.matrices.
    * @return {object} Self.
    */
   removeMatrices (matrices) {
-    for (let i = 0; i < mpState.matrices.length; i++) {
-      let m = mpState.matrices[i];
+    for (let i = 0; i < fgmState.matrices.length; i++) {
+      let m = fgmState.matrices[i];
       for (let j = 0; j < this.pileMatrices.length; j++) {
         if (m === this.pileMatrices[j]) {
           this.pileMatrices.splice(j, 1);
@@ -855,8 +846,8 @@ const Pile = {
         }
       }
     }
-    this.requireOrderUpdate = true;
-    this.calculateGlobalMatrix();
+
+    this.calculateCoverMatrix();
 
     return this;
   },
@@ -930,7 +921,7 @@ const Pile = {
   },
 
   /**
-   * Returns the number of mpState.matrices in this pile.
+   * Returns the number of fgmState.matrices in this pile.
    *
    * @return {number} Size of the pile.
    */
@@ -939,25 +930,13 @@ const Pile = {
   },
 
   /**
-   * ???
-   * @return {object} Self.
-   */
-  updateCellSize () {
-    this.matFrame = createRectFrame(
-      mpState.matrixWidth, mpState.matrixWidth, 0xaaaaaa, 0.1
-    );
-
-    return this;
-  },
-
-  /**
    * Frame requires update after matrix size has changed through filtering.
    *
    * @return {object} Self.
    */
   updateFrame () {
-    this.matFrame = createRectFrame(
-      mpState.matrixWidth, mpState.matrixWidth, 0xaaaaaa, 0.1
+    this.matrixFrame = createRectFrame(
+      this.matrixWidth, this.matrixWidth, 0xaaaaaa, 0.1
     );
 
     return this;
@@ -969,17 +948,17 @@ const Pile = {
    * @return {object} Self.
    */
   updateHoveredCell () {
-    if (mpState.hoveredCell) {
+    if (fgmState.hoveredCell) {
       this.mesh.add(this.cellFrame);
       const x = (
-        -mpState.matrixWidthHalf +
-        (CELL_SIZE * mpState.hoveredCell.col) +
-        CELL_SIZE_HALF
+        -this.matrixWidthHalf +
+        (fgmState.cellSize * fgmState.hoveredCell.col) +
+        fgmState.cellSize_HALF
       );
       const y = (
-        mpState.matrixWidthHalf -
-        (CELL_SIZE * mpState.hoveredCell.row) -
-        CELL_SIZE_HALF
+        this.matrixWidthHalf -
+        (fgmState.cellSize * fgmState.hoveredCell.row) -
+        fgmState.cellSize_HALF
       );
       this.cellFrame.position.set(x, y, 1);
     } else if (this.mesh.children.indexOf(this.cellFrame) > -1) {
@@ -996,24 +975,24 @@ const Pile = {
    * @return {object} Self.
    */
   updateLabels (updateLabels) {
-    if (updateLabels && mpState.hoveredCell) {
+    if (updateLabels && fgmState.hoveredCell) {
       const x = (
-        -mpState.matrixWidthHalf +
-        (CELL_SIZE * mpState.hoveredCell.col) +
-        CELL_SIZE_HALF
+        -this.matrixWidthHalf +
+        (fgmState.cellSize * fgmState.hoveredCell.col) +
+        fgmState.cellSize_HALF
       );
       const y = (
-        mpState.matrixWidthHalf -
-        (CELL_SIZE * mpState.overedCell.row) -
-        CELL_SIZE_HALF
+        this.matrixWidthHalf -
+        (fgmState.cellSize * fgmState.overedCell.row) -
+        fgmState.cellSize_HALF
       );
 
-      let sCol = mpState.nodes[mpState.focusNodes[mpState.hoveredCell.col]].name;
+      let sCol = fgmState.nodes[fgmState.focusNodes[fgmState.hoveredCell.col]].name;
       let rCol = createRect(10 * sCol.length, 12, 0xffffff);
 
       rCol.position.set(
         x + (10 * sCol.length / 2) - 3,
-        mpState.matrixWidthHalf + 10,
+        this.matrixWidthHalf + 10,
         2
       );
 
@@ -1021,7 +1000,7 @@ const Pile = {
       let colLabel = createText(
         sCol,
         x,
-        mpState.matrixWidthHalf + 5,
+        this.matrixWidthHalf + 5,
         2,
         9,
         0x000000
@@ -1029,11 +1008,11 @@ const Pile = {
 
       this.mesh.add(colLabel);
 
-      let sRow = mpState.nodes[mpState.focusNodes[mpState.hoveredCell.row]].name;
+      let sRow = fgmState.nodes[fgmState.focusNodes[fgmState.hoveredCell.row]].name;
       let rRow = createRect(10 * sRow.length, 12, 0xffffff);
 
       rRow.position.set(
-        mpState.matrixWidthHalf + 4 + (10 * sRow.length / 2),
+        this.matrixWidthHalf + 4 + (10 * sRow.length / 2),
         y + 4,
         2
       );
@@ -1042,7 +1021,7 @@ const Pile = {
 
       let rowLabel = createText(
         sRow,
-        +mpState.matrixWidthHalf + 5,
+        +this.matrixWidthHalf + 5,
         y,
         2,
         9,
@@ -1056,12 +1035,13 @@ const Pile = {
   }
 };
 
-export default function PileFactory (id, scene, scale) {
+export default function PileFactory (id, scene, scale, dims) {
   const inst = Object.create(Pile);
 
   inst.id = id;
   inst.scale = scale;
   inst.scene = scene;
+  inst.dims = dims;
 
-  return inst;
+  return inst.updateFrame();
 }

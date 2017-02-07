@@ -1,4 +1,5 @@
 import { scaleLinear } from 'd3';
+
 import {
   Geometry,
   Line,
@@ -10,6 +11,9 @@ import {
   TextGeometry,
   Vector3
 } from 'three';
+
+import fgmState from './fragments-state';
+
 
 export function calculateClusterPiling (
   threshold, matrices, distanceMatrix
@@ -28,22 +32,22 @@ export function calculateClusterPiling (
   return piling;
 }
 
-export function calculateDistance (matrices, nodes) {
-  let distanceMatrix = [];
-  for (let i = 0; i < matrices.length; i++) {
-    distanceMatrix[i] = [];
-    for (let j = 0; j < matrices.length; j++) {
-      distanceMatrix[i][j] = -1;
-    }
-  }
+export function calculateDistances (matrices) {
+  // Init distance with `-1`
+  const distanceMatrix = Array(matrices.length).fill(
+    Array(matrices.length).fill(-1)
+  );
 
   let maxDistance = 0;
 
   for (let i = 1; i < matrices.length; i++) {
     for (let j = i - 1; j >= 0; j--) {
-      maxDistance = Math.max(
-        maxDistance, this.distance(matrices, i, j, nodes, distanceMatrix)
-      );
+      const distance = calculateDistance(matrices[i], matrices[j]);
+
+      distanceMatrix[i][j] = distance;
+      distanceMatrix[j][i] = distance;
+
+      maxDistance = Math.max(maxDistance, distance);
     }
   }
 
@@ -52,29 +56,36 @@ export function calculateDistance (matrices, nodes) {
 
 export const cellValue = scaleLinear().range([0, 1]).nice();
 
-export function distance (matrices, m1, m2, nodes, dMat) {
-  if (dMat[m1][m2] !== -1) {
-    return dMat[m1][m1];
-  }
+/**
+ * Get the minimal dimension of two matrices assuming that both are squared.
+ *
+ * @param {array} matrix1 - First raw matrix.
+ * @param {array} matrix2 - Second raw matrix.
+ * @return {number} Smaller dimension of the two matrices.
+ */
+function getMinDim (matrix1, matrix2) {
+  return Math.min(matrix1.length, matrix2.length);
+}
 
-  let d = 0;
-  let a = 0;
-  let b = 0;
+/**
+ * Calculate the distance between two matrices.
+ *
+ * @param {array} matrix1 - First raw matrix.
+ * @param {array} matrix2 - Second raw matrix.
+ * @return {number} Distance
+ */
+function calculateDistance (matrix1, matrix2) {
+  const dim = getMinDim(matrix1, matrix2);
 
-  for (let i = 0; i < nodes.length; i++) {
-    a = nodes[i];
+  let distance = 0;
 
-    for (let j = i; j < nodes.length; j++) {
-      b = nodes[j];
-      d += (matrices[m1][a][b] - matrices[m2][a][b]) ** 2;
+  for (let i = 0; i < dim; i++) {
+    for (let j = i; j < dim; j++) {
+      distance += (matrix1[i][j] - matrix2[i][j]) ** 2;
     }
   }
 
-  d = Math.sqrt(d);
-  dMat[m1][m2] = d;
-  dMat[m2][m1] = d;
-
-  return d;
+  return Math.sqrt(distance);
 }
 
 export function addBufferedRect (array, x, y, z, w, h, colorArray, c) {
@@ -147,21 +158,20 @@ export function createRect (w, h, color) {
 }
 
 export function createText (string, x, y, z, size, color, weight) {
-  if (!weight) {
-    weight = 'normal';
-  }
-
-  let textGeom = new TextGeometry(string, {
-    size,
+  const textGeom = new TextGeometry(string, {
+    size: size || 8,
     height: 1,
-    weight,
+    weight: weight || 'normal',
     curveSegments: 5,
-    font: 'helvetiker',
+    font: fgmState.font,
     bevelEnabled: false
   });
 
-  let textMaterial = new MeshBasicMaterial({ color });
-  let label = new Mesh(textGeom, textMaterial);
+  const textMaterial = new MeshBasicMaterial({
+    color: color || 0xff0000
+  });
+
+  const label = new Mesh(textGeom, textMaterial);
 
   label.position.set(x, y, z);
 

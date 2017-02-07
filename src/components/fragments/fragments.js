@@ -2,6 +2,7 @@
 import { inject, LogManager } from 'aurelia-framework';
 import {
   DoubleSide,
+  FontLoader,
   NormalBlending,
   OrthographicCamera,
   Raycaster,
@@ -19,7 +20,7 @@ import MpState from 'components/fragments/fragments-state';
 
 // Utils etc.
 import {
-  setCellSize, setAllPilesDisplayMode
+  setCellSize, setCoverDispMode
 } from 'components/fragments/fragments-actions';
 
 import {
@@ -28,6 +29,7 @@ import {
 
 import {
   CELL_SIZE,
+  FONT_URL,
   FPS,
   MARGIN_TOP,
   MARGIN_LEFT,
@@ -46,7 +48,7 @@ import Matrix from 'components/fragments/matrix';
 
 import {
   calculateClusterPiling,
-  calculateDistance,
+  calculateDistances,
   createRectFrame
 } from 'components/fragments/fragments-utils';
 
@@ -63,7 +65,7 @@ export class Fragments {
 
     this.mp = mpState;
 
-    this.cellSize = CELL_SIZE;
+    this.mp.cellSize = CELL_SIZE;
     this.maxDistance = 0;
     this.pilingMethod = 'clustered';
     this.matrixStrings = '';
@@ -93,7 +95,7 @@ export class Fragments {
     this.pileIDCount = 0;
     this.startPile = 0;
     this.maxValue = 0;
-    this.numPixels = 0;
+    this.fragDims = 0;  // Fragment dimensions
 
     // If the user changes the focus nodes, matrix similarity must be recalculated
     // before automatic piling. Distance calculation is performed on the server.
@@ -115,24 +117,31 @@ export class Fragments {
     this.resolve = {};
     this.reject = {};
 
-    this.isDataLoaded = new Promise((resolve, reject) => {
-      this.resolve.isDataLoaded = resolve;
-      this.reject.isDataLoaded = reject;
-    });
-
     this.isAttached = new Promise((resolve, reject) => {
       this.resolve.isAttached = resolve;
       this.reject.isAttached = reject;
     });
 
+    this.isDataLoaded = new Promise((resolve, reject) => {
+      this.resolve.isDataLoaded = resolve;
+      this.reject.isDataLoaded = reject;
+    });
+
+    this.isFontLoaded = new Promise((resolve, reject) => {
+      this.resolve.isFontLoaded = resolve;
+      this.reject.isFontLoaded = reject;
+    });
+
     this.update();
 
     Promise
-      .all([this.isDataLoaded, this.isAttached])
+      .all([this.isDataLoaded, this.isFontLoaded, this.isAttached])
       .then(() => { this.initPlot(this.data); });
   }
 
   attached () {
+    this.loadFont();
+
     this.orderMenu = document.getElementById('allNodeOrder');
 
     this.getPlotElDim();
@@ -187,11 +196,15 @@ export class Fragments {
   }
 
   get matrixWidth () {
-    return this.numPixels * this.cellSize;
+    return this.fragDims * this.mp.cellSize;
   }
 
   get matrixWidthHalf () {
     return this.matrixWidth / 2;
+  }
+
+  get rawMatrices () {
+    return this.data.fragments.map(fragment => fragment.matrix);
   }
 
 
@@ -202,10 +215,10 @@ export class Fragments {
    *
    * @param {object} event - Change event object.
    */
-  allPilesDisplayModeChangedHandler (event) {
+  coverDispModeChangeHandler (event) {
     try {
       this.store.dispatch(
-        setAllPilesDisplayMode(
+        setCoverDispMode(
           parseInt(event.target.selectedOptions[0].value, 10)
         )
       );
@@ -220,7 +233,7 @@ export class Fragments {
    * @return {[type]} [description]
    */
   calculateDistanceMatrix () {
-    const data = calculateDistance(this.graphMatrices, this.mp.focusNodes);
+    const data = calculateDistances(this.rawMatrices);
 
     this.dMat = data.distanceMatrix;
     this.pdMat = data.distanceMatrix;
@@ -439,8 +452,8 @@ export class Fragments {
 
         if (event.shiftKey) {
           // test which cell is hovered.
-          let col = Math.floor((this.mouse.x - (x - this.matrixWidthHalf)) / this.cellSize);
-          let row = Math.floor(-(this.mouse.y - (y + this.matrixWidthHalf)) / this.cellSize);
+          let col = Math.floor((this.mouse.x - (x - this.matrixWidthHalf)) / this.mp.cellSize);
+          let row = Math.floor(-(this.mouse.y - (y + this.matrixWidthHalf)) / this.mp.cellSize);
           if (
             row >= 0 ||
             row < this.mp.focusNodes.length ||
@@ -464,7 +477,7 @@ export class Fragments {
             !this.previousHoveredPile ||
             this.previousHoveredPile !== this.hoveredPile
           ) &&
-          this.allPilesDisplayMode === MODE_DIRECT_DIFFERENCE) {
+          this.coverDispMode === MODE_DIRECT_DIFFERENCE) {
           this.redrawPiles(this.mp.piles);
         }
 
@@ -486,7 +499,7 @@ export class Fragments {
           this.previousHoveredPile = undefined;
         }
 
-        if (this.allPilesDisplayMode === MODE_DIRECT_DIFFERENCE) {
+        if (this.coverDispMode === MODE_DIRECT_DIFFERENCE) {
           this.redrawPiles(this.mp.piles);
         }
       }
@@ -656,7 +669,8 @@ export class Fragments {
       const pileNew = Pile(
         this.pileIDCount,
         this.scene,
-        this._zoomFac
+        this._zoomFac,
+        this.fragDims
       );
 
       this.pileIDCount += 1;
@@ -756,7 +770,7 @@ export class Fragments {
     this.mp.focusNodes = nodes;
 
     // update sizes
-    this.matrixWidth = this.cellSize * this.mp.focusNodes.length;
+    this.matrixWidth = this.mp.cellSize * this.mp.focusNodes.length;
     this.matrixWidthHalf = this.matrixWidth / 2;
 
     this.mp.calculateDistanceMatrix();
@@ -929,7 +943,7 @@ export class Fragments {
    * @param {object} data - Data object with the fragments.
    */
   initPlot (data) {
-    this.numPixels = data.dims;
+    this.fragDims = data.dims;
 
     this.highlightFrame = createRectFrame(
       this.matrixWidth, this.matrixWidth, 0xff8100, 10
@@ -940,7 +954,8 @@ export class Fragments {
       const pile = Pile(
         index,
         this.mp.scene,
-        this._zoomFac
+        this._zoomFac,
+        this.fragDims
       );
 
       const matrix = Matrix(index, fragment.matrix);
@@ -1076,6 +1091,15 @@ export class Fragments {
     loadData
       .then(results => this.resolve.isDataLoaded(results))
       .catch(error => this.reject.isDataLoaded(error));
+  }
+
+  loadFont () {
+    const fontLoader = new FontLoader();
+
+    fontLoader.load(FONT_URL, (font) => {
+      this.mp.font = font;
+      this.resolve.isFontLoaded();
+    });
   }
 
   /**
@@ -1246,31 +1270,32 @@ export class Fragments {
    * Splits a pile at the position of the passed matrix. The passed matrix
    * becomes the base for the new pile.
    *
-   * @param {[type]} matrix   - [description]
+   * @param {[type]} matrix - [description]
    * @param {[type]} animated - [description]
-   * @return {[type]} [description]
    */
   splitPile (matrix, animated) {
     if (!animated) {
-      let pSource = matrix.pile;
-      let pNew = new Pile(
+      let pileSrc = matrix.pile;
+      let pileNew = Pile(
         this.mp.piles.length,
         this.mp.scene,
-        this._zoomFac
+        this._zoomFac,
+        this.fragDims
       );
-      pNew.colored = pSource.colored;
-      this.mp.piles.splice(this.mp.piles.indexOf(pSource) + 1, 0, pNew);
+
+      pileNew.colored = pileSrc.colored;
+      this.mp.piles.splice(this.mp.piles.indexOf(pileSrc) + 1, 0, pileNew);
 
       let m = [];
-      for (let i = pSource.getMatrixPosition(matrix); i < pSource.size(); i++) {
-        m.push(pSource.getMatrix(i));
+      for (let i = pileSrc.getMatrixPosition(matrix); i < pileSrc.size(); i++) {
+        m.push(pileSrc.getMatrix(i));
       }
 
-      this.pileUp(m, pNew);
-      this.updateLayout(this.mp.piles.indexOf(pNew) - 1, true);
+      this.pileUp(m, pileNew);
+      this.updateLayout(this.mp.piles.indexOf(pileNew) - 1, true);
 
-      pNew.draw();
-      pSource.draw();
+      pileNew.draw();
+      pileSrc.draw();
 
       this.render();
     } else {
@@ -1333,14 +1358,14 @@ export class Fragments {
       }
 
       const newPile = Pile(
-        this.mp.piles.length, this.mp.scene, this._zoomFac
+        this.mp.piles.length, this.mp.scene, this._zoomFac, this.fragDims
       );
 
       this.mp.piles.push(newPile);
       newPile.addMatrices(matrices);
 
       this.sortByOriginalOrder(newPile);
-      newPile.setCoverMatrixMode(this.allPilesDisplayMode);
+      newPile.setCoverMatrixMode(this.coverDispMode);
       newPile.draw();
 
       l = newPiling[i];
@@ -1404,15 +1429,13 @@ export class Fragments {
   }
 
   /**
-   * [update description]
-   *
-   * @return {[type]} [description]
+   * Root state update handler
    */
   update () {
     try {
       const state = this.store.getState().present.decompose.fragments;
 
-      this.updateAllPilesDisplayMode(state.allPilesDisplayMode);
+      this.updateCoverDispMode(state.coverDispMode);
       this.updateCellSize(state.cellSize);
       this.updateConfig(state.config);
     } catch (e) {
@@ -1423,13 +1446,13 @@ export class Fragments {
   /**
    * Update the display mode of all piles.
    *
-   * @param {number} allPilesDisplayMode - Display mode number.
+   * @param {number} coverDispMode - Display mode number.
    */
-  updateAllPilesDisplayMode (allPilesDisplayMode) {
-    this.allPilesDisplayMode = allPilesDisplayMode;
+  updateCoverDispMode (coverDispMode) {
+    this.coverDispMode = coverDispMode;
 
     if (this.isInitialized) {
-      this.setPileMode(this.allPilesDisplayMode, this.mp.piles);
+      this.setPileMode(this.coverDispMode, this.mp.piles);
       this.redrawPiles(this.mp.piles);
       this.render();
     }
@@ -1441,12 +1464,12 @@ export class Fragments {
    * @param {number} newSize - New cell size
    */
   updateCellSize (newSize) {
-    this.cellSize = newSize;
+    this.mp.cellSize = newSize;
 
     if (this.isInitialized) {
-      this.labelTextSpec.size = this.cellSize - 1;
+      this.labelTextSpec.size = this.mp.cellSize - 1;
 
-      this.mp.piles.forEach(pile => pile.updateCellSize());
+      this.mp.piles.forEach(pile => pile.updateFrame());
 
       this.mp.scene.remove(this.highlightFrame);
       this.highlightFrame = createRectFrame(
