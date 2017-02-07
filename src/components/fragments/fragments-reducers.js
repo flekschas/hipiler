@@ -2,7 +2,7 @@ import { combineReducers } from 'redux';
 
 import {
   SET_CELL_SIZE,
-  SET_ALL_PILES_DISPLAY_MODE,
+  SET_COVER_DISP_MODE,
   UPDATE_FGM_CONFIG
 } from 'components/fragments/fragments-actions';
 
@@ -15,20 +15,20 @@ import {
 import deepClone from 'utils/deep-clone';
 
 
-export function allPilesDisplayMode (state = MODE_MEAN, action) {
+export function cellSize (state = CELL_SIZE, action) {
   switch (action.type) {
-    case SET_ALL_PILES_DISPLAY_MODE:
-      return action.payload.allPilesDisplayMode;
+    case SET_CELL_SIZE:
+      return action.payload.cellSize;
 
     default:
       return state;
   }
 }
 
-export function cellSize (state = CELL_SIZE, action) {
+export function coverDispMode (state = MODE_MEAN, action) {
   switch (action.type) {
-    case SET_CELL_SIZE:
-      return action.payload.cellSize;
+    case SET_COVER_DISP_MODE:
+      return action.payload.coverDispMode;
 
     default:
       return state;
@@ -47,7 +47,7 @@ export function config (state = { ...CONFIG }, action) {
 
 
 export default combineReducers({
-  allPilesDisplayMode,
   cellSize,
+  coverDispMode,
   config
 });

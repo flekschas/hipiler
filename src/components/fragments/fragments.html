@@ -37,7 +37,7 @@
           <label for="settings-fgm-cover">Pile Display Mode</label>
           <select
             id="settings-fgm-cover"
-            change.delegate="allPilesDisplayModeChangedHandler($event)">
+            change.delegate="coverDispModeChangeHandler($event)">
             <option
               value="0"
               selected.bind="allPilesDisplayMode === 0">Harmonic Mean</option>
