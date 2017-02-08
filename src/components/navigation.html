@@ -13,7 +13,7 @@
       </li>
       <li repeat.for="link of externalLinks" class="${link.showIcon ? 'is-icon-only' : ''} ${$index === 0 ? 'is-left-separated' : ''}">
         <a target="_blank" href.bind="link.href" if.bind="link.showIcon" title="${link.title}">
-          <svg-icon icon-id.bind="link.iconId"></svg-icon>
+          <svg-icon base-path="/" icon-id.bind="link.iconId"></svg-icon>
         </a>
         <a target="_blank" href.bind="link.href" if.bind="!link.showIcon">
           ${link.title}
