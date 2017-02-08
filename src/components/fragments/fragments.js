@@ -137,7 +137,10 @@ export class Fragments {
 
     Promise
       .all([this.isDataLoaded, this.isFontLoaded, this.isAttached])
-      .then(() => { this.initPlot(this.data); });
+      .then(() => { this.initPlot(this.data); })
+      .catch((error) => {
+        logger.error('Failed to initialize the fragment plot', error);
+      });
   }
 
   attached () {
@@ -159,7 +162,7 @@ export class Fragments {
   }
 
 
-  /* --------------------------- Custom Variables --------------------------- */
+  /* ----------------------- Getter / Setter Variables ---------------------- */
 
   get plotElDim () {
     return this._plotElDim;
@@ -1088,14 +1091,14 @@ export class Fragments {
       try {
         dataUrl = `${config.endpoint}${queryString}`;
       } catch (e) {
-        this.showError('Config is broken');
-        reject(this.errorMsg);
+        this.hasErrored('Config is broken');
+        reject(Error(this.errorMsg));
       }
 
       json(dataUrl, (error, results) => {
         if (error) {
-          this.showError('Could not load data');
-          reject(error);
+          this.hasErrored('Could not load data');
+          reject(Error(this.errorMsg));
         } else {
           this.data = results;  // Just for convenience
           resolve(results);
@@ -1266,7 +1269,7 @@ export class Fragments {
    *
    * @param {string} message - Error to be shown
    */
-  showError (message) {
+  hasErrored (message) {
     this.isErrored = true;
     this.errorMsg = message;
   }
