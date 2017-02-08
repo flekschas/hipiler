@@ -7,6 +7,7 @@ import {
   OrthographicCamera,
   Raycaster,
   ShaderMaterial,
+  Vector2,
   Vector3,
   WebGLRenderer
 } from 'three';
@@ -331,6 +332,170 @@ export class Fragments {
     }
   }
 
+  dragPileHandler () {
+    const dir = new Vector3();
+
+    this.dragPile.moveTo(this.mouse.x, -this.mouse.y, false);
+    this.dragPile.elevateTo(0.9);
+
+    // test for hovered piles
+    this.hoveredPile = undefined;
+
+    // No mouse down (i.e. no dragging enabled)
+    // do the raycasting to find hovered elements
+    dir.set(0, 0, -1).transformDirection(this.camera.matrixWorld);
+
+    this.raycaster.set(this.mouse, dir);
+
+    let testPile = [
+      this.mp.piles[this.mp.piles.indexOf(this.dragPile) - 1].mesh
+    ];
+
+    this.intersects = this.raycaster.intersectObjects(testPile);
+
+    if (this.intersects.length > 0) {
+      this.hoveredPile = this.intersects[0].object.pile;
+    }
+  }
+
+  dragPileStartHandler () {
+    // Don't do raycasting. "Freeze" the current state of
+    // highlighte items and move matrix with cursor.
+    this.dragPile = this.hoveredPile;
+    this.dragPile.moveTo(this.mouse.x, -this.mouse.y, false);
+    this.dragPile.elevateTo(0.9);
+  }
+
+  mouseMoveStuffHandler () {
+    const dir = new Vector3();
+
+    this.hoveredPile = undefined;
+
+    // No mouse down (i.e. no dragging enabled)
+    // do the raycasting to find hovered elements
+    dir.set(0, 0, -1).transformDirection(this.camera.matrixWorld);
+
+    this.raycaster.set(this.mouse, dir);
+
+    // test for menu-mouse over
+    if (this.visiblePileTools.length > 0) {
+      let intersects = this.raycaster.intersectObjects(this.visiblePileTools);
+      if (intersects.length > 0) {
+        this.hoveredTool = intersects[0].object.pileTool;
+        return;
+      }
+    }
+
+    // test for pile mouse over
+    this.intersects = this.raycaster.intersectObjects(this.mp.pileMeshes);
+    if (this.intersects.length > 0) {
+      let pileMesh = this.intersects[0].object;
+      this.hoveredPile = pileMesh.pile;
+      let x = pileMesh.position.x;
+      let y = pileMesh.position.y;
+
+      // TEST FOR PREVIEWS
+      if (this.mouse.y > y + this.matrixWidthHalf) {
+        let d = this.mouse.y - (y + this.matrixWidthHalf);
+        let i = Math.floor(d / PREVIEW_SIZE);
+        this.hoveredPile.showSingle(this.hoveredPile.getMatrix(i));
+        this.hoveredMatrix = this.hoveredPile.getMatrix(i);
+      } else {
+        this.hoveredPile.showSingle(undefined);
+        this.highlightNoPile();
+      }
+
+      // TEST FOR GAPS
+      if (this.mouse.x > x + this.matrixWidthHalf) {
+        this.hoveredGapPile = this.hoveredPile;
+      } else if (this.hoveredGapPile) {
+        let p = this.hoveredGapPile;
+        p.draw();
+        this.hoveredGapPile = undefined;
+      }
+
+      this.hoveredPile.draw();
+
+      this.hoveredCell = undefined;
+
+      if (event.shiftKey) {
+        // test which cell is hovered.
+        let col = Math.floor((this.mouse.x - (x - this.matrixWidthHalf)) / this.mp.cellSize);
+        let row = Math.floor(-(this.mouse.y - (y + this.matrixWidthHalf)) / this.mp.cellSize);
+        if (
+          row >= 0 ||
+          row < this.mp.focusNodes.length ||
+          col >= 0 ||
+          col < this.mp.focusNodes.length
+        ) {
+          this.hoveredPile.updateLabels(true);
+          this.hoveredCell = { row, col };
+        }
+      }
+
+      for (let i = 0; i < this.mp.piles.length; i++) {
+        this.mp.piles[i].updateHoveredCell();
+        this.mp.piles[i].updateLabels(false);
+      }
+
+      this.hoveredPile.updateLabels(true);
+
+      if (
+        (
+          !this.previousHoveredPile ||
+          this.previousHoveredPile !== this.hoveredPile
+        ) &&
+        this.coverDispMode === MODE_DIRECT_DIFFERENCE) {
+        this.redrawPiles(this.mp.piles);
+      }
+
+      this.previousHoveredPile = this.hoveredPile;
+    } else {
+      // NOTHING HOVERED
+      // _pileToolsVisible = false
+      this.visiblePileTools = [];
+      if (this.hoveredGapPile) {
+        let p = this.hoveredGapPile;
+        this.hoveredGapPile = undefined;
+        p.draw();
+      }
+
+      if (this.previousHoveredPile) {
+        this.previousHoveredPile.showSingle(undefined);
+        this.highlightFrame.visible = false;
+        this.previousHoveredPile.draw();
+        this.previousHoveredPile = undefined;
+      }
+
+      if (this.coverDispMode === MODE_DIRECT_DIFFERENCE) {
+        this.redrawPiles(this.mp.piles);
+      }
+    }
+
+    // Set lassoActive if user did not start mousedown on a pile but in empty
+    if (this.mouseWentDown) {
+      this.lassoActive = !this.hoveredPile;
+    }
+
+    // draw lasso
+    if (this.lassoActive) {
+      let x1 = Math.min(this.dragStartPos.x, this.mouse.x);
+      let x2 = Math.max(this.dragStartPos.x, this.mouse.x);
+      let y1 = Math.min(this.dragStartPos.y, this.mouse.y);
+      let y2 = Math.max(this.dragStartPos.y, this.mouse.y);
+
+      this.mp.scene.remove(this.lassoObject);
+      this.lassoObject = createRectFrame(x2 - x1, y2 - y1, 0xff0000, 1);
+      this.lassoObject.position.set(
+        x1 + ((x2 - x1) / 2),
+        y1 + ((y2 - y1) / 2),
+        1
+      );
+
+      this.mp.scene.add(this.lassoObject);
+    }
+  }
+
   /**
    * [canvasMouseMoveHandler description]
    *
@@ -347,185 +512,33 @@ export class Fragments {
     this.mp.scene.updateMatrixWorld();
     this.camera.updateProjectionMatrix();
 
-    this.mouse = new Vector3();
-    let dir = new Vector3();
-
-    this.mouse.set(
-      ((event.clientX / this.plotElDim.width) * 2) - 1,
-      (-(event.clientY / this.plotElDim.width) * 2) + 1,
-      -1
+    this.mouse.x = (
+      ((event.clientX / this.plotElDim.width) * 2) - 1 - this.canvas.offsetLeft
     );
 
-    this.mouse.unproject(this.camera);
-
-    this.mouse.set(
-      this.mouse.x - this.canvas.offsetLeft,
-      this.mouse.y + this.canvas.offsetTop,
-      1
+    this.mouse.y = (
+      (-(event.clientY / this.plotElDim.width) * 2) + 1 + this.canvas.offsetTop
     );
+
+    // this.mouse.set(
+    //   ((event.clientX / this.plotElDim.width) * 2) - 1,
+    //   (-(event.clientY / this.plotElDim.width) * 2) + 1,
+    //   -1
+    // );
+
+    // this.mouse.unproject(this.camera);
 
     if (this.dragPile) {
-      this.dragPile.moveTo(this.mouse.x, -this.mouse.y, false);
-      this.dragPile.elevateTo(0.9);
-
-      // test for hovered piles
-      this.hoveredPile = undefined;
-
-      // No mouse down (i.e. no dragging enabled)
-      // do the raycasting to find hovered elements
-      dir.set(0, 0, -1).transformDirection(this.camera.matrixWorld);
-
-      this.raycaster.set(this.mouse, dir);
-
-      let testPile = [
-        this.mp.piles[this.mp.piles.indexOf(this.dragPile) - 1].mesh
-      ];
-
-      this.intersects = this.raycaster.intersectObjects(testPile);
-
-      if (this.intersects.length > 0) {
-        this.hoveredPile = this.intersects[0].object.pile;
-      }
-
-    // Test for start a new drag pile
+      this.dragPileHandler();
     } else if (
       this.mouseDown &&
       this.hoveredPile &&
       this.mp.piles.indexOf(this.hoveredPile) > 0 &&
       !this.lassoActive
     ) {
-      // Don't do raycasting. "Freeze" the current state of
-      // highlighte items and move matrix with cursor.
-      // console.log('hoveredMatrix', hoveredPile.id)
-      this.dragPile = this.hoveredPile;
-      this.dragPile.moveTo(this.mouse.x, -this.mouse.y, false);
-      this.dragPile.elevateTo(0.9);
+      this.dragPileStartHandler();
     } else {
-      this.hoveredPile = undefined;
-
-      // No mouse down (i.e. no dragging enabled)
-      // do the raycasting to find hovered elements
-      dir.set(0, 0, -1).transformDirection(this.camera.matrixWorld);
-
-      this.raycaster.set(this.mouse, dir);
-
-      // test for menu-mouse over
-      if (this.visiblePileTools.length > 0) {
-        let intersects = this.raycaster.intersectObjects(this.visiblePileTools);
-        if (intersects.length > 0) {
-          this.hoveredTool = intersects[0].object.pileTool;
-          return;
-        }
-      }
-
-      // test for pile mouse over
-      this.intersects = this.raycaster.intersectObjects(this.pileMeshes);
-      if (this.intersects.length > 0) {
-        let pileMesh = this.intersects[0].object;
-        this.hoveredPile = pileMesh.pile;
-        let x = pileMesh.position.x;
-        let y = pileMesh.position.y;
-
-        // TEST FOR PREVIEWS
-        if (this.mouse.y > y + this.matrixWidthHalf) {
-          let d = this.mouse.y - (y + this.matrixWidthHalf);
-          let i = Math.floor(d / PREVIEW_SIZE);
-          this.hoveredPile.showSingle(this.hoveredPile.getMatrix(i));
-          this.hoveredMatrix = this.hoveredPile.getMatrix(i);
-        } else {
-          this.hoveredPile.showSingle(undefined);
-          this.highlightNoPile();
-        }
-
-        // TEST FOR GAPS
-        if (this.mouse.x > x + this.matrixWidthHalf) {
-          this.hoveredGapPile = this.hoveredPile;
-        } else if (this.hoveredGapPile) {
-          let p = this.hoveredGapPile;
-          p.draw();
-          this.hoveredGapPile = undefined;
-        }
-
-        this.hoveredPile.draw();
-
-        this.hoveredCell = undefined;
-
-        if (event.shiftKey) {
-          // test which cell is hovered.
-          let col = Math.floor((this.mouse.x - (x - this.matrixWidthHalf)) / this.mp.cellSize);
-          let row = Math.floor(-(this.mouse.y - (y + this.matrixWidthHalf)) / this.mp.cellSize);
-          if (
-            row >= 0 ||
-            row < this.mp.focusNodes.length ||
-            col >= 0 ||
-            col < this.mp.focusNodes.length
-          ) {
-            this.hoveredPile.updateLabels(true);
-            this.hoveredCell = { row, col };
-          }
-        }
-
-        for (let i = 0; i < this.mp.piles.length; i++) {
-          this.mp.piles[i].updateHoveredCell();
-          this.mp.piles[i].updateLabels(false);
-        }
-
-        this.hoveredPile.updateLabels(true);
-
-        if (
-          (
-            !this.previousHoveredPile ||
-            this.previousHoveredPile !== this.hoveredPile
-          ) &&
-          this.coverDispMode === MODE_DIRECT_DIFFERENCE) {
-          this.redrawPiles(this.mp.piles);
-        }
-
-        this.previousHoveredPile = this.hoveredPile;
-      } else {
-        // NOTHING HOVERED
-        // _pileToolsVisible = false
-        this.visiblePileTools = [];
-        if (this.hoveredGapPile) {
-          let p = this.hoveredGapPile;
-          this.hoveredGapPile = undefined;
-          p.draw();
-        }
-
-        if (this.previousHoveredPile) {
-          this.previousHoveredPile.showSingle(undefined);
-          this.highlightFrame.visible = false;
-          this.previousHoveredPile.draw();
-          this.previousHoveredPile = undefined;
-        }
-
-        if (this.coverDispMode === MODE_DIRECT_DIFFERENCE) {
-          this.redrawPiles(this.mp.piles);
-        }
-      }
-
-      // Set lassoActive if user did not start mousedown on a pile but in empty
-      if (this.mouseWentDown) {
-        this.lassoActive = !this.hoveredPile;
-      }
-
-      // draw lasso
-      if (this.lassoActive) {
-        let x1 = Math.min(this.dragStartPos.x, this.mouse.x);
-        let x2 = Math.max(this.dragStartPos.x, this.mouse.x);
-        let y1 = Math.min(this.dragStartPos.y, this.mouse.y);
-        let y2 = Math.max(this.dragStartPos.y, this.mouse.y);
-
-        this.mp.scene.remove(this.lassoObject);
-        this.lassoObject = createRectFrame(x2 - x1, y2 - y1, 0xff0000, 1);
-        this.lassoObject.position.set(
-          x1 + ((x2 - x1) / 2),
-          y1 + ((y2 - y1) / 2),
-          1
-        );
-
-        this.mp.scene.add(this.lassoObject);
-      }
+      this.mouseMoveStuffHandler();
     }
 
     this.mouseWentDown = false;
@@ -584,7 +597,7 @@ export class Fragments {
 
         for (let i = 0; i < this.mp.piles.length; i++) {
           x = this.mp.piles[i].getPos().x;
-          y = this.mppiles[i].getPos().y;
+          y = this.mp.piles[i].getPos().y;
 
           if (x > x1 && x < x2 && y > y1 && y < y2) {
             if (p === -1) {
@@ -1024,6 +1037,8 @@ export class Fragments {
 
     this.canvas = this.renderer.domElement;
     this.origin = new Vector3();
+
+    this.mouse = new Vector2();
     this.raycaster = new Raycaster();
 
     this.mp.scene.add(this.camera);
