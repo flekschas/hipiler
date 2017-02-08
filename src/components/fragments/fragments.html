@@ -34,7 +34,7 @@
           <input type="checkbox" id="settings-fgm-is-animated">
         </li>
         <li class="flex-c flex-d-c">
-          <label for="settings-fgm-cover">Pile Display Mode</label>
+          <label for="settings-fgm-cover">Cover Mode</label>
           <select
             id="settings-fgm-cover"
             change.delegate="coverDispModeChangeHandler($event)">
@@ -48,6 +48,22 @@
               value="2"
               selected.bind="allPilesDisplayMode === 2">Trend</option>
           </select>
+        </li>
+        <li class="flex-c flex-d-c">
+          <label for="settings-fgm-order-cluster">Arange</label>
+          <select
+            id="settings-fgm-order-cluster">
+            <option
+              value="0">Distance</option>
+            <option
+              value="1">Noise</option>
+            <option
+              value="2">Track</option>
+          </select>
+        </li>
+        <li class="flex-c flex-d-c">
+          <label for="settings-fgm-is-fixed-cat-colors">Fix Colors</label>
+          <input type="checkbox" id="settings-fgm-is-fixed-cat-colors">
         </li>
       </ul>
     </footer>
