@@ -88,26 +88,41 @@ function calculateDistance (matrix1, matrix2) {
   return Math.sqrt(distance);
 }
 
-export function addBufferedRect (array, x, y, z, w, h, colorArray, c) {
-  const wh = w / 2;
-  const hh = h / 2;
+/**
+ * Create a buffered rectangle configs.
+ *
+ * @description
+ * This methods add positions and colors in-place on `positions` and `colors`.
+ *
+ * @param {array} array - [description]
+ * @param {number} x - [description]
+ * @param {number} y - [description]
+ * @param {number} z - [description]
+ * @param {number} w - [description]
+ * @param {number} h - [description]
+ * @param {array} colorArray - [description]
+ * @param {array} color - RGB color array.
+ */
+export function addBufferedRect (positions, x, y, z, w, h, colors, color) {
+  const widthHalf = w / 2;
+  const heightHalf = h / 2;
 
-  array.push(
-    [x - wh, y - hh, z],
-    [x + wh, y - hh, z],
-    [x + wh, y + hh, z],
-    [x + wh, y + hh, z],
-    [x - wh, y + hh, z],
-    [x - wh, y - hh, z]
+  positions.push(
+    [x - widthHalf, y - heightHalf, z],
+    [x + widthHalf, y - heightHalf, z],
+    [x + widthHalf, y + heightHalf, z],
+    [x + widthHalf, y + heightHalf, z],
+    [x - widthHalf, y + heightHalf, z],
+    [x - widthHalf, y - heightHalf, z]
   );
 
-  colorArray.push(
-    [c[0], c[1], c[2]],
-    [c[0], c[1], c[2]],
-    [c[0], c[1], c[2]],
-    [c[0], c[1], c[2]],
-    [c[0], c[1], c[2]],
-    [c[0], c[1], c[2]]
+  colors.push(
+    [color[0], color[1], color[2]],
+    [color[0], color[1], color[2]],
+    [color[0], color[1], color[2]],
+    [color[0], color[1], color[2]],
+    [color[0], color[1], color[2]],
+    [color[0], color[1], color[2]]
   );
 }
 
