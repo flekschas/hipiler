@@ -1,4 +1,8 @@
+// Aurelia
+import { inject, LogManager } from 'aurelia-framework';
+
 import science from 'science';
+
 import {
   BufferAttribute, BufferGeometry, Mesh, MeshBasicMaterial, TextGeometry
 } from 'three';
@@ -30,6 +34,10 @@ import {
   createText,
   makeBuffer3f
 } from 'components/fragments/fragments-utils';
+
+
+const logger = LogManager.getLogger('pile');
+
 
 const Pile = {
   /********************************* Variables ********************************/
@@ -192,15 +200,12 @@ const Pile = {
     });
 
     if (this.singleMatrix) {
-      // Show that single matrix
       const matrix = this.singleMatrix.matrix;
 
       for (let i = 0; i < this.dims; i++) {
-        // ni = thisNodes[i];
         x = -this.matrixWidthHalf + (fgmState.cellSize / 2) + (i * fgmState.cellSize);
 
         for (let j = i; j < this.dims; j++) {
-          // nj = thisNodes[j];
           y = this.matrixWidthHalf - (fgmState.cellSize / 2) - (j * fgmState.cellSize);
 
           if (
@@ -283,6 +288,7 @@ const Pile = {
             );
           } else {
             valueInv = 1 - cellValue(matrix[i][j]);
+
             addBufferedRect(
               vertexPositions,
               x,
@@ -293,6 +299,7 @@ const Pile = {
               vertexColors,
               [valueInv, valueInv, valueInv]
             );
+
             addBufferedRect(
               vertexPositions,
               -y,
@@ -391,7 +398,8 @@ const Pile = {
 
               x = -this.matrixWidthHalf + (i * fgmState.cellSize) + (d * t) + (d / 2);
               y = +this.matrixWidthHalf - ((j + 0.5) * fgmState.cellSize);
-              addBufferedRect(vertexPositions,
+              addBufferedRect(
+                vertexPositions,
                 x,
                 y,
                 0,
@@ -508,7 +516,8 @@ const Pile = {
               vertexColors,
               [valueInv, valueInv, valueInv]
             );
-            addBufferedRect(vertexPositions,
+            addBufferedRect(
+              vertexPositions,
               -y,
               -x,
               0,
@@ -614,7 +623,7 @@ const Pile = {
       new BufferAttribute(makeBuffer3f(vertexColors), 3)
     );
 
-    this.mesh = new Mesh(this.geometry, SHADER_MATERIAL);
+    this.mesh = new Mesh(this.geometry, fgmState.shaderMaterial);
     this.mesh.scale.set(this.scale, this.scale, this.scale);
 
     if (this === fgmState.hoveredPile) {
