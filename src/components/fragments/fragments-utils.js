@@ -89,18 +89,33 @@ function calculateDistance (matrix1, matrix2) {
 }
 
 /**
- * Create a buffered rectangle configs.
+ * Add a 2D squared buffered rantagnle
+ *
+ * @param {array} positions - List of positions that will be added to in-place.
+ * @param {number} x - X position
+ * @param {number} y - Y position
+ * @param {number} w - Width
+ * @param {array} colors - List of colors that will be added to in-place.
+ * @param {array} color - RGB color array.
+ */
+export function add2dSqrtBuffRect (positions, x, y, w, colors, color) {
+  addBufferedRect(positions, x, y, 0, w, w, colors, color);
+  addBufferedRect(positions, -y, -x, 0, w, w, colors, color);
+}
+
+/**
+ * Add a buffered rectangle configs.
  *
  * @description
  * This methods add positions and colors in-place on `positions` and `colors`.
  *
- * @param {array} array - [description]
- * @param {number} x - [description]
- * @param {number} y - [description]
- * @param {number} z - [description]
- * @param {number} w - [description]
- * @param {number} h - [description]
- * @param {array} colorArray - [description]
+ * @param {array} positions - List of positions that will be added to in-place.
+ * @param {number} x - X position
+ * @param {number} y - Y position
+ * @param {number} z - Z position
+ * @param {number} w - Width
+ * @param {number} h - Height
+ * @param {array} colors - List of colors that will be added to in-place.
  * @param {array} color - RGB color array.
  */
 export function addBufferedRect (positions, x, y, z, w, h, colors, color) {
