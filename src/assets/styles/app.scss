@@ -29,6 +29,52 @@ html {
   background: $error-bg;
 }
 
+.bottom-bar {
+  height: 2.5rem;
+  color: $gray;
+  border-top: 1px solid $gray-lightest;
+
+  .settings-list {
+    li {
+      margin-left: 1rem;
+      padding-top: 0.25rem;
+
+      &:first-child {
+        margin-left: 0;
+      }
+    }
+
+    label {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      margin-bottom: 0.125rem;
+    }
+
+    .btn {
+      margin-top: 0.125rem;
+      color: $gray-dark;
+
+      &:hover {
+        color: $primary;
+      }
+    }
+  }
+
+  .logo {
+    margin: 0.375rem 0.375rem 0 0;
+
+    svg {
+      width: 2rem;
+      height: 2rem;
+    }
+  }
+
+  p {
+    font-size: 0.8rem;
+    line-height: 3rem;
+  }
+}
+
 body.is-dragging-over #drag-drop-notifier,
 body.is-global-error #global-error {
   z-index: 10;

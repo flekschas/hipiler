@@ -197,35 +197,3 @@
     padding: 0.25rem;
   }
 }
-
-.settings-bar {
-  height: 2.5rem;
-  color: $gray;
-  border-top: 1px solid $gray-lightest;
-
-  .settings-list {
-    li {
-      margin-left: 1rem;
-      padding-top: 0.25rem;
-
-      &:first-child {
-        margin-left: 0;
-      }
-    }
-
-    label {
-      font-size: 0.8rem;
-      text-transform: uppercase;
-      margin-bottom: 0.125rem;
-    }
-
-    .btn {
-      margin-top: 0.125rem;
-      color: $gray-dark;
-
-      &:hover {
-        color: $primary;
-      }
-    }
-  }
-}
