@@ -53,7 +53,9 @@ import {
   createRectFrame
 } from 'components/fragments/fragments-utils';
 
+
 const logger = LogManager.getLogger('fragments');
+
 
 @inject(States, MpState)
 export class Fragments {
@@ -64,9 +66,9 @@ export class Fragments {
 
     this.fragments = {};
 
-    this.mp = mpState;
+    this.fgmState = mpState;
 
-    this.mp.cellSize = CELL_SIZE;
+    this.fgmState.cellSize = CELL_SIZE;
     this.maxDistance = 0;
     this.pilingMethod = 'clustered';
     this.matrixStrings = '';
@@ -146,8 +148,6 @@ export class Fragments {
   attached () {
     this.loadFont();
 
-    this.orderMenu = document.getElementById('allNodeOrder');
-
     this.getPlotElDim();
 
     this.initShader();
@@ -155,8 +155,6 @@ export class Fragments {
     this.initEventListeners();
 
     this.plotEl.appendChild(this.canvas);
-
-    this.isLoading = false;
 
     this.resolve.isAttached(true);
   }
@@ -200,7 +198,7 @@ export class Fragments {
   }
 
   get matrixWidth () {
-    return this.fragDims * this.mp.cellSize;
+    return this.fragDims * this.fgmState.cellSize;
   }
 
   get matrixWidthHalf () {
@@ -254,7 +252,7 @@ export class Fragments {
   calculatePiles (value) {
     this.isLoading = true;
 
-    this.setPiling(calculateClusterPiling(value, this.mp.matrices, this.dMat));
+    this.setPiling(calculateClusterPiling(value, this.fgmState.matrices, this.dMat));
   }
 
   /**
@@ -351,7 +349,7 @@ export class Fragments {
     this.raycaster.set(this.mouse, dir);
 
     let testPile = [
-      this.mp.piles[this.mp.piles.indexOf(this.dragPile) - 1].mesh
+      this.fgmState.piles[this.fgmState.piles.indexOf(this.dragPile) - 1].mesh
     ];
 
     this.intersects = this.raycaster.intersectObjects(testPile);
@@ -390,7 +388,7 @@ export class Fragments {
     }
 
     // test for pile mouse over
-    this.intersects = this.raycaster.intersectObjects(this.mp.pileMeshes);
+    this.intersects = this.raycaster.intersectObjects(this.fgmState.pileMeshes);
     if (this.intersects.length > 0) {
       let pileMesh = this.intersects[0].object;
       this.hoveredPile = pileMesh.pile;
@@ -423,22 +421,22 @@ export class Fragments {
 
       if (event.shiftKey) {
         // test which cell is hovered.
-        let col = Math.floor((this.mouse.x - (x - this.matrixWidthHalf)) / this.mp.cellSize);
-        let row = Math.floor(-(this.mouse.y - (y + this.matrixWidthHalf)) / this.mp.cellSize);
+        let col = Math.floor((this.mouse.x - (x - this.matrixWidthHalf)) / this.fgmState.cellSize);
+        let row = Math.floor(-(this.mouse.y - (y + this.matrixWidthHalf)) / this.fgmState.cellSize);
         if (
           row >= 0 ||
-          row < this.mp.focusNodes.length ||
+          row < this.fgmState.focusNodes.length ||
           col >= 0 ||
-          col < this.mp.focusNodes.length
+          col < this.fgmState.focusNodes.length
         ) {
           this.hoveredPile.updateLabels(true);
           this.hoveredCell = { row, col };
         }
       }
 
-      for (let i = 0; i < this.mp.piles.length; i++) {
-        this.mp.piles[i].updateHoveredCell();
-        this.mp.piles[i].updateLabels(false);
+      for (let i = 0; i < this.fgmState.piles.length; i++) {
+        this.fgmState.piles[i].updateHoveredCell();
+        this.fgmState.piles[i].updateLabels(false);
       }
 
       this.hoveredPile.updateLabels(true);
@@ -449,7 +447,7 @@ export class Fragments {
           this.previousHoveredPile !== this.hoveredPile
         ) &&
         this.coverDispMode === MODE_DIRECT_DIFFERENCE) {
-        this.redrawPiles(this.mp.piles);
+        this.redrawPiles(this.fgmState.piles);
       }
 
       this.previousHoveredPile = this.hoveredPile;
@@ -471,7 +469,7 @@ export class Fragments {
       }
 
       if (this.coverDispMode === MODE_DIRECT_DIFFERENCE) {
-        this.redrawPiles(this.mp.piles);
+        this.redrawPiles(this.fgmState.piles);
       }
     }
 
@@ -487,7 +485,7 @@ export class Fragments {
       let y1 = Math.min(this.dragStartPos.y, this.mouse.y);
       let y2 = Math.max(this.dragStartPos.y, this.mouse.y);
 
-      this.mp.scene.remove(this.lassoObject);
+      this.fgmState.scene.remove(this.lassoObject);
       this.lassoObject = createRectFrame(x2 - x1, y2 - y1, 0xff0000, 1);
       this.lassoObject.position.set(
         x1 + ((x2 - x1) / 2),
@@ -495,7 +493,7 @@ export class Fragments {
         1
       );
 
-      this.mp.scene.add(this.lassoObject);
+      this.fgmState.scene.add(this.lassoObject);
     }
   }
 
@@ -512,7 +510,7 @@ export class Fragments {
     this.hoveredMatrix = undefined;
 
     // get mouse coordinates
-    this.mp.scene.updateMatrixWorld();
+    this.fgmState.scene.updateMatrixWorld();
     this.camera.updateProjectionMatrix();
 
     this.mouse.x = (
@@ -536,7 +534,7 @@ export class Fragments {
     } else if (
       this.mouseDown &&
       this.hoveredPile &&
-      this.mp.piles.indexOf(this.hoveredPile) > 0 &&
+      this.fgmState.piles.indexOf(this.hoveredPile) > 0 &&
       !this.lassoActive
     ) {
       this.dragPileStartHandler();
@@ -557,17 +555,17 @@ export class Fragments {
   canvasMouseUpHandler (event) {
     event.preventDefault();
 
-    this.mp.scene.remove(this.lassoObject);
+    this.fgmState.scene.remove(this.lassoObject);
 
     if (this.openedPileRoot) {
       let mats = [];
-      let openedPileIndex = this.mp.piles.indexOf(this.openedPileRoot);
+      let openedPileIndex = this.fgmState.piles.indexOf(this.openedPileRoot);
 
       for (let i = 0; i <= this.openedPileMatricesNum; i++) {
-        mats.push(this.mp.piles[openedPileIndex + i].pileMatrices[0]);
+        mats.push(this.fgmState.piles[openedPileIndex + i].pileMatrices[0]);
       }
 
-      this.pileUp(mats, this.mp.piles[openedPileIndex]);
+      this.pileUp(mats, this.fgmState.piles[openedPileIndex]);
 
       this.startAnimations();
       this.openedPileRoot = undefined;
@@ -586,7 +584,7 @@ export class Fragments {
     } else if (this.lassoActive) {
       // Calculate lasso rectangle
       if (this.dragStartPos) {
-        this.mp.scene.updateMatrixWorld();
+        this.fgmState.scene.updateMatrixWorld();
         this.camera.updateProjectionMatrix();
         let x;
         let y;
@@ -598,16 +596,16 @@ export class Fragments {
         let y1 = Math.min(this.dragStartPos.y, this.mouse.y);
         let y2 = Math.max(this.dragStartPos.y, this.mouse.y);
 
-        for (let i = 0; i < this.mp.piles.length; i++) {
-          x = this.mp.piles[i].getPos().x;
-          y = this.mp.piles[i].getPos().y;
+        for (let i = 0; i < this.fgmState.piles.length; i++) {
+          x = this.fgmState.piles[i].getPos().x;
+          y = this.fgmState.piles[i].getPos().y;
 
           if (x > x1 && x < x2 && y > y1 && y < y2) {
             if (p === -1) {
               p = i;
             }
 
-            selectPiles.push(this.mp.piles[i]);
+            selectPiles.push(this.fgmState.piles[i]);
           }
         }
 
@@ -618,7 +616,7 @@ export class Fragments {
         }
 
         if (matrices.length > 0) {
-          this.pileUp(matrices, this.mp.piles[p]);
+          this.pileUp(matrices, this.fgmState.piles[p]);
           this.startAnimations();
         }
       }
@@ -672,7 +670,7 @@ export class Fragments {
     let newPiles = [];
 
     let matrices = [];
-    let ix = this.mp.piles.indexOf(pile);
+    let ix = this.fgmState.piles.indexOf(pile);
 
     matrices.push(...pile.pileMatrices);
 
@@ -692,7 +690,7 @@ export class Fragments {
       this.pileIDCount += 1;
 
       pileNew.colored = pile.colored;
-      this.mp.piles.splice(ix + 1, 0, pileNew);
+      this.fgmState.piles.splice(ix + 1, 0, pileNew);
 
       pileNew.addMatrices([matrices[i]]);
       pileNew.draw();
@@ -741,7 +739,7 @@ export class Fragments {
   destroyPile (pile) {
     pile.destroy();
 
-    this.mp.piles.splice(this.mp.piles.indexOf(pile), 1);
+    this.fgmState.piles.splice(this.fgmState.piles.indexOf(pile), 1);
 
     if (this.previousHoveredPile === pile) {
       this.previousHoveredPile = undefined;
@@ -783,24 +781,24 @@ export class Fragments {
    * @return {[type]} [description]
    */
   focusOn (nodes) {
-    this.mp.focusNodes = nodes;
+    this.fgmState.focusNodes = nodes;
 
     // update sizes
-    this.matrixWidth = this.mp.cellSize * this.mp.focusNodes.length;
+    this.matrixWidth = this.fgmState.cellSize * this.fgmState.focusNodes.length;
     this.matrixWidthHalf = this.matrixWidth / 2;
 
-    this.mp.calculateDistanceMatrix();
+    this.fgmState.calculateDistanceMatrix();
 
     // update highlight frame
-    this.mp.scene.remove(this.highlightFrame);
+    this.fgmState.scene.remove(this.highlightFrame);
     this.highlightFrame = createRectFrame(
       this.matrixWidth, this.matrixWidth, 0x000000, 10
     );
-    this.mp.scene.add(this.highlightFrame);
+    this.fgmState.scene.add(this.highlightFrame);
 
     // redraw
-    this.mp.piles.forEach(pile => pile.updateFrame());
-    this.redrawPiles(this.mp.piles);
+    this.fgmState.piles.forEach(pile => pile.updateFrame());
+    this.redrawPiles(this.fgmState.piles);
     this.updateLayout(0, true);
     this.render();
   }
@@ -831,10 +829,10 @@ export class Fragments {
       y = MARGIN_TOP;
 
       for (let i = 0; i < index; i++) {
-        x += this.matrixWidth + (this.mp.piles[i].size() * 2) + MATRIX_GAP_HORIZONTAL + 10;
+        x += this.matrixWidth + (this.fgmState.piles[i].size() * 2) + MATRIX_GAP_HORIZONTAL + 10;
         if (
           (
-            x + this.matrixWidth + (this.mp.piles[i].size() * 2) + MATRIX_GAP_HORIZONTAL
+            x + this.matrixWidth + (this.fgmState.piles[i].size() * 2) + MATRIX_GAP_HORIZONTAL
           ) > this._courseWidth
         ) {
           x = this.matrixWidth;
@@ -849,7 +847,7 @@ export class Fragments {
     let currh = 0;
     let temp;
 
-    for (let i = 0; i < this.mp.piles.length; i++) {
+    for (let i = 0; i < this.fgmState.piles.length; i++) {
       if (i > 0 && i % this.numColumns === 0) {  // when new row starts
         if (i > index) {
           break;
@@ -859,7 +857,7 @@ export class Fragments {
         }
       }
 
-      temp = this.mp.piles[i].size() * 2;  // 2 = preview height
+      temp = this.fgmState.piles[i].size() * 2;  // 2 = preview height
 
       if (temp > currh) {
         currh = temp;
@@ -880,8 +878,8 @@ export class Fragments {
   getCurrentPiling () {
     const piling = [];
 
-    this.mp.piles.forEach(
-      pile => piling.push(this.mp.matrices.indexOf(pile.getMatrix(0)))
+    this.fgmState.piles.forEach(
+      pile => piling.push(this.fgmState.matrices.indexOf(pile.getMatrix(0)))
     );
 
     return piling;
@@ -903,7 +901,7 @@ export class Fragments {
    * @return {[type]} [description]
    */
   hidedistance () {
-    this.mp.matrices.forEach(matrix => matrix.g_course.style('opacity', '1'));
+    this.fgmState.matrices.forEach(matrix => matrix.g_course.style('opacity', '1'));
   }
 
   /**
@@ -912,7 +910,7 @@ export class Fragments {
    * @return {[type]} [description]
    */
   highlightNoPile () {
-    this.mp.scene.remove(this.highlightFrame);
+    this.fgmState.scene.remove(this.highlightFrame);
   }
 
   /**
@@ -924,7 +922,7 @@ export class Fragments {
   highlightPile (pile) {
     this.highlightFrame.position.set(pile.x, pile.y, 0);
     this.highlightFrame.visible = true;
-    this.mp.scene.add(this.highlightFrame);
+    this.fgmState.scene.add(this.highlightFrame);
   }
 
   /**
@@ -969,15 +967,15 @@ export class Fragments {
     data.fragments.forEach((fragment, index) => {
       const pile = Pile(
         index,
-        this.mp.scene,
+        this.fgmState.scene,
         this._zoomFac,
         this.fragDims
       );
 
       const matrix = Matrix(index, fragment.matrix);
 
-      this.mp.piles.push(pile);
-      this.mp.matrices.push(matrix);
+      this.fgmState.piles.push(pile);
+      this.fgmState.matrices.push(matrix);
 
       pile.addMatrices([matrix]);
       pile.draw();
@@ -999,7 +997,7 @@ export class Fragments {
    */
   initShader () {
     try {
-      this.shaderMaterial = new ShaderMaterial({
+      this.fgmState.shaderMaterial = new ShaderMaterial({
         vertexShader: document.querySelector('#shader-vertex').textContent,
         fragmentShader: document.querySelector('#shader-fragment').textContent,
         blending: NormalBlending,
@@ -1044,7 +1042,7 @@ export class Fragments {
     this.mouse = new Vector2();
     this.raycaster = new Raycaster();
 
-    this.mp.scene.add(this.camera);
+    this.fgmState.scene.add(this.camera);
   }
 
   /**
@@ -1100,6 +1098,7 @@ export class Fragments {
           this.hasErrored('Could not load data');
           reject(Error(this.errorMsg));
         } else {
+          this.isLoading = false;
           this.data = results;  // Just for convenience
           resolve(results);
         }
@@ -1115,7 +1114,7 @@ export class Fragments {
     const fontLoader = new FontLoader();
 
     fontLoader.load(FONT_URL, (font) => {
-      this.mp.font = font;
+      this.fgmState.font = font;
       this.resolve.isFontLoaded();
     });
   }
@@ -1137,22 +1136,22 @@ export class Fragments {
    * @param {[type]} p - [description]
    */
   pileBackwards (pile) {
-    let pileIndex = this.mp.piles.indexOf(pile);
+    let pileIndex = this.fgmState.piles.indexOf(pile);
     let matrices = [];
 
     if (pile.size() === 1) {
       for (let j = pileIndex; j >= 0; j--) {
-        if (j === 0 || this.mp.piles[j - 1].size() > 1) {
-          this.pileUp(matrices, this.mp.piles[j]);
+        if (j === 0 || this.fgmState.piles[j - 1].size() > 1) {
+          this.pileUp(matrices, this.fgmState.piles[j]);
           return;
         }
 
-        matrices.push(...this.mp.piles[j].getMatrices());
+        matrices.push(...this.fgmState.piles[j].getMatrices());
       }
-    } else if (this.mp.piles.indexOf(pile) > 0) {
+    } else if (this.fgmState.piles.indexOf(pile) > 0) {
       this.pileUp(
         pile.pileMatrices,
-        this.mp.piles[this.mp.piles.indexOf(pile) - 1]
+        this.fgmState.piles[this.fgmState.piles.indexOf(pile) - 1]
       );
     }
 
@@ -1186,7 +1185,7 @@ export class Fragments {
     targetPile.addMatrices(matricesToPile);
     this.sortByOriginalOrder(targetPile);
 
-    this.redrawPiles(this.mp.piles);
+    this.redrawPiles(this.fgmState.piles);
     this.updateLayout(0, true);
     this.render();
   }
@@ -1236,10 +1235,10 @@ export class Fragments {
    * @return {[type]} [description]
    */
   render () {
-    this.renderer.render(this.mp.scene, this.camera);
+    this.renderer.render(this.fgmState.scene, this.camera);
 
     this.visiblePileTools.forEach((visiblePileTool) => {
-      this.mp.scene.remove(visiblePileTool);
+      this.fgmState.scene.remove(visiblePileTool);
     });
   }
 
@@ -1295,14 +1294,14 @@ export class Fragments {
     if (!animated) {
       let pileSrc = matrix.pile;
       let pileNew = Pile(
-        this.mp.piles.length,
-        this.mp.scene,
+        this.fgmState.piles.length,
+        this.fgmState.scene,
         this._zoomFac,
         this.fragDims
       );
 
       pileNew.colored = pileSrc.colored;
-      this.mp.piles.splice(this.mp.piles.indexOf(pileSrc) + 1, 0, pileNew);
+      this.fgmState.piles.splice(this.fgmState.piles.indexOf(pileSrc) + 1, 0, pileNew);
 
       let m = [];
       for (let i = pileSrc.getMatrixPosition(matrix); i < pileSrc.size(); i++) {
@@ -1310,7 +1309,7 @@ export class Fragments {
       }
 
       this.pileUp(m, pileNew);
-      this.updateLayout(this.mp.piles.indexOf(pileNew) - 1, true);
+      this.updateLayout(this.fgmState.piles.indexOf(pileNew) - 1, true);
 
       pileNew.draw();
       pileSrc.draw();
@@ -1353,9 +1352,9 @@ export class Fragments {
    * @param {[type]} newPiling - [description]
    */
   setPiling (newPiling) {
-    this.mp.piles.forEach(pile => this.destroyPile(pile));
+    this.fgmState.piles.forEach(pile => this.destroyPile(pile));
 
-    this.mp.piles = [];
+    this.fgmState.piles = [];
 
     let matrices = [];
     let l = 0;
@@ -1376,10 +1375,10 @@ export class Fragments {
       }
 
       const newPile = Pile(
-        this.mp.piles.length, this.mp.scene, this._zoomFac, this.fragDims
+        this.fgmState.piles.length, this.fgmState.scene, this._zoomFac, this.fragDims
       );
 
-      this.mp.piles.push(newPile);
+      this.fgmState.piles.push(newPile);
       newPile.addMatrices(matrices);
 
       this.sortByOriginalOrder(newPile);
@@ -1428,9 +1427,9 @@ export class Fragments {
    * @return {[type]} [description]
    */
   showMatrixSimilarity (pile) {
-    let pileIndex = this.mp.piles.indexOf(pile);
+    let pileIndex = this.fgmState.piles.indexOf(pile);
 
-    this.mp.piles.forEach((otherPile, index) => {
+    this.fgmState.piles.forEach((otherPile, index) => {
       otherPile.showSimilarity(
         this.pileDistanceColor(this.pdMat[pileIndex][index])
       );
@@ -1443,7 +1442,7 @@ export class Fragments {
    * @return {[type]} [description]
    */
   unshowMatrixSimilarity () {
-    this.mp.piles.forEach(pile => pile.resetSimilarity());
+    this.fgmState.piles.forEach(pile => pile.resetSimilarity());
   }
 
   /**
@@ -1470,8 +1469,8 @@ export class Fragments {
     this.coverDispMode = coverDispMode;
 
     if (this.isInitialized) {
-      this.setPileMode(this.coverDispMode, this.mp.piles);
-      this.redrawPiles(this.mp.piles);
+      this.setPileMode(this.coverDispMode, this.fgmState.piles);
+      this.redrawPiles(this.fgmState.piles);
       this.render();
     }
   }
@@ -1482,21 +1481,21 @@ export class Fragments {
    * @param {number} newSize - New cell size
    */
   updateCellSize (newSize) {
-    this.mp.cellSize = newSize;
+    this.fgmState.cellSize = newSize;
 
     if (this.isInitialized) {
-      this.labelTextSpec.size = this.mp.cellSize - 1;
+      this.labelTextSpec.size = this.fgmState.cellSize - 1;
 
-      this.mp.piles.forEach(pile => pile.updateFrame());
+      this.fgmState.piles.forEach(pile => pile.updateFrame());
 
-      this.mp.scene.remove(this.highlightFrame);
+      this.fgmState.scene.remove(this.highlightFrame);
       this.highlightFrame = createRectFrame(
         this.matrixWidth, this.matrixWidth, 0xff8100, 10
       );
-      this.mp.scene.add(this.highlightFrame);
+      this.fgmState.scene.add(this.highlightFrame);
 
       this.updateLayout(0, true);
-      this.redrawPiles(this.mp.piles);
+      this.redrawPiles(this.fgmState.piles);
       this.render();
     }
   }
@@ -1521,7 +1520,7 @@ export class Fragments {
    * @return {[type]} [description]
    */
   updateLayout (pileIndex) {
-    this.mp.piles.forEach((pile, index) => {
+    this.fgmState.piles.forEach((pile, index) => {
       const pos = this.getLayoutPosition(index);
       pile.moveTo(pos.x, pos.y, PILING_DIRECTION !== 'vertical');
     });
