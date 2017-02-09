@@ -176,7 +176,8 @@
           {
             "name": "science",
             "path": "../node_modules/science",
-            "main": "science.v1.js"
+            "main": "index",
+            "exports": "science"
           },
           {
             "name": "three",
