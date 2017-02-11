@@ -32,9 +32,10 @@ import {
   CELL_SIZE,
   FONT_URL,
   FPS,
-  MARGIN_TOP,
+  MARGIN_BOTTOM,
   MARGIN_LEFT,
   MARGIN_RIGHT,
+  MARGIN_TOP,
   MATRIX_GAP_HORIZONTAL,
   MATRIX_GAP_VERTICAL,
   MODE_DIRECT_DIFFERENCE,
@@ -166,11 +167,18 @@ export class Fragments {
     return this._plotElDim;
   }
 
+  get rowSpacingExtra () {
+    const spacing = (this.plotElDim.width - (
+      this.numColumns * this.matrixWidth
+      ) - ((this.numColumns - 1) * MATRIX_GAP_HORIZONTAL)) / (this.numColumns - 1);
+    return spacing;
+  }
+
   get numColumns () {
     return Math.floor(
       (this.plotElDim.width - MARGIN_LEFT - MARGIN_RIGHT) /
-      (this.plotElDim.width + MATRIX_GAP_HORIZONTAL)
-    ) - 1;
+      (this.matrixWidth + MATRIX_GAP_HORIZONTAL)
+    );
   }
 
   get isErrored () {
@@ -199,6 +207,10 @@ export class Fragments {
 
   get matrixWidth () {
     return this.fragDims * this.fgmState.cellSize;
+  }
+
+  get matrixWidthInclSpacing () {
+    return this.matrixWidth + this.rowSpacingExtra + MATRIX_GAP_HORIZONTAL;
   }
 
   get matrixWidthHalf () {
@@ -629,19 +641,19 @@ export class Fragments {
   }
 
   /**
-   * [canvasMouseWheelHandler description]
+   * Handle mousewheel events
    *
-   * @param {[type]} event - [description]
-   * @return {[type]} [description]
+   * @param {object} event - Mousewheel event.
    */
   canvasMouseWheelHandler (event) {
     event.preventDefault();
 
     if (event.wheelDelta > 0) {
-      let y = Math.min(this.camera.position.y + 30, this.topScrollLimit);
-      this.camera.position.setY(y);
+      this.camera.position.setY(Math.min(
+        this.camera.position.y + event.wheelDelta, this.scrollLimitTop
+      ));
     } else {
-      this.camera.position.setY(this.camera.position.y - 30);
+      this.camera.position.setY(this.camera.position.y + event.wheelDelta);
     }
 
     this.render();
@@ -821,24 +833,21 @@ export class Fragments {
    * @return {[type]} [description]
    */
   getLayoutPosition (pileSortIndex) {
+    const numCol = this.numColumns;
+
     let x;
     let y;
 
     if (PILING_DIRECTION === 'horizontal') {
-      x = MARGIN_LEFT;
-      y = MARGIN_TOP;
+      x = (
+        this.matrixWidthInclSpacing * (pileSortIndex % numCol)
+      ) || MARGIN_LEFT;
 
-      for (let i = 0; i < pileSortIndex; i++) {
-        x += this.matrixWidth + (this.fgmState.piles[i].size() * 2) + MATRIX_GAP_HORIZONTAL + 10;
-        if (
-          (
-            x + this.matrixWidth + (this.fgmState.piles[i].size() * 2) + MATRIX_GAP_HORIZONTAL
-          ) > this._courseWidth
-        ) {
-          x = this.matrixWidth;
-          y += this.matrixWidth + MATRIX_GAP_VERTICAL;
-        }
-      }
+      y = (
+        Math.trunc(pileSortIndex / numCol) *
+        (this.matrixWidth + MATRIX_GAP_VERTICAL)
+      ) || MARGIN_TOP;
+
       return { x, y };
     }
 
@@ -1031,8 +1040,9 @@ export class Fragments {
 
     this.camera.position.z = 10;
     this.camera.position.x = (this.plotElDim.width / 2);
-    this.topScrollLimit = MARGIN_TOP - (this.plotElDim.height / 2);
-    this.camera.position.y = this.topScrollLimit;
+    this.scrollLimitTop = MARGIN_TOP - (this.plotElDim.height / 2);
+    this.scrollLimitBottom = MARGIN_BOTTOM + (this.plotElDim.height / 2);
+    this.camera.position.y = this.scrollLimitTop;
 
     this.renderer = new WebGLRenderer(WEB_GL_CONFIG);
     this.renderer.setSize(this.plotElDim.width, this.plotElDim.height);

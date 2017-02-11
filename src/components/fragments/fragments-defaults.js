@@ -44,7 +44,7 @@ export const MARGIN_TOP = 2;
 
 export const MATRIX_GAP_HORIZONTAL = 10;
 
-export const MATRIX_GAP_VERTICAL = 10;
+export const MATRIX_GAP_VERTICAL = 20;
 
 export const MODE_BARCHART = 1;
 
