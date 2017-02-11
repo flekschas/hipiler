@@ -173,8 +173,6 @@ export default class Pile {
 
     this.calculateCoverMatrix();
 
-    logger.debug('pile.addmatrices', matrices, this.pileMatrices);
-
     return this;
   }
 
@@ -854,7 +852,6 @@ export default class Pile {
     this.x = x + this.matrixWidthHalf;
     this.y = -y - this.matrixWidthHalf;
 
-    logger.debug('ass', this.x, this.y, this.matrixWidthHalf);
     this.mesh.position.set(this.x, this.y, 0);
 
     return this;
