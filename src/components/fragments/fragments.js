@@ -680,7 +680,7 @@ export class Fragments {
 
     for (let i = matrices.length - 1; i > 0; i--) {
       pile.removeMatrices([matrices[i]]);
-      const pileNew = Pile(
+      const pileNew = new Pile(
         this.pileIDCount,
         this.scene,
         this.fragScale,
@@ -965,7 +965,7 @@ export class Fragments {
 
     // INIT PILES & MATRICES (each single matrix is a pile)
     data.fragments.forEach((fragment, index) => {
-      const pile = Pile(
+      const pile = new Pile(
         index,
         this.fgmState.scene,
         this.fragScale,
@@ -976,6 +976,8 @@ export class Fragments {
 
       this.fgmState.piles.push(pile);
       this.fgmState.matrices.push(matrix);
+
+      logger.debug(matrix);
 
       pile.addMatrices([matrix]);
       pile.draw();
@@ -1293,7 +1295,7 @@ export class Fragments {
   splitPile (matrix, animated) {
     if (!animated) {
       let pileSrc = matrix.pile;
-      let pileNew = Pile(
+      let pileNew = new Pile(
         this.fgmState.piles.length,
         this.fgmState.scene,
         this.fragScale,
@@ -1374,8 +1376,11 @@ export class Fragments {
         break;
       }
 
-      const newPile = Pile(
-        this.fgmState.piles.length, this.fgmState.scene, this.fragScale, this.fragDims
+      const newPile = new Pile(
+        this.fgmState.piles.length,
+        this.fgmState.scene,
+        this.fragScale,
+        this.fragDims
       );
 
       this.fgmState.piles.push(newPile);
@@ -1514,15 +1519,17 @@ export class Fragments {
   }
 
   /**
-   * [updateLayout description]
+   * Update every pile
    *
-   * @param {[type]} pileIndex - [description]
-   * @return {[type]} [description]
+   * @param {number} pileSortPos - Sorting number of pile.
    */
-  updateLayout (pileIndex) {
-    this.fgmState.piles.forEach((pile, index) => {
-      const pos = this.getLayoutPosition(index);
-      pile.moveTo(pos.x, pos.y, PILING_DIRECTION !== 'vertical');
-    });
+  updateLayout (pileSortPos) {
+    this.fgmState.piles
+      // we needs to be changed in the future to a pileSortIndex
+      .filter((element, index) => index >= pileSortPos)
+      .forEach((pile, index) => {
+        const pos = this.getLayoutPosition(index);
+        pile.moveTo(pos.x, pos.y, PILING_DIRECTION !== 'vertical');
+      });
   }
 }
