@@ -93,7 +93,7 @@ export class Fragments {
 
     this._isLoadedSession = false;
     this._isSavedSession = false;
-    this._zoomFac = 1;
+    this.fragScale = 1;
 
     this.pileIDCount = 0;
     this.startPile = 0;
@@ -683,7 +683,7 @@ export class Fragments {
       const pileNew = Pile(
         this.pileIDCount,
         this.scene,
-        this._zoomFac,
+        this.fragScale,
         this.fragDims
       );
 
@@ -968,7 +968,7 @@ export class Fragments {
       const pile = Pile(
         index,
         this.fgmState.scene,
-        this._zoomFac,
+        this.fragScale,
         this.fragDims
       );
 
@@ -1296,7 +1296,7 @@ export class Fragments {
       let pileNew = Pile(
         this.fgmState.piles.length,
         this.fgmState.scene,
-        this._zoomFac,
+        this.fragScale,
         this.fragDims
       );
 
@@ -1375,7 +1375,7 @@ export class Fragments {
       }
 
       const newPile = Pile(
-        this.fgmState.piles.length, this.fgmState.scene, this._zoomFac, this.fragDims
+        this.fgmState.piles.length, this.fgmState.scene, this.fragScale, this.fragDims
       );
 
       this.fgmState.piles.push(newPile);
