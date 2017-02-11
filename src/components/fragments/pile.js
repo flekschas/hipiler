@@ -851,9 +851,11 @@ export default class Pile {
    * @return {object} Self.
    */
   moveTo (x, y) {
-    this.x = x;
-    this.y = -y;
-    this.mesh.position.set(x, -y, 0);
+    this.x = x + this.matrixWidthHalf;
+    this.y = -y - this.matrixWidthHalf;
+
+    logger.debug('ass', this.x, this.y, this.matrixWidthHalf);
+    this.mesh.position.set(this.x, this.y, 0);
 
     return this;
   }
