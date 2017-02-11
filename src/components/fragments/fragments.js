@@ -163,6 +163,10 @@ export class Fragments {
 
   /* ----------------------- Getter / Setter Variables ---------------------- */
 
+  get cellSize () {
+    return this.fgmState.cellSize;
+  }
+
   get plotElDim () {
     return this._plotElDim;
   }
@@ -654,6 +658,7 @@ export class Fragments {
       ));
     } else {
       this.camera.position.setY(this.camera.position.y + event.wheelDelta);
+      console.log('down', this.camera.position.y, this.scrollLimitBottom);
     }
 
     this.render();
@@ -1499,15 +1504,13 @@ export class Fragments {
     this.fgmState.cellSize = newSize;
 
     if (this.isInitialized) {
-      this.labelTextSpec.size = this.fgmState.cellSize - 1;
-
       this.fgmState.piles.forEach(pile => pile.updateFrame());
 
-      this.fgmState.scene.remove(this.highlightFrame);
-      this.highlightFrame = createRectFrame(
-        this.matrixWidth, this.matrixWidth, 0xff8100, 10
-      );
-      this.fgmState.scene.add(this.highlightFrame);
+      // this.fgmState.scene.remove(this.highlightFrame);
+      // this.highlightFrame = createRectFrame(
+      //   this.matrixWidth, this.matrixWidth, 0xff8100, 10
+      // );
+      // this.fgmState.scene.add(this.highlightFrame);
 
       this.updateLayout(0, true);
       this.redrawPiles(this.fgmState.piles);
