@@ -209,6 +209,10 @@ export class Fragments {
     this._isInitialized = !!value;
   }
 
+  get matrixHeightInclSpacing () {
+    return this.matrixWidth + MATRIX_GAP_VERTICAL;
+  }
+
   get matrixWidth () {
     return this.fragDims * this.fgmState.cellSize;
   }
@@ -657,8 +661,9 @@ export class Fragments {
         this.camera.position.y + event.wheelDelta, this.scrollLimitTop
       ));
     } else {
-      this.camera.position.setY(this.camera.position.y + event.wheelDelta);
-      console.log('down', this.camera.position.y, this.scrollLimitBottom);
+      this.camera.position.setY(Math.max(
+        this.camera.position.y + event.wheelDelta, this.scrollLimitBottom
+      ));
     }
 
     this.render();
@@ -1001,6 +1006,8 @@ export class Fragments {
 
     this.updateLayout(0, false);
 
+    this.setScrollLimit(data.fragments.length);
+
     this.render();
 
     this.isInitialized = true;
@@ -1046,7 +1053,6 @@ export class Fragments {
     this.camera.position.z = 10;
     this.camera.position.x = (this.plotElDim.width / 2);
     this.scrollLimitTop = MARGIN_TOP - (this.plotElDim.height / 2);
-    this.scrollLimitBottom = MARGIN_BOTTOM + (this.plotElDim.height / 2);
     this.camera.position.y = this.scrollLimitTop;
 
     this.renderer = new WebGLRenderer(WEB_GL_CONFIG);
@@ -1436,6 +1442,24 @@ export class Fragments {
   }
 
   /**
+   * Set the scroll bottom limiit
+   *
+   * @param {number} numFragments - Number of fragmets.
+   */
+  setScrollLimit (numFragments) {
+    const contentHeight = this.matrixHeightInclSpacing *
+      Math.ceil(numFragments / this.numColumns);
+
+    const scrollHeight = contentHeight - this.plotElDim.height;
+
+    if (scrollHeight > 0) {
+      this.scrollLimitBottom = this.scrollLimitTop - scrollHeight;
+    } else {
+      this.scrollLimitBottom = this.scrollLimitTop;
+    }
+  }
+
+  /**
    * [showMatrixSimilarity description]
    *
    * @description
@@ -1514,6 +1538,7 @@ export class Fragments {
 
       this.updateLayout(0, true);
       this.redrawPiles(this.fgmState.piles);
+      this.setScrollLimit(this.data.fragments.length);
       this.render();
     }
   }
