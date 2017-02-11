@@ -1,7 +1,7 @@
 // Aurelia
-import { inject, LogManager } from 'aurelia-framework';
+import { LogManager } from 'aurelia-framework';
 
-import science from 'science';
+import { stats } from 'science';
 
 import {
   BufferAttribute, BufferGeometry, Mesh, MeshBasicMaterial, TextGeometry
@@ -20,13 +20,13 @@ import {
   PILE_TOOL_SIZE,
   PILING_DIRECTION,
   PREVIEW_SIZE,
-  SHADER_ATTRIBUTES,
-  SHADER_MATERIAL
+  SHADER_ATTRIBUTES
 } from 'components/fragments/fragments-defaults';
 
 import fgmState from 'components/fragments/fragments-state';
 
 import {
+  add2dSqrtBuffRect,
   addBufferedRect,
   cellValue,
   createRect,
@@ -36,7 +36,7 @@ import {
 } from 'components/fragments/fragments-utils';
 
 
-const logger = LogManager.getLogger('pile');
+const logger = LogManager.getLogger('pile');  // eslint-disable-line no-unused-vars
 
 
 const Pile = {
@@ -99,8 +99,85 @@ const Pile = {
     return false;
   },
 
+  /**
+   * Standard deviation
+   *
+   * @return {number} Standard deviation.
+   */
+  get std () {
+    return Math.sqrt(this.std);
+  },
+
+  /**
+   * Variance
+   *
+   * @return {number} Variance.
+   */
+  get variance () {
+    const x = this.aggregateX();
+    const n = x.reduce((a, b) => a + b, 0);
+
+    let xHalfLen = (x.length - 1) / 2;
+    let std = 0;
+
+    if (x.length % 2) {
+      xHalfLen = (x.length - 1) / 2;
+      std = x.reduce(
+        (a, b, index) => a + (((index - xHalfLen) ** 2) * b), 0
+      ) / n;
+    } else {
+      xHalfLen = (x.length - 2) / 2;
+
+      // In the following we slice the array in two halfs such that the two
+      // middle bins of the original array consitute for zero variance.
+      // First half
+      std = x.slice(0, xHalfLen)
+        .reduce((a, b, index) => a + (((index - xHalfLen) ** 2) * b), 0);
+
+      // Second half
+      std += x.slice(xHalfLen + 1)
+        .reduce((a, b, index) => a + ((index ** 2) * b), 0);
+
+      std /= n;
+    }
+
+    return std;
+  },
+
 
   /********************************** Methods *********************************/
+
+  aggregateX (dim) {
+    const aggregate = new Float32Array(this.dims);
+
+    this.pileMatrices
+      .map(pile => pile.matrix)
+      .forEach((matrix) => {
+        matrix.forEach((row) => {
+          row.forEach((cell, index) => {
+            aggregate[index] += cell;
+          });
+        });
+      });
+
+    return aggregate;
+  },
+
+  aggregateY () {
+    const aggregate = new Float32Array(this.dims);
+
+    this.pileMatrices
+      .map(pile => pile.matrix)
+      .forEach((matrix) => {
+        matrix.forEach((row) => {
+          row.forEach((cell, index) => {
+            aggregate[index] += cell;
+          });
+        });
+      });
+
+    return aggregate;
+  },
 
   /**
    * Adds a set of matrices to this pile.
@@ -225,23 +302,10 @@ const Pile = {
               color = [1, valueInv, valueInv];
             }
 
-            addBufferedRect(
+            add2dSqrtBuffRect(
               vertexPositions,
               x,
               y,
-              0,
-              fgmState.cellSize,
-              fgmState.cellSize,
-              vertexColors,
-              color
-            );
-
-            addBufferedRect(
-              vertexPositions,
-              -y,
-              -x,
-              0,
-              fgmState.cellSize,
               fgmState.cellSize,
               vertexColors,
               color
@@ -265,23 +329,10 @@ const Pile = {
               color = [1, valueInv, valueInv];
             }
 
-            addBufferedRect(
+            add2dSqrtBuffRect(
               vertexPositions,
               x,
               y,
-              0,
-              fgmState.cellSize,
-              fgmState.cellSize,
-              vertexColors,
-              color
-            );
-
-            addBufferedRect(
-              vertexPositions,
-              -y,
-              -x,
-              0,
-              fgmState.cellSize,
               fgmState.cellSize,
               vertexColors,
               color
@@ -289,23 +340,10 @@ const Pile = {
           } else {
             valueInv = 1 - cellValue(matrix[i][j]);
 
-            addBufferedRect(
+            add2dSqrtBuffRect(
               vertexPositions,
               x,
               y,
-              0,
-              fgmState.cellSize,
-              fgmState.cellSize,
-              vertexColors,
-              [valueInv, valueInv, valueInv]
-            );
-
-            addBufferedRect(
-              vertexPositions,
-              -y,
-              -x,
-              0,
-              fgmState.cellSize,
               fgmState.cellSize,
               vertexColors,
               [valueInv, valueInv, valueInv]
@@ -366,7 +404,8 @@ const Pile = {
               arr.push(this.pileMatrices[t].matrix[i][j]);
             }
 
-            value = science.standard_deviation(arr);
+            // standard deviation = varianz^2
+            value = Math.sqrt(stats.variance(x));
             valueInv = 1 - Math.abs(cellValue(value));
 
             addBufferedRect(
