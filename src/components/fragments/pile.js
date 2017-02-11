@@ -39,57 +39,39 @@ import {
 const logger = LogManager.getLogger('pile');  // eslint-disable-line no-unused-vars
 
 
-const Pile = {
-  /********************************* Variables ********************************/
+export default class Pile {
+  constructor (id, scene, scale, dims) {
+    this.cellFrame = createRectFrame(
+      fgmState.cellSize, fgmState.cellSize, 0xff0000, 1
+    );
+    this.colored = false;
+    this.coverMatrix = [];
+    this.coverMatrixMode = 0;
+    this.dims = dims;
+    this.geometry = new BufferGeometry({ attributes: SHADER_ATTRIBUTES });
+    this.highlighted = false;
+    this.id = id;
+    this.orderedLocally = false;
+    this.pileMatrices = [];
+    this.render = true;
+    this.scale = scale;
+    this.scene = scene;
+    this.showNodeLabels = false;
+    this.x = 0;
+    this.y = 0;
 
-  cellFrame: createRectFrame(fgmState.cellSize, fgmState.cellSize, 0xff0000, 1),
-
-  colored: false,
-
-  coverMatrixMode: 0,
-
-  dims: 0,
-
-  geometry: new BufferGeometry({
-    attributes: SHADER_ATTRIBUTES
-  }),
-
-  coverMatrix: [],
-
-  highlighted: false,
-
-  id: undefined,
-
-  matrixFrame: undefined,
-
-  mesh: undefined,
-
-  orderedLocally: false,
-
-  pileMatrices: [],
-
-  render: true,
-
-  scale: undefined,
-
-  scene: undefined,
-
-  showNodeLabels: false,
-
-  x: 0,
-
-  y: 0,
-
+    this.updateFrame();
+  }
 
   /****************************** Getter / Setter *****************************/
 
   get matrixWidth () {
     return this.dims * fgmState.cellSize;
-  },
+  }
 
   get matrixWidthHalf () {
     return this.matrixWidth / 2;
-  },
+  }
 
   get singleMatrix () {
     if (this.pileMatrices.length === 1) {
@@ -97,7 +79,7 @@ const Pile = {
     }
 
     return false;
-  },
+  }
 
   /**
    * Standard deviation
@@ -105,8 +87,8 @@ const Pile = {
    * @return {number} Standard deviation.
    */
   get std () {
-    return Math.sqrt(this.std);
-  },
+    return Math.sqrt(this.variance);
+  }
 
   /**
    * Variance
@@ -142,7 +124,7 @@ const Pile = {
     }
 
     return std;
-  },
+  }
 
 
   /********************************** Methods *********************************/
@@ -161,7 +143,7 @@ const Pile = {
       });
 
     return aggregate;
-  },
+  }
 
   aggregateY () {
     const aggregate = new Float32Array(this.dims);
@@ -177,7 +159,7 @@ const Pile = {
       });
 
     return aggregate;
-  },
+  }
 
   /**
    * Adds a set of matrices to this pile.
@@ -191,8 +173,10 @@ const Pile = {
 
     this.calculateCoverMatrix();
 
+    logger.debug('pile.addmatrices', matrices, this.pileMatrices);
+
     return this;
-  },
+  }
 
   /**
    * Calculate global matrix.
@@ -224,7 +208,7 @@ const Pile = {
     }
 
     return this;
-  },
+  }
 
   /**
    * Returns whether this pile contains that matrix object
@@ -234,7 +218,7 @@ const Pile = {
    */
   contains (matrix) {
     return this.pileMatrices.indexOf(matrix) > -1;
-  },
+  }
 
   /**
    * Destroy this instance.
@@ -249,7 +233,7 @@ const Pile = {
     this.pileMatrices = [];
 
     return this;
-  },
+  }
 
   /**
    * Contains all the drawing routines.
@@ -766,7 +750,7 @@ const Pile = {
     fgmState.pileMeshes.push(this.mesh);
     this.mesh.position.set(this.x, this.y, 0);
     fgmState.scene.add(this.mesh);
-  },
+  }
 
   /**
    * Elevate mesh.
@@ -779,7 +763,7 @@ const Pile = {
     this.mesh.position.set(this.x, this.y, z);
 
     return this;
-  },
+  }
 
   /**
    * Returns the last matrix in this pile
@@ -788,7 +772,7 @@ const Pile = {
    */
   getLast () {
     return this.pileMatrices[this.pileMatrices.length - 1];
-  },
+  }
 
   /**
    * Get local order.
@@ -797,7 +781,7 @@ const Pile = {
    */
   getLocalOrder () {
     return this.localNodeOrder;
-  },
+  }
 
   /**
    * Get fgmState.matrices of the pile.
@@ -806,7 +790,7 @@ const Pile = {
    */
   getMatrices () {
     return this.pileMatrices;
-  },
+  }
 
   /**
    * Get the matrix at a given position.
@@ -816,7 +800,7 @@ const Pile = {
    */
   getMatrix (index) {
     return this.pileMatrices[index];
-  },
+  }
 
   /**
    * Get the position of a matrix in the pile.
@@ -826,7 +810,7 @@ const Pile = {
    */
   getMatrixPosition (matrix) {
     return this.pileMatrices.indexOf(matrix);
-  },
+  }
 
   /**
    * Scale to ???.
@@ -835,7 +819,7 @@ const Pile = {
    */
   getPos () {
     return this.mesh.position;
-  },
+  }
 
   /**
    * Hover gaps.
@@ -846,7 +830,7 @@ const Pile = {
     this.hoverGap = hoverGap;
 
     return this;
-  },
+  }
 
   /**
    * Inver order.
@@ -857,7 +841,7 @@ const Pile = {
     this.nodeOrder = this.nodeOrder.reverse();
 
     return this;
-  },
+  }
 
   /**
    * Move mesh.
@@ -872,7 +856,7 @@ const Pile = {
     this.mesh.position.set(x, -y, 0);
 
     return this;
-  },
+  }
 
   /**
    * Remove the specifid fgmState.matrices from the pile.
@@ -898,7 +882,7 @@ const Pile = {
     this.calculateCoverMatrix();
 
     return this;
-  },
+  }
 
   /**
    * Scale to ???.
@@ -911,7 +895,7 @@ const Pile = {
     this.mesh.scale.set(scale, scale, scale);
 
     return this;
-  },
+  }
 
   /**
    * Set cover matrix.
@@ -923,7 +907,7 @@ const Pile = {
     this.coverMatrixMode = mode;
 
     return this;
-  },
+  }
 
   /**
    * Set node order.
@@ -942,7 +926,7 @@ const Pile = {
     this.nodeOrder = nodeOrder;
 
     return this;
-  },
+  }
 
   /**
    * Show or hide node labels.
@@ -954,7 +938,7 @@ const Pile = {
     this.showNodeLabels = showLabels;
 
     return this;
-  },
+  }
 
   /**
    * Show single matrix
@@ -966,7 +950,7 @@ const Pile = {
     this.singleMatrix = matrix;
 
     return this;
-  },
+  }
 
   /**
    * Returns the number of fgmState.matrices in this pile.
@@ -975,7 +959,7 @@ const Pile = {
    */
   size () {
     return this.pileMatrices.length;
-  },
+  }
 
   /**
    * Frame requires update after matrix size has changed through filtering.
@@ -988,7 +972,7 @@ const Pile = {
     );
 
     return this;
-  },
+  }
 
   /**
    * Update hovered cell.
@@ -1014,7 +998,7 @@ const Pile = {
     }
 
     return this;
-  },
+  }
 
   /**
    * Update label.
@@ -1081,15 +1065,4 @@ const Pile = {
 
     return this;
   }
-};
-
-export default function PileFactory (id, scene, scale, dims) {
-  const inst = Object.create(Pile);
-
-  inst.id = id;
-  inst.scale = scale;
-  inst.scene = scene;
-  inst.dims = dims;
-
-  return inst.updateFrame();
 }
