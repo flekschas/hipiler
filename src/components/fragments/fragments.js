@@ -815,12 +815,12 @@ export class Fragments {
   }
 
   /**
-   * [getLayoutPosition description]
+   * Get position for a pile given the current layout.
    *
-   * @param {[type]} index - [description]
+   * @param {number} pileSortIndex - Pile sort index.
    * @return {[type]} [description]
    */
-  getLayoutPosition (index) {
+  getLayoutPosition (pileSortIndex) {
     let x;
     let y;
 
@@ -828,7 +828,7 @@ export class Fragments {
       x = MARGIN_LEFT;
       y = MARGIN_TOP;
 
-      for (let i = 0; i < index; i++) {
+      for (let i = 0; i < pileSortIndex; i++) {
         x += this.matrixWidth + (this.fgmState.piles[i].size() * 2) + MATRIX_GAP_HORIZONTAL + 10;
         if (
           (
@@ -842,14 +842,14 @@ export class Fragments {
       return { x, y };
     }
 
-    let col = Math.floor(index % this.numColumns);
+    let col = Math.floor(pileSortIndex % this.numColumns);
     y = MARGIN_TOP;
     let currh = 0;
     let temp;
 
     for (let i = 0; i < this.fgmState.piles.length; i++) {
       if (i > 0 && i % this.numColumns === 0) {  // when new row starts
-        if (i > index) {
+        if (i > pileSortIndex) {
           break;
         } else {
           y += currh + this.matrixWidth + MATRIX_GAP_VERTICAL;
@@ -865,7 +865,9 @@ export class Fragments {
     }
 
     return {
-      x: MARGIN_LEFT + (col * (this.matrixWidth + MATRIX_GAP_HORIZONTAL)) + this.matrixWidthHalf,
+      x: MARGIN_LEFT + (
+        col * (this.matrixWidth + MATRIX_GAP_HORIZONTAL)
+      ) + this.matrixWidthHalf,
       y: y + currh
     };
   }
@@ -977,8 +979,6 @@ export class Fragments {
       this.fgmState.piles.push(pile);
       this.fgmState.matrices.push(matrix);
 
-      logger.debug(matrix);
-
       pile.addMatrices([matrix]);
       pile.draw();
     });
@@ -1021,16 +1021,16 @@ export class Fragments {
    */
   initWebGl () {
     this.camera = new OrthographicCamera(
-      this.plotElDim.width / -2,
-      this.plotElDim.width / 2,
-      this.plotElDim.height / 2,
-      this.plotElDim.height / -2,
-      1,
-      11
+      this.plotElDim.width / -2,  // left
+      this.plotElDim.width / 2,  // right
+      this.plotElDim.height / 2,  // top
+      this.plotElDim.height / -2,  // bottom
+      1,  // near
+      11  // far
     );
 
     this.camera.position.z = 10;
-    this.camera.position.x = (this.plotElDim.width / 2) - 50;
+    this.camera.position.x = (this.plotElDim.width / 2);
     this.topScrollLimit = MARGIN_TOP - (this.plotElDim.height / 2);
     this.camera.position.y = this.topScrollLimit;
 

@@ -34,13 +34,13 @@ export const LABEL_TEXT_SPEC = {
 
 export const LETTER_SPACE = 6;
 
-export const MARGIN_BOTTOM = 5;
+export const MARGIN_BOTTOM = 2;
 
-export const MARGIN_LEFT = 0;
+export const MARGIN_LEFT = 2;
 
-export const MARGIN_RIGHT = 5;
+export const MARGIN_RIGHT = 2;
 
-export const MARGIN_TOP = 35;
+export const MARGIN_TOP = 2;
 
 export const MATRIX_GAP_HORIZONTAL = 10;
 
