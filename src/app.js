@@ -100,6 +100,12 @@ export default class App {
     this.events.publish('app.mouseMove', event);
   }
 
+  resetHandler () {
+    this.router.navigateToRoute('home');
+    this.decomposeIsReady = false;
+    this.reset();
+  }
+
   resumeDecomposition () {
     this.router.navigateToRoute('decompose');
   }

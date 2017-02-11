@@ -39,7 +39,7 @@
         </button>
         <button
           class="flex-c state"
-          click.delegate="reset()"
+          click.delegate="resetHandler()"
           if.bind="currentRoute !== 'matrix' && decomposeIsReady">
           <svg-icon class="icon-inline" icon-id="reset"></svg-icon>
           Reset
