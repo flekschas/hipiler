@@ -12,6 +12,10 @@ import menuCommands from 'components/fragments/pile-menu-commands';
 import {
   LETTER_SPACE,
   MATRIX_GAP_HORIZONTAL,
+  METRIC_DIST_DIAG,
+  METRIC_NOISE,
+  METRIC_SHARPNESS,
+  METRIC_SIZE,
   MODE_BARCHART,
   MODE_DIRECT_DIFFERENCE,
   MODE_DIFFERENCE,
@@ -35,6 +39,8 @@ import {
   makeBuffer3f
 } from 'components/fragments/fragments-utils';
 
+import caps from 'utils/caps';
+
 
 const logger = LogManager.getLogger('pile');  // eslint-disable-line no-unused-vars
 
@@ -51,8 +57,10 @@ export default class Pile {
     this.geometry = new BufferGeometry({ attributes: SHADER_ATTRIBUTES });
     this.highlighted = false;
     this.id = id;
+    this.metrics = {};
     this.orderedLocally = false;
     this.pileMatrices = [];
+    this.ranking = this.id;
     this.render = true;
     this.scale = scale;
     this.scene = scene;
@@ -82,83 +90,90 @@ export default class Pile {
   }
 
   /**
+   * Returns the number of fgmState.matrices in this pile.
+   *
+   * @type {number}
+   */
+  get size () {
+    return this.pileMatrices.length;
+  }
+
+  /**
    * Standard deviation
    *
-   * @return {number} Standard deviation.
+   * @return {number}
    */
   get std () {
     return Math.sqrt(this.variance);
   }
 
   /**
-   * Variance
+   * Get the sample variance of the matrix
+   *
+   * @description
+   * First the values across the x and y dimensions are aggregated. Next the
+   * variance across `dims` number of bins is calculated. The aggregated value
+   * of each bin is assumed to represent the relative number of counts.
    *
    * @return {number} Variance.
    */
   get variance () {
-    const x = this.aggregateX();
-    const n = x.reduce((a, b) => a + b, 0);
+    const matrixAvg = this.average();
 
-    let xHalfLen = (x.length - 1) / 2;
-    let std = 0;
+    // Get the sum
+    const sum = matrixAvg.reduce(
+      (a, b) => a + b.reduce((c, d) => c + d, 0), 0
+    );
 
-    if (x.length % 2) {
-      xHalfLen = (x.length - 1) / 2;
-      std = x.reduce(
-        (a, b, index) => a + (((index - xHalfLen) ** 2) * b), 0
-      ) / n;
-    } else {
-      xHalfLen = (x.length - 2) / 2;
+    let middle = (this.dims - 1) / 2;
 
-      // In the following we slice the array in two halfs such that the two
-      // middle bins of the original array consitute for zero variance.
-      // First half
-      std = x.slice(0, xHalfLen)
-        .reduce((a, b, index) => a + (((index - xHalfLen) ** 2) * b), 0);
-
-      // Second half
-      std += x.slice(xHalfLen + 1)
-        .reduce((a, b, index) => a + ((index ** 2) * b), 0);
-
-      std /= n;
+    if (!this.dims % 2) {
+      middle = (this.dims - 2) / 2;
     }
 
-    return std;
+    let variance = 0;
+
+    matrixAvg.forEach((row, i) => {
+      row.forEach((cell, j) => {
+        const distanceSquared = (
+          ((i - middle) ** 2) +
+          ((j - middle) ** 2)
+        );
+
+        variance += distanceSquared * cell;
+      });
+    });
+
+    return variance / (sum || 1);
   }
 
 
   /********************************** Methods *********************************/
 
-  aggregateX (dim) {
-    const aggregate = new Float32Array(this.dims);
+  /**
+   * Calculates the average of the matrices.
+   *
+   * @description
+   * By default the harmonic mean is used.
+   *
+   * @return {array} 2D matrix
+   */
+  average () {
+    const avg = new Array(this.dims).fill(new Float32Array(this.dims));
 
-    this.pileMatrices
-      .map(pile => pile.matrix)
-      .forEach((matrix) => {
-        matrix.forEach((row) => {
-          row.forEach((cell, index) => {
-            aggregate[index] += cell;
+    for (let i = 0; i < this.dims; i++) {
+      for (let j = 0; j < this.dims; j++) {
+        this.pileMatrices
+          .map(pile => pile.matrix)
+          .forEach((matrix) => {
+            avg[i][j] += 1 / matrix[i][j];
           });
-        });
-      });
 
-    return aggregate;
-  }
+        avg[i][j] = this.dims / avg[i][j];
+      }
+    }
 
-  aggregateY () {
-    const aggregate = new Float32Array(this.dims);
-
-    this.pileMatrices
-      .map(pile => pile.matrix)
-      .forEach((matrix) => {
-        matrix.forEach((row) => {
-          row.forEach((cell, index) => {
-            aggregate[index] += cell;
-          });
-        });
-      });
-
-    return aggregate;
+    return avg;
   }
 
   /**
@@ -183,7 +198,7 @@ export default class Pile {
    */
   calculateCoverMatrix () {
     // Create empty this.dims x this.dims matrix
-    this.coverMatrix = Array(this.dims).fill(new Float32Array(this.dims));
+    this.coverMatrix = new Array(this.dims).fill(new Float32Array(this.dims));
 
     let numMatrices = this.pileMatrices.length || 1;
 
@@ -206,6 +221,79 @@ export default class Pile {
     }
 
     return this;
+  }
+
+  /**
+   * Calculates pile metrics.
+   *
+   * @param {array} metrics - List of metric IDs
+   * @param {boolean} force - If `true` re-caclulate metrics.
+   */
+  calculateMetrics (metrics, force) {
+    metrics.forEach((metric) => {
+      try {
+        this[`calculateMetric${caps(metric)}`](force);
+      } catch (e) {
+        logger.error(`Metric (${metric}) is unknown`);
+      }
+    });
+  }
+
+  /**
+   * Calculates the distance to diagonal.
+   *
+   * @param {boolean} force - If `true` re-caclulate metric.
+   */
+  calculateMetricDistToDiag (force) {
+    if (typeof this.metrics[METRIC_DIST_DIAG] === 'undefined' || force) {
+      let size = 0;
+
+      this.pileMatrices.forEach((matrix) => {
+        size += Math.abs(matrix.locus.xEnd - matrix.locus.yStart);
+      });
+
+      this.metrics[METRIC_DIST_DIAG] = size / this.pileMatrices.length;
+    }
+  }
+
+  /**
+   * Calculates the noise level.
+   *
+   * @param {boolean} force - If `true` re-caclulate metric.
+   */
+  calculateMetricNoise (force) {
+    if (typeof this.metrics[METRIC_NOISE] === 'undefined' || force) {
+      this.metrics[METRIC_NOISE] = this.std;
+    }
+  }
+
+  /**
+   * Calculates the sharpness.
+   *
+   * @param {boolean} force - If `true` re-caclulate metric.
+   */
+  calculateMetricSharpness (force) {
+    if (typeof this.metrics[METRIC_SHARPNESS] === 'undefined' || force) {
+      this.metrics[METRIC_SHARPNESS] = this.variance;
+    }
+  }
+
+  /**
+   * Calculates the size.
+   *
+   * @param {boolean} force - If `true` re-caclulate metric.
+   */
+  calculateMetricSize (force) {
+    if (typeof this.metrics[METRIC_SIZE] === 'undefined' || force) {
+      let size = 0;
+
+      this.pileMatrices.forEach((matrix) => {
+        size += (matrix.locus.xEnd - matrix.locus.xStart) *
+          (matrix.locus.yEnd - matrix.locus.yStart);
+      });
+
+      this.metrics[METRIC_SIZE] = size / this.pileMatrices.length;
+    }
   }
 
   /**
@@ -949,15 +1037,6 @@ export default class Pile {
     this.singleMatrix = matrix;
 
     return this;
-  }
-
-  /**
-   * Returns the number of fgmState.matrices in this pile.
-   *
-   * @return {number} Size of the pile.
-   */
-  size () {
-    return this.pileMatrices.length;
   }
 
   /**
