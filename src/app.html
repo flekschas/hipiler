@@ -1,10 +1,11 @@
 <template>
-  <div
-    class="full-wh ${currentRoute === 'matrix' ? 'matrix-full-screen-view' : ''}">
-    <require from="assets/styles/index.css"></require>
+  <require from="assets/styles/index.css"></require>
+  <require from="components/navigation.html"></require>
+  <require from="components/svg-icon.html"></require>
 
-    <require from="components/navigation.html"></require>
-    <require from="components/svg-icon.html"></require>
+  <div
+    class="full-wh ${currentRoute === 'matrix' ? 'matrix-full-screen-view' : ''}"
+    click.delegate="clickHandler($event)">
 
     <div
       id="drag-drop-notifier"

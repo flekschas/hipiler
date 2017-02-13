@@ -64,6 +64,10 @@ export default class App {
     document.addEventListener('keydown', this.keyDownHandler.bind(this));
     document.addEventListener('mousemove', this.mouseMoveHandler.bind(this));
     document.addEventListener('mouseup', this.mouseUpHandler.bind(this));
+
+    if (!this.decomposeIsReady) {
+      this.router.navigateToRoute('home');
+    }
   }
 
   configureRouter (config, router) {
@@ -78,6 +82,10 @@ export default class App {
     } catch (e) {
       return undefined;
     }
+  }
+
+  clickHandler (event) {
+    this.events.publish('app.click', event);
   }
 
   keyDownHandler (event) {
