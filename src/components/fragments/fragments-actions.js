@@ -5,11 +5,11 @@ export const depile = pile => ({
   payload: { pile }
 });
 
-export const SET_ARANGE_METRICS = 'SET_ARANGE_METRICS';
+export const SET_ARRANGE_METRICS = 'SET_ARRANGE_METRICS';
 
-export const setArangeMetrics = arangeMetrics => ({
-  type: SET_ARANGE_METRICS,
-  payload: { arangeMetrics }
+export const setArrangeMetrics = arrangeMetrics => ({
+  type: SET_ARRANGE_METRICS,
+  payload: { arrangeMetrics }
 });
 
 export const SET_CELL_SIZE = 'SET_CELL_SIZE';

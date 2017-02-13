@@ -1,14 +1,14 @@
 import { combineReducers } from 'redux';
 
 import {
-  SET_ARANGE_METRICS,
+  SET_ARRANGE_METRICS,
   SET_CELL_SIZE,
   SET_COVER_DISP_MODE,
   UPDATE_FGM_CONFIG
 } from 'components/fragments/fragments-actions';
 
 import {
-  ARANGE_METRICS,
+  ARRANGE_METRICS,
   CELL_SIZE,
   CONFIG,
   MODE_MEAN
@@ -17,10 +17,10 @@ import {
 import deepClone from 'utils/deep-clone';
 
 
-export function arangeMetrics (state = ARANGE_METRICS, action) {
+export function arrangeMetrics (state = ARRANGE_METRICS, action) {
   switch (action.type) {
-    case SET_ARANGE_METRICS:
-      return action.payload.arangeMetrics.slice();
+    case SET_ARRANGE_METRICS:
+      return action.payload.arrangeMetrics.slice();
 
     default:
       return state;
@@ -59,7 +59,7 @@ export function config (state = { ...CONFIG }, action) {
 
 
 export default combineReducers({
-  arangeMetrics,
+  arrangeMetrics,
   cellSize,
   coverDispMode,
   config

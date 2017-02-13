@@ -1,4 +1,4 @@
-export const ARANGE_METRICS = [];
+export const ARRANGE_METRICS = [];
 
 export const CELL_SIZE = 6;
 

@@ -24,7 +24,7 @@ import MpState from 'components/fragments/fragments-state';
 
 // Utils etc.
 import {
-  setArangeMetrics, setCellSize, setCoverDispMode
+  setArrangeMetrics, setCellSize, setCoverDispMode
 } from 'components/fragments/fragments-actions';
 
 import {
@@ -32,6 +32,7 @@ import {
 } from 'components/fragments/fragments-animations';
 
 import {
+  ARRANGE_METRICS,
   CELL_SIZE,
   FONT_URL,
   FPS,
@@ -122,7 +123,7 @@ export class Fragments {
 
     this.isLoading = true;
 
-    this.arangeSelectedEventId = 'fgm.arange';
+    this.arrangeSelectedEventId = 'fgm.arrange';
     this.metrics = [{
       id: 'dist',
       name: 'Distance'
@@ -164,8 +165,8 @@ export class Fragments {
       });
 
     this.event.subscribe(
-      `${EVENT_BASE_NAME}.${this.arangeSelectedEventId}`,
-      this.arangeChanged.bind(this)
+      `${EVENT_BASE_NAME}.${this.arrangeSelectedEventId}`,
+      this.arrangeChanged.bind(this)
     );
   }
 
@@ -255,11 +256,11 @@ export class Fragments {
 
   /* ---------------------------- Custom Methods ---------------------------- */
 
-  arangeChanged (metrics) {
+  arrangeChanged (metrics) {
     if (metrics.length) {
-      this.store.dispatch(setArangeMetrics(metrics.map(metric => metric.id)));
+      this.store.dispatch(setArrangeMetrics(metrics.map(metric => metric.id)));
     } else {
-      this.store.dispatch(setArangeMetrics([]));
+      this.store.dispatch(setArrangeMetrics([]));
     }
   }
 
@@ -1527,7 +1528,7 @@ export class Fragments {
     try {
       const state = this.store.getState().present.decompose.fragments;
 
-      this.updateArangeMetrics(state.arangeMetrics);
+      this.updateArrangeMetrics(state.arrangeMetrics);
       this.updateCoverDispMode(state.coverDispMode);
       this.updateCellSize(state.cellSize);
       this.updateConfig(state.config);
@@ -1537,16 +1538,16 @@ export class Fragments {
   }
 
   /**
-   * Update the arange metrics.
+   * Update the arrange metrics.
    *
-   * @param {array} arangeMetrics - Array of metric IDs.
+   * @param {array} arrangeMetrics - Array of metric IDs.
    */
-  updateArangeMetrics (arangeMetrics) {
-    this.arangeMetrics = arangeMetrics;
+  updateArrangeMetrics (arrangeMetrics) {
+    this.arrangeMetrics = arrangeMetrics || ARRANGE_METRICS;
 
-    this.arangeMetrics.forEach((arangeMetric) => {
+    this.arrangeMetrics.forEach((arrangeMetric) => {
       this.metrics
-        .filter(metric => metric.id === arangeMetric)
+        .filter(metric => metric.id === arrangeMetric)
         .forEach((metric) => { metric.isSelected = true; });
     });
 
