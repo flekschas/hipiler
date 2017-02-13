@@ -48,6 +48,14 @@ export const MATRIX_GAP_HORIZONTAL = 10;
 
 export const MATRIX_GAP_VERTICAL = 20;
 
+export const METRIC_DIST_DIAG = 'distToDiag';
+
+export const METRIC_NOISE = 'noise';
+
+export const METRIC_SHARPNESS = 'sharpness';
+
+export const METRIC_SIZE = 'size';
+
 export const MODE_BARCHART = 1;
 
 export const MODE_DIFFERENCE = 4;
