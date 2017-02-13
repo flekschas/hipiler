@@ -1,0 +1,28 @@
+<template bindable="basePath, iconId">
+  <div class="${optionsIsActive ? 'is-active' : ''}" ref="baseEl">
+    <div class="flex-c">
+      <ul class="flex-c options-selected">
+        <li
+          repeat.for="option of selectedOptions"
+          class="flex-c">
+          <span>${option.name}</span>
+          <button click.delegate="removeSelectedOption(option)">&times;</button>
+        </li>
+      </ul>
+      <input
+        class="flex-g-1"
+        type="text"
+        placeholder="${!selectedOptions.length ? placeholder : ''}"
+        enter.delegate="select($event)"
+        focus.trigger="activateOptions()"
+        keydown.delegate="keyDownHandler($event)"
+        ref="inputEl"/>
+    </div>
+    <ul class="options ${bottomUp ? 'bottom-up' : ''} ${optionsIsActive ? 'is-active' : ''}">
+      <li
+        repeat.for="option of selectableOptions"
+        class="${option.isFocus ? 'is-focus' : ''}"
+        click.delegate="select(option)">${option.name}</li>
+    </ul>
+  </div>
+</template>

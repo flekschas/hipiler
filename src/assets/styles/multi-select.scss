@@ -1,0 +1,85 @@
+@import 'colors';
+@import 'transitions';
+
+multi-select {
+  position: relative;
+  display: block;
+  font-size: 0.8rem;
+
+  input {
+    padding: 0.125rem 0;
+
+    &:active,
+    &:focus {
+      outline: none;
+    }
+  }
+
+  >div{
+    box-shadow: 0 0 0 1px transparentize($secondary, 1);
+    transition: box-shadow $transition-very-fast $ease-in-out-cubic;
+
+    &.is-active {
+      box-shadow: 0 0 0 1px $secondary;
+    }
+  }
+
+  .options {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 0;
+    opacity: 0;
+    background: transparentize($white, 0.1);
+    overflow: hidden;
+    box-shadow: 0 0 0 1px transparentize($secondary, 1);
+    transition: opacity $transition-very-fast $ease-in-out-cubic,
+                box-shadow $transition-very-fast $ease-in-out-cubic;
+
+    &.bottom-up {
+      top: auto;
+      bottom: 0.3rem;
+    }
+
+    &.is-active {
+      height: auto;
+      opacity: 1;
+    }
+
+    > li {
+      border-top: 1px solid $gray-lightest;
+
+      &:first-child {
+        border-top: 0;
+      }
+
+      &:hover {
+        cursor: pointer;
+      }
+
+      &.is-focus {
+        color: $white;
+        border-top-color: $white;
+        background: $secondary;
+      }
+    }
+  }
+
+  >div.is-active .options {
+    box-shadow: 0 0 0 1px $secondary;
+  }
+
+  .options-selected {
+    margin: 0;
+
+    span {
+      margin-right: 0.25rem;
+    }
+
+    button {
+      width: 1rem;
+      background: none;
+    }
+  }
+}
