@@ -1,3 +1,5 @@
+export const ARANGE_METRICS = [];
+
 export const CELL_SIZE = 6;
 
 export const CELL_SIZE_HALF = CELL_SIZE / 2;
