@@ -1,5 +1,8 @@
 // Aurelia
 import { inject, LogManager } from 'aurelia-framework';
+
+import { EventAggregator } from 'aurelia-event-aggregator';
+
 import {
   DoubleSide,
   FontLoader,
@@ -21,7 +24,7 @@ import MpState from 'components/fragments/fragments-state';
 
 // Utils etc.
 import {
-  setCellSize, setCoverDispMode
+  setArangeMetrics, setCellSize, setCoverDispMode
 } from 'components/fragments/fragments-actions';
 
 import {
@@ -32,7 +35,6 @@ import {
   CELL_SIZE,
   FONT_URL,
   FPS,
-  MARGIN_BOTTOM,
   MARGIN_LEFT,
   MARGIN_RIGHT,
   MARGIN_TOP,
@@ -54,13 +56,17 @@ import {
   createRectFrame
 } from 'components/fragments/fragments-utils';
 
+import { EVENT_BASE_NAME } from 'components/multi-select/multi-select-defaults';
+
 
 const logger = LogManager.getLogger('fragments');
 
 
-@inject(States, MpState)
+@inject(EventAggregator, States, MpState)
 export class Fragments {
-  constructor (states, mpState) {
+  constructor (eventAggregator, states, mpState) {
+    this.event = eventAggregator;
+
     // Link the Redux store
     this.store = states.store;
     this.store.subscribe(this.update.bind(this));
@@ -116,6 +122,18 @@ export class Fragments {
 
     this.isLoading = true;
 
+    this.arangeSelectedEventId = 'fgm.arange';
+    this.metrics = [{
+      id: 'dist',
+      name: 'Distance'
+    }, {
+      id: 'noise',
+      name: 'Noise'
+    }, {
+      id: 'sharpness',
+      name: 'Sharpness'
+    }];
+
     // The following setup allows us to imitate deferred objects. I.e., we can
     // resolve promises outside their scope.
     this.resolve = {};
@@ -144,6 +162,11 @@ export class Fragments {
       .catch((error) => {
         logger.error('Failed to initialize the fragment plot', error);
       });
+
+    this.event.subscribe(
+      `${EVENT_BASE_NAME}.${this.arangeSelectedEventId}`,
+      this.arangeChanged.bind(this)
+    );
   }
 
   attached () {
@@ -231,6 +254,14 @@ export class Fragments {
 
 
   /* ---------------------------- Custom Methods ---------------------------- */
+
+  arangeChanged (metrics) {
+    if (metrics.length) {
+      this.store.dispatch(setArangeMetrics(metrics.map(metric => metric.id)));
+    } else {
+      this.store.dispatch(setArangeMetrics([]));
+    }
+  }
 
   /**
    * Handle all piles display mode changes
@@ -1496,11 +1527,32 @@ export class Fragments {
     try {
       const state = this.store.getState().present.decompose.fragments;
 
+      this.updateArangeMetrics(state.arangeMetrics);
       this.updateCoverDispMode(state.coverDispMode);
       this.updateCellSize(state.cellSize);
       this.updateConfig(state.config);
     } catch (e) {
       logger.error('State is invalid', e);
+    }
+  }
+
+  /**
+   * Update the arange metrics.
+   *
+   * @param {array} arangeMetrics - Array of metric IDs.
+   */
+  updateArangeMetrics (arangeMetrics) {
+    this.arangeMetrics = arangeMetrics;
+
+    this.arangeMetrics.forEach((arangeMetric) => {
+      this.metrics
+        .filter(metric => metric.id === arangeMetric)
+        .forEach((metric) => { metric.isSelected = true; });
+    });
+
+    if (this.isInitialized) {
+      // this.setPileMode(this.coverDispMode, this.fgmState.piles);
+      this.render();
     }
   }
 

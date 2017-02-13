@@ -1,4 +1,5 @@
 <template>
+  <require from="components/multi-select/multi-select"></require>
   <require from="components/spinner.html"></require>
   <require from="components/svg-icon.html"></require>
 
@@ -51,15 +52,11 @@
         </li>
         <li class="flex-c flex-d-c">
           <label for="settings-fgm-order-cluster">Arange</label>
-          <select
-            id="settings-fgm-order-cluster">
-            <option
-              value="0">Distance</option>
-            <option
-              value="1">Noise</option>
-            <option
-              value="2">Track</option>
-          </select>
+          <multi-select
+            bottom-up="true"
+            options.bind="metrics"
+            event-id.bind="arangeSelectedEventId"
+            placeholder="Choose…"></multi-select>
         </li>
         <li class="flex-c flex-d-c">
           <label for="settings-fgm-is-fixed-cat-colors">Fix Colors</label>
