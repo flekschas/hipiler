@@ -24,7 +24,11 @@ import MpState from 'components/fragments/fragments-state';
 
 // Utils etc.
 import {
-  setArrangeMetrics, setCellSize, setCoverDispMode, setShowSpecialCells
+  setAnimation,
+  setArrangeMetrics,
+  setCellSize,
+  setCoverDispMode,
+  setShowSpecialCells
 } from 'components/fragments/fragments-actions';
 
 import {
@@ -319,6 +323,15 @@ export class Fragments {
 
     // if (metrics.length > 2) {
     // }
+  }
+
+  /**
+   * Handles changes of animation
+   *
+   * @param {boolean} animation - If `true` vbisual changes will be animated.
+   */
+  animationChangeHandler () {
+    this.store.dispatch(setAnimation(!this.fgmState.animation));
   }
 
   /**
@@ -726,6 +739,14 @@ export class Fragments {
     this.lassoRectIsActive = false;
   }
 
+  /**
+   * Get lasso-based pile selection
+   *
+   * @param {number} startX - Get local start X position.
+   * @param {number} currentX - Get local current X position.
+   * @param {number} startY - Get local start Y position.
+   * @param {number} currentY - Get local current Y position.
+   */
   getLassoRectSelection (startX, currentX, startY, currentY) {
     const pilesSelected = [];
     const matrices = [];
@@ -1037,10 +1058,6 @@ export class Fragments {
         Math.trunc(pileSortIndex / numCol) *
         (this.matrixWidth + MATRIX_GAP_VERTICAL)
       ) || MARGIN_TOP;
-
-      if (pileSortIndex === 0) {
-        console.log('first pile pos', x, y);
-      }
 
       return { x, y };
     }
@@ -1385,20 +1402,21 @@ export class Fragments {
     // Needs refactoring
     // this.pilingAnimations.push(new PilingAnimation(targetPile, matrices));
 
-    let matricesToPile = matrices.slice(0);
-    let m;
-    let sourcePile;
+    if (this.fgmState.animation) {
 
-    for (let i = 0; i < matricesToPile.length; i++) {
-      m = matricesToPile[i];
-      sourcePile = m.pile;
-      sourcePile.removeMatrices([m]);
+    }
+
+    matrices.forEach((matrix) => {
+      let sourcePile = matrix.pile;
+
+      sourcePile.removeMatrices([matrix]);
+
       if (sourcePile.size === 0 && sourcePile !== targetPile) {
         this.destroyPile(sourcePile);
       }
-    }
+    });
 
-    targetPile.addMatrices(matricesToPile);
+    targetPile.addMatrices(matrices);
     this.sortByOriginalOrder(targetPile);
 
     this.redrawPiles(this.fgmState.piles);
@@ -1710,9 +1728,7 @@ export class Fragments {
    * @return {boolean} `True` to not keep the event form bubbling up.
    */
   showSpecialCellsChangeHandler () {
-    this.fgmState.showSpecialCells = !this.fgmState.showSpecialCells;
-
-    this.store.dispatch(setShowSpecialCells(this.fgmState.showSpecialCells));
+    this.store.dispatch(setShowSpecialCells(!this.fgmState.showSpecialCells));
 
     return true;
   }
@@ -1733,6 +1749,7 @@ export class Fragments {
     try {
       const state = this.store.getState().present.decompose.fragments;
 
+      this.updateAnimation(state.animation);
       this.updateArrangeMetrics(state.arrangeMetrics);
       this.updateCoverDispMode(state.coverDispMode);
       this.updateCellSize(state.cellSize);
@@ -1741,6 +1758,16 @@ export class Fragments {
     } catch (e) {
       logger.error('State is invalid', e);
     }
+  }
+
+  /**
+   * Update animation state.
+   *
+   * @param {boolean} animation - If `true` visual changes will be animated.
+   */
+  updateAnimation (animation) {
+    this.fgmState.animation = animation;
+    console.log('new animation', this.fgmState.animation);
   }
 
   /**

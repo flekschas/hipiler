@@ -13,7 +13,7 @@
     <spinner if.bind="isLoading"></spinner>
   </div>
 
-  <div class="full-wh flex-c flex-d-c" ref="baseEl">
+  <div class="full-wh flex-c flex-d-c ${fgmState.animation ? 'is-animated' : ''}" ref="baseEl">
     <main class="flex-g-1 rel fragment-plot">
       <div class="full-dim" background-color="yellow" ref="plotEl"></div>
     </main>
@@ -31,12 +31,20 @@
             change.delegate="cellSizeChangedHandler($event)">
         </li>
         <li class="flex-c flex-d-c">
-          <label for="settings-fgm-show-low-quality">Show Low Quality</label>
+          <label for="settings-fgm-show-low-quality">Show Low Qual.</label>
           <input
             type="checkbox"
             id="settings-fgm-show-low-quality"
             checked.bind="fgmState.showSpecialCells"
             click.delegate="showSpecialCellsChangeHandler()">
+        </li>
+        <li class="flex-c flex-d-c">
+          <label for="settings-fgm-animate">Animate</label>
+          <input
+            type="checkbox"
+            id="settings-fgm-animate"
+            checked.bind="fgmState.animation"
+            click.delegate="animationChangeHandler()">
         </li>
         <li class="flex-c flex-d-c">
           <label for="settings-fgm-cover">Cover Mode</label>
@@ -62,10 +70,10 @@
             event-id.bind="arrangeSelectedEventId"
             placeholder="Choose…"></multi-select>
         </li>
-        <li class="flex-c flex-d-c">
+<!--         <li class="flex-c flex-d-c">
           <label for="settings-fgm-is-fixed-cat-colors">Fix Colors</label>
           <input type="checkbox" id="settings-fgm-is-fixed-cat-colors">
-        </li>
+        </li> -->
       </ul>
     </footer>
   </div>

@@ -5,6 +5,13 @@ export const depile = pile => ({
   payload: { pile }
 });
 
+export const SET_ANIMATION = 'SET_ANIMATION';
+
+export const setAnimation = animation => ({
+  type: SET_ANIMATION,
+  payload: { animation: !!animation }
+});
+
 export const SET_ARRANGE_METRICS = 'SET_ARRANGE_METRICS';
 
 export const setArrangeMetrics = arrangeMetrics => ({

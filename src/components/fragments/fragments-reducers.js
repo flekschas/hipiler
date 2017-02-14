@@ -1,6 +1,7 @@
 import { combineReducers } from 'redux';
 
 import {
+  SET_ANIMATION,
   SET_ARRANGE_METRICS,
   SET_CELL_SIZE,
   SET_COVER_DISP_MODE,
@@ -9,6 +10,7 @@ import {
 } from 'components/fragments/fragments-actions';
 
 import {
+  ANIMATION,
   ARRANGE_METRICS,
   CELL_SIZE,
   CONFIG,
@@ -18,6 +20,16 @@ import {
 
 import deepClone from 'utils/deep-clone';
 
+
+export function animation (state = ANIMATION, action) {
+  switch (action.type) {
+    case SET_ANIMATION:
+      return action.payload.animation;
+
+    default:
+      return state;
+  }
+}
 
 export function arrangeMetrics (state = ARRANGE_METRICS, action) {
   switch (action.type) {
@@ -71,6 +83,7 @@ export function config (state = { ...CONFIG }, action) {
 
 
 export default combineReducers({
+  animation,
   arrangeMetrics,
   cellSize,
   coverDispMode,
