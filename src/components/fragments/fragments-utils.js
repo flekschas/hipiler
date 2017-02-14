@@ -153,7 +153,7 @@ export function makeBuffer3f (array) {
   return buffer;
 }
 
-export function createRectFrame (w, h, color, lineThickness) {
+export function createRectFrame (w, h, color, lineWidth) {
   const wh = w / 2;
   const hh = h / 2;
 
@@ -169,7 +169,7 @@ export function createRectFrame (w, h, color, lineThickness) {
 
   let material = new LineBasicMaterial({
     color,
-    linewidth: lineThickness,
+    linewidth: lineWidth,
     linejoin: 'round',
     linecap: 'round'
   });
