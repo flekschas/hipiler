@@ -31,8 +31,12 @@
             change.delegate="cellSizeChangedHandler($event)">
         </li>
         <li class="flex-c flex-d-c">
-          <label for="settings-fgm-is-animated">Animate</label>
-          <input type="checkbox" id="settings-fgm-is-animated">
+          <label for="settings-fgm-show-low-quality">Show Low Quality</label>
+          <input
+            type="checkbox"
+            id="settings-fgm-show-low-quality"
+            checked.bind="fgmState.showSpecialCells"
+            click.delegate="showSpecialCellsChangeHandler()">
         </li>
         <li class="flex-c flex-d-c">
           <label for="settings-fgm-cover">Cover Mode</label>
