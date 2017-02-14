@@ -33,6 +33,13 @@ export const setPileMode = (mode, pile) => ({
   payload: { mode, pile }
 });
 
+export const SET_SHOW_SPECIAL_CELLS = 'SET_SHOW_SPECIAL_CELLS';
+
+export const setShowSpecialCells = showSpecialCells => ({
+  type: SET_SHOW_SPECIAL_CELLS,
+  payload: { showSpecialCells }
+});
+
 export const UPDATE_FGM_CONFIG = 'UPDATE_FGM_CONFIG';
 
 export const updateConfig = config => ({

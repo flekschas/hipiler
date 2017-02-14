@@ -6,6 +6,8 @@ export const CELL_SIZE_HALF = CELL_SIZE / 2;
 
 export const CELL_THRESHOLD = 0.0;  // only cells above are shown
 
+export const COLOR_LOW_QUALITY = [1, 0.890196078, 0.835294118];
+
 /**
  * External config to initialize fragments.
  *
@@ -100,6 +102,8 @@ export const SHADER_ATTRIBUTES = {
 };
 
 export const SHOW_MATRICES = 1000;
+
+export const SHOW_SPECIAL_CELLS = false;
 
 export const SVG_MENU_HEIGHT = 30;
 

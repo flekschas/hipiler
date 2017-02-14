@@ -4,6 +4,7 @@ import {
   SET_ARRANGE_METRICS,
   SET_CELL_SIZE,
   SET_COVER_DISP_MODE,
+  SET_SHOW_SPECIAL_CELLS,
   UPDATE_FGM_CONFIG
 } from 'components/fragments/fragments-actions';
 
@@ -11,7 +12,8 @@ import {
   ARRANGE_METRICS,
   CELL_SIZE,
   CONFIG,
-  MODE_MEAN
+  MODE_MEAN,
+  SHOW_SPECIAL_CELLS
 } from 'components/fragments/fragments-defaults';
 
 import deepClone from 'utils/deep-clone';
@@ -47,6 +49,16 @@ export function coverDispMode (state = MODE_MEAN, action) {
   }
 }
 
+export function showSpecialCells (state = SHOW_SPECIAL_CELLS, action) {
+  switch (action.type) {
+    case SET_SHOW_SPECIAL_CELLS:
+      return action.payload.showSpecialCells;
+
+    default:
+      return state;
+  }
+}
+
 export function config (state = { ...CONFIG }, action) {
   switch (action.type) {
     case UPDATE_FGM_CONFIG:
@@ -62,5 +74,6 @@ export default combineReducers({
   arrangeMetrics,
   cellSize,
   coverDispMode,
-  config
+  config,
+  showSpecialCells
 });
