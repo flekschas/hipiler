@@ -1105,7 +1105,7 @@ export default class Pile {
   /**
    * Update label.
    *
-   * @param {boolean} b - If `true` update label.
+   * @param {boolean} updateLabels - If `true` update label.
    * @return {object} Self.
    */
   updateLabels (updateLabels) {
