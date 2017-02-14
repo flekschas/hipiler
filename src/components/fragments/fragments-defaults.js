@@ -8,6 +8,8 @@ export const CELL_THRESHOLD = 0.0;  // only cells above are shown
 
 export const COLOR_LOW_QUALITY = [1, 0.890196078, 0.835294118];
 
+export const COLOR_PRIMARY = 0xff5500;
+
 /**
  * External config to initialize fragments.
  *
@@ -25,6 +27,8 @@ export const DURATION = 500;
 export const FONT_URL = 'src/assets/fonts/rubik-regular.json';
 
 export const FPS = 25;
+
+export const HIGHLIGHT_FRAME_LINE_WIDTH = 5;
 
 export const LABEL_DIST = 60;
 
