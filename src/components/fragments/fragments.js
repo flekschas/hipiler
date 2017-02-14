@@ -155,7 +155,7 @@ export class Fragments {
     this.pilingAnimations = [];
 
     this.mouseDown = false;
-    this.lassoActive = false;
+    this.lassoIsActive = false;
     this.mouseWentDown = false;
     this.fgmState.showSpecialCells = false;
 
@@ -597,13 +597,13 @@ export class Fragments {
       }
     }
 
-    // Set lassoActive if user did not start mousedown on a pile but in empty
+    // Set lassoIsActive if user did not start mousedown on a pile but in empty
     if (this.mouseWentDown) {
-      this.lassoActive = !this.hoveredPile;
+      this.lassoIsActive = !this.hoveredPile;
     }
 
     // draw lasso
-    if (this.lassoActive) {
+    if (this.lassoIsActive) {
       let x1 = Math.min(this.dragStartPos.x, this.mouse.x);
       let x2 = Math.max(this.dragStartPos.x, this.mouse.x);
       let y1 = Math.min(this.dragStartPos.y, this.mouse.y);
@@ -659,7 +659,7 @@ export class Fragments {
       this.mouseDown &&
       this.hoveredPile &&
       this.fgmState.piles.indexOf(this.hoveredPile) > 0 &&
-      !this.lassoActive
+      !this.lassoIsActive
     ) {
       this.dragPileStartHandler();
     } else {
@@ -705,7 +705,7 @@ export class Fragments {
       }
 
       this.dragPile = undefined;
-    } else if (this.lassoActive) {
+    } else if (this.lassoIsActive) {
       // Calculate lasso rectangle
       if (this.dragStartPos) {
         this.fgmState.scene.updateMatrixWorld();
@@ -749,7 +749,7 @@ export class Fragments {
     this.dragStartPos = undefined;
     this.mouseDown = false;
     this.mouseWentDown = false;
-    this.lassoActive = false;
+    this.lassoIsActive = false;
   }
 
   /**
