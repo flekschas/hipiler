@@ -1,12 +1,16 @@
 <template bindable="basePath, iconId">
-  <div class="${optionsIsActive ? 'is-active' : ''}" ref="baseEl">
+  <require from="components/svg-icon.html"></require>
+
+  <div class="${optionsIsActive ? 'is-active' : ''} ${selectedOptions.length ? 'is-in-use' : ''}" ref="baseEl">
     <div class="flex-c">
       <ul class="flex-c options-selected">
         <li
           repeat.for="option of selectedOptions"
           class="flex-c">
           <span>${option.name}</span>
-          <button click.delegate="removeSelectedOption(option)">&times;</button>
+          <button class="flex-c flex-jc-c flex-a-c" click.delegate="removeSelectedOption(option)">
+            <svg-icon icon-id="x"></svg-icon>
+          </button>
         </li>
       </ul>
       <input
