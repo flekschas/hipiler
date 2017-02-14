@@ -86,6 +86,7 @@ export default class App {
 
   clickHandler (event) {
     this.events.publish('app.click', event);
+    return true;
   }
 
   keyDownHandler (event) {
