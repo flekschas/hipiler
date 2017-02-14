@@ -24,7 +24,7 @@ import MpState from 'components/fragments/fragments-state';
 
 // Utils etc.
 import {
-  setArrangeMetrics, setCellSize, setCoverDispMode
+  setArrangeMetrics, setCellSize, setCoverDispMode, setShowSpecialCells
 } from 'components/fragments/fragments-actions';
 
 import {
@@ -41,6 +41,10 @@ import {
   MARGIN_TOP,
   MATRIX_GAP_HORIZONTAL,
   MATRIX_GAP_VERTICAL,
+  METRIC_DIST_DIAG,
+  METRIC_NOISE,
+  METRIC_SHARPNESS,
+  METRIC_SIZE,
   MODE_DIRECT_DIFFERENCE,
   PILING_DIRECTION,
   PREVIEW_SIZE,
@@ -61,6 +65,39 @@ import { EVENT_BASE_NAME } from 'components/multi-select/multi-select-defaults';
 
 
 const logger = LogManager.getLogger('fragments');
+
+/**
+ * Sort wrapper function for `sortAsc`, which allows to defined the sort order.
+ *
+ * @param {number} sortOrder - `1` is ascending and `-1` is descending.
+ * @return {function} Compare function.
+ */
+const sortByValue = (sortOrder = 1) => (a, b) => sortAsc(a, b) * sortOrder;
+
+/**
+ * Sort ascending by value.
+ *
+ * @param {object} a - First value to be compared.
+ * @param {object} b - First value to be compared.
+ * @return {number} `1` if `b` is larger than `a`, `-1` if it's the opposite.
+ */
+const sortAsc = (a, b) => {
+  if (a.value < b.value) {
+    return -1;
+  }
+
+  if (b.value < a.value) {
+    return 1;
+  }
+
+  // A's and B's value are identical, use their original ID to ensure
+  // stable sorting.
+  if (a.id < b.id) {
+    return -1;
+  }
+
+  return 1;
+};
 
 
 @inject(EventAggregator, States, MpState)
@@ -120,18 +157,22 @@ export class Fragments {
     this.mouseDown = false;
     this.lassoActive = false;
     this.mouseWentDown = false;
+    this.fgmState.showSpecialCells = false;
 
     this.isLoading = true;
 
     this.arrangeSelectedEventId = 'fgm.arrange';
     this.metrics = [{
-      id: 'dist',
+      id: METRIC_SIZE,
+      name: 'Size'
+    }, {
+      id: METRIC_DIST_DIAG,
       name: 'Distance'
     }, {
-      id: 'noise',
+      id: METRIC_NOISE,
       name: 'Noise'
     }, {
-      id: 'sharpness',
+      id: METRIC_SHARPNESS,
       name: 'Sharpness'
     }];
 
@@ -166,7 +207,7 @@ export class Fragments {
 
     this.event.subscribe(
       `${EVENT_BASE_NAME}.${this.arrangeSelectedEventId}`,
-      this.arrangeChanged.bind(this)
+      this.arrangeChangeHandler.bind(this)
     );
   }
 
@@ -256,12 +297,43 @@ export class Fragments {
 
   /* ---------------------------- Custom Methods ---------------------------- */
 
-  arrangeChanged (metrics) {
-    if (metrics.length) {
-      this.store.dispatch(setArrangeMetrics(metrics.map(metric => metric.id)));
-    } else {
-      this.store.dispatch(setArrangeMetrics([]));
+  /**
+   * Arranges piles according to the given metrics.
+   *
+   * @description
+   * This is the entry point for arranging
+   *
+   * @param {array} piles - All piles.
+   * @param {array} metrics - Selected metrics.
+   * @return {[type]}             [description]
+   */
+  arrange (piles, metrics) {
+    if (metrics.length === 1) {
+      this.rank(piles, metrics[0]);
     }
+
+    // if (metrics.length === 2) {
+    // }
+
+    // if (metrics.length > 2) {
+    // }
+  }
+
+  /**
+   * Handles changes of arrange metrics amd dispatches the appropriate action.
+   *
+   * @param {array} metrics - List of metrics to arrange piles.
+   */
+  arrangeChangeHandler (metrics) {
+    let arrangeMetrics;
+
+    try {
+      arrangeMetrics = metrics.map(metric => metric.id);
+    } catch (e) {
+      arrangeMetrics = [];
+    }
+
+    this.store.dispatch(setArrangeMetrics(arrangeMetrics));
   }
 
   /**
@@ -373,7 +445,7 @@ export class Fragments {
     // test if mouse dwells on a matrix -> open pile
     if (
       this.hoveredPile &&
-      this.hoveredPile.size() > 1 &&
+      this.hoveredPile.size > 1 &&
       typeof this.hoveredMatrix === 'undefined'
     ) {
       this.mouseDownTimer = setInterval(() => {
@@ -625,7 +697,7 @@ export class Fragments {
     } else if (this.dragPile) {
       // place pile on top of previous pile
       if (!this.hoveredPile) {
-        let pos = this.getLayoutPosition(this.piles.indexOf(this.dragPile));
+        let pos = this.getLayoutPosition(this.dragPile);
         this.dragPile.moveTo(pos.x, pos.y, false);
         this.dragPile.elevateTo(0);
       } else {
@@ -869,12 +941,36 @@ export class Fragments {
   }
 
   /**
-   * Get position for a pile given the current layout.
+   * Get position for a pile.
    *
    * @param {number} pileSortIndex - Pile sort index.
-   * @return {[type]} [description]
+   * @return {object} Object with x and y coordinates
    */
-  getLayoutPosition (pileSortIndex) {
+  getLayoutPosition (pile) {
+    const numArrMets = this.arrangeMetrics.length;
+
+    if (numArrMets === 1) {
+      return this.getLayoutPosition1D(pile.rank);
+    }
+
+    // if (numArrMets === 2) {
+    //   return this.getLayoutPosition2D(pile.ranking);
+    // }
+
+    // if (numArrMets > 2) {
+    //   return this.getLayoutPosition2D(pile.ranking);
+    // }
+
+    return this.getLayoutPosition1D(pile.id);
+  }
+
+  /**
+   * Get position for a pile given the current sort order.
+   *
+   * @param {number} pileSortIndex - Pile sort index.
+   * @return {object} Object with x and y coordinates
+   */
+  getLayoutPosition1D (pileSortIndex) {
     const numCol = this.numColumns;
 
     let x;
@@ -936,16 +1032,6 @@ export class Fragments {
     );
 
     return piling;
-  }
-
-  /**
-   * Index indicates the matrix index, not its position in the layout
-   *
-   * @param {number} matrixIndex - Index of matrix.
-   * @return {??} Matrix position.
-   */
-  getMatrixPosition (matrixIndex) {
-    return this.getLayoutPosition(this.matrixPos[matrixIndex]);
   }
 
   /**
@@ -1025,7 +1111,14 @@ export class Fragments {
         this.fragDims
       );
 
-      const matrix = Matrix(index, fragment.matrix);
+      const locus = {
+        xStart: fragment.start1,
+        xEnd: fragment.end1,
+        yStart: fragment.start2,
+        yEnd: fragment.end2
+      };
+
+      const matrix = new Matrix(index, fragment.matrix, locus);
 
       this.fgmState.piles.push(pile);
       this.fgmState.matrices.push(matrix);
@@ -1036,7 +1129,9 @@ export class Fragments {
 
     this.calculateDistanceMatrix();
 
-    this.updateLayout(0, false);
+    this.arrange(this.fgmState.piles, this.arrangeMetrics);
+
+    this.updateLayout();
 
     this.setScrollLimit(data.fragments.length);
 
@@ -1186,6 +1281,18 @@ export class Fragments {
   }
 
   /**
+   * Orders piles by size
+   *
+   * @description
+   * For loops, size is equivalent to _distance to the diagonal_.
+   *
+   * @return  {[type]}     [description]
+   */
+  orderBySize (piles) {
+
+  }
+
+  /**
    * Piles all matrices prior to the selected one, including the selected one.
    *
    * @param {[type]} p - [description]
@@ -1194,7 +1301,7 @@ export class Fragments {
     let pileIndex = this.fgmState.piles.indexOf(pile);
     let matrices = [];
 
-    if (pile.size() === 1) {
+    if (pile.size === 1) {
       for (let j = pileIndex; j >= 0; j--) {
         if (j === 0 || this.fgmState.piles[j - 1].size() > 1) {
           this.pileUp(matrices, this.fgmState.piles[j]);
@@ -1232,7 +1339,7 @@ export class Fragments {
       m = matricesToPile[i];
       sourcePile = m.pile;
       sourcePile.removeMatrices([m]);
-      if (sourcePile.size() === 0 && sourcePile !== targetPile) {
+      if (sourcePile.size === 0 && sourcePile !== targetPile) {
         this.destroyPile(sourcePile);
       }
     }
@@ -1265,10 +1372,41 @@ export class Fragments {
   }
 
   /**
-   * [redrawPiles description]
+   * Rank matrices according to the metric
    *
-   * @param {[type]} piles - [description]
-   * @return {[type]} [description]
+   * @param {array} piles - Piles to be ranked.
+   * @param {string} metric - Matric ID
+   * @param {boolean} desc - If `true` rank descending by metric.
+   */
+  rank (piles, metric, desc) {
+    // First we calculate the actual value
+    piles.forEach((pile) => {
+      pile.calculateMetrics([metric]);
+    });
+
+    // Next, we create a new simplified array that will actually be sorted.
+    // Note: we won't sort the original pile array but instead only assign a
+    // rank.
+    const pilesSortHelper = piles.map(pile => ({
+      id: pile.id,
+      value: pile.metrics[metric]
+    }));
+
+    const sortOrder = desc ? -1 : 1;
+
+    // Then we sort
+    pilesSortHelper.sort(sortByValue(sortOrder));
+
+    // Finally, assign rank
+    pilesSortHelper.forEach((pileSortHelper, index) => {
+      piles[pileSortHelper.id].rank = index;
+    });
+  }
+
+  /**
+   * Redraw piles.
+   *
+   * @param {array} piles - List of piles to be redrawn.
    */
   redrawPiles (piles) {
     piles.forEach(pile => pile.draw());
@@ -1513,6 +1651,19 @@ export class Fragments {
   }
 
   /**
+   * Change handler for showing special cells
+   *
+   * @return {boolean} `True` to not keep the event form bubbling up.
+   */
+  showSpecialCellsChangeHandler () {
+    this.fgmState.showSpecialCells = !this.fgmState.showSpecialCells;
+
+    this.store.dispatch(setShowSpecialCells(this.fgmState.showSpecialCells));
+
+    return true;
+  }
+
+  /**
    * [unshowMatrixSimilarity description]
    *
    * @return {[type]} [description]
@@ -1532,6 +1683,7 @@ export class Fragments {
       this.updateCoverDispMode(state.coverDispMode);
       this.updateCellSize(state.cellSize);
       this.updateConfig(state.config);
+      this.updateShowSpecialCells(state.showSpecialCells);
     } catch (e) {
       logger.error('State is invalid', e);
     }
@@ -1552,7 +1704,8 @@ export class Fragments {
     });
 
     if (this.isInitialized) {
-      // this.setPileMode(this.coverDispMode, this.fgmState.piles);
+      this.arrange(this.fgmState.piles, this.arrangeMetrics);
+      this.updateLayout();
       this.render();
     }
   }
@@ -1612,15 +1765,29 @@ export class Fragments {
   /**
    * Update every pile
    *
-   * @param {number} pileSortPos - Sorting number of pile.
+   * @param {number} pileRank - Rank of pile.
    */
-  updateLayout (pileSortPos) {
+  updateLayout (pileRank = 0) {
     this.fgmState.piles
-      // we needs to be changed in the future to a pileSortIndex
-      .filter((element, index) => index >= pileSortPos)
+      // Needs to be changed or disabled for 2D
+      .filter(pile => pile.rank >= pileRank)
       .forEach((pile, index) => {
-        const pos = this.getLayoutPosition(index);
+        const pos = this.getLayoutPosition(pile);
         pile.moveTo(pos.x, pos.y, PILING_DIRECTION !== 'vertical');
       });
+  }
+
+  /**
+   * Update piles when special cells are shown or hidden
+   *
+   * @param {boolean} showSpecialCells - If `true` show special cells.
+   */
+  updateShowSpecialCells (showSpecialCells) {
+    this.fgmState.showSpecialCells = showSpecialCells;
+
+    if (this.isInitialized) {
+      this.redrawPiles(this.fgmState.piles);
+      this.render();
+    }
   }
 }

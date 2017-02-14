@@ -10,6 +10,7 @@ import {
 import menuCommands from 'components/fragments/pile-menu-commands';
 
 import {
+  COLOR_LOW_QUALITY,
   LETTER_SPACE,
   MATRIX_GAP_HORIZONTAL,
   METRIC_DIST_DIAG,
@@ -60,7 +61,7 @@ export default class Pile {
     this.metrics = {};
     this.orderedLocally = false;
     this.pileMatrices = [];
-    this.ranking = this.id;
+    this.rank = this.id;
     this.render = true;
     this.scale = scale;
     this.scene = scene;
@@ -408,15 +409,16 @@ export default class Pile {
               color
             );
           } else {
-            valueInv = 1 - cellValue(matrix[i][j]);
-
             add2dSqrtBuffRect(
               vertexPositions,
               x,
               y,
               fgmState.cellSize,
               vertexColors,
-              [valueInv, valueInv, valueInv]
+              this.getGrayTone(
+                cellValue(matrix[i][j]),
+                fgmState.showSpecialCells
+              )
             );
           }
         }
@@ -849,6 +851,28 @@ export default class Pile {
     this.mesh.position.set(this.x, this.y, z);
 
     return this;
+  }
+
+  /**
+   * Get gray tone color from value
+   *
+   * @param {number} value - Valuer of the cell.
+   * @param {boolean} showSpecialCells - If `true` return white for special
+   *   values (e.g., low quality) instead of a color.
+   * @return {array} Relative RGB array
+   */
+  getGrayTone (value, showSpecialCells) {
+    switch (value) {
+      case -1:
+        if (showSpecialCells) {
+          return COLOR_LOW_QUALITY;
+        }
+
+        return [1, 1, 1];
+
+      default:
+        return [1 - value, 1 - value, 1 - value];
+    }
   }
 
   /**
