@@ -130,7 +130,6 @@ export class Fragments {
     this.matricesPileIndex = []; // contains pile index for each matrix.
     this.selectedMatrices = [];
     this.dragActive = false;
-    this.hoveredGapPile = undefined;
     this.openedPileRoot = undefined;
     this.openedPileMatrices = [];
     this.shiftDown = false;
@@ -414,7 +413,7 @@ export class Fragments {
       this.hoveredTool = undefined;
     } else if (this.hoveredGapPile) {
       pile = this.hoveredGapPile;
-      this.hoveredGapPile = undefined;
+      this.fgmState.hoveredGapPile = undefined;
       this.pileBackwards(pile);
     } else if (this.hoveredMatrix) {
       pile = this.hoveredMatrix;
@@ -432,15 +431,15 @@ export class Fragments {
   canvasDblClickHandler (event) {
     event.preventDefault();
 
-    if (this.hoveredPile && this.hoveredPile !== this.openedPile) {
-      this.openedPileRoot = this.hoveredPile;
+    if (this.fgmState.hoveredPile && this.fgmState.hoveredPile !== this.openedPile) {
+      this.openedPileRoot = this.fgmState.hoveredPile;
     } else {
-      this.openedPile = this.hoveredPile;
+      this.openedPile = this.fgmState.hoveredPile;
     }
 
-    const pile = this.hoveredPile;
+    const pile = this.fgmState.hoveredPile;
 
-    this.hoveredPile = undefined;
+    this.fgmState.hoveredPile = undefined;
     this.depile(pile);
   }
 
@@ -460,13 +459,13 @@ export class Fragments {
 
     // test if mouse dwells on a matrix -> open pile
     if (
-      this.hoveredPile &&
-      this.hoveredPile.size > 1 &&
+      this.fgmState.hoveredPile &&
+      this.fgmState.hoveredPile.size > 1 &&
       typeof this.hoveredMatrix === 'undefined'
     ) {
       this.mouseIsDownTimer = setInterval(() => {
-        this.openedPileRoot = this.hoveredPile;
-        this.openedPileMatricesNum = this.hoveredPile.pileMatrices.length - 1;
+        this.openedPileRoot = this.fgmState.hoveredPile;
+        this.openedPileMatricesNum = this.fgmState.hoveredPile.pileMatrices.length - 1;
         this.depile(this.openedPileRoot);
         clearInterval(this.mouseIsDownTimer);
       }, 500);
@@ -474,7 +473,7 @@ export class Fragments {
   }
 
   mouseMoveStuffHandler () {
-    this.hoveredPile = undefined;
+    this.fgmState.hoveredPile = undefined;
 
     this.raycaster.setFromCamera(this.mouse, this.camera);
 
@@ -495,36 +494,35 @@ export class Fragments {
       let x = pileMesh.position.x;
       let y = pileMesh.position.y;
 
-      this.hoveredPile = pileMesh.pile;
+      this.fgmState.hoveredPile = pileMesh.pile;
 
       if (!this.lassoRectIsActive) {
-        this.highlightPile(this.hoveredPile);
+        this.highlightPile(this.fgmState.hoveredPile);
       }
 
       // Preview single matrices of piles with multiple matrices
-      if (this.hoveredPile.pileMatrices.length > 1) {
+      if (this.fgmState.hoveredPile.pileMatrices.length > 1) {
         if (this.mouse.y > y + this.matrixWidthHalf) {
           let d = this.mouse.y - (y + this.matrixWidthHalf);
           let i = Math.floor(d / PREVIEW_SIZE);
-          this.hoveredPile.showSingle(this.hoveredPile.getMatrix(i));
-          this.hoveredMatrix = this.hoveredPile.getMatrix(i);
+          this.fgmState.hoveredPile.showSingle(this.fgmState.hoveredPile.getMatrix(i));
+          this.hoveredMatrix = this.fgmState.hoveredPile.getMatrix(i);
         } else {
-          this.hoveredPile.showSingle(undefined);
+          this.fgmState.hoveredPile.showSingle(undefined);
           this.resetHighlightedPile();
         }
       }
 
-      // TEST FOR GAPS
-      // if (this.relToAbsPositionX(this.mouse.x) > x + this.matrixWidthHalf) {
-      //   console.log('what#s going on here?============');
-      //   this.hoveredGapPile = this.hoveredPile;
-      // } else if (this.hoveredGapPile) {
-      //   console.log('what#s going on here?');
-      //   this.hoveredGapPile.draw();
-      //   this.hoveredGapPile = undefined;
-      // }
+      // Check if we're hovering a gap
+      if (this.relToAbsPositionX(this.mouse.x) > x + this.matrixWidthHalf) {
+        this.fgmState.hoveredGapPile = this.fgmState.hoveredPile;
+      } else if (this.hoveredGapPile) {
+        this.hoveredGapPile.draw();
+        this.fgmState.hoveredGapPile = undefined;
+      }
 
-      // this.hoveredPile.draw();
+      // Re-draw hovered pile to show menu.
+      this.fgmState.hoveredPile.draw();
 
       this.hoveredCell = undefined;
 
@@ -538,7 +536,7 @@ export class Fragments {
           col >= 0 ||
           col < this.fgmState.focusNodes.length
         ) {
-          this.hoveredPile.updateLabels(true);
+          this.fgmState.hoveredPile.updateLabels(true);
           this.hoveredCell = { row, col };
         }
       }
@@ -548,19 +546,19 @@ export class Fragments {
         this.fgmState.piles[i].updateLabels(false);
       }
 
-      this.hoveredPile.updateLabels(true);
+      this.fgmState.hoveredPile.updateLabels(true);
 
       if (
         (
           !this.previousHoveredPile ||
-          this.previousHoveredPile !== this.hoveredPile
+          this.previousHoveredPile !== this.fgmState.hoveredPile
         ) &&
         this.coverDispMode === MODE_DIRECT_DIFFERENCE
       ) {
         this.redrawPiles(this.fgmState.piles);
       }
 
-      this.previousHoveredPile = this.hoveredPile;
+      this.previousHoveredPile = this.fgmState.hoveredPile;
     } else {
       this.highlightPile();
 
@@ -570,7 +568,7 @@ export class Fragments {
 
       if (this.hoveredGapPile) {
         let p = this.hoveredGapPile;
-        this.hoveredGapPile = undefined;
+        this.fgmState.hoveredGapPile = undefined;
         p.draw();
       }
 
@@ -590,7 +588,7 @@ export class Fragments {
     if (
       this.lassoRectIsActive ||
       (
-        this.mouseWentDown && !this.hoveredPile
+        this.mouseWentDown && !this.fgmState.hoveredPile
       )
     ) {
       this.lassoRectIsActive = true;
@@ -676,8 +674,8 @@ export class Fragments {
       this.dragPileHandler();
     } else if (
       this.mouseIsDown &&
-      this.hoveredPile &&
-      this.fgmState.piles.indexOf(this.hoveredPile) > 0 &&
+      this.fgmState.hoveredPile &&
+      this.fgmState.piles.indexOf(this.fgmState.hoveredPile) > 0 &&
       !this.lassoRectIsActive
     ) {
       this.dragPileStartHandler();
@@ -717,12 +715,12 @@ export class Fragments {
       this.openedPileMatricesNum = 0;
     } else if (this.dragPile) {
       // place pile on top of previous pile
-      if (!this.hoveredPile) {
+      if (!this.fgmState.hoveredPile) {
         let pos = this.getLayoutPosition(this.dragPile);
         this.dragPile.moveTo(pos.x, pos.y);
         this.dragPile.elevateTo(0);
       } else {
-        this.pileUp(this.dragPile, this.hoveredPile);
+        this.pileUp(this.dragPile, this.fgmState.hoveredPile);
       }
 
       this.dragPile = undefined;
@@ -904,8 +902,8 @@ export class Fragments {
       this.previousHoveredPile = undefined;
     }
 
-    if (this.hoveredGapPile === pile) {
-      this.hoveredGapPile = undefined;
+    if (this.fgmState.hoveredGapPile === pile) {
+      this.fgmState.hoveredGapPile = undefined;
     }
   }
 
@@ -943,7 +941,7 @@ export class Fragments {
     this.dragPile.elevateTo(0.9);
 
     // test for hovered piles
-    this.hoveredPile = undefined;
+    this.fgmState.hoveredPile = undefined;
 
     // No mouse down (i.e. no dragging enabled)
     // do the raycasting to find hovered elements
@@ -958,7 +956,7 @@ export class Fragments {
     this.intersects = this.raycaster.intersectObjects(testPile);
 
     if (this.intersects.length > 0) {
-      this.hoveredPile = this.intersects[0].object.pile;
+      this.fgmState.hoveredPile = this.intersects[0].object.pile;
     }
   }
 
@@ -968,7 +966,7 @@ export class Fragments {
   dragPileStartHandler () {
     // Don't do raycasting. "Freeze" the current state of
     // highlighte items and move matrix with cursor.
-    this.dragPile = this.hoveredPile;
+    this.dragPile = this.fgmState.hoveredPile;
     this.dragPile.moveTo(this.mouse.x, -this.mouse.y);
     this.dragPile.elevateTo(0.9);
   }
