@@ -69,6 +69,8 @@ export default class Pile {
     this.x = 0;
     this.y = 0;
 
+    fgmState.pilesIdx[this.id] = this;
+
     this.updateFrame();
   }
 
@@ -82,12 +84,14 @@ export default class Pile {
     return this.matrixWidth / 2;
   }
 
-  get singleMatrix () {
-    if (this.pileMatrices.length === 1) {
-      return this.pileMatrices[0];
+  get isSingleMatrix () {
+    const isSingleMatrix = this.pileMatrices.length === 1;
+
+    if (isSingleMatrix && !this.singleMatrix) {
+      this.singleMatrix = this.pileMatrices[0];
     }
 
-    return false;
+    return isSingleMatrix;
   }
 
   /**
@@ -167,7 +171,9 @@ export default class Pile {
         this.pileMatrices
           .map(pile => pile.matrix)
           .forEach((matrix) => {
-            avg[i][j] += 1 / matrix[i][j];
+            if (matrix[i][j] > 0) {
+              avg[i][j] += 1 / matrix[i][j];
+            }
           });
 
         avg[i][j] = this.dims / avg[i][j];
@@ -318,8 +324,7 @@ export default class Pile {
     fgmState.scene.remove(this.mesh);
     this.render = false;
     this.pileMatrices = [];
-
-    return this;
+    fgmState.pilesIdx[this.id] = undefined;
   }
 
   /**
@@ -347,7 +352,7 @@ export default class Pile {
       attributes: SHADER_ATTRIBUTES
     });
 
-    if (this.singleMatrix) {
+    if (this.isSingleMatrix) {
       const matrix = this.singleMatrix.matrix;
 
       for (let i = 0; i < this.dims; i++) {
@@ -963,6 +968,22 @@ export default class Pile {
   moveTo (x, y) {
     this.x = x + this.matrixWidthHalf;
     this.y = -y - this.matrixWidthHalf;
+
+    this.mesh.position.set(this.x, this.y, 0);
+
+    return this;
+  }
+
+  /**
+   * Move mesh.
+   *
+   * @param {number} x - X position.
+   * @param {number} y - Y position.
+   * @return {object} Self.
+   */
+  moveToRaw (x, y) {
+    this.x = x;
+    this.y = y;
 
     this.mesh.position.set(this.x, this.y, 0);
 
