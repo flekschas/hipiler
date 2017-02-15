@@ -963,27 +963,18 @@ export default class Pile {
    *
    * @param {number} x - X position.
    * @param {number} y - Y position.
+   * @param {boolean} abs - If `true` consider `x` and `y` as absolute
+   *   positions.
    * @return {object} Self.
    */
-  moveTo (x, y) {
-    this.x = x + this.matrixWidthHalf;
-    this.y = -y - this.matrixWidthHalf;
-
-    this.mesh.position.set(this.x, this.y, 0);
-
-    return this;
-  }
-
-  /**
-   * Move mesh.
-   *
-   * @param {number} x - X position.
-   * @param {number} y - Y position.
-   * @return {object} Self.
-   */
-  moveToRaw (x, y) {
+  moveTo (x, y, abs = false) {
     this.x = x;
     this.y = y;
+
+    if (!abs) {
+      this.x += this.matrixWidthHalf;
+      this.y = -this.y - this.matrixWidthHalf;
+    }
 
     this.mesh.position.set(this.x, this.y, 0);
 
