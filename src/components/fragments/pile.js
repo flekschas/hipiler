@@ -418,6 +418,241 @@ export default class Pile {
   }
 
   /**
+   * Draw multiple matrices.
+   *
+   * @param {array} positions - Positions array to be changed in-place.
+   * @param {array} colors - Colors array to be changed in-place.
+   */
+  drawMultipleMatrices (positions, colors) {
+    const numMatrices = this.pileMatrices.length;
+
+    // Show cover matrix
+    for (let i = 0; i < this.dims; i++) {
+      let x = (
+        -this.matrixWidthHalf +
+        (fgmState.cellSize / 2) +
+        (i * fgmState.cellSize)
+      );
+
+      for (let j = i; j < this.dims; j++) {
+        let value = 0;
+        let valueInv = 1;
+        let y = (
+          this.matrixWidthHalf -
+          (fgmState.cellSize / 2) -
+          (j * fgmState.cellSize)
+        );
+        let color;
+
+        if (this.coverMatrixMode === MODE_TREND) {
+          value = (
+            this.pileMatrices[this.pileMatrices.length - 1].matrix[i][j] -
+            this.pileMatrices[0].matrix[i][j]
+          );
+          valueInv = 1 - Math.abs(value);
+
+          color = [1, valueInv, valueInv];
+
+          if (value > 0) {
+            color = [valueInv, valueInv, 1];
+          }
+
+          addBufferedRect(
+            positions,
+            x,
+            y,
+            0,
+            fgmState.cellSize,
+            fgmState.cellSize,
+            colors,
+            color
+          );
+
+          addBufferedRect(
+            positions,
+            -y,
+            -x,
+            0,
+            fgmState.cellSize,
+            fgmState.cellSize,
+            colors,
+            color
+          );
+        } else if (this.coverMatrixMode === MODE_VARIABILITY) {
+          value = 0;
+          const arr = [];
+
+          for (let t = 1; t < numMatrices; t++) {
+            arr.push(this.pileMatrices[t].matrix[i][j]);
+          }
+
+          // standard deviation = varianz^2
+          value = Math.sqrt(stats.variance(x));
+          valueInv = 1 - Math.abs(cellValue(value));
+
+          addBufferedRect(
+            positions,
+            x,
+            y,
+            0,
+            fgmState.cellSize,
+            fgmState.cellSize,
+            colors,
+            [valueInv, valueInv, 1]
+          );
+
+          addBufferedRect(
+            positions,
+            -y,
+            -x,
+            0,
+            fgmState.cellSize,
+            fgmState.cellSize,
+            colors,
+            [valueInv, valueInv, 1]
+          );
+        } else if (this.coverMatrixMode === MODE_BARCHART) {
+          let d = fgmState.cellSize / numMatrices;
+
+          for (let t = 0; t < numMatrices; t++) {
+            value = 1 - this.pileMatrices[t].matrix[i][j];
+
+            x = -this.matrixWidthHalf + (i * fgmState.cellSize) + (d * t) + (d / 2);
+            y = +this.matrixWidthHalf - ((j + 0.5) * fgmState.cellSize);
+            addBufferedRect(
+              positions,
+              x,
+              y,
+              0,
+              d,
+              (1 - value) * fgmState.cellSize,
+              colors,
+              [value, value, value]
+            );
+
+            x = -this.matrixWidthHalf + (j * fgmState.cellSize) + (d * t) + (d / 2);
+            y = +this.matrixWidthHalf - ((i + 0.5) * fgmState.cellSize);
+
+            addBufferedRect(
+              positions,
+              x,
+              y,
+              0,
+              d,
+              (1 - value) * fgmState.cellSize,
+              colors,
+              [value, value, value]
+            );
+          }
+        } else if (
+          this.coverMatrixMode === MODE_DIFFERENCE &&
+          fgmState.piles.indexOf(this) > 0
+        ) {
+          value = (
+            this.coverMatrix[i][j] -
+            fgmState.piles[fgmState.piles.indexOf(this) - 1].coverMatrix[i][j]
+          );
+
+          valueInv = 1 - Math.abs(value);
+
+          if (value > 0) {
+            color = [valueInv, valueInv, 1];
+          } else {
+            color = [1, valueInv, valueInv];
+          }
+
+          addBufferedRect(
+            positions,
+            x,
+            y,
+            0,
+            fgmState.cellSize,
+            fgmState.cellSize,
+            colors,
+            color
+          );
+          addBufferedRect(
+            positions,
+            -y,
+            -x,
+            0,
+            fgmState.cellSize,
+            fgmState.cellSize,
+            colors,
+            color
+          );
+        } else if (
+          this.coverMatrixMode === MODE_DIRECT_DIFFERENCE &&
+          fgmState.hoveredPile &&
+          this !== fgmState.hoveredPile
+        ) {
+          value = (
+            fgmState.piles[
+              fgmState.piles.indexOf(fgmState.hoveredPile)
+            ].coverMatrix[i][j] -
+            this.coverMatrix[i][j]
+          );
+          valueInv = 1 - Math.abs(value);
+
+          if (value < 0) {
+            color = [valueInv, valueInv, 1];
+          } else {
+            color = [1, valueInv, valueInv];
+          }
+
+          addBufferedRect(
+            positions,
+            x,
+            y,
+            0,
+            fgmState.cellSize,
+            fgmState.cellSize,
+            colors,
+            color
+          );
+          addBufferedRect(
+            positions,
+            -y,
+            -x,
+            0,
+            fgmState.cellSize,
+            fgmState.cellSize,
+            colors,
+            color
+          );
+        } else {
+          for (let t = 0; t < numMatrices; t++) {
+            value += this.pileMatrices[t].matrix[i][j];
+          }
+          value /= numMatrices;
+          valueInv = 1 - Math.max(0, cellValue(value));
+
+          addBufferedRect(
+            positions,
+            x,
+            y,
+            0,
+            fgmState.cellSize,
+            fgmState.cellSize,
+            colors,
+            [valueInv, valueInv, valueInv]
+          );
+          addBufferedRect(
+            positions,
+            -y,
+            -x,
+            0,
+            fgmState.cellSize,
+            fgmState.cellSize,
+            colors,
+            [valueInv, valueInv, valueInv]
+          );
+        }
+      }
+    }
+  }
+
+  /**
    * Draw gap between matrices.
    *
    * @param {array} positions - Positions array to be changed in-place.
@@ -447,6 +682,7 @@ export default class Pile {
    * Draw pile menu
    */
   drawMenu () {
+    return;
     menuCommands.forEach((command, index) => {
       command.pile = this;
 
@@ -540,14 +776,8 @@ export default class Pile {
    * @return {object} Self.
    */
   draw () {
-    const numMatrices = this.pileMatrices.length;
     const vertexPositions = [];
     const vertexColors = [];
-    let x;
-    let y;
-    let valueInv;  // Inverse value, i.e., 1 - abs(value)
-    let value;
-    let color;
 
     // UPDATE COVER MATRIX CELLS + PILE PREVIEWS
     if (this.mesh) {
@@ -566,224 +796,11 @@ export default class Pile {
         vertexColors
       );
     } else {
-      // Show cover matrix
-      for (let i = 0; i < this.dims; i++) {
-        x = -this.matrixWidthHalf + (fgmState.cellSize / 2) + (i * fgmState.cellSize);
-
-        for (let j = i; j < this.dims; j++) {
-          value = 0;
-          y = this.matrixWidthHalf - (fgmState.cellSize / 2) - (j * fgmState.cellSize);
-
-          if (this.coverMatrixMode === MODE_TREND) {
-            value = (
-              this.pileMatrices[this.pileMatrices.length - 1].matrix[i][j] -
-              this.pileMatrices[0].matrix[i][j]
-            );
-            valueInv = 1 - Math.abs(value);
-
-            if (value > 0) {
-              color = [valueInv, valueInv, 1];
-            } else {
-              color = [1, valueInv, valueInv];
-            }
-
-            addBufferedRect(
-              vertexPositions,
-              x,
-              y,
-              0,
-              fgmState.cellSize,
-              fgmState.cellSize,
-              vertexColors,
-              color
-            );
-
-            addBufferedRect(
-              vertexPositions,
-              -y,
-              -x,
-              0,
-              fgmState.cellSize,
-              fgmState.cellSize,
-              vertexColors,
-              color
-            );
-          } else if (this.coverMatrixMode === MODE_VARIABILITY) {
-            value = 0;
-            const arr = [];
-
-            for (let t = 1; t < numMatrices; t++) {
-              arr.push(this.pileMatrices[t].matrix[i][j]);
-            }
-
-            // standard deviation = varianz^2
-            value = Math.sqrt(stats.variance(x));
-            valueInv = 1 - Math.abs(cellValue(value));
-
-            addBufferedRect(
-              vertexPositions,
-              x,
-              y,
-              0,
-              fgmState.cellSize,
-              fgmState.cellSize,
-              vertexColors,
-              [valueInv, valueInv, 1]
-            );
-
-            addBufferedRect(
-              vertexPositions,
-              -y,
-              -x,
-              0,
-              fgmState.cellSize,
-              fgmState.cellSize,
-              vertexColors,
-              [valueInv, valueInv, 1]
-            );
-          } else if (this.coverMatrixMode === MODE_BARCHART) {
-            let d = fgmState.cellSize / numMatrices;
-
-            for (let t = 0; t < numMatrices; t++) {
-              value = 1 - this.pileMatrices[t].matrix[i][j];
-
-              x = -this.matrixWidthHalf + (i * fgmState.cellSize) + (d * t) + (d / 2);
-              y = +this.matrixWidthHalf - ((j + 0.5) * fgmState.cellSize);
-              addBufferedRect(
-                vertexPositions,
-                x,
-                y,
-                0,
-                d,
-                (1 - value) * fgmState.cellSize,
-                vertexColors,
-                [value, value, value]
-              );
-
-              x = -this.matrixWidthHalf + (j * fgmState.cellSize) + (d * t) + (d / 2);
-              y = +this.matrixWidthHalf - ((i + 0.5) * fgmState.cellSize);
-
-              addBufferedRect(
-                vertexPositions,
-                x,
-                y,
-                0,
-                d,
-                (1 - value) * fgmState.cellSize,
-                vertexColors,
-                [value, value, value]
-              );
-            }
-          } else if (
-            this.coverMatrixMode === MODE_DIFFERENCE &&
-            fgmState.piles.indexOf(this) > 0
-          ) {
-            value = (
-              this.coverMatrix[i][j] -
-              fgmState.piles[fgmState.piles.indexOf(this) - 1].coverMatrix[i][j]
-            );
-
-            valueInv = 1 - Math.abs(value);
-
-            if (value > 0) {
-              color = [valueInv, valueInv, 1];
-            } else {
-              color = [1, valueInv, valueInv];
-            }
-
-            addBufferedRect(
-              vertexPositions,
-              x,
-              y,
-              0,
-              fgmState.cellSize,
-              fgmState.cellSize,
-              vertexColors,
-              color
-            );
-            addBufferedRect(
-              vertexPositions,
-              -y,
-              -x,
-              0,
-              fgmState.cellSize,
-              fgmState.cellSize,
-              vertexColors,
-              color
-            );
-          } else if (
-            this.coverMatrixMode === MODE_DIRECT_DIFFERENCE &&
-            fgmState.hoveredPile &&
-            this !== fgmState.hoveredPile
-          ) {
-            value = (
-              fgmState.piles[
-                fgmState.piles.indexOf(fgmState.hoveredPile)
-              ].coverMatrix[i][j] -
-              this.coverMatrix[i][j]
-            );
-            valueInv = 1 - Math.abs(value);
-
-            if (value < 0) {
-              color = [valueInv, valueInv, 1];
-            } else {
-              color = [1, valueInv, valueInv];
-            }
-
-            addBufferedRect(
-              vertexPositions,
-              x,
-              y,
-              0,
-              fgmState.cellSize,
-              fgmState.cellSize,
-              vertexColors,
-              color
-            );
-            addBufferedRect(
-              vertexPositions,
-              -y,
-              -x,
-              0,
-              fgmState.cellSize,
-              fgmState.cellSize,
-              vertexColors,
-              color
-            );
-          } else {
-            for (let t = 0; t < numMatrices; t++) {
-              value += this.pileMatrices[t].matrix[i][j];
-            }
-            value /= numMatrices;
-            valueInv = 1 - Math.max(0, cellValue(value));
-
-            addBufferedRect(
-              vertexPositions,
-              x,
-              y,
-              0,
-              fgmState.cellSize,
-              fgmState.cellSize,
-              vertexColors,
-              [valueInv, valueInv, valueInv]
-            );
-            addBufferedRect(
-              vertexPositions,
-              -y,
-              -x,
-              0,
-              fgmState.cellSize,
-              fgmState.cellSize,
-              vertexColors,
-              [valueInv, valueInv, valueInv]
-            );
-          }
-        }
-      }
+      this.drawMultipleMatrices(vertexPositions, vertexColors);
     }
 
     // Draw previews
-    if (numMatrices > 1) {
+    if (this.pileMatrices.length > 1) {
       this.drawPreviews(vertexPositions, vertexColors);
     }
 
