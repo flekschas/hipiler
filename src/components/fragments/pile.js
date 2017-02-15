@@ -23,7 +23,6 @@ import {
   MODE_TREND,
   MODE_VARIABILITY,
   PILE_TOOL_SIZE,
-  PILING_DIRECTION,
   PREVIEW_SIZE,
   SHADER_ATTRIBUTES
 } from 'components/fragments/fragments-defaults';
@@ -41,6 +40,8 @@ import {
 } from 'components/fragments/fragments-utils';
 
 import caps from 'utils/caps';
+
+import COLORS from 'configs/colors';
 
 
 const logger = LogManager.getLogger('pile');  // eslint-disable-line no-unused-vars
@@ -417,6 +418,123 @@ export default class Pile {
   }
 
   /**
+   * Draw gap between matrices.
+   *
+   * @param {array} positions - Positions array to be changed in-place.
+   * @param {array} colors - Colors array to be changed in-place.
+   */
+  drawGap (positions, colors) {
+    // Needs refactoring
+    let valueInv = [1, 1, 1];
+
+    if (fgmState.hoveredGapPile && fgmState.hoveredGapPile === this) {
+      valueInv = [1, 0.7, 0.7];
+    }
+
+    addBufferedRect(
+      positions,
+      this.matrixWidthHalf + (MATRIX_GAP_HORIZONTAL / 2),
+      0,
+      -1,
+      MATRIX_GAP_HORIZONTAL,
+      this.matrixWidth,
+      colors,
+      valueInv
+    );
+  }
+
+  /**
+   * Draw pile menu
+   */
+  drawMenu () {
+    menuCommands.forEach((command, index) => {
+      command.pile = this;
+
+      let o = createRect(
+        command.name.length * LETTER_SPACE, PILE_TOOL_SIZE, command.color
+      );
+
+      let f = createRectFrame(
+        command.name.length * LETTER_SPACE, PILE_TOOL_SIZE, 0x000000, 5
+      );
+
+      o.add(f);
+
+      let textGeom = new TextGeometry(
+        command.name,
+        {
+          size: 8,
+          height: 1,
+          curveSegments: 1,
+          font: 'helvetiker'
+        }
+      );
+
+      let textMaterial = new MeshBasicMaterial({ color: 0xffffff });
+      let label = new Mesh(textGeom, textMaterial);
+
+      o.position.set(
+        (
+          this.x -
+          this.matrixWidthHalf -
+          (command.name.length * LETTER_SPACE / 2)
+        ),
+        (
+          this.y -
+          2 +
+          this.matrixWidthHalf -
+          (PILE_TOOL_SIZE / 2) -
+          (index * PILE_TOOL_SIZE)
+        ),
+        0.8
+      );
+
+      label.position.set(
+        -(command.name.length * LETTER_SPACE / 2) + 2, -4, 1
+      );
+      o.add(label);
+      o.pileTool = command;
+      o.scale.set(1 / this.scale, 1 / this.scale, 0.9);
+      fgmState.visiblePileTools.push(o);
+      fgmState.scene.add(o);
+    });
+  }
+
+  /**
+   * Draw pile label.
+   */
+  drawPileLabel () {
+    let labelText;
+
+    if (this.pileMatrices.length === 1) {
+      labelText = this.id + 1;
+    }
+
+    if (this.pileMatrices.length > 1) {
+      labelText = `${(
+        fgmState.matrices.indexOf(this.pileMatrices[0]) + 1
+      )} (${this.pileMatrices.length})`;
+
+      if (this.singleMatrix) {
+        labelText += `: ${this.singleMatrix.id + 1}`;
+      }
+    }
+
+    const label = createText(
+      labelText,
+      -this.matrixWidthHalf - 2,
+      -this.matrixWidthHalf - 13,
+      0,
+      8,
+      COLORS.GRAY
+    );
+
+    label.scale.set(1 / this.scale, 1 / this.scale, 1 / this.scale);
+
+    this.mesh.add(label);
+  }
+
+  /**
    * Contains all the drawing routines.
    *
    * @return {object} Self.
@@ -664,28 +782,13 @@ export default class Pile {
       }
     }
 
-    // UPDATE PREVIEWS
+    // Draw previews
     if (numMatrices > 1) {
       this.drawPreviews(vertexPositions, vertexColors);
     }
 
-    // CREATE GAP to next matrix
-    if (fgmState.hoveredGapPile && fgmState.hoveredGapPile === this) {
-      valueInv = [1, 0.7, 0.7];
-    } else {
-      valueInv = [1, 1, 1];
-    }
-
-    addBufferedRect(
-      vertexPositions,
-      this.matrixWidthHalf + (MATRIX_GAP_HORIZONTAL / 2),
-      0,
-      -1,
-      MATRIX_GAP_HORIZONTAL,
-      this.matrixWidth,
-      vertexColors,
-      valueInv
-    );
+    // Draw gap
+    this.drawGap(vertexPositions, vertexColors);
 
      // CREATE + ADD MESH
     this.geometry.addAttribute(
@@ -702,97 +805,11 @@ export default class Pile {
     this.mesh.scale.set(this.scale, this.scale, this.scale);
 
     if (this === fgmState.hoveredPile) {
-      menuCommands.forEach((command, index) => {
-        command.pile = this;
-
-        let o = createRect(
-          command.name.length * LETTER_SPACE, PILE_TOOL_SIZE, command.color
-        );
-
-        let f = createRectFrame(
-          command.name.length * LETTER_SPACE, PILE_TOOL_SIZE, 0x000000, 5
-        );
-
-        o.add(f);
-
-        let textGeom = new TextGeometry(
-          command.name,
-          {
-            size: 8,
-            height: 1,
-            curveSegments: 1,
-            font: 'helvetiker'
-          }
-        );
-
-        let textMaterial = new MeshBasicMaterial({ color: 0xffffff });
-        let label = new Mesh(textGeom, textMaterial);
-
-        o.position.set(
-          (
-            this.x -
-            this.matrixWidthHalf -
-            (command.name.length * LETTER_SPACE / 2)
-          ),
-          (
-            this.y -
-            2 +
-            this.matrixWidthHalf -
-            (PILE_TOOL_SIZE / 2) -
-            (index * PILE_TOOL_SIZE)
-          ),
-          0.8
-        );
-
-        label.position.set(
-          -(command.name.length * LETTER_SPACE / 2) + 2, -4, 1
-        );
-        o.add(label);
-        o.pileTool = command;
-        o.scale.set(1 / this.scale, 1 / this.scale, 0.9);
-        fgmState.visiblePileTools.push(o);
-        fgmState.scene.add(o);
-      });
+      this.drawMenu();
     }
 
     // ADD PILE ID LABEL
-    let label = createText(
-      fgmState.piles.indexOf(this) + 1,
-      -this.matrixWidthHalf - 2,
-      -this.matrixWidthHalf - 14,
-      0,
-      9,
-      0x888888
-    );
-    label.scale.set(1 / this.scale, 1 / this.scale, 1 / this.scale);
-    this.mesh.add(label);
-
-    // ADD MATRIX LABELS
-    let labelText = '';
-    if (this.pileMatrices.length > 1) {
-      if (this.singleMatrix) {
-        labelText = `${fgmState.matrices.indexOf(
-          this.singleMatrix
-        )}/${this.pileMatrices.length}`;
-      } else {
-        labelText = `${(
-          fgmState.matrices.indexOf(this.pileMatrices[0]) + 1
-        )}-${(
-          fgmState.matrices.indexOf(this.pileMatrices[this.pileMatrices.length - 1]) + 1
-        )} (${this.pileMatrices.length})`;
-      }
-
-      label = createText(
-        labelText,
-        -this.matrixWidthHalf + 20,
-        -this.matrixWidthHalf - 12,
-        0,
-        7,
-        0xffffff
-      );
-      label.scale.set(1 / this.scale, 1 / this.scale, 1 / this.scale);
-      this.mesh.add(label);
-    }
+    this.drawPileLabel();
 
     // FINISH
     this.mesh.add(this.matrixFrame);
