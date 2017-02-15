@@ -6,10 +6,13 @@ import {
   MODE_MEAN, MODE_TREND, MODE_VARIANCE
 } from 'components/fragments/fragments-defaults';
 
+import COLORS from 'configs/colors';
+
 export const DEPILE = {
   name: 'Depile',
   row: 2,
-  color: 0x7777ff,
+  color: COLORS.BLACK,
+  background: COLORS.PRIMARY,
   shortCut: 'D',
   trigger (pile) {
     States.store.dispatch(depile(MODE_MEAN, pile));
@@ -19,7 +22,8 @@ export const DEPILE = {
 
 export const MEAN = {
   name: 'Mean',
-  color: 0x444444,
+  color: COLORS.WHITE,
+  background: 0x444444,
   row: 0,
   shortCut: 'M',
   trigger (pile) {
@@ -30,7 +34,8 @@ export const MEAN = {
 
 export const TREND = {
   name: 'Trend',
-  color: 0x555555,
+  color: COLORS.WHITE,
+  background: 0x555555,
   row: 0,
   shortCut: 'T',
   trigger (pile) {
@@ -41,7 +46,8 @@ export const TREND = {
 
 export const VARIANCE = {
   name: 'Variance',
-  color: 0x666666,
+  color: COLORS.WHITE,
+  background: 0x666666,
   row: 0,
   shortCut: 'V',
   trigger (pile) {
