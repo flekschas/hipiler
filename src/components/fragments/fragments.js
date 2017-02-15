@@ -156,7 +156,6 @@ export class Fragments {
     this.dMat = [];
     this.pdMat = [];  // contains similarity between piles
     this.pdMax = 0;
-    this.visiblePileTools = [];
 
     this.pilingAnimations = [];
 
@@ -405,21 +404,24 @@ export class Fragments {
       return;
     }
 
-    let pile;
-
     if (this.hoveredTool) {
       this.hoveredTool.trigger(this.hoveredTool.pile);
       this.render();
       this.hoveredTool = undefined;
     } else if (this.hoveredGapPile) {
-      pile = this.hoveredGapPile;
+      this.pileBackwards(this.fgmState.hoveredGapPile);
       this.fgmState.hoveredGapPile = undefined;
-      this.pileBackwards(pile);
     } else if (this.hoveredMatrix) {
-      pile = this.hoveredMatrix;
-      this.hoveredMatrix = undefined;
       this.splitPile(this.hoveredMatrix);
+      this.hoveredMatrix = undefined;
     }
+
+    if (this.fgmState.hoveredPile) {
+      // Re-draw hovered pile to show menu.
+      this.fgmState.hoveredPile.draw();
+    }
+
+    this.render();
   }
 
   /**
@@ -464,8 +466,10 @@ export class Fragments {
       typeof this.hoveredMatrix === 'undefined'
     ) {
       this.mouseIsDownTimer = setInterval(() => {
+        console.log(this.fgmState.hoveredPile);
         this.openedPileRoot = this.fgmState.hoveredPile;
-        this.openedPileMatricesNum = this.fgmState.hoveredPile.pileMatrices.length - 1;
+        this.openedPileMatricesNum = this.fgmState.hoveredPile
+          .pileMatrices.length - 1;
         this.depile(this.openedPileRoot);
         clearInterval(this.mouseIsDownTimer);
       }, 500);
@@ -473,13 +477,12 @@ export class Fragments {
   }
 
   mouseMoveStuffHandler () {
-    this.fgmState.hoveredPile = undefined;
-
     this.raycaster.setFromCamera(this.mouse, this.camera);
 
     // test for menu-mouse over
-    if (this.visiblePileTools.length > 0) {
-      let intersects = this.raycaster.intersectObjects(this.visiblePileTools);
+    if (this.fgmState.visiblePileTools.length > 0) {
+      let intersects = this.raycaster
+        .intersectObjects(this.fgmState.visiblePileTools);
       if (intersects.length > 0) {
         this.hoveredTool = intersects[0].object.pileTool;
         return;
@@ -494,6 +497,10 @@ export class Fragments {
       let x = pileMesh.position.x;
       let y = pileMesh.position.y;
 
+      if (this.fgmState.hoveredPile !== pileMesh.pile) {
+        this.closePileMenu();
+      }
+
       this.fgmState.hoveredPile = pileMesh.pile;
 
       if (!this.lassoRectIsActive) {
@@ -505,7 +512,9 @@ export class Fragments {
         if (this.mouse.y > y + this.matrixWidthHalf) {
           let d = this.mouse.y - (y + this.matrixWidthHalf);
           let i = Math.floor(d / PREVIEW_SIZE);
-          this.fgmState.hoveredPile.showSingle(this.fgmState.hoveredPile.getMatrix(i));
+          this.fgmState.hoveredPile.showSingle(
+            this.fgmState.hoveredPile.getMatrix(i)
+          );
           this.hoveredMatrix = this.fgmState.hoveredPile.getMatrix(i);
         } else {
           this.fgmState.hoveredPile.showSingle(undefined);
@@ -520,9 +529,6 @@ export class Fragments {
         this.hoveredGapPile.draw();
         this.fgmState.hoveredGapPile = undefined;
       }
-
-      // Re-draw hovered pile to show menu.
-      this.fgmState.hoveredPile.draw();
 
       this.hoveredCell = undefined;
 
@@ -560,11 +566,9 @@ export class Fragments {
 
       this.previousHoveredPile = this.fgmState.hoveredPile;
     } else {
-      this.highlightPile();
+      this.fgmState.hoveredPile = undefined;
 
-      // NOTHING HOVERED
-      // _pileToolsVisible = false
-      this.visiblePileTools = [];
+      this.highlightPile();
 
       if (this.hoveredGapPile) {
         let p = this.hoveredGapPile;
@@ -573,7 +577,7 @@ export class Fragments {
       }
 
       if (this.previousHoveredPile) {
-        // this.previousHoveredPile.showSingle(undefined);
+        this.previousHoveredPile.showSingle(undefined);
         this.highlightFrame.visible = false;
         this.previousHoveredPile.draw();
         this.previousHoveredPile = undefined;
@@ -627,28 +631,6 @@ export class Fragments {
   }
 
   /**
-   * Convert local to global positions.
-   *
-   * @param {number} x - Local x position.
-   * @param {number} y - Local y position.
-   * @return {array} Array with global positions of form `[x, y]`.
-   */
-  relToAbsPosition (x, y) {
-    return [
-      this.relToAbsPositionX(x),
-      this.relToAbsPositionY(y)
-    ];
-  }
-
-  relToAbsPositionX (x) {
-    return ((x + 1) / 2 * this.plotElDim.width);
-  }
-
-  relToAbsPositionY (y) {
-    return ((y - 1) / 2 * this.plotElDim.height);
-  }
-
-  /**
    * General mouse move handler.
    *
    * @param {object} event - Mouse move event.
@@ -683,6 +665,11 @@ export class Fragments {
       this.mouseMoveStuffHandler();
     }
 
+    // Remove menu is no pile is hovered
+    if (!this.fgmState.hoveredPile) {
+      this.closePileMenu();
+    }
+
     this.mouseWentDown = false;
     this.render();
   }
@@ -694,6 +681,8 @@ export class Fragments {
    */
   canvasMouseUpHandler (event) {
     event.preventDefault();
+
+    this.mouseDownTimeDelta = Date.now() - this.mouseDownTime;
 
     this.fgmState.scene.updateMatrixWorld();
     this.camera.updateProjectionMatrix();
@@ -736,6 +725,16 @@ export class Fragments {
     this.mouseIsDown = false;
     this.mouseWentDown = false;
     this.lassoRectIsActive = false;
+  }
+
+  /**
+   * Close pile menu.
+   */
+  closePileMenu () {
+    this.fgmState.visiblePileTools.forEach((visiblePileTool) => {
+      this.fgmState.scene.remove(visiblePileTool);
+    });
+    this.fgmState.visiblePileTools = [];
   }
 
   /**
@@ -1111,6 +1110,16 @@ export class Fragments {
     return piles
       .map(pile => pile.pileMatrices)
       .reduce((a, b) => a.concat(b), []);
+  }
+
+  /**
+   * Helper method to show an error message
+   *
+   * @param {string} message - Error to be shown
+   */
+  hasErrored (message) {
+    this.isErrored = true;
+    this.errorMsg = message;
   }
 
   /**
@@ -1554,6 +1563,40 @@ export class Fragments {
   }
 
   /**
+   * Convert local to global positions.
+   *
+   * @param {number} x - Local x position.
+   * @param {number} y - Local y position.
+   * @return {array} Array with global positions of form `[x, y]`.
+   */
+  relToAbsPosition (x, y) {
+    return [
+      this.relToAbsPositionX(x),
+      this.relToAbsPositionY(y)
+    ];
+  }
+
+  /**
+   * Convert local to global X positions.
+   *
+   * @param {number} x - Local x position.
+   * @return {number} Global X position.
+   */
+  relToAbsPositionX (x) {
+    return ((x + 1) / 2 * this.plotElDim.width);
+  }
+
+  /**
+   * Convert local to global Y positions.
+   *
+   * @param {number} x - Local Y position.
+   * @return {number} Global Y position.
+   */
+  relToAbsPositionY (y) {
+    return ((y - 1) / 2 * this.plotElDim.height);
+  }
+
+  /**
    * [removeFromPile description]
    *
    * @param {[type]} pile - [description]
@@ -1570,10 +1613,6 @@ export class Fragments {
    */
   render () {
     this.renderer.render(this.fgmState.scene, this.camera);
-
-    this.visiblePileTools.forEach((visiblePileTool) => {
-      this.fgmState.scene.remove(visiblePileTool);
-    });
   }
 
   /**
@@ -1595,16 +1634,6 @@ export class Fragments {
    */
   setSimilarityPiling (value) {
     this.calculatePiles(value);
-  }
-
-  /**
-   * Helper method to show an error message
-   *
-   * @param {string} message - Error to be shown
-   */
-  hasErrored (message) {
-    this.isErrored = true;
-    this.errorMsg = message;
   }
 
   /**
