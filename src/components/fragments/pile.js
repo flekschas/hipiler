@@ -328,6 +328,95 @@ export default class Pile {
   }
 
   /**
+   * Draw a single matrix
+   *
+   * @param {array} matrix - Matrix to be drawn.
+   * @param {array} positions - Positions array to be changed in-place.
+   * @param {array} colors - Colors array to be changed in-place.
+   */
+  drawSingleMatrix (matrix, positions, colors) {
+    for (let i = 0; i < this.dims; i++) {
+      let x = (
+        -this.matrixWidthHalf +
+        (fgmState.cellSize / 2) +
+        (i * fgmState.cellSize)
+      );
+
+      for (let j = i; j < this.dims; j++) {
+        let y = (
+          this.matrixWidthHalf -
+          (fgmState.cellSize / 2) -
+          (j * fgmState.cellSize)
+        );
+
+        add2dSqrtBuffRect(
+          positions,
+          x,
+          y,
+          fgmState.cellSize,
+          colors,
+          this.getGrayTone(
+            cellValue(matrix[i][j]),
+            fgmState.showSpecialCells
+          )
+        );
+      }
+    }
+  }
+
+  /**
+   * Draw pile matrix previews.
+   *
+   * @param {array} positions - Positions array to be changed in-place.
+   * @param {array} colors - Colors array to be changed in-place.
+   */
+  drawPreviews (positions, colors) {
+    this.pileMatrices.forEach((pileMatrix, index) => {
+      let y = this.matrixWidthHalf + (PREVIEW_SIZE * (index + 1));
+
+      for (let i = 0; i < this.dims; i++) {
+        let value = 0;
+
+        for (let j = 0; j < this.dims; j++) {
+          value += pileMatrix.matrix[i][j];
+        }
+
+        let valueInv = 1 - cellValue(value / this.dims);
+
+        let x = (
+          -this.matrixWidthHalf +
+          (fgmState.cellSize * i) +
+          (fgmState.cellSize / 2)
+        );
+
+        // White border, i.e., spacing
+        addBufferedRect(
+          positions,
+          x,
+          y,
+          0.5,
+          fgmState.cellSize,
+          PREVIEW_SIZE,
+          colors,
+          [1, 1, 1]
+        );
+
+        // The actual preview
+        addBufferedRect(
+          positions,
+          x,
+          y,
+          0.5,
+          fgmState.cellSize,
+          PREVIEW_SIZE - 0.3,
+          colors,
+          [valueInv, valueInv, valueInv]
+        );
+      }
+    });
+  }
+
+  /**
    * Contains all the drawing routines.
    *
    * @return {object} Self.
@@ -353,89 +442,17 @@ export default class Pile {
     });
 
     if (this.isSingleMatrix) {
-      const matrix = this.singleMatrix.matrix;
-
-      for (let i = 0; i < this.dims; i++) {
-        x = -this.matrixWidthHalf + (fgmState.cellSize / 2) + (i * fgmState.cellSize);
-
-        for (let j = i; j < this.dims; j++) {
-          y = this.matrixWidthHalf - (fgmState.cellSize / 2) - (j * fgmState.cellSize);
-
-          if (
-            this.coverMatrixMode === MODE_DIFFERENCE &&
-            fgmState.piles.indexOf(this) > 0
-          ) {
-            value = (
-              this.coverMatrix[i][j] -
-              fgmState.piles[fgmState.piles.indexOf(this) - 1].coverMatrix[i][j]
-            );
-
-            valueInv = 1 - Math.abs(value);
-
-            if (value > 0) {
-              color = [valueInv, valueInv, 1];
-            } else {
-              color = [1, valueInv, valueInv];
-            }
-
-            add2dSqrtBuffRect(
-              vertexPositions,
-              x,
-              y,
-              fgmState.cellSize,
-              vertexColors,
-              color
-            );
-          } else if (
-            this.coverMatrixMode === MODE_DIRECT_DIFFERENCE &&
-            fgmState.hoveredPile &&
-            this !== fgmState.hoveredPile
-          ) {
-            value = (
-              fgmState.piles[
-                fgmState.piles.indexOf(fgmState.hoveredPile)
-              ].coverMatrix[i][j] -
-              this.coverMatrix[i][j]
-            );
-            valueInv = 1 - Math.abs(value);
-
-            if (valueInv < 0) {
-              color = [valueInv, valueInv, 1];
-            } else {
-              color = [1, valueInv, valueInv];
-            }
-
-            add2dSqrtBuffRect(
-              vertexPositions,
-              x,
-              y,
-              fgmState.cellSize,
-              vertexColors,
-              color
-            );
-          } else {
-            add2dSqrtBuffRect(
-              vertexPositions,
-              x,
-              y,
-              fgmState.cellSize,
-              vertexColors,
-              this.getGrayTone(
-                cellValue(matrix[i][j]),
-                fgmState.showSpecialCells
-              )
-            );
-          }
-        }
-      }
+      this.drawSingleMatrix(
+        this.singleMatrix.matrix,
+        vertexPositions,
+        vertexColors
+      );
     } else {
       // Show cover matrix
       for (let i = 0; i < this.dims; i++) {
-        // ni = thisNodes[i];
         x = -this.matrixWidthHalf + (fgmState.cellSize / 2) + (i * fgmState.cellSize);
 
         for (let j = i; j < this.dims; j++) {
-          // nj = thisNodes[j];
           value = 0;
           y = this.matrixWidthHalf - (fgmState.cellSize / 2) - (j * fgmState.cellSize);
 
@@ -648,66 +665,8 @@ export default class Pile {
     }
 
     // UPDATE PREVIEWS
-    if (this.pileMatrices > 1) {
-      this.pileMatrices.forEach((matrix, index) => {
-        y = this.matrixWidthHalf + (PREVIEW_SIZE * (index + 1));
-
-        for (let i = 0; i < this.dims; i++) {
-          value = 0;
-
-          for (let j = 0; j < this.dims; j++) {
-            value += matrix[i][j];
-          }
-
-          valueInv = 1 - cellValue(value / this.dims);
-
-          x = -this.matrixWidthHalf + (fgmState.cellSize * i) + (fgmState.cellSize / 2);
-
-          if (PILING_DIRECTION === 'vertical') {
-            addBufferedRect(
-              vertexPositions,
-              x,
-              y,
-              0.5,
-              fgmState.cellSize,
-              PREVIEW_SIZE,
-              vertexColors,
-              [1, 1, 1]
-            );
-            addBufferedRect(
-              vertexPositions,
-              x,
-              y,
-              0.5,
-              fgmState.cellSize,
-              PREVIEW_SIZE - 0.3,
-              vertexColors,
-              [valueInv, valueInv, valueInv]
-            );
-          } else {
-            addBufferedRect(
-              vertexPositions,
-              y,
-              x,
-              0.5,
-              PREVIEW_SIZE,
-              fgmState.cellSize,
-              vertexColors,
-              [1, 1, 1]
-            );
-            addBufferedRect(
-              vertexPositions,
-              y,
-              x,
-              0.5,
-              PREVIEW_SIZE - 0.3,
-              fgmState.cellSize,
-              vertexColors,
-              [valueInv, valueInv, valueInv]
-            );
-          }
-        }
-      });
+    if (numMatrices > 1) {
+      this.drawPreviews(vertexPositions, vertexColors);
     }
 
     // CREATE GAP to next matrix
