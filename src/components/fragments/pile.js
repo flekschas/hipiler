@@ -4,14 +4,13 @@ import { LogManager } from 'aurelia-framework';
 import { stats } from 'science';
 
 import {
-  BufferAttribute, BufferGeometry, Mesh, MeshBasicMaterial, TextGeometry
+  Box3, BufferAttribute, BufferGeometry, Mesh, MeshBasicMaterial, TextGeometry
 } from 'three';
 
 import menuCommands from 'components/fragments/pile-menu-commands';
 
 import {
   COLOR_LOW_QUALITY,
-  LETTER_SPACE,
   MATRIX_GAP_HORIZONTAL,
   METRIC_DIST_DIAG,
   METRIC_NOISE,
@@ -22,10 +21,11 @@ import {
   MODE_DIFFERENCE,
   MODE_TREND,
   MODE_VARIABILITY,
-  PILE_TOOL_SIZE,
   PREVIEW_SIZE,
   SHADER_ATTRIBUTES
 } from 'components/fragments/fragments-defaults';
+
+import { MENU_LABEL_SPACING } from 'components/fragments/pile-defaults';
 
 import fgmState from 'components/fragments/fragments-state';
 
@@ -662,9 +662,9 @@ export default class Pile {
     // Needs refactoring
     let valueInv = [1, 1, 1];
 
-    if (fgmState.hoveredGapPile && fgmState.hoveredGapPile === this) {
-      valueInv = [1, 0.7, 0.7];
-    }
+    // if (fgmState.hoveredGapPile && fgmState.hoveredGapPile === this) {
+    //   valueInv = [1, 0.7, 0.7];
+    // }
 
     addBufferedRect(
       positions,
@@ -682,57 +682,68 @@ export default class Pile {
    * Draw pile menu
    */
   drawMenu () {
-    return;
     menuCommands.forEach((command, index) => {
       command.pile = this;
 
-      let o = createRect(
-        command.name.length * LETTER_SPACE, PILE_TOOL_SIZE, command.color
-      );
+      console.log('draw menu', this.y);
 
-      let f = createRectFrame(
-        command.name.length * LETTER_SPACE, PILE_TOOL_SIZE, 0x000000, 5
-      );
-
-      o.add(f);
-
-      let textGeom = new TextGeometry(
+      const textGeom = new TextGeometry(
         command.name,
         {
           size: 8,
           height: 1,
-          curveSegments: 1,
-          font: 'helvetiker'
+          curveSegments: 5,
+          font: fgmState.font,
+          bevelEnabled: false
         }
       );
 
-      let textMaterial = new MeshBasicMaterial({ color: 0xffffff });
-      let label = new Mesh(textGeom, textMaterial);
+      const textMaterial = new MeshBasicMaterial({ color: command.color });
+      const label = new Mesh(textGeom, textMaterial);
 
-      o.position.set(
+      // Get label with
+      const labelBBox = new Box3().setFromObject(label).getSize();
+      const labelWidth = (
+        labelBBox.x + MENU_LABEL_SPACING
+      );
+      const labelHeight = (
+        labelBBox.y + MENU_LABEL_SPACING
+      );
+
+      const rect = createRect(
+        labelWidth, labelHeight, command.background
+      );
+
+      const frame = createRectFrame(
+        labelWidth, labelHeight, COLORS.BLACK, 5
+      );
+
+      rect.add(frame);
+
+      rect.position.set(
         (
           this.x -
           this.matrixWidthHalf -
-          (command.name.length * LETTER_SPACE / 2)
+          (labelWidth / 2)
         ),
         (
           this.y -
           2 +
           this.matrixWidthHalf -
-          (PILE_TOOL_SIZE / 2) -
-          (index * PILE_TOOL_SIZE)
+          (labelHeight / 2) -
+          (index * (labelHeight + 1))
         ),
-        0.8
+        1
       );
 
       label.position.set(
-        -(command.name.length * LETTER_SPACE / 2) + 2, -4, 1
+        -(labelWidth / 2) + 2, -4, 1
       );
-      o.add(label);
-      o.pileTool = command;
-      o.scale.set(1 / this.scale, 1 / this.scale, 0.9);
-      fgmState.visiblePileTools.push(o);
-      fgmState.scene.add(o);
+      rect.add(label);
+      rect.pileTool = command;
+      rect.scale.set(1 / this.scale, 1 / this.scale, 0.9);
+      fgmState.visiblePileTools.push(rect);
+      fgmState.scene.add(rect);
     });
   }
 
