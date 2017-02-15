@@ -39,6 +39,7 @@ import {
   ARRANGE_METRICS,
   CELL_SIZE,
   COLOR_PRIMARY,
+  DURATION,
   FONT_URL,
   FPS,
   HIGHLIGHT_FRAME_LINE_WIDTH,
@@ -702,14 +703,14 @@ export class Fragments {
     this.fgmState.scene.remove(this.lassoObject);
 
     if (this.openedPileRoot) {
-      let mats = [];
+      let piles = [];
       let openedPileIndex = this.fgmState.piles.indexOf(this.openedPileRoot);
 
       for (let i = 0; i <= this.openedPileMatricesNum; i++) {
-        mats.push(this.fgmState.piles[openedPileIndex + i].pileMatrices[0]);
+        piles.push(this.fgmState.piles[openedPileIndex + i]);
       }
 
-      this.pileUp(mats, this.fgmState.piles[openedPileIndex]);
+      this.pileUp(piles, this.fgmState.piles[openedPileIndex]);
 
       this.startAnimations();
       this.openedPileRoot = undefined;
@@ -721,7 +722,7 @@ export class Fragments {
         this.dragPile.moveTo(pos.x, pos.y, false);
         this.dragPile.elevateTo(0);
       } else {
-        this.pileUp(this.dragPile.pileMatrices, this.hoveredPile);
+        this.pileUp(this.dragPile, this.hoveredPile);
       }
 
       this.dragPile = undefined;
@@ -780,8 +781,7 @@ export class Fragments {
     });
 
     if (matrices.length > 0) {
-      this.pileUp(matrices, pilesSelected[0]);
-      // this.startAnimations();
+      this.pileUp(pilesSelected.slice(1), pilesSelected[0]);
     }
   }
 
@@ -1022,10 +1022,6 @@ export class Fragments {
   getLayoutPosition (pile) {
     const numArrMets = this.arrangeMetrics.length;
 
-    if (numArrMets === 1) {
-      return this.getLayoutPosition1D(pile.rank);
-    }
-
     // if (numArrMets === 2) {
     //   return this.getLayoutPosition2D(pile.ranking);
     // }
@@ -1034,7 +1030,7 @@ export class Fragments {
     //   return this.getLayoutPosition2D(pile.ranking);
     // }
 
-    return this.getLayoutPosition1D(pile.id);
+    return this.getLayoutPosition1D(pile.rank);
   }
 
   /**
@@ -1123,7 +1119,6 @@ export class Fragments {
    */
   highlightPile (pile) {
     if (typeof pile !== 'undefined') {
-      console.log('highlightPile', pile.x, pile.y);
       this.highlightFrame.position.set(pile.x, pile.y, 1);
       this.highlightFrame.visible = true;
       this.fgmState.scene.add(this.highlightFrame);
@@ -1370,20 +1365,20 @@ export class Fragments {
    */
   pileBackwards (pile) {
     let pileIndex = this.fgmState.piles.indexOf(pile);
-    let matrices = [];
+    let piles = [];
 
     if (pile.size === 1) {
       for (let j = pileIndex; j >= 0; j--) {
         if (j === 0 || this.fgmState.piles[j - 1].size() > 1) {
-          this.pileUp(matrices, this.fgmState.piles[j]);
+          this.pileUp(piles, this.fgmState.piles[j]);
           return;
         }
 
-        matrices.push(...this.fgmState.piles[j].getMatrices());
+        piles.push(...this.fgmState.piles[j]);
       }
     } else if (this.fgmState.piles.indexOf(pile) > 0) {
       this.pileUp(
-        pile.pileMatrices,
+        pile,
         this.fgmState.piles[this.fgmState.piles.indexOf(pile) - 1]
       );
     }
@@ -1397,31 +1392,109 @@ export class Fragments {
    *
    * @param {array} matrices - Number of matrices to be piled up
    * @param {object} targetPile - Target pile instance
+   * @param {boolean} noAnimation - If `true` animation is skipped.
    */
-  pileUp (matrices, targetPile) {
+  pileUp (piles, targetPile, noAnimation) {
     // Needs refactoring
     // this.pilingAnimations.push(new PilingAnimation(targetPile, matrices));
 
-    if (this.fgmState.animation) {
+    let animation;
 
+    // Duration in seconds
+    const durationSec = DURATION * 0.001;
+
+    // Convert to seconds
+    let timeLeft = durationSec;
+
+    if (this.fgmState.animation && !noAnimation) {
+      animation = new Promise((resolve, reject) => {
+        let firstTime = true;
+
+        targetPile.elevateTo(1);
+
+        // Store initial pile position difference
+        const diff = {};
+
+        let then = 0;
+
+        const animate = (now) => {
+          // Convert to seconds
+          now *= 0.001;
+
+          // Set then equal to now the first time
+          if (firstTime) {
+            then = now;
+          }
+
+          // Sum up time passed
+          timeLeft = Math.max(timeLeft - (now - then), 0);
+
+          // Remember the current time for the next frame.
+          then = now;
+
+          // Get the fraction we should have already moved
+          const fraction = timeLeft / durationSec;
+
+          piles.forEach((pile) => {
+            if (firstTime) {
+              diff[pile.id] = {
+                x: (targetPile.x - pile.x),
+                y: (targetPile.y - pile.y)
+              };
+            }
+
+            pile.moveTo(
+              targetPile.x - (diff[pile.id].x * fraction),
+              targetPile.y - (diff[pile.id].y * fraction),
+              true
+            );
+          });
+
+          this.render();
+
+          firstTime = false;
+
+          if (timeLeft > 0) {
+            window.requestAnimationFrame(animate);
+          } else {
+            targetPile.elevateTo(0);
+            resolve();
+          }
+        };
+
+        window.requestAnimationFrame(animate);
+      });
+    } else {
+      animation = Promise.resolve();
     }
 
-    matrices.forEach((matrix) => {
-      let sourcePile = matrix.pile;
+    animation.finally(() => {
+      const matrices = this.getPilesMatrices(piles);
 
-      sourcePile.removeMatrices([matrix]);
+      matrices.forEach((matrix) => {
+        let sourcePile = matrix.pile;
 
-      if (sourcePile.size === 0 && sourcePile !== targetPile) {
-        this.destroyPile(sourcePile);
-      }
+        sourcePile.removeMatrices([matrix]);
+
+        if (sourcePile.size === 0 && sourcePile !== targetPile) {
+          this.destroyPile(sourcePile);
+        }
+      });
+
+      targetPile.addMatrices(matrices);
+      this.sortByOriginalOrder(targetPile);
+
+      this.redrawPiles(this.fgmState.piles);
+
+      this.updateLayout();
+      this.render();
     });
+  }
 
-    targetPile.addMatrices(matrices);
-    this.sortByOriginalOrder(targetPile);
-
-    this.redrawPiles(this.fgmState.piles);
-    this.updateLayout(0, true);
-    this.render();
+  getPilesMatrices (piles) {
+    return piles
+      .map(pile => pile.pileMatrices)
+      .reduce((a, b) => a.concat(b), []);
   }
 
   /**
@@ -1451,17 +1524,19 @@ export class Fragments {
    * @param {boolean} desc - If `true` rank descending by metric.
    */
   rank (piles, metric, desc) {
-    // First we calculate the actual value
-    piles.forEach((pile) => {
-      pile.calculateMetrics([metric]);
-    });
+    if (metric) {
+      // First we calculate the actual value
+      piles.forEach((pile) => {
+        pile.calculateMetrics([metric]);
+      });
+    }
 
     // Next, we create a new simplified array that will actually be sorted.
     // Note: we won't sort the original pile array but instead only assign a
     // rank.
     const pilesSortHelper = piles.map(pile => ({
       id: pile.id,
-      value: pile.metrics[metric]
+      value: metric ? pile.metrics[metric] : pile.id
     }));
 
     const sortOrder = desc ? -1 : 1;
@@ -1471,7 +1546,7 @@ export class Fragments {
 
     // Finally, assign rank
     pilesSortHelper.forEach((pileSortHelper, index) => {
-      piles[pileSortHelper.id].rank = index;
+      this.fgmState.pilesIdx[pileSortHelper.id].rank = index;
     });
   }
 
@@ -1570,6 +1645,7 @@ export class Fragments {
 
       let m = [];
       for (let i = pileSrc.getMatrixPosition(matrix); i < pileSrc.size(); i++) {
+        // Needs refactoring
         m.push(pileSrc.getMatrix(i));
       }
 
@@ -1767,7 +1843,6 @@ export class Fragments {
    */
   updateAnimation (animation) {
     this.fgmState.animation = animation;
-    console.log('new animation', this.fgmState.animation);
   }
 
   /**
@@ -1853,6 +1928,14 @@ export class Fragments {
    * @param {number} pileRank - Rank of pile.
    */
   updateLayout (pileRank = 0) {
+    if (this.arrangeMetrics.length === 1) {
+      this.rank(this.fgmState.piles, this.arrangeMetrics[0]);
+    }
+
+    if (this.arrangeMetrics.length === 0) {
+      this.rank(this.fgmState.piles);
+    }
+
     this.fgmState.piles
       // Needs to be changed or disabled for 2D
       .filter(pile => pile.rank >= pileRank)

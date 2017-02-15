@@ -32,6 +32,7 @@ const State = {
   openedPileRoot: undefined,
   pileMeshes: [],
   piles: [],
+  pilesIdx: {},
   pilingMethod: 'clustered',
   previousHoveredPile: undefined,
   scene: new Scene(),
