@@ -97,8 +97,6 @@ export const ORDER_GLOBAL = 1;
 
 export const ORDER_LOCAL = 2;
 
-export const PILE_TOOL_SIZE = 15;
-
 export const PILING_DIRECTION = 'horizontal';
 
 export const PREVIEW_SIZE = 3;
@@ -153,7 +151,6 @@ export default {
   ORDER_DATA,
   ORDER_GLOBAL,
   ORDER_LOCAL,
-  PILE_TOOL_SIZE,
   PILING_DIRECTION,
   PREVIEW_SIZE,
   SHADER_ATTRIBUTES,
