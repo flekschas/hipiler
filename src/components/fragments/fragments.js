@@ -719,7 +719,7 @@ export class Fragments {
       // place pile on top of previous pile
       if (!this.hoveredPile) {
         let pos = this.getLayoutPosition(this.dragPile);
-        this.dragPile.moveTo(pos.x, pos.y, false);
+        this.dragPile.moveTo(pos.x, pos.y);
         this.dragPile.elevateTo(0);
       } else {
         this.pileUp(this.dragPile, this.hoveredPile);
@@ -939,7 +939,7 @@ export class Fragments {
   dragPileHandler () {
     const dir = new Vector2();
 
-    this.dragPile.moveTo(this.mouse.x, -this.mouse.y, false);
+    this.dragPile.moveTo(this.mouse.x, -this.mouse.y);
     this.dragPile.elevateTo(0.9);
 
     // test for hovered piles
@@ -969,7 +969,7 @@ export class Fragments {
     // Don't do raycasting. "Freeze" the current state of
     // highlighte items and move matrix with cursor.
     this.dragPile = this.hoveredPile;
-    this.dragPile.moveTo(this.mouse.x, -this.mouse.y, false);
+    this.dragPile.moveTo(this.mouse.x, -this.mouse.y);
     this.dragPile.elevateTo(0.9);
   }
 
@@ -1101,6 +1101,18 @@ export class Fragments {
     );
 
     return piling;
+  }
+
+  /**
+   * Get matrices of piles
+   *
+   * @param {array} piles - Piles.
+   * @return {array} List of matrices.
+   */
+  getPilesMatrices (piles) {
+    return piles
+      .map(pile => pile.pileMatrices)
+      .reduce((a, b) => a.concat(b), []);
   }
 
   /**
@@ -1347,18 +1359,6 @@ export class Fragments {
   }
 
   /**
-   * Orders piles by size
-   *
-   * @description
-   * For loops, size is equivalent to _distance to the diagonal_.
-   *
-   * @return  {[type]}     [description]
-   */
-  orderBySize (piles) {
-
-  }
-
-  /**
    * Piles all matrices prior to the selected one, including the selected one.
    *
    * @param {[type]} p - [description]
@@ -1472,6 +1472,8 @@ export class Fragments {
       const matrices = this.getPilesMatrices(piles);
 
       matrices.forEach((matrix) => {
+        console.log('ass', matrix);
+
         let sourcePile = matrix.pile;
 
         sourcePile.removeMatrices([matrix]);
@@ -1489,12 +1491,6 @@ export class Fragments {
       this.updateLayout();
       this.render();
     });
-  }
-
-  getPilesMatrices (piles) {
-    return piles
-      .map(pile => pile.pileMatrices)
-      .reduce((a, b) => a.concat(b), []);
   }
 
   /**
@@ -1941,7 +1937,7 @@ export class Fragments {
       .filter(pile => pile.rank >= pileRank)
       .forEach((pile, index) => {
         const pos = this.getLayoutPosition(pile);
-        pile.moveTo(pos.x, pos.y, PILING_DIRECTION !== 'vertical');
+        pile.moveTo(pos.x, pos.y);
       });
   }
 
