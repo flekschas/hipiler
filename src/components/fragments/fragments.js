@@ -476,7 +476,115 @@ export class Fragments {
     }
   }
 
-  mouseMoveStuffHandler () {
+  /**
+   * Handle mouse over pile
+   *
+   * @param {object} pileMesh - Pile mesh being moused over.
+   */
+  mouseOverPileHandler (pileMesh) {
+    let x = pileMesh.position.x;
+    let y = pileMesh.position.y;
+
+    if (this.fgmState.hoveredPile !== pileMesh.pile) {
+      this.closePileMenu();
+    }
+
+    this.fgmState.hoveredPile = pileMesh.pile;
+
+    if (!this.lassoRectIsActive) {
+      this.highlightPile(this.fgmState.hoveredPile);
+    }
+
+    // Preview single matrices of piles with multiple matrices
+    if (this.fgmState.hoveredPile.pileMatrices.length > 1) {
+      if (this.mouse.y > y + this.matrixWidthHalf) {
+        let d = this.mouse.y - (y + this.matrixWidthHalf);
+        let i = Math.floor(d / PREVIEW_SIZE);
+        this.fgmState.hoveredPile.showSingle(
+          this.fgmState.hoveredPile.getMatrix(i)
+        );
+        this.hoveredMatrix = this.fgmState.hoveredPile.getMatrix(i);
+      } else {
+        this.fgmState.hoveredPile.showSingle(undefined);
+        this.resetHighlightedPile();
+      }
+    }
+
+    // Check if we're hovering a gap
+    if (this.relToAbsPositionX(this.mouse.x) > x + this.matrixWidthHalf) {
+      this.fgmState.hoveredGapPile = this.fgmState.hoveredPile;
+    } else if (this.hoveredGapPile) {
+      this.hoveredGapPile.draw();
+      this.fgmState.hoveredGapPile = undefined;
+    }
+
+    this.hoveredCell = undefined;
+
+    if (event.shiftKey) {
+      // test which cell is hovered.
+      let col = Math.floor((this.mouse.x - (x - this.matrixWidthHalf)) / this.fgmState.cellSize);
+      let row = Math.floor(-(this.mouse.y - (y + this.matrixWidthHalf)) / this.fgmState.cellSize);
+      if (
+        row >= 0 ||
+        row < this.fgmState.focusNodes.length ||
+        col >= 0 ||
+        col < this.fgmState.focusNodes.length
+      ) {
+        this.fgmState.hoveredPile.updateLabels(true);
+        this.hoveredCell = { row, col };
+      }
+    }
+
+    for (let i = 0; i < this.fgmState.piles.length; i++) {
+      this.fgmState.piles[i].updateHoveredCell();
+      this.fgmState.piles[i].updateLabels(false);
+    }
+
+    this.fgmState.hoveredPile.updateLabels(true);
+
+    if (
+      (
+        !this.previousHoveredPile ||
+        this.previousHoveredPile !== this.fgmState.hoveredPile
+      ) &&
+      this.coverDispMode === MODE_DIRECT_DIFFERENCE
+    ) {
+      this.redrawPiles(this.fgmState.piles);
+    }
+
+    this.previousHoveredPile = this.fgmState.hoveredPile;
+  }
+
+  /**
+   * Handle pile mouse out events.
+   */
+  mouseOutPileHandler () {
+    this.fgmState.hoveredPile = undefined;
+
+    this.highlightPile();
+
+    if (this.hoveredGapPile) {
+      let p = this.hoveredGapPile;
+      this.fgmState.hoveredGapPile = undefined;
+      p.draw();
+    }
+
+    if (this.previousHoveredPile) {
+      this.previousHoveredPile.showSingle(undefined);
+      this.highlightFrame.visible = false;
+      this.previousHoveredPile.draw();
+      this.previousHoveredPile = undefined;
+    }
+
+    if (this.coverDispMode === MODE_DIRECT_DIFFERENCE) {
+      this.redrawPiles(this.fgmState.piles);
+    }
+  }
+
+  /**
+   * Handle general mouse moves
+   */
+  mouseMoveGeneralHandler () {
     this.raycaster.setFromCamera(this.mouse, this.camera);
 
     // test for menu-mouse over
@@ -493,99 +601,9 @@ export class Fragments {
     this.intersects = this.raycaster.intersectObjects(this.fgmState.pileMeshes);
 
     if (this.intersects.length) {
-      let pileMesh = this.intersects[0].object;
-      let x = pileMesh.position.x;
-      let y = pileMesh.position.y;
-
-      if (this.fgmState.hoveredPile !== pileMesh.pile) {
-        this.closePileMenu();
-      }
-
-      this.fgmState.hoveredPile = pileMesh.pile;
-
-      if (!this.lassoRectIsActive) {
-        this.highlightPile(this.fgmState.hoveredPile);
-      }
-
-      // Preview single matrices of piles with multiple matrices
-      if (this.fgmState.hoveredPile.pileMatrices.length > 1) {
-        if (this.mouse.y > y + this.matrixWidthHalf) {
-          let d = this.mouse.y - (y + this.matrixWidthHalf);
-          let i = Math.floor(d / PREVIEW_SIZE);
-          this.fgmState.hoveredPile.showSingle(
-            this.fgmState.hoveredPile.getMatrix(i)
-          );
-          this.hoveredMatrix = this.fgmState.hoveredPile.getMatrix(i);
-        } else {
-          this.fgmState.hoveredPile.showSingle(undefined);
-          this.resetHighlightedPile();
-        }
-      }
-
-      // Check if we're hovering a gap
-      if (this.relToAbsPositionX(this.mouse.x) > x + this.matrixWidthHalf) {
-        this.fgmState.hoveredGapPile = this.fgmState.hoveredPile;
-      } else if (this.hoveredGapPile) {
-        this.hoveredGapPile.draw();
-        this.fgmState.hoveredGapPile = undefined;
-      }
-
-      this.hoveredCell = undefined;
-
-      if (event.shiftKey) {
-        // test which cell is hovered.
-        let col = Math.floor((this.mouse.x - (x - this.matrixWidthHalf)) / this.fgmState.cellSize);
-        let row = Math.floor(-(this.mouse.y - (y + this.matrixWidthHalf)) / this.fgmState.cellSize);
-        if (
-          row >= 0 ||
-          row < this.fgmState.focusNodes.length ||
-          col >= 0 ||
-          col < this.fgmState.focusNodes.length
-        ) {
-          this.fgmState.hoveredPile.updateLabels(true);
-          this.hoveredCell = { row, col };
-        }
-      }
-
-      for (let i = 0; i < this.fgmState.piles.length; i++) {
-        this.fgmState.piles[i].updateHoveredCell();
-        this.fgmState.piles[i].updateLabels(false);
-      }
-
-      this.fgmState.hoveredPile.updateLabels(true);
-
-      if (
-        (
-          !this.previousHoveredPile ||
-          this.previousHoveredPile !== this.fgmState.hoveredPile
-        ) &&
-        this.coverDispMode === MODE_DIRECT_DIFFERENCE
-      ) {
-        this.redrawPiles(this.fgmState.piles);
-      }
-
-      this.previousHoveredPile = this.fgmState.hoveredPile;
+      this.mouseOverPileHandler(this.intersects[0].object);
     } else {
-      this.fgmState.hoveredPile = undefined;
-
-      this.highlightPile();
-
-      if (this.hoveredGapPile) {
-        let p = this.hoveredGapPile;
-        this.fgmState.hoveredGapPile = undefined;
-        p.draw();
-      }
-
-      if (this.previousHoveredPile) {
-        this.previousHoveredPile.showSingle(undefined);
-        this.highlightFrame.visible = false;
-        this.previousHoveredPile.draw();
-        this.previousHoveredPile = undefined;
-      }
-
-      if (this.coverDispMode === MODE_DIRECT_DIFFERENCE) {
-        this.redrawPiles(this.fgmState.piles);
-      }
+      this.mouseOutPileHandler();
     }
 
     // Draw rectangular lasso
@@ -662,7 +680,7 @@ export class Fragments {
     ) {
       this.dragPileStartHandler();
     } else {
-      this.mouseMoveStuffHandler();
+      this.mouseMoveGeneralHandler();
     }
 
     // Remove menu is no pile is hovered
