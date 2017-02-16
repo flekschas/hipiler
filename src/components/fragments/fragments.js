@@ -38,7 +38,9 @@ import {
 import {
   ARRANGE_METRICS,
   CELL_SIZE,
+  CLICK_DELAY_TIME,
   COLOR_PRIMARY,
+  DBL_CLICK_DELAY_TIME,
   DURATION,
   FONT_URL,
   FPS,
@@ -165,6 +167,8 @@ export class Fragments {
     this.fgmState.showSpecialCells = false;
 
     this.isLoading = true;
+
+    this.mouseClickCounter = 0;
 
     this.arrangeSelectedEventId = 'fgm.arrange';
     this.metrics = [{
@@ -394,10 +398,9 @@ export class Fragments {
   }
 
   /**
-   * [canvasClickHandler description]
+   * Handle click events
    *
-   * @param {[type]} event - [description]
-   * @return {[type]} [description]
+   * @param {object} event - Event object
    */
   canvasClickHandler (event) {
     if (this.mouseIsDown) {
@@ -416,7 +419,7 @@ export class Fragments {
       this.hoveredMatrix = undefined;
     }
 
-    if (this.fgmState.hoveredPile) {
+    if (this.fgmState.hoveredPile && !this.lassoRectIsActive) {
       // Re-draw hovered pile to show menu.
       this.fgmState.hoveredPile.draw();
     }
@@ -425,24 +428,25 @@ export class Fragments {
   }
 
   /**
-   * [canvasDblClickHandler description]
+   * Handle double click events.
    *
-   * @param {[type]} event - [description]
-   * @return {[type]} [description]
+   * @param {object} event - Event object.
    */
   canvasDblClickHandler (event) {
-    event.preventDefault();
-
-    if (this.fgmState.hoveredPile && this.fgmState.hoveredPile !== this.openedPile) {
+    // What is this good for?
+    if (
+      this.fgmState.hoveredPile &&
+      this.fgmState.hoveredPile !== this.openedPile
+    ) {
       this.openedPileRoot = this.fgmState.hoveredPile;
     } else {
       this.openedPile = this.fgmState.hoveredPile;
     }
 
-    const pile = this.fgmState.hoveredPile;
-
-    this.fgmState.hoveredPile = undefined;
-    this.depile(pile);
+    if (this.fgmState.hoveredPile) {
+      this.depile(this.fgmState.hoveredPile);
+      this.fgmState.hoveredPile = undefined;
+    }
   }
 
   /**
@@ -458,6 +462,8 @@ export class Fragments {
       x: this.mouse.x,
       y: this.mouse.y
     };
+
+    this.mouseDownTime = Date.now();
 
     // test if mouse dwells on a matrix -> open pile
     if (
@@ -693,6 +699,46 @@ export class Fragments {
   }
 
   /**
+   * Handle mouse clicks manually
+   *
+   * @description
+   * Single and double mouse clicks interfere with mouse up events when
+   * listeneing to them separately.
+   *
+   * @param {object} event - Event object.
+   */
+  canvasMouseClickHandler (event) {
+    this.mouseDownTimeDelta = Date.now() - this.mouseDownTime;
+
+    if (Date.now() - this.mouseDownTime < CLICK_DELAY_TIME) {
+      this.mouseClickCounter += 1;
+
+      switch (this.mouseClickCounter) {
+        case 2:
+          clearTimeout(this.mouseClickTimeout);
+          this.canvasDblClickHandler(event);
+          this.mouseClickCounter = 0;
+          break;
+
+        default:
+          this.mouseClickTimeout = setTimeout(() => {
+            this.canvasClickHandler(event);
+            this.mouseClickCounter = 0;
+          }, DBL_CLICK_DELAY_TIME);
+          break;
+      }
+    } else {
+      this.mouseClickCounter = 0;
+    }
+
+    console.log(
+      'mouseDownTimeDelta',
+      this.mouseClickCounter,
+      this.mouseDownTimeDelta
+    );
+  }
+
+  /**
    * Handle mouse up events on the canvas.
    *
    * @param {object} event - Mouse up event.
@@ -700,7 +746,7 @@ export class Fragments {
   canvasMouseUpHandler (event) {
     event.preventDefault();
 
-    this.mouseDownTimeDelta = Date.now() - this.mouseDownTime;
+    this.canvasMouseClickHandler(event);
 
     this.fgmState.scene.updateMatrixWorld();
     this.camera.updateProjectionMatrix();
@@ -1171,12 +1217,6 @@ export class Fragments {
    */
   initEventListeners () {
     this.canvas.addEventListener(
-      'click', this.canvasClickHandler.bind(this)
-    );
-    this.canvas.addEventListener(
-      'dblclick', this.canvasDblClickHandler.bind(this)
-    );
-    this.canvas.addEventListener(
       'mousedown', this.canvasMouseDownHandler.bind(this)
     );
     this.canvas.addEventListener(
@@ -1497,8 +1537,6 @@ export class Fragments {
       const matrices = this.getPilesMatrices(piles);
 
       matrices.forEach((matrix) => {
-        console.log('ass', matrix);
-
         let sourcePile = matrix.pile;
 
         sourcePile.removeMatrices([matrix]);
