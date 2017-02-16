@@ -23,7 +23,10 @@ import {
   SHADER_ATTRIBUTES
 } from 'components/fragments/fragments-defaults';
 
-import { MENU_LABEL_SPACING } from 'components/fragments/pile-defaults';
+import {
+  MENU_LABEL_SPACING,
+  MENU_PADDING
+} from 'components/fragments/pile-defaults';
 
 import fgmState from 'components/fragments/fragments-state';
 
@@ -604,11 +607,15 @@ export default class Pile {
    * Draw pile menu
    */
   drawMenu () {
-    menuCommands.forEach((command, index) => {
+    let maxWidth = 0;
+    let labels = [];
+
+    // Frist create labels
+    menuCommands.forEach((command) => {
       command.pile = this;
 
       const textGeom = new TextGeometry(
-        command.name,
+        command.name.toUpperCase(),
         {
           size: 8,
           height: 1,
@@ -623,10 +630,10 @@ export default class Pile {
 
       // Get label with
       const labelBBox = new Box3().setFromObject(label).getSize();
-      const labelWidth = (
+      const labelWidth = Math.ceil(
         labelBBox.x + MENU_LABEL_SPACING
       );
-      const labelHeight = (
+      const labelHeight = Math.ceil(
         labelBBox.y + MENU_LABEL_SPACING
       );
 
@@ -639,32 +646,47 @@ export default class Pile {
       );
 
       rect.add(frame);
+      rect.add(label);
+      rect.pileTool = command;
+      rect.scale.set(1 / this.scale, 1 / this.scale, 0.9);
 
-      rect.position.set(
-        (
-          this.x +
-          2 -
-          this.matrixWidthHalf -
-          (labelWidth / 2)
-        ),
+      labels.push({
+        label,
+        width: labelWidth,
+        height: labelHeight,
+        rect,
+        frame
+      });
+
+      maxWidth = Math.max(maxWidth, labelWidth);
+    });
+
+    // Next create the rectangle and position the buttons
+    labels.forEach((label, index) => {
+      let x = this.x + MENU_PADDING - this.matrixWidthHalf - (label.width / 2);
+
+      if (x < 0) {
+        x = this.x + this.matrixWidthHalf - MENU_PADDING + (label.width / 2);
+      }
+
+      label.rect.position.set(
+        x,
         (
           this.y -
-          2 +
+          MENU_PADDING +
           this.matrixWidthHalf -
-          (labelHeight / 2) -
-          (index * (labelHeight + 1))
+          (label.height / 2) -
+          (index * (label.height + 1))
         ),
         1
       );
 
-      label.position.set(
-        -(labelWidth / 2) + 2, -4, 1
+      label.label.position.set(
+        -(label.width / 2) + 2, -4, 1
       );
-      rect.add(label);
-      rect.pileTool = command;
-      rect.scale.set(1 / this.scale, 1 / this.scale, 0.9);
-      fgmState.visiblePileTools.push(rect);
-      fgmState.scene.add(rect);
+
+      fgmState.visiblePileTools.push(label.rect);
+      fgmState.scene.add(label.rect);
     });
   }
 
