@@ -1,12 +1,16 @@
+import { Container } from 'aurelia-framework';
+
 import States from 'services/states';
 
 import { depile, setPileMode } from 'components/fragments/fragments-actions';
 
 import {
-  MODE_MEAN, MODE_TREND, MODE_VARIANCE
+  MODE_MEAN, MODE_TREND, MODE_VARIANCE, MODE_DIFFERENCE
 } from 'components/fragments/fragments-defaults';
 
 import COLORS from 'configs/colors';
+
+const store = Container.instance.get(States).store;
 
 export const DEPILE = {
   name: 'Depile',
@@ -15,7 +19,7 @@ export const DEPILE = {
   background: COLORS.PRIMARY,
   shortCut: 'D',
   trigger (pile) {
-    States.store.dispatch(depile(MODE_MEAN, pile));
+    store.dispatch(depile(MODE_MEAN, pile));
   },
   single: false
 };
@@ -27,7 +31,7 @@ export const MEAN = {
   row: 0,
   shortCut: 'M',
   trigger (pile) {
-    States.store.dispatch(setPileMode(MODE_MEAN, pile));
+    store.dispatch(setPileMode(MODE_MEAN, pile));
   },
   single: false
 };
@@ -39,7 +43,7 @@ export const TREND = {
   row: 0,
   shortCut: 'T',
   trigger (pile) {
-    States.store.dispatch(setPileMode(MODE_TREND, pile));
+    store.dispatch(setPileMode(MODE_TREND, pile));
   },
   single: false
 };
@@ -51,7 +55,19 @@ export const VARIANCE = {
   row: 0,
   shortCut: 'V',
   trigger (pile) {
-    States.store.dispatch(setPileMode(MODE_VARIANCE, pile));
+    store.dispatch(setPileMode(MODE_VARIANCE, pile));
+  },
+  single: false
+};
+
+export const DIFFERENCE = {
+  name: 'Difference',
+  color: COLORS.WHITE,
+  background: 0x777777,
+  row: 0,
+  shortCut: 'F',
+  trigger (pile) {
+    store.dispatch(setPileMode(MODE_DIFFERENCE, pile));
   },
   single: false
 };
@@ -60,5 +76,6 @@ export default [
   DEPILE,
   MEAN,
   TREND,
-  VARIANCE
+  VARIANCE,
+  DIFFERENCE
 ];
