@@ -16,11 +16,9 @@ import {
   METRIC_NOISE,
   METRIC_SHARPNESS,
   METRIC_SIZE,
-  MODE_BARCHART,
-  MODE_DIRECT_DIFFERENCE,
   MODE_DIFFERENCE,
   MODE_TREND,
-  MODE_VARIABILITY,
+  MODE_VARIANCE,
   PREVIEW_SIZE,
   SHADER_ATTRIBUTES
 } from 'components/fragments/fragments-defaults';
@@ -343,7 +341,7 @@ export default class Pile {
         (i * fgmState.cellSize)
       );
 
-      for (let j = i; j < this.dims; j++) {
+      for (let j = 0; j < this.dims; j++) {
         let y = (
           this.matrixWidthHalf -
           (fgmState.cellSize / 2) -
@@ -352,8 +350,8 @@ export default class Pile {
 
         add2dSqrtBuffRect(
           positions,
-          x,
-          y,
+          -y,
+          -x,
           fgmState.cellSize,
           colors,
           this.getGrayTone(
@@ -418,6 +416,144 @@ export default class Pile {
   }
 
   /**
+   * Draw difference cover matrix.
+   *
+   * @param {array} positions - Positions array to be changed in-place.
+   * @param {array} colors - Colors array to be changed in-place.
+   * @param {number} numMatrices - Number of matrices.
+   * @param {number} x - X coordinate.
+   * @param {number} y - Y coordinate.
+   * @param {number} i - I matrix index.
+   * @param {number} j - J matrix index.
+   */
+  drawCoverDifference (positions, colors, numMatrices, x, y, i, j) {
+    let value = (
+      this.coverMatrix[i][j] -
+      fgmState.piles[fgmState.piles.indexOf(this) - 1].coverMatrix[i][j]
+    );
+
+    let valueInv = 1 - Math.abs(value);
+    let color = [1, valueInv, valueInv];
+
+    if (value > 0) {
+      color = [valueInv, valueInv, 1];
+    }
+
+    add2dSqrtBuffRect(
+      positions,
+      -y,
+      -x,
+      fgmState.cellSize,
+      colors,
+      color
+    );
+  }
+
+  /**
+   * Draw mean cover matrix.
+   *
+   * @param {array} positions - Positions array to be changed in-place.
+   * @param {array} colors - Colors array to be changed in-place.
+   * @param {number} numMatrices - Number of matrices.
+   * @param {number} x - X coordinate.
+   * @param {number} y - Y coordinate.
+   * @param {number} i - I matrix index.
+   * @param {number} j - J matrix index.
+   */
+  drawCoverMean (positions, colors, numMatrices, x, y, i, j) {
+    let value = 0;
+
+    this.pileMatrices.forEach((pileMatrix) => {
+      // Make sure we're not subtracting low quality bins, which have a value
+      // of `-1`.
+      if (pileMatrix.matrix[i][j] > 0) {
+        value += pileMatrix.matrix[i][j];
+      }
+    });
+
+    value /= numMatrices;
+
+    const valueInv = 1 - cellValue(value);
+
+    add2dSqrtBuffRect(
+      positions,
+      -y,
+      -x,
+      fgmState.cellSize,
+      colors,
+      [valueInv, valueInv, valueInv]
+    );
+  }
+
+  /**
+   * Draw trend cover matrix.
+   *
+   * @description
+   * Not sure what this means right now
+   *
+   * @param {array} positions - Positions array to be changed in-place.
+   * @param {array} colors - Colors array to be changed in-place.
+   * @param {number} numMatrices - Number of matrices.
+   * @param {number} x - X coordinate.
+   * @param {number} y - Y coordinate.
+   * @param {number} i - I matrix index.
+   * @param {number} j - J matrix index.
+   */
+  drawCoverTrend (positions, colors, numMatrices, x, y, i, j) {
+    const value = (
+      this.pileMatrices[this.pileMatrices.length - 1].matrix[i][j] -
+      this.pileMatrices[0].matrix[i][j]
+    );
+    const valueInv = 1 - Math.abs(value);
+
+    let color = [1, valueInv, valueInv];
+
+    if (value > 0) {
+      color = [valueInv, valueInv, 1];
+    }
+
+    add2dSqrtBuffRect(
+      positions,
+      -y,
+      -x,
+      fgmState.cellSize,
+      colors,
+      color
+    );
+  }
+
+  /**
+   * Draw the standard variation
+   *
+   * @param {array} positions - Positions array to be changed in-place.
+   * @param {array} colors - Colors array to be changed in-place.
+   * @param {number} numMatrices - Number of matrices.
+   * @param {number} x - X coordinate.
+   * @param {number} y - Y coordinate.
+   * @param {number} i - I matrix index.
+   * @param {number} j - J matrix index.
+   */
+  drawCoverVariance (positions, colors, numMatrices, x, y, i, j) {
+    const values = [];
+
+    this.pileMatrices.forEach((pileMatrix) => {
+      values.push(pileMatrix.matrix[i][j]);
+    });
+
+    // standard deviation = varianz^2
+    const value = 1 - cellValue(Math.sqrt(stats.variance(values)));
+
+    add2dSqrtBuffRect(
+      positions,
+      -y,
+      -x,
+      fgmState.cellSize,
+      colors,
+      [value, value, 1]
+    );
+  }
+
+  /**
    * Draw multiple matrices.
    *
    * @param {array} positions - Positions array to be changed in-place.
@@ -434,219 +570,26 @@ export default class Pile {
         (i * fgmState.cellSize)
       );
 
-      for (let j = i; j < this.dims; j++) {
-        let value = 0;
-        let valueInv = 1;
+      for (let j = 0; j < this.dims; j++) {
         let y = (
           this.matrixWidthHalf -
           (fgmState.cellSize / 2) -
           (j * fgmState.cellSize)
         );
-        let color;
 
-        if (this.coverMatrixMode === MODE_TREND) {
-          value = (
-            this.pileMatrices[this.pileMatrices.length - 1].matrix[i][j] -
-            this.pileMatrices[0].matrix[i][j]
-          );
-          valueInv = 1 - Math.abs(value);
-
-          color = [1, valueInv, valueInv];
-
-          if (value > 0) {
-            color = [valueInv, valueInv, 1];
-          }
-
-          addBufferedRect(
-            positions,
-            x,
-            y,
-            0,
-            fgmState.cellSize,
-            fgmState.cellSize,
-            colors,
-            color
-          );
-
-          addBufferedRect(
-            positions,
-            -y,
-            -x,
-            0,
-            fgmState.cellSize,
-            fgmState.cellSize,
-            colors,
-            color
-          );
-        } else if (this.coverMatrixMode === MODE_VARIABILITY) {
-          value = 0;
-          const arr = [];
-
-          for (let t = 1; t < numMatrices; t++) {
-            arr.push(this.pileMatrices[t].matrix[i][j]);
-          }
-
-          // standard deviation = varianz^2
-          value = Math.sqrt(stats.variance(x));
-          valueInv = 1 - Math.abs(cellValue(value));
-
-          addBufferedRect(
-            positions,
-            x,
-            y,
-            0,
-            fgmState.cellSize,
-            fgmState.cellSize,
-            colors,
-            [valueInv, valueInv, 1]
-          );
-
-          addBufferedRect(
-            positions,
-            -y,
-            -x,
-            0,
-            fgmState.cellSize,
-            fgmState.cellSize,
-            colors,
-            [valueInv, valueInv, 1]
-          );
-        } else if (this.coverMatrixMode === MODE_BARCHART) {
-          let d = fgmState.cellSize / numMatrices;
-
-          for (let t = 0; t < numMatrices; t++) {
-            value = 1 - this.pileMatrices[t].matrix[i][j];
-
-            x = -this.matrixWidthHalf + (i * fgmState.cellSize) + (d * t) + (d / 2);
-            y = +this.matrixWidthHalf - ((j + 0.5) * fgmState.cellSize);
-            addBufferedRect(
-              positions,
-              x,
-              y,
-              0,
-              d,
-              (1 - value) * fgmState.cellSize,
-              colors,
-              [value, value, value]
-            );
-
-            x = -this.matrixWidthHalf + (j * fgmState.cellSize) + (d * t) + (d / 2);
-            y = +this.matrixWidthHalf - ((i + 0.5) * fgmState.cellSize);
-
-            addBufferedRect(
-              positions,
-              x,
-              y,
-              0,
-              d,
-              (1 - value) * fgmState.cellSize,
-              colors,
-              [value, value, value]
-            );
-          }
-        } else if (
-          this.coverMatrixMode === MODE_DIFFERENCE &&
-          fgmState.piles.indexOf(this) > 0
-        ) {
-          value = (
-            this.coverMatrix[i][j] -
-            fgmState.piles[fgmState.piles.indexOf(this) - 1].coverMatrix[i][j]
-          );
-
-          valueInv = 1 - Math.abs(value);
-
-          if (value > 0) {
-            color = [valueInv, valueInv, 1];
-          } else {
-            color = [1, valueInv, valueInv];
-          }
-
-          addBufferedRect(
-            positions,
-            x,
-            y,
-            0,
-            fgmState.cellSize,
-            fgmState.cellSize,
-            colors,
-            color
-          );
-          addBufferedRect(
-            positions,
-            -y,
-            -x,
-            0,
-            fgmState.cellSize,
-            fgmState.cellSize,
-            colors,
-            color
-          );
-        } else if (
-          this.coverMatrixMode === MODE_DIRECT_DIFFERENCE &&
-          fgmState.hoveredPile &&
-          this !== fgmState.hoveredPile
-        ) {
-          value = (
-            fgmState.piles[
-              fgmState.piles.indexOf(fgmState.hoveredPile)
-            ].coverMatrix[i][j] -
-            this.coverMatrix[i][j]
-          );
-          valueInv = 1 - Math.abs(value);
-
-          if (value < 0) {
-            color = [valueInv, valueInv, 1];
-          } else {
-            color = [1, valueInv, valueInv];
-          }
-
-          addBufferedRect(
-            positions,
-            x,
-            y,
-            0,
-            fgmState.cellSize,
-            fgmState.cellSize,
-            colors,
-            color
-          );
-          addBufferedRect(
-            positions,
-            -y,
-            -x,
-            0,
-            fgmState.cellSize,
-            fgmState.cellSize,
-            colors,
-            color
-          );
-        } else {
-          for (let t = 0; t < numMatrices; t++) {
-            value += this.pileMatrices[t].matrix[i][j];
-          }
-          value /= numMatrices;
-          valueInv = 1 - Math.max(0, cellValue(value));
-
-          addBufferedRect(
-            positions,
-            x,
-            y,
-            0,
-            fgmState.cellSize,
-            fgmState.cellSize,
-            colors,
-            [valueInv, valueInv, valueInv]
-          );
-          addBufferedRect(
-            positions,
-            -y,
-            -x,
-            0,
-            fgmState.cellSize,
-            fgmState.cellSize,
-            colors,
-            [valueInv, valueInv, valueInv]
-          );
+        switch (this.coverMatrixMode) {
+          case MODE_TREND:
+            this.drawCoverTrend(positions, colors, numMatrices, x, y, i, j);
+            break;
+          case MODE_VARIANCE:
+            this.drawCoverTrend(positions, colors, numMatrices, x, y, i, j);
+            break;
+          case MODE_DIFFERENCE:
+            this.drawCoverDifference(positions, colors, numMatrices, x, y, i, j);
+            break;
+          default:
+            this.drawCoverMean(positions, colors, numMatrices, x, y, i, j);
+            break;
         }
       }
     }
@@ -685,8 +628,6 @@ export default class Pile {
     menuCommands.forEach((command, index) => {
       command.pile = this;
 
-      console.log('draw menu', this.y);
-
       const textGeom = new TextGeometry(
         command.name,
         {
@@ -722,7 +663,8 @@ export default class Pile {
 
       rect.position.set(
         (
-          this.x -
+          this.x +
+          2 -
           this.matrixWidthHalf -
           (labelWidth / 2)
         ),
