@@ -100,7 +100,6 @@ function calculateDistance (matrix1, matrix2) {
  */
 export function add2dSqrtBuffRect (positions, x, y, w, colors, color) {
   addBufferedRect(positions, x, y, 0, w, w, colors, color);
-  addBufferedRect(positions, -y, -x, 0, w, w, colors, color);
 }
 
 /**
