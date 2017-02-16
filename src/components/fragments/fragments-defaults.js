@@ -64,32 +64,33 @@ export const METRIC_SHARPNESS = 'sharpness';
 
 export const METRIC_SIZE = 'size';
 
-export const MODE_BARCHART = 1;
-
-export const MODE_DIFFERENCE = 4;
-
-export const MODE_DIRECT_DIFFERENCE = 5;
-
 /**
  * Harmonic Mean
  *
- * @type  {Number}
+ * @type {Number}
  */
 export const MODE_MEAN = 0;
 
 /**
  * Not sure
  *
- * @type  {Number}
+ * @type {Number}
  */
-export const MODE_TREND = 2;
+export const MODE_TREND = 1;
 
 /**
  * Statistical variance
  *
- * @type  {Number}
+ * @type {Number}
  */
-export const MODE_VARIANCE = 3;
+export const MODE_VARIANCE = 2;
+
+/**
+ * Stuff
+ *
+ * @type {Number}
+ */
+export const MODE_DIFFERENCE = 3;
 
 export const ORDER_DATA = 0;
 
@@ -142,9 +143,7 @@ export default {
   MARGIN_TOP,
   MATRIX_GAP_HORIZONTAL,
   MATRIX_GAP_VERTICAL,
-  MODE_BARCHART,
   MODE_DIFFERENCE,
-  MODE_DIRECT_DIFFERENCE,
   MODE_MEAN,
   MODE_TREND,
   MODE_VARIANCE,
