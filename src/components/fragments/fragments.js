@@ -392,8 +392,8 @@ export class Fragments {
           parseInt(event.target.selectedOptions[0].value, 10)
         )
       );
-    } catch (e) {
-      logger.error('Display mode could not be set.');
+    } catch (error) {
+      logger.error('Display mode could not be set.', error);
     }
   }
 
@@ -726,9 +726,7 @@ export class Fragments {
    * @param {object} event - Event object.
    */
   changeCoverDispMode (event) {
-    console.log('changeCoverDispMode', event);
-    event.pile.coverMatrixMode = event.mode;
-    event.pile.draw();
+    event.pile.setCoverMatrixMode(event.mode).draw();
 
     this.render();
   }
@@ -1048,6 +1046,13 @@ export class Fragments {
     this.redrawPiles(this.fgmState.piles);
     this.updateLayout(0, true);
     this.render();
+  }
+
+  /**
+   * Toggle footer
+   */
+  footerToggle () {
+    this.footerIsExpanded = !this.footerIsExpanded;
   }
 
   /**
@@ -1432,7 +1437,6 @@ export class Fragments {
         this.hoveredTool = intersects[0].object.pileTool;
 
         if (this.hoveredTool.triggerEvent === 'hover') {
-          console.log(this.fgmState.hoveredPile);
           this.hoveredTool.trigger(this.fgmState.hoveredPile);
         }
         return;
@@ -1712,9 +1716,7 @@ export class Fragments {
    * @param {[type]} piles - [description]
    */
   setPileMode (mode, piles) {
-    for (let i = 0; i < piles.length; i++) {
-      piles[i].setCoverMatrixMode(mode);
-    }
+    piles.forEach((pile) => { pile.setCoverMatrixMode(mode); });
   }
 
   /**

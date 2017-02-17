@@ -18,94 +18,105 @@
       <div class="full-dim" background-color="yellow" ref="plotEl"></div>
     </main>
     <footer class="flex-c bottom-bar ${footerIsExpanded ? 'is-expanded' : ''}">
-      <ul class="flex-c flex-i-1 settings-list">
-        <li class="flex-c flex-d-c">
-          <label for="settings-fgm-size">Fragment Size</label>
-          <input
-            id="settings-fgm-size"
-            type="range"
-            min="1"
-            max="10"
-            step="1"
-            value.one-way="cellSize"
-            change.delegate="cellSizeChangedHandler($event)">
-        </li>
-        <li class="flex-c flex-d-c">
-          <label
-            for="settings-fgm-show-low-quality"
-            title="Show low quality cells">Low Qual.</label>
-          <input
-            type="checkbox"
-            id="settings-fgm-show-low-quality"
-            checked.bind="fgmState.showSpecialCells"
-            click.delegate="showSpecialCellsChangeHandler()">
-        </li>
-        <li class="flex-c flex-d-c">
-          <label for="settings-fgm-animate">Animate</label>
-          <input
-            type="checkbox"
-            id="settings-fgm-animate"
-            checked.bind="fgmState.animation"
-            click.delegate="animationChangeHandler()">
-        </li>
-        <li class="flex-c flex-d-c">
-          <label for="settings-fgm-cover">Cover Mode</label>
-          <select
-            id="settings-fgm-cover"
-            change.delegate="coverDispModeChangeHandler($event)">
-            <option
-              repeat.for="option of coverDispModes"
-              value.one-way="option.id"
-              selected.bind="option.id === coverDispMode">${option.name}</option>
-          </select>
-        </li>
-        <li class="flex-c flex-d-c">
-          <label for="settings-fgm-order-cluster">Arrange X</label>
-          <div class="flex-c">
+      <div class="flex-c flex-d-c flex-g-1 settings-container">
+        <!-- First row of controls -->
+        <ul class="flex-c settings-list">
+          <li class="flex-c flex-d-c">
+            <label for="settings-fgm-size">Fragment Size</label>
+            <input
+              id="settings-fgm-size"
+              type="range"
+              min="1"
+              max="10"
+              step="1"
+              value.one-way="cellSize"
+              change.delegate="cellSizeChangedHandler($event)">
+          </li>
+          <li class="flex-c flex-d-c">
+            <label for="settings-fgm-cover">Cover Mode</label>
             <select
               id="settings-fgm-cover"
-              change.delegate="arrangeXChangeHandler($event)">
-              <option value="">Choose…</option>
+              change.delegate="coverDispModeChangeHandler($event)">
               <option
-                repeat.for="metric of metrics"
-                value.one-way="metric.id">${metric.name}</option>
+                repeat.for="option of coverDispModes"
+                value.one-way="option.id"
+                selected.bind="option.id === coverDispMode">${option.name}</option>
             </select>
+          </li>
+          <li class="flex-c flex-d-c">
+            <label for="settings-fgm-arrange-x">Arrange X</label>
+            <div class="flex-c">
+              <select
+                id="settings-fgm-arrange-x"
+                change.delegate="arrangeXChangeHandler($event)">
+                <option value="">Choose…</option>
+                <option
+                  repeat.for="metric of metrics"
+                  value.one-way="metric.id">${metric.name}</option>
+              </select>
+              <label for="settings-fgm-arrange-x-desc">Desc</label>
+              <input
+                id="settings-fgm-arrange-x-desc"
+                type="checkbox"
+                checked.bind="fgmState.arrangeXDesc"
+                click.delegate="arrangeXDescChangeHandler()">
+            </div>
+          </li>
+          <li class="flex-c flex-d-c">
+            <label for="settings-fgm-arrange-y">Arrange Y</label>
+            <div class="flex-c">
+              <select
+                id="settings-fgm-arrange-y"
+                change.delegate="arrangeYChangeHandler($event)">
+                <option value="">Choose…</option>
+                <option
+                  repeat.for="metric of metrics"
+                  value.one-way="metric.id">${metric.name}</option>
+              </select>
+              <label for="settings-fgm-arrange-y-desc">Desc</label>
+              <input
+                id="settings-fgm-arrange-y-desc"
+                type="checkbox"
+                checked.bind="fgmState.arrangeYDesc"
+                click.delegate="arrangeYDescChangeHandler()">
+            </div>
+          </li>
+        </ul>
+
+        <!-- Second row of controls -->
+        <ul class="flex-c settings-list">
+          <li class="flex-c flex-d-c">
+            <label
+              for="settings-fgm-show-low-quality"
+              title="Show low quality cells">Low Qual.</label>
             <input
               type="checkbox"
-              checked.bind="fgmState.arrangeXDesc"
-              click.delegate="arrangeXDescChangeHandler()">
-          </div>
-        </li>
-        <li class="flex-c flex-d-c">
-          <label for="settings-fgm-order-cluster">Arrange Y</label>
-          <div class="flex-c">
-            <select
-              id="settings-fgm-cover"
-              change.delegate="arrangeYChangeHandler($event)">
-              <option value="">Choose…</option>
-              <option
-                repeat.for="metric of metrics"
-                value.one-way="metric.id">${metric.name}</option>
-            </select>
+              id="settings-fgm-show-low-quality"
+              checked.bind="fgmState.showSpecialCells"
+              click.delegate="showSpecialCellsChangeHandler()">
+          </li>
+          <li class="flex-c flex-d-c">
+            <label for="settings-fgm-animate">Animate</label>
             <input
               type="checkbox"
-              checked.bind="fgmState.arrangeYDesc"
-              click.delegate="arrangeYDescChangeHandler()">
-          </div>
-        </li>
-        <li class="flex-c flex-d-c">
-          <label for="settings-fgm-order-cluster">Cluster</label>
-          <multi-select
-            bottom-up="true"
-            options.bind="metrics"
-            event-id.bind="arrangeSelectedEventId"
-            placeholder="Choose…"></multi-select>
-        </li>
-<!--         <li class="flex-c flex-d-c">
-          <label for="settings-fgm-is-fixed-cat-colors">Fix Colors</label>
-          <input type="checkbox" id="settings-fgm-is-fixed-cat-colors">
-        </li> -->
-      </ul>
+              id="settings-fgm-animate"
+              checked.bind="fgmState.animation"
+              click.delegate="animationChangeHandler()">
+          </li>
+          <li class="flex-c flex-d-c">
+            <label for="settings-fgm-order-cluster">Cluster</label>
+            <multi-select
+              bottom-up="true"
+              options.bind="metrics"
+              event-id.bind="arrangeSelectedEventId"
+              placeholder="Choose…"></multi-select>
+          </li>
+          <li class="flex-c flex-d-c">
+            <label for="settings-fgm-is-fixed-cat-colors">Fix Colors</label>
+            <input type="checkbox" id="settings-fgm-is-fixed-cat-colors">
+          </li>
+        </ul>
+      </div>
       <button
         class="toggler ${footerIsExpanded ? 'is-active' : ''}"
         click.delegate="footerToggle()">

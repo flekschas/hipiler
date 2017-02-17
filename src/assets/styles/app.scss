@@ -37,13 +37,15 @@ html {
   border-top: 1px solid $gray-lightest;
   transition: height $transition-very-fast $ease-in-out-cubic;
 
-  &.is-expanded {
+  &.is-expanded,
+  .settings-container {
     height: 10rem;
   }
 
   .settings-list {
-    background: transparentize($white, 0.1);
+    height: 2.5rem;
     margin-bottom: 0;
+    background: transparentize($white, 0.1);
 
     > li {
       margin-left: 1rem;
