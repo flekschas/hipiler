@@ -12,11 +12,21 @@ import COLORS from 'configs/colors';
 
 const store = Container.instance.get(States).store;
 
-export const DEPILE = {
-  name: 'Depile',
-  row: 2,
+export const INSPECT = {
+  name: 'Inspect',
   color: COLORS.BLACK,
   background: COLORS.PRIMARY,
+  shortCut: 'I',
+  trigger (pile) {
+    console.error('Not implemented yet');
+  },
+  single: false
+};
+
+export const DEPILE = {
+  name: 'Depile',
+  color: COLORS.WHITE,
+  background: COLORS.BLACK,
   shortCut: 'D',
   trigger (pile) {
     store.dispatch(depile(MODE_MEAN, pile));
@@ -28,7 +38,6 @@ export const MEAN = {
   name: 'Mean',
   color: COLORS.WHITE,
   background: 0x444444,
-  row: 0,
   shortCut: 'M',
   trigger (pile) {
     store.dispatch(setPileMode(MODE_MEAN, pile));
@@ -40,7 +49,6 @@ export const TREND = {
   name: 'Trend',
   color: COLORS.WHITE,
   background: 0x555555,
-  row: 0,
   shortCut: 'T',
   trigger (pile) {
     store.dispatch(setPileMode(MODE_TREND, pile));
@@ -52,7 +60,6 @@ export const VARIANCE = {
   name: 'Variance',
   color: COLORS.WHITE,
   background: 0x666666,
-  row: 0,
   shortCut: 'V',
   trigger (pile) {
     store.dispatch(setPileMode(MODE_VARIANCE, pile));
@@ -73,6 +80,7 @@ export const DIFFERENCE = {
 };
 
 export default [
+  INSPECT,
   DEPILE,
   MEAN,
   TREND,
