@@ -57,6 +57,46 @@ export function calculateDistances (matrices) {
 export const cellValue = scaleLinear().range([0, 1]).nice();
 
 /**
+ * Map a value to a relative color array for blue.
+ *
+ * @param {number} value - Domain value, i.e., value to be mapped.
+ * @return {array} Relative color array.
+ */
+export const colorBlue = value => [
+  scaleLinear().range([0.352941176, 1])(value),
+  scaleLinear().range([0.301960784, 1])(value),
+  1
+];
+
+/**
+ * Map a value to a relative color array for blue.
+ *
+ * @param {number} value - Domain value, i.e., value to be mapped.
+ * @return {array} Relative color array.
+ */
+export const colorGray = (value) => {
+  const scaled = cellValue(value);
+
+  return [
+    scaled,
+    scaled,
+    scaled
+  ];
+};
+
+/**
+ * Map a value to a relative color array for orange.
+ *
+ * @param {number} value - Domain value, i.e., value to be mapped.
+ * @return {array} Relative color array.
+ */
+export const colorOrange = value => [
+  1,
+  scaleLinear().range([0.333333333, 1])(value),
+  scaleLinear().range([0, 1])(value)
+];
+
+/**
  * Get the minimal dimension of two matrices assuming that both are squared.
  *
  * @param {array} matrix1 - First raw matrix.
