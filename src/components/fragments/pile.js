@@ -616,57 +616,59 @@ export default class Pile {
     let labels = [];
 
     // Frist create labels
-    menuCommands.forEach((command) => {
-      command.pile = this;
+    menuCommands
+      .filter(command => !command.stackedPileOnly || this.pileMatrices.length > 1)
+      .forEach((command) => {
+        command.pile = this;
 
-      const textGeom = new TextGeometry(
-        command.name.toUpperCase(),
-        {
-          size: 8,
-          height: 1,
-          curveSegments: 5,
-          font: fgmState.font,
-          weight: 'bold',
-          bevelEnabled: false
-        }
-      );
+        const textGeom = new TextGeometry(
+          command.name.toUpperCase(),
+          {
+            size: 8,
+            height: 1,
+            curveSegments: 5,
+            font: fgmState.font,
+            weight: 'bold',
+            bevelEnabled: false
+          }
+        );
 
-      const textMaterial = new MeshBasicMaterial({ color: command.color });
-      const label = new Mesh(textGeom, textMaterial);
+        const textMaterial = new MeshBasicMaterial({ color: command.color });
+        const label = new Mesh(textGeom, textMaterial);
 
-      // Get label with
-      const labelBBox = new Box3().setFromObject(label).getSize();
-      const labelWidth = Math.ceil(
-        labelBBox.x + MENU_LABEL_SPACING
-      );
-      const labelHeight = Math.ceil(
-        labelBBox.y + MENU_LABEL_SPACING
-      );
+        // Get label with
+        const labelBBox = new Box3().setFromObject(label).getSize();
+        const labelWidth = Math.ceil(
+          labelBBox.x + MENU_LABEL_SPACING
+        );
+        const labelHeight = Math.ceil(
+          labelBBox.y + MENU_LABEL_SPACING
+        );
 
-      const rect = createRect(
-        labelWidth, labelHeight, command.background
-      );
+        const rect = createRect(
+          labelWidth, labelHeight, command.background
+        );
 
-      const frame = createRectFrame(
-        labelWidth, labelHeight, COLORS.BLACK, 5
-      );
+        const frame = createRectFrame(
+          labelWidth, labelHeight, COLORS.BLACK, 5
+        );
 
-      rect.add(frame);
-      rect.add(label);
-      rect.pileTool = command;
-      rect.scale.set(1 / this.scale, 1 / this.scale, 0.9);
+        rect.add(frame);
+        rect.add(label);
+        rect.pileTool = command;
+        rect.scale.set(1 / this.scale, 1 / this.scale, 0.9);
 
-      labels.push({
-        label,
-        width: labelWidth,
-        height: labelHeight,
-        rect,
-        frame,
-        marginTop: command.marginTop
+        labels.push({
+          label,
+          width: labelWidth,
+          height: labelHeight,
+          rect,
+          frame,
+          marginTop: command.marginTop
+        });
+
+        maxWidth = Math.max(maxWidth, labelWidth);
       });
-
-      maxWidth = Math.max(maxWidth, labelWidth);
-    });
 
     let marginTop = 0;
 
@@ -1002,7 +1004,7 @@ export default class Pile {
   /**
    * Set cover matrix.
    *
-   * @param {??} mode - Mode.
+   * @param {number} mode - Cover display mode number.
    * @return {object} Self.
    */
   setCoverMatrixMode (mode) {

@@ -23,7 +23,8 @@ export const INSPECT = {
   trigger (pile) {
     console.error('Not implemented yet');
   },
-  single: false
+  single: false,
+  stackedPileOnly: true
 };
 
 export const DEPILE = {
@@ -34,7 +35,8 @@ export const DEPILE = {
   trigger (pile) {
     store.dispatch(depile(MODE_MEAN, pile));
   },
-  single: false
+  single: false,
+  stackedPileOnly: true
 };
 
 export const DIFFERENCE = {
@@ -47,7 +49,8 @@ export const DIFFERENCE = {
     event.publish('decompose.fgm.coverDispMode', { mode: MODE_DIFFERENCE, pile });
   },
   triggerEvent: 'hover',
-  single: false
+  single: false,
+  stackedPileOnly: true
 };
 
 export const MEAN = {
@@ -60,7 +63,8 @@ export const MEAN = {
   },
   triggerEvent: 'hover',
   single: false,
-  marginTop: 3
+  marginTop: 3,
+  stackedPileOnly: true
 };
 
 export const TREND = {
@@ -72,7 +76,8 @@ export const TREND = {
     event.publish('decompose.fgm.coverDispMode', { mode: MODE_TREND, pile });
   },
   triggerEvent: 'hover',
-  single: false
+  single: false,
+  stackedPileOnly: true
 };
 
 export const VARIANCE = {
@@ -84,7 +89,8 @@ export const VARIANCE = {
     event.publish('decompose.fgm.coverDispMode', { mode: MODE_VARIANCE, pile });
   },
   triggerEvent: 'hover',
-  single: false
+  single: false,
+  stackedPileOnly: true
 };
 
 export default [
