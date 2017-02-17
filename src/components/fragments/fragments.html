@@ -52,14 +52,8 @@
             id="settings-fgm-cover"
             change.delegate="coverDispModeChangeHandler($event)">
             <option
-              value="0"
-              selected.bind="allPilesDisplayMode === 0">Harmonic Mean</option>
-            <option
-              value="3"
-              selected.bind="allPilesDisplayMode === 3">Variance</option>
-            <option
-              value="2"
-              selected.bind="allPilesDisplayMode === 2">Trend</option>
+              repeat.for="option of coverDispModes"
+              value.one-way="option.id">${option.name}</option>
           </select>
         </li>
         <li class="flex-c flex-d-c">
