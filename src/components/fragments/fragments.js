@@ -419,7 +419,7 @@ export class Fragments {
       this.hoveredMatrix = undefined;
     }
 
-    if (this.fgmState.hoveredPile && !this.lassoRectIsActive) {
+    if (this.fgmState.hoveredPile) {
       // Re-draw hovered pile to show menu.
       this.fgmState.hoveredPile.draw();
     }
@@ -433,27 +433,27 @@ export class Fragments {
    * @param {object} event - Event object.
    */
   canvasDblClickHandler (event) {
-    // What is this good for?
-    if (
-      this.fgmState.hoveredPile &&
-      this.fgmState.hoveredPile !== this.openedPile
-    ) {
-      this.openedPileRoot = this.fgmState.hoveredPile;
-    } else {
-      this.openedPile = this.fgmState.hoveredPile;
-    }
+    // Disabled for now
+    // if (
+    //   this.fgmState.hoveredPile &&
+    //   this.fgmState.hoveredPile !== this.openedPile
+    // ) {
+    //   this.openedPileRoot = this.fgmState.hoveredPile;
+    // } else {
+    //   this.openedPile = this.fgmState.hoveredPile;
+    // }
 
     if (this.fgmState.hoveredPile) {
+      this.depileMyAss = this.fgmState.hoveredPile;
       this.depile(this.fgmState.hoveredPile);
       this.fgmState.hoveredPile = undefined;
     }
   }
 
   /**
-   * [canvasMouseDownHandler description]
+   * Mouse down handler
    *
-   * @param {[type]} event - [description]
-   * @return {[type]} [description]
+   * @param {object} event - Event object
    */
   canvasMouseDownHandler (event) {
     this.mouseWentDown = true;
@@ -465,21 +465,20 @@ export class Fragments {
 
     this.mouseDownTime = Date.now();
 
-    // test if mouse dwells on a matrix -> open pile
-    if (
-      this.fgmState.hoveredPile &&
-      this.fgmState.hoveredPile.size > 1 &&
-      typeof this.hoveredMatrix === 'undefined'
-    ) {
-      this.mouseIsDownTimer = setInterval(() => {
-        console.log(this.fgmState.hoveredPile);
-        this.openedPileRoot = this.fgmState.hoveredPile;
-        this.openedPileMatricesNum = this.fgmState.hoveredPile
-          .pileMatrices.length - 1;
-        this.depile(this.openedPileRoot);
-        clearInterval(this.mouseIsDownTimer);
-      }, 500);
-    }
+    // // test if mouse dwells on a matrix -> open pile
+    // if (
+    //   this.fgmState.hoveredPile &&
+    //   this.fgmState.hoveredPile.size > 1 &&
+    //   typeof this.hoveredMatrix === 'undefined'
+    // ) {
+    //   this.mouseIsDownTimer = setInterval(() => {
+    //     this.openedPileRoot = this.fgmState.hoveredPile;
+    //     this.openedPileMatricesNum = this.fgmState.hoveredPile
+    //       .pileMatrices.length - 1;
+    //     this.depile(this.openedPileRoot);
+    //     clearInterval(this.mouseIsDownTimer);
+    //   }, 500);
+    // }
   }
 
   /**
@@ -721,8 +720,8 @@ export class Fragments {
           break;
 
         default:
+          this.canvasClickHandler(event);
           this.mouseClickTimeout = setTimeout(() => {
-            this.canvasClickHandler(event);
             this.mouseClickCounter = 0;
           }, DBL_CLICK_DELAY_TIME);
           break;
@@ -730,12 +729,26 @@ export class Fragments {
     } else {
       this.mouseClickCounter = 0;
     }
+  }
 
-    console.log(
-      'mouseDownTimeDelta',
-      this.mouseClickCounter,
-      this.mouseDownTimeDelta
-    );
+  /**
+   * Close inspected pile
+   *
+   * @param {object} openedPile - Opened inspeced pile.
+   */
+  closeOpenedPile (openedPile) {
+    let piles = [];
+    let openedPileIndex = this.fgmState.piles.indexOf(this.openedPileRoot);
+
+    for (let i = 0; i <= this.openedPileMatricesNum; i++) {
+      piles.push(this.fgmState.piles[openedPileIndex + i]);
+    }
+
+    this.pileUp(piles, this.fgmState.piles[openedPileIndex]);
+
+    this.startAnimations();
+    this.openedPileRoot = undefined;
+    this.openedPileMatricesNum = 0;
   }
 
   /**
@@ -746,47 +759,35 @@ export class Fragments {
   canvasMouseUpHandler (event) {
     event.preventDefault();
 
-    this.canvasMouseClickHandler(event);
-
     this.fgmState.scene.updateMatrixWorld();
     this.camera.updateProjectionMatrix();
-
     this.fgmState.scene.remove(this.lassoObject);
+    this.mouseIsDown = false;
 
     if (this.openedPileRoot) {
-      let piles = [];
-      let openedPileIndex = this.fgmState.piles.indexOf(this.openedPileRoot);
-
-      for (let i = 0; i <= this.openedPileMatricesNum; i++) {
-        piles.push(this.fgmState.piles[openedPileIndex + i]);
-      }
-
-      this.pileUp(piles, this.fgmState.piles[openedPileIndex]);
-
-      this.startAnimations();
-      this.openedPileRoot = undefined;
-      this.openedPileMatricesNum = 0;
+      this.closeOpenedPile(this.openedPileRoot);
     } else if (this.dragPile) {
       // place pile on top of previous pile
       if (!this.fgmState.hoveredPile) {
+        // Move pile back to original position
         let pos = this.getLayoutPosition(this.dragPile);
         this.dragPile.moveTo(pos.x, pos.y);
         this.dragPile.elevateTo(0);
       } else {
+        // Pile up the two piles
         this.pileUp(this.dragPile, this.fgmState.hoveredPile);
       }
 
       this.dragPile = undefined;
-    }
-
-    if (this.lassoRectIsActive) {
+    } else if (this.lassoRectIsActive) {
       this.getLassoRectSelection(
         this.dragStartPos.x, this.mouse.x, this.dragStartPos.y, this.mouse.y
       );
+    } else {
+      this.canvasMouseClickHandler(event);
     }
 
     this.dragStartPos = undefined;
-    this.mouseIsDown = false;
     this.mouseWentDown = false;
     this.lassoRectIsActive = false;
   }
@@ -841,7 +842,7 @@ export class Fragments {
       }
     });
 
-    if (matrices.length > 0) {
+    if (matrices.length > 1) {
       this.pileUp(pilesSelected.slice(1), pilesSelected[0]);
     }
   }
@@ -881,44 +882,41 @@ export class Fragments {
   }
 
   /**
-   * [depile description]
+   * Depile a pile
    *
-   * @param {[type]} pile - [description]
-   * @return {[type]} [description]
+   * @param {object} pile - Pile to be depiled.
    */
   depile (pile) {
-    let newPiles = [];
-
-    let matrices = [];
-    let ix = this.fgmState.piles.indexOf(pile);
-
-    matrices.push(...pile.pileMatrices);
-
-    if (matrices.length === 1) {
+    if (pile.pileMatrices.length <= 1) {
       return;
     }
 
-    for (let i = matrices.length - 1; i > 0; i--) {
-      pile.removeMatrices([matrices[i]]);
+    let newPiles = [];
+    let matrices = [];
+
+    matrices.push(...pile.pileMatrices);
+
+    // Remove all except the first matrix
+    matrices.slice(1).forEach((matrix) => {
       const pileNew = new Pile(
-        this.pileIDCount,
+        matrix.id,
         this.scene,
         this.fragScale,
         this.fragDims
       );
 
-      this.pileIDCount += 1;
-
       pileNew.colored = pile.colored;
-      this.fgmState.piles.splice(ix + 1, 0, pileNew);
+      this.fgmState.piles.push(pileNew);
 
-      pileNew.addMatrices([matrices[i]]);
+      pileNew.addMatrices([matrix]);
       pileNew.draw();
       newPiles.push(pileNew);
-    }
+    });
+
+    pile.removeMatrices(matrices.slice(1));
 
     pile.draw();
-    this.updateLayout(0, true);
+    this.updateLayout();
 
     // Need refactoring
     // if (animated) {
@@ -1426,7 +1424,7 @@ export class Fragments {
   /**
    * Piles all matrices prior to the selected one, including the selected one.
    *
-   * @param {[type]} p - [description]
+   * @param {object} pile - Pile
    */
   pileBackwards (pile) {
     let pileIndex = this.fgmState.piles.indexOf(pile);
@@ -1460,9 +1458,6 @@ export class Fragments {
    * @param {boolean} noAnimation - If `true` animation is skipped.
    */
   pileUp (piles, targetPile, noAnimation) {
-    // Needs refactoring
-    // this.pilingAnimations.push(new PilingAnimation(targetPile, matrices));
-
     let animation;
 
     // Duration in seconds
@@ -1539,9 +1534,7 @@ export class Fragments {
       matrices.forEach((matrix) => {
         let sourcePile = matrix.pile;
 
-        sourcePile.removeMatrices([matrix]);
-
-        if (sourcePile.size === 0 && sourcePile !== targetPile) {
+        if (sourcePile !== targetPile) {
           this.destroyPile(sourcePile);
         }
       });
@@ -1706,11 +1699,11 @@ export class Fragments {
    * Splits a pile at the position of the passed matrix. The passed matrix
    * becomes the base for the new pile.
    *
-   * @param {[type]} matrix - [description]
-   * @param {[type]} animated - [description]
+   * @param {array} matrix - Matrix
+   * @param {boolean} noAnimation - If `true` force no animation.
    */
-  splitPile (matrix, animated) {
-    if (!animated) {
+  splitPile (matrix, noAnimation) {
+    if (noAnimation) {
       let pileSrc = matrix.pile;
       let pileNew = new Pile(
         this.fgmState.piles.length,
@@ -1736,8 +1729,9 @@ export class Fragments {
 
       this.render();
     } else {
-      this.pilingAnimations.push(SplitAnimation(matrix));
-      this.startAnimations();
+      // Needs refactoring
+      // this.pilingAnimations.push(SplitAnimation(matrix));
+      // this.startAnimations();
     }
   }
 
