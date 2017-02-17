@@ -956,19 +956,17 @@ export default class Pile {
    * If any were the visible matrix, then make the remaining last element of the
    * pile visible. redraw the remaining labels at the correct positions.
    *
-   * @param {array} fgmState.matrices - Array of fgmState.matrices.
+   * @param {array} matrices - Array of matrices.
    * @return {object} Self.
    */
   removeMatrices (matrices) {
-    for (let i = 0; i < fgmState.matrices.length; i++) {
-      let m = fgmState.matrices[i];
-      for (let j = 0; j < this.pileMatrices.length; j++) {
-        if (m === this.pileMatrices[j]) {
-          this.pileMatrices.splice(j, 1);
-          break;
+    matrices.forEach((matrix) => {
+      for (let i = this.pileMatrices.length; i > 0; --i) {
+        if (matrix === this.pileMatrices[i]) {
+          this.pileMatrices.splice(i, 1);
         }
       }
-    }
+    });
 
     this.calculateCoverMatrix();
 
