@@ -10,7 +10,7 @@ export const CELL_THRESHOLD = 0.0;  // only cells above are shown
 
 export const CLICK_DELAY_TIME = 300;
 
-export const DBL_CLICK_DELAY_TIME = 200;
+export const DBL_CLICK_DELAY_TIME = 250;
 
 export const COLOR_LOW_QUALITY = [1, 0.890196078, 0.835294118];
 
@@ -28,7 +28,7 @@ export const CONFIG = {};
 
 export const DIAGONAL_VALUE = 0.11;
 
-export const DURATION = 500;
+export const DURATION = 250;
 
 export const FONT_URL = 'src/assets/fonts/rubik-regular.json';
 
