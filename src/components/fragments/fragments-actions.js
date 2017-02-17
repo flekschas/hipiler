@@ -1,3 +1,10 @@
+export const PILE = 'PILE';
+
+export const pile = (sourcePiles, targetPile) => ({
+  type: PILE,
+  payload: { sourcePiles, targetPile }
+});
+
 export const DEPILE = 'DEPILE';
 
 export const depile = pile => ({
@@ -28,9 +35,9 @@ export const setCellSize = cellSize => ({
 
 export const SET_COVER_DISP_MODE = 'SET_COVER_DISP_MODE';
 
-export const setCoverDispMode = allPilesDisplayMode => ({
+export const setCoverDispMode = coverDispMode => ({
   type: SET_COVER_DISP_MODE,
-  payload: { allPilesDisplayMode }
+  payload: { coverDispMode }
 });
 
 export const SET_PILE_MODE = 'SET_PILE_MODE';
