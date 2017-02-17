@@ -10,7 +10,6 @@ import {
 import menuCommands from 'components/fragments/pile-menu-commands';
 
 import {
-  BASE_Z,
   COLOR_LOW_QUALITY,
   MATRIX_GAP_HORIZONTAL,
   METRIC_DIST_DIAG,
@@ -18,10 +17,13 @@ import {
   METRIC_SHARPNESS,
   METRIC_SIZE,
   MODE_DIFFERENCE,
+  MODE_MEAN,
   MODE_TREND,
   MODE_VARIANCE,
   PREVIEW_SIZE,
-  SHADER_ATTRIBUTES
+  SHADER_ATTRIBUTES,
+  Z_BASE,
+  Z_MENU
 } from 'components/fragments/fragments-defaults';
 
 import {
@@ -35,6 +37,8 @@ import {
   add2dSqrtBuffRect,
   addBufferedRect,
   cellValue,
+  colorBlue,
+  colorOrange,
   createRect,
   createRectFrame,
   createText,
@@ -56,7 +60,7 @@ export default class Pile {
     );
     this.colored = false;
     this.coverMatrix = [];
-    this.coverMatrixMode = 0;
+    this.coverMatrixMode = MODE_MEAN;
     this.dims = dims;
     this.geometry = new BufferGeometry({ attributes: SHADER_ATTRIBUTES });
     this.highlighted = false;
@@ -390,11 +394,11 @@ export default class Pile {
 
     // Add frame
     this.mesh.add(this.matrixFrame);
-    this.matrixFrame.position.set(-1, -1, BASE_Z);
+    this.matrixFrame.position.set(-1, -1, Z_BASE);
 
     this.mesh.pile = this;
     fgmState.pileMeshes.push(this.mesh);
-    this.mesh.position.set(this.x, this.y, BASE_Z);
+    this.mesh.position.set(this.x, this.y, Z_BASE);
     fgmState.scene.add(this.mesh);
   }
 
@@ -489,10 +493,10 @@ export default class Pile {
     );
     const valueInv = 1 - Math.abs(value);
 
-    let color = [1, valueInv, valueInv];
+    let color = colorOrange(valueInv);
 
     if (value > 0) {
-      color = [valueInv, valueInv, 1];
+      color = colorBlue(valueInv);
     }
 
     add2dSqrtBuffRect(
@@ -506,7 +510,7 @@ export default class Pile {
   }
 
   /**
-   * Draw the standard variation
+   * Draw the variance using the standard variation across matrices.
    *
    * @param {array} positions - Positions array to be changed in-place.
    * @param {array} colors - Colors array to be changed in-place.
@@ -532,7 +536,7 @@ export default class Pile {
       -x,
       fgmState.cellSize,
       colors,
-      [value, value, 1]
+      colorOrange(value)
     );
   }
 
@@ -587,14 +591,14 @@ export default class Pile {
         );
 
         switch (this.coverMatrixMode) {
+          case MODE_DIFFERENCE:
+            this.drawCoverDifference(positions, colors, numMatrices, x, y, i, j);
+            break;
           case MODE_TREND:
             this.drawCoverTrend(positions, colors, numMatrices, x, y, i, j);
             break;
           case MODE_VARIANCE:
-            this.drawCoverTrend(positions, colors, numMatrices, x, y, i, j);
-            break;
-          case MODE_DIFFERENCE:
-            this.drawCoverDifference(positions, colors, numMatrices, x, y, i, j);
+            this.drawCoverVariance(positions, colors, numMatrices, x, y, i, j);
             break;
           default:
             this.drawCoverMean(positions, colors, numMatrices, x, y, i, j);
@@ -622,6 +626,7 @@ export default class Pile {
           height: 1,
           curveSegments: 5,
           font: fgmState.font,
+          weight: 'bold',
           bevelEnabled: false
         }
       );
@@ -656,11 +661,14 @@ export default class Pile {
         width: labelWidth,
         height: labelHeight,
         rect,
-        frame
+        frame,
+        marginTop: command.marginTop
       });
 
       maxWidth = Math.max(maxWidth, labelWidth);
     });
+
+    let marginTop = 0;
 
     // Next create the rectangle and position the buttons
     labels.forEach((label, index) => {
@@ -670,6 +678,10 @@ export default class Pile {
         x = this.x + this.matrixWidthHalf - MENU_PADDING + (label.width / 2);
       }
 
+      if (typeof label.marginTop !== 'undefined') {
+        marginTop += label.marginTop;
+      }
+
       label.rect.position.set(
         x,
         (
@@ -677,9 +689,10 @@ export default class Pile {
           MENU_PADDING +
           this.matrixWidthHalf -
           (label.height / 2) -
-          (index * (label.height + 1))
+          (index * (label.height + 1)) -
+          marginTop
         ),
-        1
+        Z_MENU
       );
 
       label.label.position.set(
