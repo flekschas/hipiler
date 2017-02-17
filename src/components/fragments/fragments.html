@@ -17,8 +17,8 @@
     <main class="flex-g-1 rel fragment-plot">
       <div class="full-dim" background-color="yellow" ref="plotEl"></div>
     </main>
-    <footer class="bottom-bar">
-      <ul class="flex-c settings-list">
+    <footer class="flex-c bottom-bar ${footerIsExpanded ? 'is-expanded' : ''}">
+      <ul class="flex-c flex-i-1 settings-list">
         <li class="flex-c flex-d-c">
           <label for="settings-fgm-size">Fragment Size</label>
           <input
@@ -31,7 +31,9 @@
             change.delegate="cellSizeChangedHandler($event)">
         </li>
         <li class="flex-c flex-d-c">
-          <label for="settings-fgm-show-low-quality">Show Low Qual.</label>
+          <label
+            for="settings-fgm-show-low-quality"
+            title="Show low quality cells">Low Qual.</label>
           <input
             type="checkbox"
             id="settings-fgm-show-low-quality"
@@ -53,11 +55,46 @@
             change.delegate="coverDispModeChangeHandler($event)">
             <option
               repeat.for="option of coverDispModes"
-              value.one-way="option.id">${option.name}</option>
+              value.one-way="option.id"
+              selected.bind="option.id === coverDispMode">${option.name}</option>
           </select>
         </li>
         <li class="flex-c flex-d-c">
-          <label for="settings-fgm-order-cluster">Arrange</label>
+          <label for="settings-fgm-order-cluster">Arrange X</label>
+          <div class="flex-c">
+            <select
+              id="settings-fgm-cover"
+              change.delegate="arrangeXChangeHandler($event)">
+              <option value="">Choose…</option>
+              <option
+                repeat.for="metric of metrics"
+                value.one-way="metric.id">${metric.name}</option>
+            </select>
+            <input
+              type="checkbox"
+              checked.bind="fgmState.arrangeXDesc"
+              click.delegate="arrangeXDescChangeHandler()">
+          </div>
+        </li>
+        <li class="flex-c flex-d-c">
+          <label for="settings-fgm-order-cluster">Arrange Y</label>
+          <div class="flex-c">
+            <select
+              id="settings-fgm-cover"
+              change.delegate="arrangeYChangeHandler($event)">
+              <option value="">Choose…</option>
+              <option
+                repeat.for="metric of metrics"
+                value.one-way="metric.id">${metric.name}</option>
+            </select>
+            <input
+              type="checkbox"
+              checked.bind="fgmState.arrangeYDesc"
+              click.delegate="arrangeYDescChangeHandler()">
+          </div>
+        </li>
+        <li class="flex-c flex-d-c">
+          <label for="settings-fgm-order-cluster">Cluster</label>
           <multi-select
             bottom-up="true"
             options.bind="metrics"
@@ -69,6 +106,11 @@
           <input type="checkbox" id="settings-fgm-is-fixed-cat-colors">
         </li> -->
       </ul>
+      <button
+        class="toggler ${footerIsExpanded ? 'is-active' : ''}"
+        click.delegate="footerToggle()">
+        ${footerIsExpanded ? 'Less' : 'More'}
+      </button>
     </footer>
   </div>
 

@@ -30,11 +30,21 @@ html {
 }
 
 .bottom-bar {
+  position: relative;
+  z-index: 2;
   height: 2.5rem;
   color: $gray;
   border-top: 1px solid $gray-lightest;
+  transition: height $transition-very-fast $ease-in-out-cubic;
+
+  &.is-expanded {
+    height: 10rem;
+  }
 
   .settings-list {
+    background: transparentize($white, 0.1);
+    margin-bottom: 0;
+
     > li {
       margin-left: 1rem;
       padding-top: 0.25rem;
@@ -48,6 +58,7 @@ html {
       font-size: 0.8rem;
       text-transform: uppercase;
       margin-bottom: 0.125rem;
+      white-space: nowrap;
     }
 
     .btn {
@@ -58,6 +69,13 @@ html {
         color: $primary;
       }
     }
+  }
+
+  .toggler {
+    width: 3rem;
+    color: $gray;
+    text-transform: uppercase;
+    background: $gray-lightest;
   }
 
   .logo {

@@ -9,6 +9,7 @@ multi-select {
   input {
     width: 6rem;
     padding: 0.125rem 0;
+    background: transparent;
 
     &:active,
     &:focus {
