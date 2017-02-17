@@ -10,6 +10,7 @@ import {
 import menuCommands from 'components/fragments/pile-menu-commands';
 
 import {
+  BASE_Z,
   COLOR_LOW_QUALITY,
   MATRIX_GAP_HORIZONTAL,
   METRIC_DIST_DIAG,
@@ -384,16 +385,16 @@ export default class Pile {
       this.drawMenu();
     }
 
-    // ADD PILE ID LABEL
+    // Draw pile labels
     this.drawPileLabel();
 
-    // FINISH
+    // Add frame
     this.mesh.add(this.matrixFrame);
-    this.matrixFrame.position.set(-1, -1, 0.1);
+    this.matrixFrame.position.set(-1, -1, BASE_Z);
 
     this.mesh.pile = this;
     fgmState.pileMeshes.push(this.mesh);
-    this.mesh.position.set(this.x, this.y, 0);
+    this.mesh.position.set(this.x, this.y, BASE_Z);
     fgmState.scene.add(this.mesh);
   }
 
@@ -820,7 +821,6 @@ export default class Pile {
    * @return {object} Self.
    */
   elevateTo (z) {
-    this.z = z;
     this.mesh.position.set(this.x, this.y, z);
 
     return this;
@@ -944,7 +944,7 @@ export default class Pile {
       this.y = -this.y - this.matrixWidthHalf;
     }
 
-    this.mesh.position.set(this.x, this.y, 0);
+    this.mesh.position.set(this.x, this.y, this.mesh.position.z);
 
     return this;
   }

@@ -2,6 +2,8 @@ export const ANIMATION = true;
 
 export const ARRANGE_METRICS = [];
 
+export const BASE_Z = 1;
+
 export const CELL_SIZE = 6;
 
 export const CELL_SIZE_HALF = CELL_SIZE / 2;
@@ -27,6 +29,8 @@ export const COLOR_PRIMARY = 0xff5500;
 export const CONFIG = {};
 
 export const DIAGONAL_VALUE = 0.11;
+
+export const DRAG_Z = 2;
 
 export const DURATION = 250;
 
