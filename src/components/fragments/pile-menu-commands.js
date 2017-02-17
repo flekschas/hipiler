@@ -1,8 +1,10 @@
 import { Container } from 'aurelia-framework';
 
+import { EventAggregator } from 'aurelia-event-aggregator';
+
 import States from 'services/states';
 
-import { depile, setPileMode } from 'components/fragments/fragments-actions';
+import { depile } from 'components/fragments/fragments-actions';
 
 import {
   MODE_MEAN, MODE_TREND, MODE_VARIANCE, MODE_DIFFERENCE
@@ -11,6 +13,7 @@ import {
 import COLORS from 'configs/colors';
 
 const store = Container.instance.get(States).store;
+const event = Container.instance.get(EventAggregator);
 
 export const INSPECT = {
   name: 'Inspect',
@@ -34,25 +37,41 @@ export const DEPILE = {
   single: false
 };
 
+export const DIFFERENCE = {
+  name: 'Difference',
+  color: COLORS.WHITE,
+  background: 0x666666,
+  row: 0,
+  shortCut: 'F',
+  trigger (pile) {
+    event.publish('decompose.fgm.coverDispMode', { mode: MODE_DIFFERENCE, pile });
+  },
+  triggerEvent: 'hover',
+  single: false
+};
+
 export const MEAN = {
   name: 'Mean',
   color: COLORS.WHITE,
-  background: 0x444444,
+  background: 0x666666,
   shortCut: 'M',
   trigger (pile) {
-    store.dispatch(setPileMode(MODE_MEAN, pile));
+    event.publish('decompose.fgm.coverDispMode', { mode: MODE_MEAN, pile });
   },
-  single: false
+  triggerEvent: 'hover',
+  single: false,
+  marginTop: 3
 };
 
 export const TREND = {
   name: 'Trend',
   color: COLORS.WHITE,
-  background: 0x555555,
+  background: 0x666666,
   shortCut: 'T',
   trigger (pile) {
-    store.dispatch(setPileMode(MODE_TREND, pile));
+    event.publish('decompose.fgm.coverDispMode', { mode: MODE_TREND, pile });
   },
+  triggerEvent: 'hover',
   single: false
 };
 
@@ -62,20 +81,9 @@ export const VARIANCE = {
   background: 0x666666,
   shortCut: 'V',
   trigger (pile) {
-    store.dispatch(setPileMode(MODE_VARIANCE, pile));
+    event.publish('decompose.fgm.coverDispMode', { mode: MODE_VARIANCE, pile });
   },
-  single: false
-};
-
-export const DIFFERENCE = {
-  name: 'Difference',
-  color: COLORS.WHITE,
-  background: 0x777777,
-  row: 0,
-  shortCut: 'F',
-  trigger (pile) {
-    store.dispatch(setPileMode(MODE_DIFFERENCE, pile));
-  },
+  triggerEvent: 'hover',
   single: false
 };
 
@@ -83,7 +91,7 @@ export default [
   INSPECT,
   DEPILE,
   MEAN,
-  TREND,
   VARIANCE,
+  TREND,
   DIFFERENCE
 ];
