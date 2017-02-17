@@ -2,8 +2,6 @@ export const ANIMATION = true;
 
 export const ARRANGE_METRICS = [];
 
-export const BASE_Z = 1;
-
 export const CELL_SIZE = 6;
 
 export const CELL_SIZE_HALF = CELL_SIZE / 2;
@@ -29,8 +27,6 @@ export const COLOR_PRIMARY = 0xff5500;
 export const CONFIG = {};
 
 export const DIAGONAL_VALUE = 0.11;
-
-export const DRAG_Z = 2;
 
 export const DURATION = 250;
 
@@ -132,6 +128,16 @@ export const WEB_GL_CONFIG = {
   antialias: true
 };
 
+export const Z_BASE = 1;
+
+export const Z_DRAG = 2;
+
+export const Z_HIGHLIGHT = 1.5;
+
+export const Z_LASSO = 2;
+
+export const Z_MENU = 2;
+
 export default {
   CELL_SIZE,
   CELL_SIZE_HALF,
@@ -164,5 +170,10 @@ export default {
   SHOW_MATRICES,
   SVG_MENU_HEIGHT,
   TIMELINE_HEIGHT,
-  WEB_GL_CONFIG
+  WEB_GL_CONFIG,
+  Z_BASE,
+  Z_DRAG,
+  Z_HIGHLIGHT,
+  Z_LASSO,
+  Z_MENU
 };
