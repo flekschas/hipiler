@@ -4,7 +4,7 @@ import { EventAggregator } from 'aurelia-event-aggregator';
 
 import States from 'services/states';
 
-import { depile } from 'components/fragments/fragments-actions';
+import { dispersePiles, trashPiles } from 'components/fragments/fragments-actions';
 
 import {
   MODE_MEAN, MODE_TREND, MODE_VARIANCE, MODE_DIFFERENCE
@@ -17,23 +17,23 @@ const event = Container.instance.get(EventAggregator);
 
 export const INSPECT = {
   name: 'Inspect',
-  color: COLORS.BLACK,
-  background: COLORS.PRIMARY,
+  color: COLORS.WHITE,
+  background: COLORS.BLACK,
   shortCut: 'I',
   trigger (pile) {
-    console.error('Not implemented yet');
+    event.publish('decompose.fgm.inspectPile', { pile });
   },
   single: false,
   stackedPileOnly: true
 };
 
-export const DEPILE = {
-  name: 'Depile',
+export const DISPERSE = {
+  name: 'Disperse',
   color: COLORS.WHITE,
   background: COLORS.BLACK,
   shortCut: 'D',
   trigger (pile) {
-    store.dispatch(depile(MODE_MEAN, pile));
+    store.dispatch(dispersePiles([pile]));
   },
   single: false,
   stackedPileOnly: true
@@ -63,7 +63,18 @@ export const MEAN = {
   },
   triggerEvent: 'hover',
   single: false,
-  marginTop: 3,
+  stackedPileOnly: true
+};
+
+export const TRASH = {
+  name: 'Trash',
+  color: COLORS.WHITE,
+  background: COLORS.BLACK,
+  shortCut: 'R',
+  trigger (pile) {
+    store.dispatch(trashPiles([pile]));
+  },
+  single: false,
   stackedPileOnly: true
 };
 
@@ -95,7 +106,8 @@ export const VARIANCE = {
 
 export default [
   INSPECT,
-  DEPILE,
+  DISPERSE,
+  TRASH,
   MEAN,
   VARIANCE,
   TREND,
