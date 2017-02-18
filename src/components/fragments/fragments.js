@@ -24,16 +24,13 @@ import MpState from 'components/fragments/fragments-state';
 
 // Utils etc.
 import {
+  addPiles,
   setAnimation,
   setArrangeMetrics,
   setCellSize,
   setCoverDispMode,
   setShowSpecialCells
 } from 'components/fragments/fragments-actions';
-
-import {
-  SplitAnimation
-} from 'components/fragments/fragments-animations';
 
 import {
   ARRANGE_METRICS,
@@ -326,7 +323,7 @@ export class Fragments {
   }
 
   get rawMatrices () {
-    return this.data.fragments.map(fragment => fragment.matrix);
+    return this.fgmState.matrices.map(matrix => matrix.matrix);
   }
 
 
@@ -1056,14 +1053,18 @@ export class Fragments {
   }
 
   /**
-   * Get and save the client rectangle of the base element.
+   * [getCurrentPiling description]
    *
-   * @return {object} Client rectangle object of the base element.
+   * @return {[type]} [description]
    */
-  getPlotElDim () {
-    this._plotElDim = this.plotEl.getBoundingClientRect();
+  getCurrentPiling () {
+    const piling = [];
 
-    return this.plotElDim;
+    this.fgmState.piles.forEach(
+      pile => piling.push(this.fgmState.matrices.indexOf(pile.getMatrix(0)))
+    );
+
+    return piling;
   }
 
   /**
@@ -1142,18 +1143,25 @@ export class Fragments {
   }
 
   /**
-   * [getCurrentPiling description]
+   * Get a pile or create a new instance
    *
-   * @return {[type]} [description]
+   * @param {number} pileId - Pile ID.
+   * @return {object} New or retrieved pile
    */
-  getCurrentPiling () {
-    const piling = [];
+  getOrCreatePile (pileId) {
+    if (!this.fgmState.pilesIdx[pileId]) {
+      const pile = new Pile(
+        pileId,
+        this.fgmState.scene,
+        this.fragScale,
+        this.fragDims
+      );
 
-    this.fgmState.piles.forEach(
-      pile => piling.push(this.fgmState.matrices.indexOf(pile.getMatrix(0)))
-    );
+      this.fgmState.pilesIdx[pileId] = pile;
+      this.fgmState.piles.push(pile);
+    }
 
-    return piling;
+    return this.fgmState.pilesIdx[pileId];
   }
 
   /**
@@ -1166,6 +1174,17 @@ export class Fragments {
     return piles
       .map(pile => pile.pileMatrices)
       .reduce((a, b) => a.concat(b), []);
+  }
+
+  /**
+   * Get and save the client rectangle of the base element.
+   *
+   * @return {object} Client rectangle object of the base element.
+   */
+  getPlotElDim () {
+    this._plotElDim = this.plotEl.getBoundingClientRect();
+
+    return this.plotElDim;
   }
 
   /**
@@ -1229,6 +1248,65 @@ export class Fragments {
   }
 
   /**
+   * Init matrix instances
+   *
+   * @param {array} fragments - Matrix fragments
+   */
+  initMatrices (fragments) {
+    fragments.forEach((fragment, index) => {
+      this.fgmState.matrices.push(new Matrix(
+        index,
+        fragment.matrix,
+        {
+          xStart: fragment.start1,
+          xEnd: fragment.end1,
+          yStart: fragment.start2,
+          yEnd: fragment.end2
+        }
+      ));
+    });
+  }
+
+  /**
+   * Check if the number of matrices is equal to the number of piles in the
+   * pile config.
+   *
+   * @description
+   * During the lifetime of the app, none of the matrices will every be deleted.
+   * Therefore, the number of matrices / piles in the pileConfig need to equal
+   * the number of loaded matrices otherwise something is broken.
+   *
+   * @param {array} matrices - List of matrices.
+   * @param {object} pileConfig - Pile configuration object.
+   * @return {boolean} If `true` pileConfig is valid.
+   */
+  checkPileConfig (matrices, pileConfig) {
+    return matrices.length === Object.keys(pileConfig)
+      .map(pileId => pileConfig[pileId].length)
+      .reduce((a, b) => a + b, 0);
+  }
+
+  /**
+   * Initialize piles
+   *
+   * @param {array} matrices - List of matrices.
+   * @param {object} pileConfig - Pile configuration object.
+   */
+  initPiles (matrices, pileConfig = {}) {
+    if (this.checkPileConfig(matrices, pileConfig)) {
+      this.updatePiles(pileConfig, true);
+    } else {
+      const pilesNew = {};
+
+      matrices.map(matrix => matrix.id).forEach((matrixId) => {
+        pilesNew[matrixId] = [matrixId];
+      });
+
+      this.store.dispatch(addPiles(pilesNew));
+    }
+  }
+
+  /**
    * Initialize the fragment plot.
    *
    * @param {object} data - Data object with the fragments.
@@ -1243,42 +1321,17 @@ export class Fragments {
       HIGHLIGHT_FRAME_LINE_WIDTH
     );
 
-    // INIT PILES & MATRICES (each single matrix is a pile)
-    data.fragments.forEach((fragment, index) => {
-      const pile = new Pile(
-        index,
-        this.fgmState.scene,
-        this.fragScale,
-        this.fragDims
-      );
+    this.initMatrices(data.fragments);
 
-      const matrix = new Matrix(
-        index,
-        fragment.matrix,
-        {
-          xStart: fragment.start1,
-          xEnd: fragment.end1,
-          yStart: fragment.start2,
-          yEnd: fragment.end2
-        }
-      );
+    let piles;
 
-      this.fgmState.piles.push(pile);
-      this.fgmState.matrices.push(matrix);
+    try {
+      piles = this.store.getState().present.decompose.fragments.piles;
+    } catch (e) {
+      logger.debug('State not ready yet.');
+    }
 
-      pile.addMatrices([matrix]);
-      pile.draw();
-    });
-
-    this.calculateDistanceMatrix();
-
-    this.arrange(this.fgmState.piles, this.arrangeMetrics);
-
-    this.updateLayout();
-
-    this.setScrollLimit(data.fragments.length);
-
-    this.render();
+    this.initPiles(this.fgmState.matrices, piles);
 
     this.isInitialized = true;
   }
@@ -1941,11 +1994,14 @@ export class Fragments {
     try {
       const state = this.store.getState().present.decompose.fragments;
 
+      console.log(state);
+
       this.updateAnimation(state.animation);
       this.updateArrangeMetrics(state.arrangeMetrics);
       this.updateCoverDispMode(state.coverDispMode);
       this.updateCellSize(state.cellSize);
       this.updateConfig(state.config);
+      this.updatePiles(state.piles);
       this.updateShowSpecialCells(state.showSpecialCells);
     } catch (e) {
       logger.error('State is invalid', e);
@@ -2059,6 +2115,37 @@ export class Fragments {
         const pos = this.getLayoutPosition(pile);
         pile.moveTo(pos.x, pos.y);
       });
+  }
+
+  /**
+   * Update piles
+   *
+   * @param {object} pileConfig - Config object
+   * @param {boolean} forced - If `true` force update
+   */
+  updatePiles (pileConfig, forced) {
+    if (this.pileConfig !== pileConfig && (this.isInitialized || forced)) {
+      this.pileConfig = pileConfig;
+
+      Object.keys(pileConfig).forEach((pileId) => {
+        console.log('ass', pileId);
+        const pile = this.getOrCreatePile(pileId);
+        const matrixIds = pileConfig[pileId];
+        const matrices = matrixIds.map(
+          matrixIndex => this.fgmState.matrices[matrixIndex]
+        );
+
+        pile.setMatrices(matrices).draw();
+      });
+
+      console.log(this.fgmState.pilesIdx);
+
+      this.calculateDistanceMatrix();
+      this.arrange(this.fgmState.piles, this.arrangeMetrics);
+      this.updateLayout();
+      this.setScrollLimit(this.fgmState.piles.length);
+      this.render();
+    }
   }
 
   /**
