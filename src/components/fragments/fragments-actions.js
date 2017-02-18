@@ -1,15 +1,22 @@
-export const PILE = 'PILE';
+export const ADD_PILES = 'ADD_PILES';
 
-export const pile = (sourcePiles, targetPile) => ({
-  type: PILE,
-  payload: { sourcePiles, targetPile }
+export const addPiles = piles => ({
+  type: ADD_PILES,
+  payload: { piles }
 });
 
-export const DEPILE = 'DEPILE';
+export const DISPERSE_PILES = 'DISPERSE_PILES';
 
-export const depile = pile => ({
-  type: DEPILE,
-  payload: { pile }
+export const dispersePiles = piles => ({
+  type: DISPERSE_PILES,
+  payload: { piles }
+});
+
+export const REMOVE_PILES = 'REMOVE_PILES';
+
+export const removePiles = piles => ({
+  type: REMOVE_PILES,
+  payload: { piles }
 });
 
 export const SET_ANIMATION = 'SET_ANIMATION';
@@ -52,6 +59,20 @@ export const SET_SHOW_SPECIAL_CELLS = 'SET_SHOW_SPECIAL_CELLS';
 export const setShowSpecialCells = showSpecialCells => ({
   type: SET_SHOW_SPECIAL_CELLS,
   payload: { showSpecialCells }
+});
+
+export const STACK_PILES = 'STACK_PILES';
+
+export const stackPiles = (targetPile, sourcePiles) => ({
+  type: STACK_PILES,
+  payload: { targetPile, sourcePiles }
+});
+
+export const TRASH_PILES = 'TRASH_PILES';
+
+export const trashPile = piles => ({
+  type: TRASH_PILES,
+  payload: { piles }
 });
 
 export const UPDATE_FGM_CONFIG = 'UPDATE_FGM_CONFIG';
