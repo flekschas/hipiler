@@ -70,7 +70,7 @@ export const stackPiles = (targetPile, sourcePiles) => ({
 
 export const TRASH_PILES = 'TRASH_PILES';
 
-export const trashPile = piles => ({
+export const trashPiles = piles => ({
   type: TRASH_PILES,
   payload: { piles }
 });
