@@ -64,7 +64,7 @@ export default class Pile {
     this.dims = dims;
     this.geometry = new BufferGeometry({ attributes: SHADER_ATTRIBUTES });
     this.highlighted = false;
-    this.id = id;
+    this.id = parseInt(id, 10);
     this.metrics = {};
     this.orderedLocally = false;
     this.pileMatrices = [];
