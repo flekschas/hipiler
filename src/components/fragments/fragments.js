@@ -61,7 +61,8 @@ import {
   Z_BASE,
   Z_DRAG,
   Z_HIGHLIGHT,
-  Z_LASSO
+  Z_LASSO,
+  Z_STACK_PILE_TARGET
 } from 'components/fragments/fragments-defaults';
 
 import Pile from 'components/fragments/pile';
@@ -479,6 +480,8 @@ export class Fragments {
    * @param {object} event - Event object
    */
   canvasMouseDownHandler (event) {
+    event.preventDefault();
+
     this.mouseWentDown = true;
     this.mouseIsDown = true;
     this.dragStartPos = {
@@ -1222,25 +1225,23 @@ export class Fragments {
   }
 
   /**
-   * [initEventListeners description]
-   *
-   * @return {[type]} [description]
+   * Initialize event listeners
    */
   initEventListeners () {
     this.canvas.addEventListener(
-      'click', event => event.preventDefault()
+      'click', event => event.preventDefault(), false
     );
     this.canvas.addEventListener(
-      'dblclick', event => event.preventDefault()
+      'dblclick', event => event.preventDefault(), false
     );
     this.canvas.addEventListener(
-      'mousedown', this.canvasMouseDownHandler.bind(this)
+      'mousedown', this.canvasMouseDownHandler.bind(this), false
     );
     this.canvas.addEventListener(
-      'mousemove', this.canvasMouseMoveHandler.bind(this)
+      'mousemove', this.canvasMouseMoveHandler.bind(this), false
     );
     this.canvas.addEventListener(
-      'mouseup', this.canvasMouseUpHandler.bind(this)
+      'mouseup', this.canvasMouseUpHandler.bind(this), false
     );
     this.canvas.addEventListener(
       'mousewheel', this.canvasMouseWheelHandler.bind(this), false
@@ -1548,6 +1549,76 @@ export class Fragments {
   }
 
   /**
+   * Move multiple files and animate the move
+   *
+   * @param {array} piles - Piles to be moved.
+   * @param {array} locations - Locations the piles should be moved to.
+   * @return {object} Promise resolving when the animation is done.
+   */
+  movePilesAnimated (piles, locations) {
+    // Duration in seconds
+    const durationSec = DURATION * 0.001;
+
+    // Convert to seconds
+    let timeLeft = durationSec;
+
+    return new Promise((resolve, reject) => {
+      let firstTime = true;
+
+      // Store initial pile position difference
+      const diff = {};
+
+      let then = 0;
+
+      const animate = (now) => {
+        // Convert to seconds
+        now *= 0.001;
+
+        // Set then equal to now the first time
+        if (firstTime) {
+          then = now;
+        }
+
+        // Sum up time passed
+        timeLeft = Math.max(timeLeft - (now - then), 0);
+
+        // Remember the current time for the next frame.
+        then = now;
+
+        // Get the fraction we should have already moved
+        const fraction = timeLeft / durationSec;
+
+        piles.forEach((pile, index) => {
+          if (firstTime) {
+            diff[pile.id] = {
+              x: (locations[index].x - pile.x),
+              y: (locations[index].y - pile.y)
+            };
+          }
+
+          pile.moveTo(
+            locations[index].x - (diff[pile.id].x * fraction),
+            locations[index].y - (diff[pile.id].y * fraction),
+            true
+          );
+        });
+
+        this.render();
+
+        firstTime = false;
+
+        if (timeLeft > 0) {
+          window.requestAnimationFrame(animate);
+        } else {
+          resolve();
+        }
+      };
+
+      window.requestAnimationFrame(animate);
+    });
+  }
+
+  /**
    * Piles a set of matrices onto a target pile removes it from source pile, and
    * updates the layout.
    *
@@ -1558,76 +1629,23 @@ export class Fragments {
   pileUp (piles, targetPile, noAnimation) {
     let animation;
 
-    // Duration in seconds
-    const durationSec = DURATION * 0.001;
-
-    // Convert to seconds
-    let timeLeft = durationSec;
+    targetPile.elevateTo(Z_STACK_PILE_TARGET);
 
     if (this.fgmState.animation && !noAnimation) {
-      animation = new Promise((resolve, reject) => {
-        let firstTime = true;
-
-        targetPile.elevateTo(1);
-
-        // Store initial pile position difference
-        const diff = {};
-
-        let then = 0;
-
-        const animate = (now) => {
-          // Convert to seconds
-          now *= 0.001;
-
-          // Set then equal to now the first time
-          if (firstTime) {
-            then = now;
-          }
-
-          // Sum up time passed
-          timeLeft = Math.max(timeLeft - (now - then), 0);
-
-          // Remember the current time for the next frame.
-          then = now;
-
-          // Get the fraction we should have already moved
-          const fraction = timeLeft / durationSec;
-
-          piles.forEach((pile) => {
-            if (firstTime) {
-              diff[pile.id] = {
-                x: (targetPile.x - pile.x),
-                y: (targetPile.y - pile.y)
-              };
-            }
-
-            pile.moveTo(
-              targetPile.x - (diff[pile.id].x * fraction),
-              targetPile.y - (diff[pile.id].y * fraction),
-              true
-            );
-          });
-
-          this.render();
-
-          firstTime = false;
-
-          if (timeLeft > 0) {
-            window.requestAnimationFrame(animate);
-          } else {
-            targetPile.elevateTo(0);
-            resolve();
-          }
-        };
-
-        window.requestAnimationFrame(animate);
-      });
+      animation = this.movePilesAnimated(
+        piles,
+        new Array(piles.length).fill(
+          { x: targetPile.x, y: targetPile.y }
+        )
+      );
     } else {
       animation = Promise.resolve();
     }
 
     animation.finally(() => {
       const matrices = this.getPilesMatrices(piles);
+
+      targetPile.elevateTo(Z_BASE);
 
       matrices.forEach((matrix) => {
         let sourcePile = matrix.pile;
