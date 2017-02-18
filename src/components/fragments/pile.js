@@ -1014,6 +1014,21 @@ export default class Pile {
   }
 
   /**
+   * Set matrices associated to this pile.
+   *
+   * @param {array} matrices - Array of fgmState.matrices.
+   * @return {object} Self.
+   */
+  setMatrices (matrices) {
+    this.pileMatrices = matrices;
+    matrices.forEach((matrix) => { matrix.pile = this; });
+
+    this.calculateCoverMatrix();
+
+    return this;
+  }
+
+  /**
    * Set node order.
    *
    * @param {???} nodeOrder - Node order.
