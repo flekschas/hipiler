@@ -322,8 +322,6 @@ export default class Pile {
 
   /**
    * Destroy this instance.
-   *
-   * @return {object} Self.
    */
   destroy () {
     fgmState.pileMeshes.splice(fgmState.pileMeshes.indexOf(this.mesh), 1);
@@ -331,6 +329,7 @@ export default class Pile {
     fgmState.scene.remove(this.mesh);
     this.render = false;
     this.pileMatrices = [];
+    fgmState.piles.splice(fgmState.piles.indexOf(this), 1);
     fgmState.pilesIdx[this.id] = undefined;
   }
 

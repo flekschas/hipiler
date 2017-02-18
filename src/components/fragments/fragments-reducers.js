@@ -28,7 +28,6 @@ import deepClone from 'utils/deep-clone';
 
 
 export function piles (state = PILES, action) {
-  console.log('ASSTION', action);
   switch (action.type) {
     case ADD_PILES: {
       const newState = { ...state };
@@ -36,9 +35,6 @@ export function piles (state = PILES, action) {
       Object.keys(action.payload.piles).forEach((pileId) => {
         newState[pileId] = action.payload.piles[pileId];
       });
-
-      console.log(ADD_PILES, action, state, newState);
-
       return newState;
     }
 
@@ -58,7 +54,7 @@ export function piles (state = PILES, action) {
     case REMOVE_PILES: {
       const newState = { ...state };
 
-      action.payload.piles
+      Object.keys(action.payload.piles)
         .forEach((pileId) => {
           newState[`__${pileId}`] = [...newState[pileId]];
           newState[pileId] = [];
@@ -73,14 +69,14 @@ export function piles (state = PILES, action) {
       // Add piles of source piles onto the target pile
       newState[action.payload.targetPile]
         .push(...action.payload.sourcePiles
-          .map(pileId => state[pileId])
+          .map(pileId => newState[pileId])
           .reduce((a, b) => a.concat(b), [])
         );
 
       // Reset the source piles
-      action.payload.sourcePiles
-        .map(pileId => state[pileId])
-        .forEach(pile => []);
+      action.payload.sourcePiles.forEach(
+        (pileId) => { newState[pileId] = []; }
+      );
 
       return newState;
     }
@@ -88,7 +84,7 @@ export function piles (state = PILES, action) {
     case TRASH_PILES: {
       const newState = { ...state };
 
-      action.payload.piles
+      Object.keys(action.payload.piles)
         .forEach((pileId) => {
           newState[`_${pileId}`] = [...newState[pileId]];
           newState[pileId] = [];

@@ -29,7 +29,8 @@ import {
   setArrangeMetrics,
   setCellSize,
   setCoverDispMode,
-  setShowSpecialCells
+  setShowSpecialCells,
+  stackPiles
 } from 'components/fragments/fragments-actions';
 
 import {
@@ -1643,25 +1644,30 @@ export class Fragments {
     }
 
     animation.finally(() => {
-      const matrices = this.getPilesMatrices(piles);
-
       targetPile.elevateTo(Z_BASE);
 
-      matrices.forEach((matrix) => {
-        let sourcePile = matrix.pile;
+      this.store.dispatch(stackPiles(
+        targetPile.id,
+        piles.map(pile => pile.id)
+      ));
 
-        if (sourcePile !== targetPile) {
-          this.destroyPile(sourcePile);
-        }
-      });
+      // const matrices = this.getPilesMatrices(piles);
 
-      targetPile.addMatrices(matrices);
-      this.sortByOriginalOrder(targetPile);
+      // matrices.forEach((matrix) => {
+      //   let sourcePile = matrix.pile;
 
-      this.redrawPiles(this.fgmState.piles);
+      //   if (sourcePile !== targetPile) {
+      //     this.destroyPile(sourcePile);
+      //   }
+      // });
 
-      this.updateLayout();
-      this.render();
+      // targetPile.addMatrices(matrices);
+      // this.sortByOriginalOrder(targetPile);
+
+      // this.redrawPiles(this.fgmState.piles);
+
+      // this.updateLayout();
+      // this.render();
     });
   }
 
@@ -2012,8 +2018,6 @@ export class Fragments {
     try {
       const state = this.store.getState().present.decompose.fragments;
 
-      console.log(state);
-
       this.updateAnimation(state.animation);
       this.updateArrangeMetrics(state.arrangeMetrics);
       this.updateCoverDispMode(state.coverDispMode);
@@ -2146,17 +2150,18 @@ export class Fragments {
       this.pileConfig = pileConfig;
 
       Object.keys(pileConfig).forEach((pileId) => {
-        console.log('ass', pileId);
         const pile = this.getOrCreatePile(pileId);
         const matrixIds = pileConfig[pileId];
         const matrices = matrixIds.map(
           matrixIndex => this.fgmState.matrices[matrixIndex]
         );
 
-        pile.setMatrices(matrices).draw();
+        if (matrices.length) {
+          pile.setMatrices(matrices).draw();
+        } else {
+          pile.destroy();
+        }
       });
-
-      console.log(this.fgmState.pilesIdx);
 
       this.calculateDistanceMatrix();
       this.arrange(this.fgmState.piles, this.arrangeMetrics);
