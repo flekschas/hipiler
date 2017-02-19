@@ -324,6 +324,18 @@ export default class Pile {
    * Destroy this instance.
    */
   destroy () {
+    if (fgmState.hoveredPile === this) {
+      fgmState.hoveredPile = undefined;
+    }
+
+    if (fgmState.previousHoveredPile === this) {
+      fgmState.previousHoveredPile = undefined;
+    }
+
+    if (fgmState.hoveredGapPile === this) {
+      fgmState.hoveredGapPile = undefined;
+    }
+
     const meshIndex = fgmState.pileMeshes.indexOf(this.mesh);
 
     if (meshIndex >= 0) {
