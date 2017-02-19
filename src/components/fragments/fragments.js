@@ -20,11 +20,11 @@ import { json } from 'd3';
 
 // Injectables
 import States from 'services/states';
-import MpState from 'components/fragments/fragments-state';
 
 // Utils etc.
 import {
   addPiles,
+  dispersePiles,
   setAnimation,
   setArrangeMetrics,
   setCellSize,
@@ -65,6 +65,8 @@ import {
   Z_LASSO,
   Z_STACK_PILE_TARGET
 } from 'components/fragments/fragments-defaults';
+
+import fgmState from 'components/fragments/fragments-state';
 
 import Pile from 'components/fragments/pile';
 
@@ -115,9 +117,9 @@ const sortAsc = (a, b) => {
 };
 
 
-@inject(EventAggregator, States, MpState)
+@inject(EventAggregator, States)
 export class Fragments {
-  constructor (eventAggregator, states, mpState) {
+  constructor (eventAggregator, states) {
     this.event = eventAggregator;
 
     // Link the Redux store
@@ -126,9 +128,7 @@ export class Fragments {
 
     this.fragments = {};
 
-    this.fgmState = mpState;
-
-    this.fgmState.cellSize = CELL_SIZE;
+    fgmState.cellSize = CELL_SIZE;
     this.maxDistance = 0;
     this.pilingMethod = 'clustered';
     this.matrixStrings = '';
@@ -170,7 +170,7 @@ export class Fragments {
     this.mouseIsDown = false;
     this.lassoRectIsActive = false;
     this.mouseWentDown = false;
-    this.fgmState.showSpecialCells = false;
+    fgmState.showSpecialCells = false;
 
     this.isLoading = true;
 
@@ -263,7 +263,7 @@ export class Fragments {
   /* ----------------------- Getter / Setter Variables ---------------------- */
 
   get cellSize () {
-    return this.fgmState.cellSize;
+    return fgmState.cellSize;
   }
 
   get plotElDim () {
@@ -313,7 +313,7 @@ export class Fragments {
   }
 
   get matrixWidth () {
-    return this.fragDims * this.fgmState.cellSize;
+    return this.fragDims * fgmState.cellSize;
   }
 
   get matrixWidthInclSpacing () {
@@ -325,7 +325,7 @@ export class Fragments {
   }
 
   get rawMatrices () {
-    return this.fgmState.matrices.map(matrix => matrix.matrix);
+    return fgmState.matrices.map(matrix => matrix.matrix);
   }
 
 
@@ -359,7 +359,7 @@ export class Fragments {
    * @param {boolean} animation - If `true` vbisual changes will be animated.
    */
   animationChangeHandler () {
-    this.store.dispatch(setAnimation(!this.fgmState.animation));
+    this.store.dispatch(setAnimation(!fgmState.animation));
   }
 
   /**
@@ -419,7 +419,7 @@ export class Fragments {
   calculatePiles (value) {
     this.isLoading = true;
 
-    this.setPiling(calculateClusterPiling(value, this.fgmState.matrices, this.dMat));
+    this.setPiling(calculateClusterPiling(value, fgmState.matrices, this.dMat));
   }
 
   /**
@@ -436,17 +436,17 @@ export class Fragments {
       this.hoveredTool.trigger(this.hoveredTool.pile);
       this.render();
       this.hoveredTool = undefined;
-    } else if (this.hoveredGapPile) {
-      this.pileBackwards(this.fgmState.hoveredGapPile);
-      this.fgmState.hoveredGapPile = undefined;
+    } else if (fgmState.hoveredGapPile) {
+      this.pileBackwards(fgmState.hoveredGapPile);
+      fgmState.hoveredGapPile = undefined;
     } else if (this.hoveredMatrix) {
       this.splitPile(this.hoveredMatrix);
       this.hoveredMatrix = undefined;
     }
 
-    if (this.fgmState.hoveredPile) {
+    if (fgmState.hoveredPile) {
       // Re-draw hovered pile to show menu.
-      this.fgmState.hoveredPile.draw();
+      fgmState.hoveredPile.draw();
     }
 
     this.render();
@@ -460,18 +460,17 @@ export class Fragments {
   canvasDblClickHandler (event) {
     // Disabled for now
     // if (
-    //   this.fgmState.hoveredPile &&
-    //   this.fgmState.hoveredPile !== this.openedPile
+    //   fgmState.hoveredPile &&
+    //   fgmState.hoveredPile !== this.openedPile
     // ) {
-    //   this.openedPileRoot = this.fgmState.hoveredPile;
+    //   this.openedPileRoot = fgmState.hoveredPile;
     // } else {
-    //   this.openedPile = this.fgmState.hoveredPile;
+    //   this.openedPile = fgmState.hoveredPile;
     // }
 
-    if (this.fgmState.hoveredPile) {
-      this.depileMyAss = this.fgmState.hoveredPile;
-      this.depile(this.fgmState.hoveredPile);
-      this.fgmState.hoveredPile = undefined;
+    if (fgmState.hoveredPile) {
+      this.dispersePileHandler(fgmState.hoveredPile);
+      fgmState.hoveredPile = undefined;
     }
   }
 
@@ -494,15 +493,15 @@ export class Fragments {
 
     // // test if mouse dwells on a matrix -> open pile
     // if (
-    //   this.fgmState.hoveredPile &&
-    //   this.fgmState.hoveredPile.size > 1 &&
+    //   fgmState.hoveredPile &&
+    //   fgmState.hoveredPile.size > 1 &&
     //   typeof this.hoveredMatrix === 'undefined'
     // ) {
     //   this.mouseIsDownTimer = setInterval(() => {
-    //     this.openedPileRoot = this.fgmState.hoveredPile;
-    //     this.openedPileMatricesNum = this.fgmState.hoveredPile
+    //     this.openedPileRoot = fgmState.hoveredPile;
+    //     this.openedPileMatricesNum = fgmState.hoveredPile
     //       .pileMatrices.length - 1;
-    //     this.depile(this.openedPileRoot);
+    //     this.dispersePileHandler(this.openedPileRoot);
     //     clearInterval(this.mouseIsDownTimer);
     //   }, 500);
     // }
@@ -517,86 +516,86 @@ export class Fragments {
     let x = pileMesh.position.x;
     let y = pileMesh.position.y;
 
-    if (this.fgmState.hoveredPile !== pileMesh.pile) {
+    if (fgmState.hoveredPile !== pileMesh.pile) {
       this.closePileMenu();
     }
 
-    this.fgmState.hoveredPile = pileMesh.pile;
+    fgmState.hoveredPile = pileMesh.pile;
 
     if (!this.lassoRectIsActive) {
-      this.highlightPile(this.fgmState.hoveredPile);
+      this.highlightPile(fgmState.hoveredPile);
     }
 
     // Preview single matrices of piles with multiple matrices
-    if (this.fgmState.hoveredPile.pileMatrices.length > 1) {
+    if (fgmState.hoveredPile.pileMatrices.length > 1) {
       if (this.mouse.y > y + this.matrixWidthHalf) {
         let d = this.mouse.y - (y + this.matrixWidthHalf);
         let i = Math.floor(d / PREVIEW_SIZE);
-        this.fgmState.hoveredPile.showSingle(
-          this.fgmState.hoveredPile.getMatrix(i)
+        fgmState.hoveredPile.showSingle(
+          fgmState.hoveredPile.getMatrix(i)
         );
-        this.hoveredMatrix = this.fgmState.hoveredPile.getMatrix(i);
+        this.hoveredMatrix = fgmState.hoveredPile.getMatrix(i);
       } else {
-        this.fgmState.hoveredPile.showSingle(undefined);
+        fgmState.hoveredPile.showSingle(undefined);
         this.resetHighlightedPile();
       }
     }
 
     // Check if we're hovering a gap
     if (this.relToAbsPositionX(this.mouse.x) > x + this.matrixWidthHalf) {
-      this.fgmState.hoveredGapPile = this.fgmState.hoveredPile;
-    } else if (this.hoveredGapPile) {
-      this.hoveredGapPile.draw();
-      this.fgmState.hoveredGapPile = undefined;
+      fgmState.hoveredGapPile = fgmState.hoveredPile;
+    } else if (fgmState.hoveredGapPile) {
+      fgmState.hoveredGapPile.draw();
+      fgmState.hoveredGapPile = undefined;
     }
 
     this.hoveredCell = undefined;
 
     if (event.shiftKey) {
       // test which cell is hovered.
-      let col = Math.floor((this.mouse.x - (x - this.matrixWidthHalf)) / this.fgmState.cellSize);
-      let row = Math.floor(-(this.mouse.y - (y + this.matrixWidthHalf)) / this.fgmState.cellSize);
+      let col = Math.floor((this.mouse.x - (x - this.matrixWidthHalf)) / fgmState.cellSize);
+      let row = Math.floor(-(this.mouse.y - (y + this.matrixWidthHalf)) / fgmState.cellSize);
       if (
         row >= 0 ||
-        row < this.fgmState.focusNodes.length ||
+        row < fgmState.focusNodes.length ||
         col >= 0 ||
-        col < this.fgmState.focusNodes.length
+        col < fgmState.focusNodes.length
       ) {
-        this.fgmState.hoveredPile.updateLabels(true);
+        fgmState.hoveredPile.updateLabels(true);
         this.hoveredCell = { row, col };
       }
     }
 
-    for (let i = 0; i < this.fgmState.piles.length; i++) {
-      this.fgmState.piles[i].updateHoveredCell();
-      this.fgmState.piles[i].updateLabels(false);
+    for (let i = 0; i < fgmState.piles.length; i++) {
+      fgmState.piles[i].updateHoveredCell();
+      fgmState.piles[i].updateLabels(false);
     }
 
-    this.fgmState.hoveredPile.updateLabels(true);
+    fgmState.hoveredPile.updateLabels(true);
 
-    this.previousHoveredPile = this.fgmState.hoveredPile;
+    fgmState.previousHoveredPile = fgmState.hoveredPile;
   }
 
   /**
    * Handle pile mouse out events.
    */
   mouseOutPileHandler () {
-    this.fgmState.hoveredPile = undefined;
+    fgmState.hoveredPile = undefined;
 
     this.highlightPile();
 
-    if (this.hoveredGapPile) {
-      const pile = this.hoveredGapPile;
-      this.fgmState.hoveredGapPile = undefined;
+    if (fgmState.hoveredGapPile) {
+      const pile = fgmState.hoveredGapPile;
+      fgmState.hoveredGapPile = undefined;
       pile.draw();
     }
 
-    if (this.previousHoveredPile) {
-      this.previousHoveredPile.showSingle(undefined);
+    if (fgmState.previousHoveredPile) {
+      fgmState.previousHoveredPile.showSingle(undefined);
       this.highlightFrame.visible = false;
-      this.previousHoveredPile.coverMatrixMode = this.coverDispMode;
-      this.previousHoveredPile.draw();
-      this.previousHoveredPile = undefined;
+      fgmState.previousHoveredPile.coverMatrixMode = this.coverDispMode;
+      fgmState.previousHoveredPile.draw();
+      fgmState.previousHoveredPile = undefined;
     }
   }
 
@@ -611,7 +610,7 @@ export class Fragments {
     this.hoveredTool = undefined;
     this.hoveredMatrix = undefined;
 
-    this.fgmState.scene.updateMatrixWorld();
+    fgmState.scene.updateMatrixWorld();
     this.camera.updateProjectionMatrix();
 
     this.mouse.x = (
@@ -626,8 +625,8 @@ export class Fragments {
       this.dragPileHandler();
     } else if (
       this.mouseIsDown &&
-      this.fgmState.hoveredPile &&
-      this.fgmState.piles.indexOf(this.fgmState.hoveredPile) > 0 &&
+      fgmState.hoveredPile &&
+      fgmState.piles.indexOf(fgmState.hoveredPile) > 0 &&
       !this.lassoRectIsActive
     ) {
       this.dragPileStartHandler();
@@ -636,7 +635,7 @@ export class Fragments {
     }
 
     // Remove menu is no pile is hovered
-    if (!this.fgmState.hoveredPile) {
+    if (!fgmState.hoveredPile) {
       this.closePileMenu();
     }
 
@@ -686,23 +685,23 @@ export class Fragments {
   canvasMouseUpHandler (event) {
     event.preventDefault();
 
-    this.fgmState.scene.updateMatrixWorld();
+    fgmState.scene.updateMatrixWorld();
     this.camera.updateProjectionMatrix();
-    this.fgmState.scene.remove(this.lassoObject);
+    fgmState.scene.remove(this.lassoObject);
     this.mouseIsDown = false;
 
     if (this.openedPileRoot) {
       this.closeOpenedPile(this.openedPileRoot);
     } else if (this.dragPile) {
       // place pile on top of previous pile
-      if (!this.fgmState.hoveredPile) {
+      if (!fgmState.hoveredPile) {
         // Move pile back to original position
         let pos = this.getLayoutPosition(this.dragPile);
         this.dragPile.moveTo(pos.x, pos.y);
         this.dragPile.elevateTo(Z_BASE);
       } else {
         // Pile up the two piles
-        this.pileUp([this.dragPile], this.fgmState.hoveredPile);
+        this.pileUp([this.dragPile], fgmState.hoveredPile);
       }
 
       this.dragPile = undefined;
@@ -739,13 +738,13 @@ export class Fragments {
    */
   closeOpenedPile (openedPile) {
     let piles = [];
-    let openedPileIndex = this.fgmState.piles.indexOf(this.openedPileRoot);
+    let openedPileIndex = fgmState.piles.indexOf(this.openedPileRoot);
 
     for (let i = 0; i <= this.openedPileMatricesNum; i++) {
-      piles.push(this.fgmState.piles[openedPileIndex + i]);
+      piles.push(fgmState.piles[openedPileIndex + i]);
     }
 
-    this.pileUp(piles, this.fgmState.piles[openedPileIndex]);
+    this.pileUp(piles, fgmState.piles[openedPileIndex]);
 
     this.startAnimations();
     this.openedPileRoot = undefined;
@@ -756,10 +755,10 @@ export class Fragments {
    * Close pile menu.
    */
   closePileMenu () {
-    this.fgmState.visiblePileTools.forEach((visiblePileTool) => {
-      this.fgmState.scene.remove(visiblePileTool);
+    fgmState.visiblePileTools.forEach((visiblePileTool) => {
+      fgmState.scene.remove(visiblePileTool);
     });
-    this.fgmState.visiblePileTools = [];
+    fgmState.visiblePileTools = [];
   }
 
   /**
@@ -787,7 +786,7 @@ export class Fragments {
       Math.max(this.dragStartPos.y, this.mouse.y)
     );
 
-    this.fgmState.piles.forEach((pile) => {
+    fgmState.piles.forEach((pile) => {
       let x = pile.getPos().x;
       let y = pile.getPos().y;
 
@@ -844,55 +843,10 @@ export class Fragments {
   /**
    * Depile a pile
    *
-   * @param {object} pile - Pile to be depiled.
+   * @param {object} pile - Pile to be dispersed.
    */
-  depile (pile) {
-    if (pile.pileMatrices.length <= 1) {
-      return;
-    }
-
-    let newPiles = [];
-    let matrices = [];
-
-    matrices.push(...pile.pileMatrices);
-
-    // Remove all except the first matrix
-    matrices.slice(1).forEach((matrix) => {
-      const pileNew = new Pile(
-        matrix.id,
-        this.scene,
-        this.fragScale,
-        this.fragDims
-      );
-
-      pileNew.colored = pile.colored;
-      this.fgmState.piles.push(pileNew);
-
-      pileNew.addMatrices([matrix]);
-      pileNew.draw();
-      newPiles.push(pileNew);
-    });
-
-    pile.removeMatrices(matrices.slice(1));
-
-    pile.draw();
-    this.updateLayout();
-
-    // Need refactoring
-    // if (animated) {
-    //   pilingAnimations.push(
-    //     new DepileAnimation(
-    //       newPiles,
-    //       {
-    //         x: pile.x,
-    //         y: pile.y
-    //       }
-    //     )
-    //   );
-    //   startAnimations();
-    // }
-
-    this.render();
+  dispersePileHandler (pile) {
+    this.store.dispatch(dispersePiles([pile.id]));
   }
 
   /**
@@ -917,14 +871,14 @@ export class Fragments {
   destroyPile (pile) {
     pile.destroy();
 
-    this.fgmState.piles.splice(this.fgmState.piles.indexOf(pile), 1);
+    fgmState.piles.splice(fgmState.piles.indexOf(pile), 1);
 
-    if (this.previousHoveredPile === pile) {
-      this.previousHoveredPile = undefined;
+    if (fgmState.previousHoveredPile === pile) {
+      fgmState.previousHoveredPile = undefined;
     }
 
-    if (this.fgmState.hoveredGapPile === pile) {
-      this.fgmState.hoveredGapPile = undefined;
+    if (fgmState.hoveredGapPile === pile) {
+      fgmState.hoveredGapPile = undefined;
     }
   }
 
@@ -956,18 +910,18 @@ export class Fragments {
    * Drag handler
    */
   dragPileHandler () {
-    this.fgmState.hoveredPile = undefined;
+    fgmState.hoveredPile = undefined;
 
     this.raycaster.setFromCamera(this.mouse, this.camera);
     // Check if we intersect with a pile
     this.intersects = this.raycaster.intersectObjects(
-      this.fgmState.pileMeshes.filter(
+      fgmState.pileMeshes.filter(
         pileMesh => pileMesh !== this.dragPile.mesh
       )
     );
 
     if (this.intersects.length) {
-      this.fgmState.hoveredPile = this.intersects[0].object.pile;
+      fgmState.hoveredPile = this.intersects[0].object.pile;
     }
 
     this.dragPile.moveTo(
@@ -997,12 +951,12 @@ export class Fragments {
     const height = (y2 - y1) * this.plotElDim.height / 2;
 
     // Update lasso
-    this.fgmState.scene.remove(this.lassoObject);
+    fgmState.scene.remove(this.lassoObject);
     this.lassoObject = createRectFrame(width, height, COLOR_PRIMARY, 1);
     this.lassoObject.position.set(
       ...this.relToAbsPosition(x1 + ((x2 - x1) / 2), y1 + ((y2 - y1) / 2)), Z_LASSO
     );
-    this.fgmState.scene.add(this.lassoObject);
+    fgmState.scene.add(this.lassoObject);
   }
 
   /**
@@ -1011,7 +965,7 @@ export class Fragments {
   dragPileStartHandler () {
     // Don't do raycasting. "Freeze" the current state of
     // highlighte items and move matrix with cursor.
-    this.dragPile = this.fgmState.hoveredPile;
+    this.dragPile = fgmState.hoveredPile;
     this.dragPile.moveTo(
       this.relToAbsPositionX(this.mouse.x),
       this.relToAbsPositionY(this.mouse.y),
@@ -1027,24 +981,24 @@ export class Fragments {
    * @return {[type]} [description]
    */
   focusOn (nodes) {
-    this.fgmState.focusNodes = nodes;
+    fgmState.focusNodes = nodes;
 
     // update sizes
-    this.matrixWidth = this.fgmState.cellSize * this.fgmState.focusNodes.length;
+    this.matrixWidth = fgmState.cellSize * fgmState.focusNodes.length;
     this.matrixWidthHalf = this.matrixWidth / 2;
 
-    this.fgmState.calculateDistanceMatrix();
+    fgmState.calculateDistanceMatrix();
 
     // update highlight frame
-    this.fgmState.scene.remove(this.highlightFrame);
+    fgmState.scene.remove(this.highlightFrame);
     this.highlightFrame = createRectFrame(
       this.matrixWidth, this.matrixWidth, 0x000000, HIGHLIGHT_FRAME_LINE_WIDTH
     );
-    this.fgmState.scene.add(this.highlightFrame);
+    fgmState.scene.add(this.highlightFrame);
 
     // redraw
-    this.fgmState.piles.forEach(pile => pile.updateFrame());
-    this.redrawPiles(this.fgmState.piles);
+    fgmState.piles.forEach(pile => pile.updateFrame());
+    this.redrawPiles(fgmState.piles);
     this.updateLayout(0, true);
     this.render();
   }
@@ -1064,8 +1018,8 @@ export class Fragments {
   getCurrentPiling () {
     const piling = [];
 
-    this.fgmState.piles.forEach(
-      pile => piling.push(this.fgmState.matrices.indexOf(pile.getMatrix(0)))
+    fgmState.piles.forEach(
+      pile => piling.push(fgmState.matrices.indexOf(pile.getMatrix(0)))
     );
 
     return piling;
@@ -1121,7 +1075,7 @@ export class Fragments {
     let currh = 0;
     let temp;
 
-    for (let i = 0; i < this.fgmState.piles.length; i++) {
+    for (let i = 0; i < fgmState.piles.length; i++) {
       if (i > 0 && i % this.numColumns === 0) {  // when new row starts
         if (i > pileSortIndex) {
           break;
@@ -1131,7 +1085,7 @@ export class Fragments {
         }
       }
 
-      temp = this.fgmState.piles[i].size() * 2;  // 2 = preview height
+      temp = fgmState.piles[i].size() * 2;  // 2 = preview height
 
       if (temp > currh) {
         currh = temp;
@@ -1153,19 +1107,19 @@ export class Fragments {
    * @return {object} New or retrieved pile
    */
   getOrCreatePile (pileId) {
-    if (!this.fgmState.pilesIdx[pileId]) {
+    if (!fgmState.pilesIdx[pileId]) {
       const pile = new Pile(
         pileId,
-        this.fgmState.scene,
+        fgmState.scene,
         this.fragScale,
         this.fragDims
       );
 
-      this.fgmState.pilesIdx[pileId] = pile;
-      this.fgmState.piles.push(pile);
+      fgmState.pilesIdx[pileId] = pile;
+      fgmState.piles.push(pile);
     }
 
-    return this.fgmState.pilesIdx[pileId];
+    return fgmState.pilesIdx[pileId];
   }
 
   /**
@@ -1207,7 +1161,7 @@ export class Fragments {
    * @return {[type]} [description]
    */
   hidedistance () {
-    this.fgmState.matrices.forEach(matrix => matrix.g_course.style('opacity', '1'));
+    fgmState.matrices.forEach(matrix => matrix.g_course.style('opacity', '1'));
   }
 
   /**
@@ -1219,9 +1173,9 @@ export class Fragments {
     if (typeof pile !== 'undefined') {
       this.highlightFrame.position.set(pile.x, pile.y, Z_HIGHLIGHT);
       this.highlightFrame.visible = true;
-      this.fgmState.scene.add(this.highlightFrame);
+      fgmState.scene.add(this.highlightFrame);
     } else {
-      this.fgmState.scene.remove(this.highlightFrame);
+      fgmState.scene.remove(this.highlightFrame);
     }
   }
 
@@ -1256,7 +1210,7 @@ export class Fragments {
    */
   initMatrices (fragments) {
     fragments.forEach((fragment, index) => {
-      this.fgmState.matrices.push(new Matrix(
+      fgmState.matrices.push(new Matrix(
         index,
         fragment.matrix,
         {
@@ -1333,7 +1287,7 @@ export class Fragments {
       logger.debug('State not ready yet.');
     }
 
-    this.initPiles(this.fgmState.matrices, piles);
+    this.initPiles(fgmState.matrices, piles);
 
     this.isInitialized = true;
   }
@@ -1345,7 +1299,7 @@ export class Fragments {
    */
   initShader () {
     try {
-      this.fgmState.shaderMaterial = new ShaderMaterial({
+      fgmState.shaderMaterial = new ShaderMaterial({
         vertexShader: document.querySelector('#shader-vertex').textContent,
         fragmentShader: document.querySelector('#shader-fragment').textContent,
         blending: NormalBlending,
@@ -1390,7 +1344,7 @@ export class Fragments {
     this.mouse = new Vector2();
     this.raycaster = new Raycaster();
 
-    this.fgmState.scene.add(this.camera);
+    fgmState.scene.add(this.camera);
   }
 
   /**
@@ -1462,7 +1416,7 @@ export class Fragments {
     const fontLoader = new FontLoader();
 
     fontLoader.load(FONT_URL, (font) => {
-      this.fgmState.font = font;
+      fgmState.font = font;
       this.resolve.isFontLoaded();
     });
   }
@@ -1485,25 +1439,25 @@ export class Fragments {
     this.raycaster.setFromCamera(this.mouse, this.camera);
 
     // test for menu-mouse over
-    if (this.fgmState.visiblePileTools.length > 0) {
+    if (fgmState.visiblePileTools.length > 0) {
       let intersects = this.raycaster
-        .intersectObjects(this.fgmState.visiblePileTools);
+        .intersectObjects(fgmState.visiblePileTools);
       if (intersects.length > 0) {
         this.hoveredTool = intersects[0].object.pileTool;
 
         if (this.hoveredTool.triggerEvent === 'hover') {
-          this.hoveredTool.trigger(this.fgmState.hoveredPile);
+          this.hoveredTool.trigger(fgmState.hoveredPile);
         }
         return;
       }
     }
 
     // Check if we intersect with a pile
-    this.intersects = this.raycaster.intersectObjects(this.fgmState.pileMeshes);
+    this.intersects = this.raycaster.intersectObjects(fgmState.pileMeshes);
 
     if (this.intersects.length) {
       this.mouseOverPileHandler(this.intersects[0].object);
-    } else if (this.previousHoveredPile) {
+    } else if (fgmState.previousHoveredPile) {
       this.mouseOutPileHandler();
     }
 
@@ -1511,7 +1465,7 @@ export class Fragments {
     if (
       this.lassoRectIsActive ||
       (
-        this.mouseWentDown && !this.fgmState.hoveredPile
+        this.mouseWentDown && !fgmState.hoveredPile
       )
     ) {
       this.lassoRectIsActive = true;
@@ -1527,22 +1481,22 @@ export class Fragments {
    * @param {object} pile - Pile
    */
   pileBackwards (pile) {
-    let pileIndex = this.fgmState.piles.indexOf(pile);
+    let pileIndex = fgmState.piles.indexOf(pile);
     let piles = [];
 
     if (pile.size === 1) {
       for (let j = pileIndex; j >= 0; j--) {
-        if (j === 0 || this.fgmState.piles[j - 1].size() > 1) {
-          this.pileUp(piles, this.fgmState.piles[j]);
+        if (j === 0 || fgmState.piles[j - 1].size() > 1) {
+          this.pileUp(piles, fgmState.piles[j]);
           return;
         }
 
-        piles.push(...this.fgmState.piles[j]);
+        piles.push(...fgmState.piles[j]);
       }
-    } else if (this.fgmState.piles.indexOf(pile) > 0) {
+    } else if (fgmState.piles.indexOf(pile) > 0) {
       this.pileUp(
         pile,
-        this.fgmState.piles[this.fgmState.piles.indexOf(pile) - 1]
+        fgmState.piles[fgmState.piles.indexOf(pile) - 1]
       );
     }
 
@@ -1632,7 +1586,7 @@ export class Fragments {
 
     targetPile.elevateTo(Z_STACK_PILE_TARGET);
 
-    if (this.fgmState.animation && !noAnimation) {
+    if (fgmState.animation && !noAnimation) {
       animation = this.movePilesAnimated(
         piles,
         new Array(piles.length).fill(
@@ -1664,7 +1618,7 @@ export class Fragments {
       // targetPile.addMatrices(matrices);
       // this.sortByOriginalOrder(targetPile);
 
-      // this.redrawPiles(this.fgmState.piles);
+      // this.redrawPiles(fgmState.piles);
 
       // this.updateLayout();
       // this.render();
@@ -1720,7 +1674,7 @@ export class Fragments {
 
     // Finally, assign rank
     pilesSortHelper.forEach((pileSortHelper, index) => {
-      this.fgmState.pilesIdx[pileSortHelper.id].rank = index;
+      fgmState.pilesIdx[pileSortHelper.id].rank = index;
     });
   }
 
@@ -1783,7 +1737,7 @@ export class Fragments {
    * @return {[type]} [description]
    */
   render () {
-    this.renderer.render(this.fgmState.scene, this.camera);
+    this.renderer.render(fgmState.scene, this.camera);
   }
 
   /**
@@ -1826,14 +1780,14 @@ export class Fragments {
     if (noAnimation) {
       let pileSrc = matrix.pile;
       let pileNew = new Pile(
-        this.fgmState.piles.length,
-        this.fgmState.scene,
+        fgmState.piles.length,
+        fgmState.scene,
         this.fragScale,
         this.fragDims
       );
 
       pileNew.colored = pileSrc.colored;
-      this.fgmState.piles.splice(this.fgmState.piles.indexOf(pileSrc) + 1, 0, pileNew);
+      fgmState.piles.splice(fgmState.piles.indexOf(pileSrc) + 1, 0, pileNew);
 
       let m = [];
       for (let i = pileSrc.getMatrixPosition(matrix); i < pileSrc.size(); i++) {
@@ -1842,7 +1796,7 @@ export class Fragments {
       }
 
       this.pileUp(m, pileNew);
-      this.updateLayout(this.fgmState.piles.indexOf(pileNew) - 1, true);
+      this.updateLayout(fgmState.piles.indexOf(pileNew) - 1, true);
 
       pileNew.draw();
       pileSrc.draw();
@@ -1886,9 +1840,9 @@ export class Fragments {
    * @param {[type]} newPiling - [description]
    */
   setPiling (newPiling) {
-    this.fgmState.piles.forEach(pile => this.destroyPile(pile));
+    fgmState.piles.forEach(pile => this.destroyPile(pile));
 
-    this.fgmState.piles = [];
+    fgmState.piles = [];
 
     let matrices = [];
     let l = 0;
@@ -1909,13 +1863,13 @@ export class Fragments {
       }
 
       const newPile = new Pile(
-        this.fgmState.piles.length,
-        this.fgmState.scene,
+        fgmState.piles.length,
+        fgmState.scene,
         this.fragScale,
         this.fragDims
       );
 
-      this.fgmState.piles.push(newPile);
+      fgmState.piles.push(newPile);
       newPile.addMatrices(matrices);
 
       this.sortByOriginalOrder(newPile);
@@ -1982,9 +1936,9 @@ export class Fragments {
    * @return {[type]} [description]
    */
   showMatrixSimilarity (pile) {
-    let pileIndex = this.fgmState.piles.indexOf(pile);
+    let pileIndex = fgmState.piles.indexOf(pile);
 
-    this.fgmState.piles.forEach((otherPile, index) => {
+    fgmState.piles.forEach((otherPile, index) => {
       otherPile.showSimilarity(
         this.pileDistanceColor(this.pdMat[pileIndex][index])
       );
@@ -1997,7 +1951,7 @@ export class Fragments {
    * @return {boolean} `True` to not keep the event form bubbling up.
    */
   showSpecialCellsChangeHandler () {
-    this.store.dispatch(setShowSpecialCells(!this.fgmState.showSpecialCells));
+    this.store.dispatch(setShowSpecialCells(!fgmState.showSpecialCells));
 
     return true;
   }
@@ -2008,7 +1962,7 @@ export class Fragments {
    * @return {[type]} [description]
    */
   unshowMatrixSimilarity () {
-    this.fgmState.piles.forEach(pile => pile.resetSimilarity());
+    fgmState.piles.forEach(pile => pile.resetSimilarity());
   }
 
   /**
@@ -2036,7 +1990,7 @@ export class Fragments {
    * @param {boolean} animation - If `true` visual changes will be animated.
    */
   updateAnimation (animation) {
-    this.fgmState.animation = animation;
+    fgmState.animation = animation;
   }
 
   /**
@@ -2054,7 +2008,7 @@ export class Fragments {
     });
 
     if (this.isInitialized) {
-      this.arrange(this.fgmState.piles, this.arrangeMetrics);
+      this.arrange(fgmState.piles, this.arrangeMetrics);
       this.updateLayout();
       this.render();
     }
@@ -2069,8 +2023,8 @@ export class Fragments {
     this.coverDispMode = coverDispMode;
 
     if (this.isInitialized) {
-      this.setPileMode(this.coverDispMode, this.fgmState.piles);
-      this.redrawPiles(this.fgmState.piles);
+      this.setPileMode(this.coverDispMode, fgmState.piles);
+      this.redrawPiles(fgmState.piles);
       this.render();
     }
   }
@@ -2081,23 +2035,23 @@ export class Fragments {
    * @param {number} newSize - New cell size
    */
   updateCellSize (newSize) {
-    this.fgmState.cellSize = newSize;
+    fgmState.cellSize = newSize;
 
     if (this.isInitialized) {
-      this.fgmState.piles.forEach(pile => pile.updateFrame());
+      fgmState.piles.forEach(pile => pile.updateFrame());
 
       // Update highlighting frame
-      this.fgmState.scene.remove(this.highlightFrame);
+      fgmState.scene.remove(this.highlightFrame);
       this.highlightFrame = createRectFrame(
         this.matrixWidth,
         this.matrixWidth,
         COLOR_PRIMARY,
         HIGHLIGHT_FRAME_LINE_WIDTH
       );
-      this.fgmState.scene.add(this.highlightFrame);
+      fgmState.scene.add(this.highlightFrame);
 
       this.updateLayout(0, true);
-      this.redrawPiles(this.fgmState.piles);
+      this.redrawPiles(fgmState.piles);
       this.setScrollLimit(this.data.fragments.length);
       this.render();
     }
@@ -2123,14 +2077,14 @@ export class Fragments {
    */
   updateLayout (pileRank = 0) {
     if (this.arrangeMetrics.length === 1) {
-      this.rank(this.fgmState.piles, this.arrangeMetrics[0]);
+      this.rank(fgmState.piles, this.arrangeMetrics[0]);
     }
 
     if (this.arrangeMetrics.length === 0) {
-      this.rank(this.fgmState.piles);
+      this.rank(fgmState.piles);
     }
 
-    this.fgmState.piles
+    fgmState.piles
       // Needs to be changed or disabled for 2D
       .filter(pile => pile.rank >= pileRank)
       .forEach((pile, index) => {
@@ -2146,6 +2100,14 @@ export class Fragments {
    * @param {boolean} forced - If `true` force update
    */
   updatePiles (pileConfig, forced) {
+    console.log(
+      'updatePiles',
+      pileConfig,
+      forced,
+      this.isInitialized,
+      this.pileConfig !== pileConfig
+    );
+
     if (this.pileConfig !== pileConfig && (this.isInitialized || forced)) {
       this.pileConfig = pileConfig;
 
@@ -2153,7 +2115,7 @@ export class Fragments {
         const pile = this.getOrCreatePile(pileId);
         const matrixIds = pileConfig[pileId];
         const matrices = matrixIds.map(
-          matrixIndex => this.fgmState.matrices[matrixIndex]
+          matrixIndex => fgmState.matrices[matrixIndex]
         );
 
         if (matrices.length) {
@@ -2164,9 +2126,9 @@ export class Fragments {
       });
 
       this.calculateDistanceMatrix();
-      this.arrange(this.fgmState.piles, this.arrangeMetrics);
+      this.arrange(fgmState.piles, this.arrangeMetrics);
       this.updateLayout();
-      this.setScrollLimit(this.fgmState.piles.length);
+      this.setScrollLimit(fgmState.piles.length);
       this.render();
     }
   }
@@ -2177,10 +2139,10 @@ export class Fragments {
    * @param {boolean} showSpecialCells - If `true` show special cells.
    */
   updateShowSpecialCells (showSpecialCells) {
-    this.fgmState.showSpecialCells = showSpecialCells;
+    fgmState.showSpecialCells = showSpecialCells;
 
     if (this.isInitialized) {
-      this.redrawPiles(this.fgmState.piles);
+      this.redrawPiles(fgmState.piles);
       this.render();
     }
   }
