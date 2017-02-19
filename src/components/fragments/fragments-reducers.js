@@ -4,13 +4,14 @@ import {
   ADD_PILES,
   DISPERSE_PILES,
   REMOVE_PILES,
-  TRASH_PILES,
+  REMOVE_PILES_FROM_TRASH,
   STACK_PILES,
   SET_ANIMATION,
   SET_ARRANGE_METRICS,
   SET_CELL_SIZE,
   SET_COVER_DISP_MODE,
   SET_SHOW_SPECIAL_CELLS,
+  TRASH_PILES,
   UPDATE_FGM_CONFIG
 } from 'components/fragments/fragments-actions';
 
@@ -70,6 +71,18 @@ export function piles (state = PILES, action) {
       return newState;
     }
 
+    case REMOVE_PILES_FROM_TRASH: {
+      const newState = { ...state };
+
+      Object.keys(action.payload.piles)
+        .forEach((pileId) => {
+          newState[pileId.slice(1)] = [...newState[pileId]];
+          newState[pileId] = [];
+        });
+
+      return newState;
+    }
+
     case STACK_PILES: {
       const newState = { ...state };
 
@@ -91,7 +104,7 @@ export function piles (state = PILES, action) {
     case TRASH_PILES: {
       const newState = { ...state };
 
-      Object.keys(action.payload.piles)
+      action.payload.piles
         .forEach((pileId) => {
           newState[`_${pileId}`] = [...newState[pileId]];
           newState[pileId] = [];

@@ -19,6 +19,13 @@ export const removePiles = piles => ({
   payload: { piles }
 });
 
+export const REMOVE_PILES_FROM_TRASH = 'REMOVE_PILES_FROM_TRASH';
+
+export const removePilesFromTrash = piles => ({
+  type: REMOVE_PILES_FROM_TRASH,
+  payload: { piles }
+});
+
 export const SET_ANIMATION = 'SET_ANIMATION';
 
 export const setAnimation = animation => ({
