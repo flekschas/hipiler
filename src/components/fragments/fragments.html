@@ -81,6 +81,15 @@
                 click.delegate="arrangeYDescChangeHandler()">
             </div>
           </li>
+          <li>
+            <button
+              class="flex-c flex-jc-c flex-a-c rel button is-icon-only ${trashSize > 0 ? 'is-active' : 'is-inactive'}"
+              click.delegate="showTrash()"
+              disabled.bind="trashSize === 0">
+              <svg-icon icon-id="trash"></svg-icon>
+              <span class="icon-number">${trashSize}</span>
+            </button>
+          </li>
         </ul>
 
         <!-- Second row of controls -->
