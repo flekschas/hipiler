@@ -328,6 +328,10 @@ export class Fragments {
     return fgmState.matrices.map(matrix => matrix.matrix);
   }
 
+  get trashSize () {
+    return fgmState.pilesTrash.length;
+  }
+
 
   /* ---------------------------- Custom Methods ---------------------------- */
 
@@ -377,23 +381,6 @@ export class Fragments {
     }
 
     this.store.dispatch(setArrangeMetrics(arrangeMetrics));
-  }
-
-  /**
-   * Handle all piles display mode changes
-   *
-   * @param {object} event - Change event object.
-   */
-  coverDispModeChangeHandler (event) {
-    try {
-      this.store.dispatch(
-        setCoverDispMode(
-          parseInt(event.target.selectedOptions[0].value, 10)
-        )
-      );
-    } catch (error) {
-      logger.error('Display mode could not be set.', error);
-    }
   }
 
   /**
@@ -505,6 +492,45 @@ export class Fragments {
     //     clearInterval(this.mouseIsDownTimer);
     //   }, 500);
     // }
+  }
+
+  /**
+   * Handle all piles display mode changes
+   *
+   * @param {object} event - Change event object.
+   */
+  coverDispModeChangeHandler (event) {
+    try {
+      this.store.dispatch(
+        setCoverDispMode(
+          parseInt(event.target.selectedOptions[0].value, 10)
+        )
+      );
+    } catch (error) {
+      logger.error('Display mode could not be set.', error);
+    }
+  }
+
+  /**
+   * Create a new instance
+   *
+   * @param {number} pileId - Pile ID.
+   * @return {object} New or retrieved pile
+   */
+  createPile (pileId) {
+    if (!fgmState.pilesIdx[pileId]) {
+      const pile = new Pile(
+        pileId,
+        fgmState.scene,
+        this.fragScale,
+        this.fragDims
+      );
+
+      fgmState.pilesIdx[pileId] = pile;
+      fgmState.piles.push(pile);
+    }
+
+    return fgmState.pilesIdx[pileId];
   }
 
   /**
@@ -1098,28 +1124,6 @@ export class Fragments {
       ) + this.matrixWidthHalf,
       y: y + currh
     };
-  }
-
-  /**
-   * Get a pile or create a new instance
-   *
-   * @param {number} pileId - Pile ID.
-   * @return {object} New or retrieved pile
-   */
-  getOrCreatePile (pileId) {
-    if (!fgmState.pilesIdx[pileId]) {
-      const pile = new Pile(
-        pileId,
-        fgmState.scene,
-        this.fragScale,
-        this.fragDims
-      );
-
-      fgmState.pilesIdx[pileId] = pile;
-      fgmState.piles.push(pile);
-    }
-
-    return fgmState.pilesIdx[pileId];
   }
 
   /**
@@ -1957,6 +1961,13 @@ export class Fragments {
   }
 
   /**
+   * Show trashed piles
+   */
+  showTrash () {
+    logger.error('Not implemented yet');
+  }
+
+  /**
    * [unshowMatrixSimilarity description]
    *
    * @return {[type]} [description]
@@ -2100,27 +2111,30 @@ export class Fragments {
    * @param {boolean} forced - If `true` force update
    */
   updatePiles (pileConfig, forced) {
-    console.log(
-      'updatePiles',
-      pileConfig,
-      forced,
-      this.isInitialized,
-      this.pileConfig !== pileConfig
-    );
-
     if (this.pileConfig !== pileConfig && (this.isInitialized || forced)) {
       this.pileConfig = pileConfig;
 
       Object.keys(pileConfig).forEach((pileId) => {
-        const pile = this.getOrCreatePile(pileId);
         const matrixIds = pileConfig[pileId];
         const matrices = matrixIds.map(
           matrixIndex => fgmState.matrices[matrixIndex]
         );
 
+        let pile = fgmState.pilesIdx[pileId];
+
         if (matrices.length) {
-          pile.setMatrices(matrices).draw();
-        } else {
+          if (!pile) {
+            pile = this.createPile(pileId);
+          }
+
+          pile.setMatrices(matrices);
+
+          if (pileId[0] === '_') {
+            pile.trash();
+          } else {
+            pile.draw();
+          }
+        } else if (pile) {
           pile.destroy();
         }
       });

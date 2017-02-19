@@ -324,17 +324,7 @@ export default class Pile {
    * Destroy this instance.
    */
   destroy () {
-    if (fgmState.hoveredPile === this) {
-      fgmState.hoveredPile = undefined;
-    }
-
-    if (fgmState.previousHoveredPile === this) {
-      fgmState.previousHoveredPile = undefined;
-    }
-
-    if (fgmState.hoveredGapPile === this) {
-      fgmState.hoveredGapPile = undefined;
-    }
+    this.unsetHoverState();
 
     const meshIndex = fgmState.pileMeshes.indexOf(this.mesh);
 
@@ -391,7 +381,7 @@ export default class Pile {
     }
 
     // Draw gap
-    this.drawGap(vertexPositions, vertexColors);
+    // this.drawGap(vertexPositions, vertexColors);
 
      // CREATE + ADD MESH
     this.geometry.addAttribute(
@@ -1091,6 +1081,54 @@ export default class Pile {
     this.singleMatrix = matrix;
 
     return this;
+  }
+
+  unsetHoverState () {
+    if (fgmState.hoveredPile === this) {
+      fgmState.hoveredPile = undefined;
+    }
+
+    if (fgmState.previousHoveredPile === this) {
+      fgmState.previousHoveredPile = undefined;
+    }
+
+    if (fgmState.hoveredGapPile === this) {
+      fgmState.hoveredGapPile = undefined;
+    }
+  }
+
+  /**
+   * Trash this instance.
+   *
+   * @description
+   * Trashing an instance means, it will be moved from the array of active piles
+   * to a special trash array.
+   */
+  trash () {
+    this.unsetHoverState();
+    this.geometry.dispose();
+    this.render = false;
+    fgmState.scene.remove(this.mesh);
+
+    const meshIndex = fgmState.pileMeshes.indexOf(this.mesh);
+
+    if (meshIndex >= 0) {
+      fgmState.pileMeshes.splice(fgmState.pileMeshes.indexOf(this.mesh), 1);
+    }
+
+    const pileIndex = fgmState.piles.indexOf(this);
+
+    if (pileIndex >= 0) {
+      fgmState.piles.splice(fgmState.piles.indexOf(this), 1);
+    }
+
+    fgmState.pilesIdx[this.id] = undefined;
+
+    this.id = `_${this.id}`;
+    fgmState.pilesIdx[this.id] = this.id;
+
+    fgmState.pilesTrash.push(this);
+    fgmState.pileMeshesTrash.push(this.mesh);
   }
 
   /**

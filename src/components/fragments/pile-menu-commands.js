@@ -33,7 +33,7 @@ export const DISPERSE = {
   background: COLORS.BLACK,
   shortCut: 'D',
   trigger (pile) {
-    store.dispatch(dispersePiles([pile]));
+    store.dispatch(dispersePiles([pile.id]));
   },
   single: false,
   stackedPileOnly: true
@@ -72,10 +72,9 @@ export const TRASH = {
   background: COLORS.BLACK,
   shortCut: 'R',
   trigger (pile) {
-    store.dispatch(trashPiles([pile]));
+    store.dispatch(trashPiles([pile.id]));
   },
-  single: false,
-  stackedPileOnly: true
+  single: false
 };
 
 export const TREND = {
