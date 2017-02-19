@@ -12,7 +12,5 @@ export class SvgIcon {
   attached () {
     const id = this.iconId.toUpperCase().replace('-', '_');
     this.icon = icons[id] ? icons[id] : icons.WARNING;
-
-    console.log('KACKEN', id, this.iconId);
   }
 }
