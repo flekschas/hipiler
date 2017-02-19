@@ -4,7 +4,7 @@
   "platform": {
     "id": "web",
     "displayName": "Web",
-    "output": "scripts",
+    "output": "dist",
     "index": "index.html"
   },
   "transpiler": {
@@ -56,7 +56,7 @@
       {
         "id": "web",
         "displayName": "Web",
-        "output": "scripts",
+        "output": "dist",
         "index": "index.html"
       }
     ],
