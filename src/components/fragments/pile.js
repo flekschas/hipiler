@@ -324,12 +324,23 @@ export default class Pile {
    * Destroy this instance.
    */
   destroy () {
-    fgmState.pileMeshes.splice(fgmState.pileMeshes.indexOf(this.mesh), 1);
+    const meshIndex = fgmState.pileMeshes.indexOf(this.mesh);
+
+    if (meshIndex >= 0) {
+      fgmState.pileMeshes.splice(fgmState.pileMeshes.indexOf(this.mesh), 1);
+    }
+
     this.geometry.dispose();
     fgmState.scene.remove(this.mesh);
     this.render = false;
     this.pileMatrices = [];
-    fgmState.piles.splice(fgmState.piles.indexOf(this), 1);
+
+    const pileIndex = fgmState.piles.indexOf(this);
+
+    if (pileIndex >= 0) {
+      fgmState.piles.splice(fgmState.piles.indexOf(this), 1);
+    }
+
     fgmState.pilesIdx[this.id] = undefined;
   }
 
