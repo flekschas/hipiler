@@ -1,5 +1,5 @@
 <template bindable="basePath, iconId">
-  <require from="components/svg-icon.html"></require>
+  <require from="components/svg-icon/svg-icon"></require>
 
   <div class="${optionsIsActive ? 'is-active' : ''} ${selectedOptions.length ? 'is-in-use' : ''}" ref="baseEl">
     <div class="flex-c">
@@ -9,7 +9,7 @@
           class="flex-c">
           <span>${option.name}</span>
           <button class="flex-c flex-jc-c flex-a-c" click.delegate="removeSelectedOption(option)">
-            <svg-icon icon-id="x"></svg-icon>
+            <svg-icon icon-id="cross"></svg-icon>
           </button>
         </li>
       </ul>

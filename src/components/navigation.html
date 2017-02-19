@@ -1,5 +1,5 @@
 <template bindable="router, externalLinks">
-  <require from="components/svg-icon.html"></require>
+  <require from="components/svg-icon/svg-icon"></require>
 
   <nav>
     <ul class="no-list-style flex-c">
@@ -12,7 +12,12 @@
         </a>
       </li>
       <li repeat.for="link of externalLinks" class="${link.showIcon ? 'is-icon-only' : ''} ${$index === 0 ? 'is-left-separated' : ''}">
-        <a target="_blank" href.bind="link.href" if.bind="link.showIcon" title="${link.title}">
+        <a
+          target="_blank"
+          href.bind="link.href"
+          if.bind="link.showIcon"
+          title="${link.title}"
+          class="rel">
           <svg-icon base-path="/" icon-id.bind="link.iconId"></svg-icon>
         </a>
         <a target="_blank" href.bind="link.href" if.bind="!link.showIcon">
