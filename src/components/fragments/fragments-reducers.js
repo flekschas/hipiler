@@ -41,11 +41,18 @@ export function piles (state = PILES, action) {
     case DISPERSE_PILES: {
       const newState = { ...state };
 
+      // Disperse matrices
       action.payload.piles
-        .map(pileId => newState[pileId])
-        .slice(1)  // Always keep one matrix
+        .map(pileId => newState[pileId].slice(1))  // Always keep one matrix
+        .reduce((a, b) => a.concat(b), [])
         .forEach((pileId) => {
-          state[pileId] = [pileId];
+          newState[pileId] = [pileId];
+        });
+
+      // Update original pile
+      action.payload.piles
+        .forEach((pileId) => {
+          newState[pileId] = newState[pileId].slice(0, 1);
         });
 
       return newState;
