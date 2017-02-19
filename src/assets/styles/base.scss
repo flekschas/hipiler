@@ -114,8 +114,10 @@ svg-icon {
 
 /* =====  Global Styles  ==================================================== */
 
-a.btn {
+// I should rather use `.btn` but higlass uses the same global class name...
+.button {
   padding: 0.25rem 0.5rem;
+  cursor: pointer;
   border: 0;
   border-radius: 0.25rem;
   background: $gray-lightest;
