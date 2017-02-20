@@ -9,6 +9,13 @@ import icons from 'configs/icons';
 export class SvgIcon {
   @bindable({ defaultBindingMode: bindingMode.oneWay }) iconId;
 
+  constructor () {
+    this.icon = {
+      viewBox: '0 0 16 16',
+      svg: ''
+    };
+  }
+
   attached () {
     const id = this.iconId.toUpperCase().replace('-', '_');
     this.icon = icons[id] ? icons[id] : icons.WARNING;
