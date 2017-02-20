@@ -54,12 +54,12 @@ export const LOGO_HARVARD_VCG = {
 };
 
 export const MAX = {
-  viewBox: 'viewBox="0 0 16',
+  viewBox: '0 0 16 16',
   svg: '<path d="M10 12l4-4-4-4M6 4L2 7.998 6 12M0 0h1v16H0zM15 0h1v16h-1z" fill="currentColor"/>'
 };
 
 export const MIN = {
-  viewBox: 'viewBox="0 0 16',
+  viewBox: '0 0 16 16',
   svg: '<path d="M15 4l-4 4 4 4M1 12l4-4.002L1 4M7 0h1v16H7zM8 0h1v16H8z" fill="currentColor"/>'
 };
 
