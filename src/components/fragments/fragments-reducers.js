@@ -10,6 +10,7 @@ import {
   SET_ARRANGE_METRICS,
   SET_CELL_SIZE,
   SET_COVER_DISP_MODE,
+  SET_LASSO_IS_ROUND,
   SET_PILES,
   SET_SHOW_SPECIAL_CELLS,
   TRASH_PILES,
@@ -21,6 +22,7 @@ import {
   ARRANGE_METRICS,
   CELL_SIZE,
   CONFIG,
+  LASSO_IS_ROUND,
   MODE_MEAN,
   PILES,
   SHOW_SPECIAL_CELLS
@@ -173,6 +175,16 @@ export function coverDispMode (state = MODE_MEAN, action) {
   }
 }
 
+export function lassoIsRound (state = LASSO_IS_ROUND, action) {
+  switch (action.type) {
+    case SET_LASSO_IS_ROUND:
+      return action.payload.lassoIsRound;
+
+    default:
+      return state;
+  }
+}
+
 export function showSpecialCells (state = SHOW_SPECIAL_CELLS, action) {
   switch (action.type) {
     case SET_SHOW_SPECIAL_CELLS:
@@ -189,6 +201,7 @@ export default combineReducers({
   cellSize,
   config,
   coverDispMode,
+  lassoIsRound,
   piles,
   showSpecialCells
 });

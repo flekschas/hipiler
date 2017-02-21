@@ -54,6 +54,13 @@ export const setCoverDispMode = coverDispMode => ({
   payload: { coverDispMode }
 });
 
+export const SET_LASSO_IS_ROUND = 'SET_LASSO_IS_ROUND';
+
+export const setLassoIsRound = lassoIsRound => ({
+  type: SET_LASSO_IS_ROUND,
+  payload: { lassoIsRound }
+});
+
 export const SET_PILE_MODE = 'SET_PILE_MODE';
 
 export const setPileMode = (mode, pile) => ({

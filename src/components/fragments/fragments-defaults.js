@@ -51,6 +51,8 @@ export const LABEL_TEXT_SPEC = {
   curveSegments: 3
 };
 
+export const LASSO_IS_ROUND = false;
+
 export const LASSO_LINE = threeLine2d(THREE);
 
 export const LASSO_LINE_WIDTH = 2;
