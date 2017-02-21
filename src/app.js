@@ -19,7 +19,7 @@ const logger = LogManager.getLogger('app');
 @inject(EventAggregator, Font, States)
 export default class App {
   constructor (eventAggregator, font, states) {
-    this.events = eventAggregator;
+    this.event = eventAggregator;
 
     this.font = font;
 
@@ -62,6 +62,7 @@ export default class App {
     });
 
     document.addEventListener('keydown', this.keyDownHandler.bind(this));
+    document.addEventListener('keyup', this.keyUpHandler.bind(this));
     document.addEventListener('mousemove', this.mouseMoveHandler.bind(this));
     document.addEventListener('mouseup', this.mouseUpHandler.bind(this));
 
@@ -85,7 +86,7 @@ export default class App {
   }
 
   clickHandler (event) {
-    this.events.publish('app.click', event);
+    this.event.publish('app.click', event);
     return true;
   }
 
@@ -99,14 +100,22 @@ export default class App {
       event.preventDefault();
       this.redo();
     }
+
+    if (event.altKey) {
+      this.event.publish('app.keyDownAlt', event);
+    }
+  }
+
+  keyUpHandler (event) {
+    this.event.publish('app.keyUp', event);
   }
 
   mouseUpHandler (event) {
-    this.events.publish('app.mouseUp', event);
+    this.event.publish('app.mouseUp', event);
   }
 
   mouseMoveHandler (event) {
-    this.events.publish('app.mouseMove', event);
+    this.event.publish('app.mouseMove', event);
   }
 
   resetHandler () {
