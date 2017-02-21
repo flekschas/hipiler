@@ -17,7 +17,7 @@ export class SvgIcon {
   }
 
   attached () {
-    const id = this.iconId.toUpperCase().replace('-', '_');
+    const id = this.iconId.toUpperCase().replace(/-/g, '_');
     this.icon = icons[id] ? icons[id] : icons.WARNING;
   }
 }
