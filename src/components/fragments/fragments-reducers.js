@@ -10,6 +10,7 @@ import {
   SET_ARRANGE_METRICS,
   SET_CELL_SIZE,
   SET_COVER_DISP_MODE,
+  SET_PILES,
   SET_SHOW_SPECIAL_CELLS,
   TRASH_PILES,
   UPDATE_FGM_CONFIG
@@ -81,6 +82,10 @@ export function piles (state = PILES, action) {
         });
 
       return newState;
+    }
+
+    case SET_PILES: {
+      return action.payload.piles;
     }
 
     case STACK_PILES: {

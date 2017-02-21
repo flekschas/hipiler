@@ -61,6 +61,13 @@ export const setPileMode = (mode, pile) => ({
   payload: { mode, pile }
 });
 
+export const SET_PILES = 'SET_PILES';
+
+export const setPiles = piles => ({
+  type: SET_PILES,
+  payload: { piles }
+});
+
 export const SET_SHOW_SPECIAL_CELLS = 'SET_SHOW_SPECIAL_CELLS';
 
 export const setShowSpecialCells = showSpecialCells => ({
