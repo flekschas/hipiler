@@ -1105,6 +1105,10 @@ export default class Pile {
    * to a special trash array.
    */
   trash () {
+    if (this.id < 0) {
+      return;
+    }
+
     this.unsetHoverState();
     this.geometry.dispose();
     this.render = false;
@@ -1124,7 +1128,7 @@ export default class Pile {
 
     fgmState.pilesIdx[this.id] = undefined;
 
-    this.id = `_${this.id}`;
+    this.id = -this.id;
     fgmState.pilesIdx[this.id] = this.id;
 
     fgmState.pilesTrash.push(this);

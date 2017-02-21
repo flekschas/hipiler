@@ -31,6 +31,7 @@ import {
   setArrangeMetrics,
   setCellSize,
   setCoverDispMode,
+  setLassoIsRound,
   setPiles,
   setShowSpecialCells,
   stackPiles
@@ -512,6 +513,25 @@ export class Fragments {
   }
 
   /**
+   * Check if the number of matrices is equal to the number of piles in the
+   * pile config.
+   *
+   * @description
+   * During the lifetime of the app, none of the matrices will every be deleted.
+   * Therefore, the number of matrices / piles in the pileConfig need to equal
+   * the number of loaded matrices otherwise something is broken.
+   *
+   * @param {array} matrices - List of matrices.
+   * @param {object} pileConfig - Pile configuration object.
+   * @return {boolean} If `true` pileConfig is valid.
+   */
+  checkPileConfig (matrices, pileConfig) {
+    return matrices.length === Object.keys(pileConfig)
+      .map(pileId => pileConfig[pileId].length)
+      .reduce((a, b) => a + b, 0);
+  }
+
+  /**
    * Handle all piles display mode changes
    *
    * @param {object} event - Change event object.
@@ -949,7 +969,7 @@ export class Fragments {
    * @param {number} currentY - Current Y position.
    */
   drawLasso (startX, currentX, startY, currentY) {
-    if (this.keyAltIsDown) {
+    if (this.keyAltIsDown || this.lassoIsRound) {
       if (!this.lassoRoundIsActive) {
         this.lassoRoundIsActive = true;
       }
@@ -1349,33 +1369,12 @@ export class Fragments {
   }
 
   /**
-   * Check if the number of matrices is equal to the number of piles in the
-   * pile config.
-   *
-   * @description
-   * During the lifetime of the app, none of the matrices will every be deleted.
-   * Therefore, the number of matrices / piles in the pileConfig need to equal
-   * the number of loaded matrices otherwise something is broken.
-   *
-   * @param {array} matrices - List of matrices.
-   * @param {object} pileConfig - Pile configuration object.
-   * @return {boolean} If `true` pileConfig is valid.
-   */
-  checkPileConfig (matrices, pileConfig) {
-    console.log('checkPileConfig', matrices, pileConfig);
-    return matrices.length === Object.keys(pileConfig)
-      .map(pileId => pileConfig[pileId].length)
-      .reduce((a, b) => a + b, 0);
-  }
-
-  /**
    * Initialize piles
    *
    * @param {array} matrices - List of matrices.
    * @param {object} pileConfig - Pile configuration object.
    */
   initPiles (matrices, pileConfig = {}) {
-    console.log('initPiles', this.checkPileConfig(matrices, pileConfig));
     if (this.checkPileConfig(matrices, pileConfig)) {
       this.updatePiles(pileConfig, true);
     } else {
@@ -1522,6 +1521,15 @@ export class Fragments {
    */
   keyUpHandler () {
     this.keyAltIsDown = false;
+  }
+
+  /**
+   * Lasso is round change handler.
+   */
+  lassoIsRoundChangeHandler () {
+    this.store.dispatch(setLassoIsRound(!this.lassoIsRound));
+
+    return true;
   }
 
   /**
@@ -2136,6 +2144,7 @@ export class Fragments {
       this.updateCoverDispMode(state.coverDispMode);
       this.updateCellSize(state.cellSize);
       this.updateConfig(state.config);
+      this.updateLassoIsRound(state.lassoIsRound);
       this.updatePiles(state.piles);
       this.updateShowSpecialCells(state.showSpecialCells);
     } catch (e) {
@@ -2230,6 +2239,15 @@ export class Fragments {
   }
 
   /**
+   * Update lasso is round
+   *
+   * @param {boolean} lassoIsRound - If `true` lasso is round.
+   */
+  updateLassoIsRound (lassoIsRound) {
+    this.lassoIsRound = lassoIsRound;
+  }
+
+  /**
    * Update every pile
    *
    * @param {number} pileRank - Rank of pile.
@@ -2259,11 +2277,8 @@ export class Fragments {
    * @param {boolean} forced - If `true` force update
    */
   updatePiles (pileConfig, forced) {
-    console.log('updatePilesL', this.pileConfig !== pileConfig, this.isInitialized, forced);
     if (this.pileConfig !== pileConfig && (this.isInitialized || forced)) {
       this.pileConfig = pileConfig;
-
-      console.log('YES GIRL');
 
       Object.keys(pileConfig).forEach((pileId) => {
         const matrixIds = pileConfig[pileId];
@@ -2280,7 +2295,7 @@ export class Fragments {
 
           pile.setMatrices(matrices);
 
-          if (pileId[0] === '_') {
+          if (parseInt(pileId[0], 10) < 0) {
             pile.trash();
           } else {
             pile.draw();
@@ -2289,8 +2304,6 @@ export class Fragments {
           pile.destroy();
         }
       });
-
-      console.log('GIRL', fgmState.piles);
 
       this.calculateDistanceMatrix();
       this.arrange(fgmState.piles, this.arrangeMetrics);
