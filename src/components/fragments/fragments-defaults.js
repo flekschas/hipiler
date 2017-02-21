@@ -1,3 +1,10 @@
+import * as THREE from 'three';
+import threeLine2d from 'three-line-2d';
+import threeLine2dShader from 'three-line-2d-shader';
+
+import COLOR from 'configs/colors';
+
+
 export const ANIMATION = true;
 
 export const ARRANGE_METRICS = [];
@@ -13,8 +20,6 @@ export const CLICK_DELAY_TIME = 300;
 export const DBL_CLICK_DELAY_TIME = 250;
 
 export const COLOR_LOW_QUALITY = [1, 0.890196078, 0.835294118];
-
-export const COLOR_PRIMARY = 0xff5500;
 
 /**
  * External config to initialize fragments.
@@ -45,6 +50,20 @@ export const LABEL_TEXT_SPEC = {
   height: 1,
   curveSegments: 3
 };
+
+export const LASSO_LINE = threeLine2d(THREE);
+
+export const LASSO_LINE_WIDTH = 2;
+
+export const LASSO_MIN_MOVE = 0.033;
+
+export const LASSO_SHADER = threeLine2dShader(THREE)({
+  side: THREE.DoubleSide,
+  diffuse: COLOR.PRIMARY,
+  thickness: LASSO_LINE_WIDTH
+});
+
+export const LASSO_MATERIAL = new THREE.ShaderMaterial(LASSO_SHADER);
 
 export const LETTER_SPACE = 6;
 
