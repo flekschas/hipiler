@@ -116,6 +116,8 @@
           "aurelia-task-queue",
           "aurelia-templating",
           "aurelia-templating-binding",
+          "polyline-miter-util",
+          "polyline-normals",
           "text",
           {
             "name": "aurelia-templating-resources",
@@ -139,14 +141,28 @@
             "main": "d3"
           },
           {
+            "name": "gl-vec2",
+            "path": "../node_modules/gl-vec2"
+          },
+          {
             "name": "hglib",
             "path": "../node_modules/higlass/dist/scripts",
             "main": "hglib"
           },
           {
+            "name": "inherits",
+            "path": "../node_modules/inherits",
+            "main": "inherits_browser"
+          },
+          {
             "name": "localForage",
             "path": "../node_modules/localforage/dist",
             "main": "localforage"
+          },
+          {
+            "name": "object-assign",
+            "path": "../node_modules/object-assign",
+            "main": "index"
           },
           {
             "name": "redux",
@@ -183,6 +199,16 @@
             "name": "three",
             "path": "../node_modules/three/build",
             "main": "three"
+          },
+          {
+            "name": "three-line-2d",
+            "path": "../node_modules/three-line-2d",
+            "main": "index"
+          },
+          {
+            "name": "three-line-2d-shader",
+            "path": "../node_modules/three-line-2d/shaders",
+            "main": "basic"
           },
           {
             "name": "three-orbit-controls",
