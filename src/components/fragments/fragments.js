@@ -6,6 +6,7 @@ import { EventAggregator } from 'aurelia-event-aggregator';
 import {
   DoubleSide,
   FontLoader,
+  Mesh,
   NormalBlending,
   OrthographicCamera,
   Raycaster,
@@ -15,6 +16,7 @@ import {
   WebGLRenderer
 } from 'three';
 
+
 // Third party
 import { json } from 'd3';
 
@@ -23,12 +25,13 @@ import States from 'services/states';
 
 // Utils etc.
 import {
-  addPiles,
+  // addPiles,
   dispersePiles,
   setAnimation,
   setArrangeMetrics,
   setCellSize,
   setCoverDispMode,
+  setPiles,
   setShowSpecialCells,
   stackPiles
 } from 'components/fragments/fragments-actions';
@@ -37,12 +40,14 @@ import {
   ARRANGE_METRICS,
   CELL_SIZE,
   CLICK_DELAY_TIME,
-  COLOR_PRIMARY,
   DBL_CLICK_DELAY_TIME,
   DURATION,
   FONT_URL,
   FPS,
   HIGHLIGHT_FRAME_LINE_WIDTH,
+  LASSO_LINE,
+  LASSO_MATERIAL,
+  LASSO_MIN_MOVE,
   MARGIN_LEFT,
   MARGIN_RIGHT,
   MARGIN_TOP,
@@ -80,6 +85,7 @@ import {
 
 import { EVENT_BASE_NAME } from 'components/multi-select/multi-select-defaults';
 
+import COLORS from 'configs/colors';
 
 const logger = LogManager.getLogger('fragments');
 
@@ -141,7 +147,6 @@ export class Fragments {
     this.openedPileRoot = undefined;
     this.openedPileMatrices = [];
     this.shiftDown = false;
-    this.rightClick = false;
     this.allPileOrdering = [];
      // Array containing the orderings for all piles, when not all nodes are
      // focused on.
@@ -165,10 +170,14 @@ export class Fragments {
     this.pdMat = [];  // contains similarity between piles
     this.pdMax = 0;
 
+    this.keyAltDownTime = 0;
+
     this.pilingAnimations = [];
 
     this.mouseIsDown = false;
+    this.lassoIsActive = false;
     this.lassoRectIsActive = false;
+    this.lassoRoundIsActive = false;
     this.mouseWentDown = false;
     fgmState.showSpecialCells = false;
 
@@ -238,11 +247,6 @@ export class Fragments {
       .catch((error) => {
         logger.error('Failed to initialize the fragment plot', error);
       });
-
-    this.event.subscribe(
-      `${EVENT_BASE_NAME}.${this.arrangeSelectedEventId}`,
-      this.arrangeChangeHandler.bind(this)
-    );
   }
 
   attached () {
@@ -398,6 +402,19 @@ export class Fragments {
   }
 
   /**
+   * Calculate the Euclidean distance.
+   *
+   * @param {number} startX - Start X position.
+   * @param {number} currentX - Current X position.
+   * @param {number} startY - Start Y position.
+   * @param {number} currentY - Current Y position.
+   * @return {number} Eucledian distance.
+   */
+  calcEuclideanDistance (startX, currentX, startY, currentY) {
+    return Math.sqrt((startX - currentX) ** 2) + ((startY - currentY) ** 2);
+  }
+
+  /**
    * [calculatePiles description]
    *
    * @param {[type]} value - [description]
@@ -548,7 +565,7 @@ export class Fragments {
 
     fgmState.hoveredPile = pileMesh.pile;
 
-    if (!this.lassoRectIsActive) {
+    if (!this.lassoIsActive) {
       this.highlightPile(fgmState.hoveredPile);
     }
 
@@ -653,7 +670,7 @@ export class Fragments {
       this.mouseIsDown &&
       fgmState.hoveredPile &&
       fgmState.piles.indexOf(fgmState.hoveredPile) > 0 &&
-      !this.lassoRectIsActive
+      !this.lassoIsActive
     ) {
       this.dragPileStartHandler();
     } else {
@@ -716,6 +733,8 @@ export class Fragments {
     fgmState.scene.remove(this.lassoObject);
     this.mouseIsDown = false;
 
+    let pilesSelected = [];
+
     if (this.openedPileRoot) {
       this.closeOpenedPile(this.openedPileRoot);
     } else if (this.dragPile) {
@@ -732,16 +751,25 @@ export class Fragments {
 
       this.dragPile = undefined;
     } else if (this.lassoRectIsActive) {
-      this.getLassoRectSelection(
+      pilesSelected = this.getLassoRectSelection(
         this.dragStartPos.x, this.mouse.x, this.dragStartPos.y, this.mouse.y
       );
+    } else if (this.lassoRoundIsActive && this.lassoRoundMinMove) {
+      pilesSelected = this.getLassoRoundSelection();
     } else {
       this.canvasMouseClickHandler(event);
     }
 
+    if (pilesSelected.length > 1) {
+      this.pileUp(pilesSelected.slice(1), pilesSelected[0]);
+    }
+
     this.dragStartPos = undefined;
     this.mouseWentDown = false;
+
+    this.lassoIsActive = false;
     this.lassoRectIsActive = false;
+    this.lassoRoundIsActive = false;
 
     this.render();
   }
@@ -785,51 +813,6 @@ export class Fragments {
       fgmState.scene.remove(visiblePileTool);
     });
     fgmState.visiblePileTools = [];
-  }
-
-  /**
-   * Get lasso-based pile selection
-   *
-   * @param {number} startX - Get local start X position.
-   * @param {number} currentX - Get local current X position.
-   * @param {number} startY - Get local start Y position.
-   * @param {number} currentY - Get local current Y position.
-   */
-  getLassoRectSelection (startX, currentX, startY, currentY) {
-    const pilesSelected = [];
-    const matrices = [];
-
-    let x1 = this.relToAbsPositionX(
-      Math.min(this.dragStartPos.x, this.mouse.x)
-    );
-    let x2 = this.relToAbsPositionX(
-      Math.max(this.dragStartPos.x, this.mouse.x)
-    );
-    let y1 = this.relToAbsPositionY(
-      Math.min(this.dragStartPos.y, this.mouse.y)
-    );
-    let y2 = this.relToAbsPositionY(
-      Math.max(this.dragStartPos.y, this.mouse.y)
-    );
-
-    fgmState.piles.forEach((pile) => {
-      let x = pile.getPos().x;
-      let y = pile.getPos().y;
-
-      if (
-        x + this.matrixWidthHalf >= x1 &&
-        x < x2 &&
-        y - this.matrixWidthHalf >= y1 &&
-        y < y2
-      ) {
-        pilesSelected.push(pile);
-        matrices.push(...pile.pileMatrices);
-      }
-    });
-
-    if (matrices.length > 1) {
-      this.pileUp(pilesSelected.slice(1), pilesSelected[0]);
-    }
   }
 
   /**
@@ -958,12 +941,34 @@ export class Fragments {
   }
 
   /**
+   * Draw lasso handler.
+   *
+   * @param {number} startX - Start X position.
+   * @param {number} currentX - Current X position.
+   * @param {number} startY - Start Y position.
+   * @param {number} currentY - Current Y position.
+   */
+  drawLasso (startX, currentX, startY, currentY) {
+    if (this.keyAltIsDown) {
+      if (!this.lassoRoundIsActive) {
+        this.lassoRoundIsActive = true;
+      }
+      this.drawLassoRound(startX, currentX, startY, currentY);
+    } else {
+      if (!this.lassoRectIsActive) {
+        this.lassoRectIsActive = true;
+      }
+      this.drawLassoRect(startX, currentX, startY, currentY);
+    }
+  }
+
+  /**
    * Draw rectangular lasso.
    *
-   * @param {number} startX - [description]
-   * @param {number} currentX - [description]
-   * @param {number} startY - [description]
-   * @param {number} currentY - [description]
+   * @param {number} startX - Start X position.
+   * @param {number} currentX - Current X position.
+   * @param {number} startY - Start Y position.
+   * @param {number} currentY - Current Y position.
    */
   drawLassoRect (startX, currentX, startY, currentY) {
     const x1 = Math.min(this.dragStartPos.x, this.mouse.x);
@@ -978,10 +983,51 @@ export class Fragments {
 
     // Update lasso
     fgmState.scene.remove(this.lassoObject);
-    this.lassoObject = createRectFrame(width, height, COLOR_PRIMARY, 1);
+    this.lassoObject = createRectFrame(width, height, COLORS.PRIMARY, 1);
     this.lassoObject.position.set(
-      ...this.relToAbsPosition(x1 + ((x2 - x1) / 2), y1 + ((y2 - y1) / 2)), Z_LASSO
+      ...this.relToAbsPosition(x1 + ((x2 - x1) / 2), y1 + ((y2 - y1) / 2)),
+      Z_LASSO
     );
+    fgmState.scene.add(this.lassoObject);
+  }
+
+  /**
+   * Draw round lasso.
+   *
+   * @param {number} startX - Start X position.
+   * @param {number} currentX - Current X position.
+   * @param {number} startY - Start Y position.
+   * @param {number} currentY - Current Y position.
+   */
+  drawLassoRound (startX, currentX, startY, currentY) {
+    const dist = this.calcEuclideanDistance(startX, currentX, startY, currentY);
+
+    this.lassoRoundCoords.push([
+      this.relToAbsPositionX(currentX),
+      this.relToAbsPositionY(currentY)
+    ]);
+
+    if (!this.lassoRoundMinMove && dist > LASSO_MIN_MOVE * fgmState.cellSize) {
+      this.lassoRoundMinMove = true;
+    }
+
+    if (this.intersects.length) {
+      this.lassoRoundSelection[this.intersects[0].object.pile.id] = true;
+    }
+
+    //create our geometry
+    let curveGeometry = LASSO_LINE(this.lassoRoundCoords);
+
+    fgmState.scene.remove(this.lassoObject);
+
+    this.lassoObject = new Mesh(curveGeometry, LASSO_MATERIAL);
+
+    this.lassoObject.position.set(
+      this.lassoObject.position.x,
+      this.lassoObject.position.y,
+      Z_LASSO
+    );
+
     fgmState.scene.add(this.lassoObject);
   }
 
@@ -1049,6 +1095,51 @@ export class Fragments {
     );
 
     return piling;
+  }
+
+  /**
+   * Get lasso-based pile selection
+   *
+   * @param {number} startX - Get local start X position.
+   * @param {number} currentX - Get local current X position.
+   * @param {number} startY - Get local start Y position.
+   * @param {number} currentY - Get local current Y position.
+   */
+  getLassoRectSelection (startX, currentX, startY, currentY) {
+    const pilesSelected = [];
+
+    let x1 = this.relToAbsPositionX(
+      Math.min(this.dragStartPos.x, this.mouse.x)
+    );
+    let x2 = this.relToAbsPositionX(
+      Math.max(this.dragStartPos.x, this.mouse.x)
+    );
+    let y1 = this.relToAbsPositionY(
+      Math.min(this.dragStartPos.y, this.mouse.y)
+    );
+    let y2 = this.relToAbsPositionY(
+      Math.max(this.dragStartPos.y, this.mouse.y)
+    );
+
+    fgmState.piles.forEach((pile) => {
+      let x = pile.getPos().x;
+      let y = pile.getPos().y;
+
+      if (
+        x + this.matrixWidthHalf >= x1 &&
+        x < x2 &&
+        y - this.matrixWidthHalf >= y1 &&
+        y < y2
+      ) {
+        pilesSelected.push(pile);
+      }
+    });
+
+    return pilesSelected;
+  }
+
+  getLassoRoundSelection () {
+    return Object.keys(this.lassoRoundSelection).map(pileId => fgmState.pilesIdx[pileId]);
   }
 
   /**
@@ -1190,21 +1281,51 @@ export class Fragments {
     this.canvas.addEventListener(
       'click', event => event.preventDefault(), false
     );
+
     this.canvas.addEventListener(
       'dblclick', event => event.preventDefault(), false
     );
+
     this.canvas.addEventListener(
       'mousedown', this.canvasMouseDownHandler.bind(this), false
     );
+
     this.canvas.addEventListener(
       'mousemove', this.canvasMouseMoveHandler.bind(this), false
     );
+
     this.canvas.addEventListener(
       'mouseup', this.canvasMouseUpHandler.bind(this), false
     );
+
     this.canvas.addEventListener(
       'mousewheel', this.canvasMouseWheelHandler.bind(this), false
     );
+
+    this.event.subscribe(
+      `${EVENT_BASE_NAME}.${this.arrangeSelectedEventId}`,
+      this.arrangeChangeHandler.bind(this)
+    );
+
+    this.event.subscribe(
+      'app.keyDownAlt',
+      this.keyDownAltHandler.bind(this)
+    );
+
+    this.event.subscribe(
+      'app.keyUp',
+      this.keyUpHandler.bind(this)
+    );
+  }
+
+  /**
+   * Initialize the lasso.
+   */
+  initLasso () {
+    this.lassoIsActive = true;
+    this.lassoRoundCoords = [];
+    this.lassoRoundMinMove = false;
+    this.lassoRoundSelection = {};
   }
 
   /**
@@ -1241,6 +1362,7 @@ export class Fragments {
    * @return {boolean} If `true` pileConfig is valid.
    */
   checkPileConfig (matrices, pileConfig) {
+    console.log('checkPileConfig', matrices, pileConfig);
     return matrices.length === Object.keys(pileConfig)
       .map(pileId => pileConfig[pileId].length)
       .reduce((a, b) => a + b, 0);
@@ -1253,6 +1375,7 @@ export class Fragments {
    * @param {object} pileConfig - Pile configuration object.
    */
   initPiles (matrices, pileConfig = {}) {
+    console.log('initPiles', this.checkPileConfig(matrices, pileConfig));
     if (this.checkPileConfig(matrices, pileConfig)) {
       this.updatePiles(pileConfig, true);
     } else {
@@ -1262,7 +1385,7 @@ export class Fragments {
         pilesNew[matrixId] = [matrixId];
       });
 
-      this.store.dispatch(addPiles(pilesNew));
+      this.store.dispatch(setPiles(pilesNew));
     }
   }
 
@@ -1277,7 +1400,7 @@ export class Fragments {
     this.highlightFrame = createRectFrame(
       this.matrixWidth,
       this.matrixWidth,
-      COLOR_PRIMARY,
+      COLORS.PRIMARY,
       HIGHLIGHT_FRAME_LINE_WIDTH
     );
 
@@ -1291,9 +1414,9 @@ export class Fragments {
       logger.debug('State not ready yet.');
     }
 
-    this.initPiles(fgmState.matrices, piles);
-
     this.isInitialized = true;
+
+    this.initPiles(fgmState.matrices, piles);
   }
 
   /**
@@ -1377,6 +1500,28 @@ export class Fragments {
     }
 
     return same;
+  }
+
+  /**
+   * Handle ALT key-down  events.
+   */
+  keyDownAltHandler () {
+    this.keyAltIsDown = true;
+
+    const downDelta = Date.now() - this.keyAltDownTime;
+
+    this.keyAltDownTime = Date.now();
+
+    if (downDelta < DBL_CLICK_DELAY_TIME) {
+      this.footerToggle();
+    }
+  }
+
+  /**
+   * Handle ALT key-up  events.
+   */
+  keyUpHandler () {
+    this.keyAltIsDown = false;
   }
 
   /**
@@ -1467,13 +1612,16 @@ export class Fragments {
 
     // Draw rectangular lasso
     if (
-      this.lassoRectIsActive ||
+      this.lassoIsActive ||
       (
         this.mouseWentDown && !fgmState.hoveredPile
       )
     ) {
-      this.lassoRectIsActive = true;
-      this.drawLassoRect(
+      if (!this.lassoIsActive) {
+        this.initLasso();
+      }
+
+      this.drawLasso(
         this.dragStartPos.x, this.mouse.x, this.dragStartPos.y, this.mouse.y
       );
     }
@@ -2056,7 +2204,7 @@ export class Fragments {
       this.highlightFrame = createRectFrame(
         this.matrixWidth,
         this.matrixWidth,
-        COLOR_PRIMARY,
+        COLORS.PRIMARY,
         HIGHLIGHT_FRAME_LINE_WIDTH
       );
       fgmState.scene.add(this.highlightFrame);
@@ -2111,8 +2259,11 @@ export class Fragments {
    * @param {boolean} forced - If `true` force update
    */
   updatePiles (pileConfig, forced) {
+    console.log('updatePilesL', this.pileConfig !== pileConfig, this.isInitialized, forced);
     if (this.pileConfig !== pileConfig && (this.isInitialized || forced)) {
       this.pileConfig = pileConfig;
+
+      console.log('YES GIRL');
 
       Object.keys(pileConfig).forEach((pileId) => {
         const matrixIds = pileConfig[pileId];
@@ -2138,6 +2289,8 @@ export class Fragments {
           pile.destroy();
         }
       });
+
+      console.log('GIRL', fgmState.piles);
 
       this.calculateDistanceMatrix();
       this.arrange(fgmState.piles, this.arrangeMetrics);
