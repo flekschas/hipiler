@@ -71,16 +71,15 @@ html {
 
       &:hover {
         color: $primary;
-        background: lighten($primary, 40%);
         box-shadow: inset 0 0 0 1px lighten($primary, 40%);
 
         .icon-number,
-        &.is-active .icon-number {
+        &.is-enabled .icon-number {
           background: $primary;
           box-shadow: -1px 1px 0 0 $white;
         }
 
-        &.is-inactive {
+        &.is-disabled {
           background: transparent;
           box-shadow: inset 0 0 0 1px $gray-lightest;
 
@@ -91,18 +90,29 @@ html {
         }
       }
 
-      &.is-active {
+      &.is-enabled {
         .icon-number {
           background: transparentize($black, 0.25);
         }
       }
 
-      &.is-inactive {
+      &.is-disabled {
         color: $gray-light;
         cursor: not-allowed;
 
         &:hover {
           background: transparent;
+        }
+      }
+
+      &.is-enabled.is-active {
+        color: $primary;
+        background: lighten($primary, 40%);
+        box-shadow: inset 0 0 0 1px lighten($primary, 40%);
+
+        .icon-number {
+          background: $primary;
+          box-shadow: -1px 1px 0 0 $white;
         }
       }
 
