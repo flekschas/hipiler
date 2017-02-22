@@ -12,17 +12,17 @@ export const dispersePiles = piles => ({
   payload: { piles }
 });
 
+export const RECOVER_PILES = 'RECOVER_PILES';
+
+export const recoverPiles = piles => ({
+  type: RECOVER_PILES,
+  payload: { piles }
+});
+
 export const REMOVE_PILES = 'REMOVE_PILES';
 
 export const removePiles = piles => ({
   type: REMOVE_PILES,
-  payload: { piles }
-});
-
-export const REMOVE_PILES_FROM_TRASH = 'REMOVE_PILES_FROM_TRASH';
-
-export const removePilesFromTrash = piles => ({
-  type: REMOVE_PILES_FROM_TRASH,
   payload: { piles }
 });
 

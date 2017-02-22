@@ -3,8 +3,8 @@ import { combineReducers } from 'redux';
 import {
   ADD_PILES,
   DISPERSE_PILES,
+  RECOVER_PILES,
   REMOVE_PILES,
-  REMOVE_PILES_FROM_TRASH,
   STACK_PILES,
   SET_ANIMATION,
   SET_ARRANGE_METRICS,
@@ -65,7 +65,7 @@ export function piles (state = PILES, action) {
     case REMOVE_PILES: {
       const newState = { ...state };
 
-      Object.keys(action.payload.piles)
+      action.payload.piles
         .forEach((pileId) => {
           newState[`__${pileId}`] = [...newState[pileId]];
           newState[pileId] = [];
@@ -74,14 +74,18 @@ export function piles (state = PILES, action) {
       return newState;
     }
 
-    case REMOVE_PILES_FROM_TRASH: {
+    case RECOVER_PILES: {
       const newState = { ...state };
 
-      Object.keys(action.payload.piles)
+      action.payload.piles
         .forEach((pileId) => {
+          console.log(pileId, pileId.slice(1), [...newState[pileId]]);
           newState[pileId.slice(1)] = [...newState[pileId]];
-          newState[pileId] = [];
+          newState[pileId] = undefined;
+          delete newState[pileId];
         });
+
+      console.log('ass', newState, action.payload.piles);
 
       return newState;
     }
