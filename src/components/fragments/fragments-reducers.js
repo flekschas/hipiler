@@ -115,7 +115,8 @@ export function piles (state = PILES, action) {
       action.payload.piles
         .forEach((pileId) => {
           newState[`_${pileId}`] = [...newState[pileId]];
-          newState[pileId] = [];
+          newState[pileId] = undefined;
+          delete newState[pileId];
         });
 
       return newState;
