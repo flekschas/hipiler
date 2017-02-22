@@ -79,13 +79,10 @@ export function piles (state = PILES, action) {
 
       action.payload.piles
         .forEach((pileId) => {
-          console.log(pileId, pileId.slice(1), [...newState[pileId]]);
           newState[pileId.slice(1)] = [...newState[pileId]];
           newState[pileId] = undefined;
           delete newState[pileId];
         });
-
-      console.log('ass', newState, action.payload.piles);
 
       return newState;
     }
