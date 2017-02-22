@@ -4,7 +4,11 @@ import { EventAggregator } from 'aurelia-event-aggregator';
 
 import States from 'services/states';
 
-import { dispersePiles, trashPiles } from 'components/fragments/fragments-actions';
+import {
+  dispersePiles,
+  recoverPiles,
+  trashPiles
+} from 'components/fragments/fragments-actions';
 
 import {
   MODE_MEAN, MODE_TREND, MODE_VARIANCE, MODE_DIFFERENCE
@@ -23,7 +27,6 @@ export const INSPECT = {
   trigger (pile) {
     event.publish('decompose.fgm.inspectPile', { pile });
   },
-  single: false,
   stackedPileOnly: true
 };
 
@@ -35,7 +38,6 @@ export const DISPERSE = {
   trigger (pile) {
     store.dispatch(dispersePiles([pile.id]));
   },
-  single: false,
   stackedPileOnly: true
 };
 
@@ -49,7 +51,6 @@ export const DIFFERENCE = {
     event.publish('decompose.fgm.coverDispMode', { mode: MODE_DIFFERENCE, pile });
   },
   triggerEvent: 'hover',
-  single: false,
   stackedPileOnly: true
 };
 
@@ -62,8 +63,18 @@ export const MEAN = {
     event.publish('decompose.fgm.coverDispMode', { mode: MODE_MEAN, pile });
   },
   triggerEvent: 'hover',
-  single: false,
   stackedPileOnly: true
+};
+
+export const RECOVER = {
+  name: 'Recover',
+  color: COLORS.WHITE,
+  background: COLORS.BLACK,
+  shortCut: 'R',
+  trigger (pile) {
+    store.dispatch(recoverPiles([pile.id]));
+  },
+  trashedOnly: true
 };
 
 export const TRASH = {
@@ -73,8 +84,7 @@ export const TRASH = {
   shortCut: 'R',
   trigger (pile) {
     store.dispatch(trashPiles([pile.id]));
-  },
-  single: false
+  }
 };
 
 export const TREND = {
@@ -86,7 +96,6 @@ export const TREND = {
     event.publish('decompose.fgm.coverDispMode', { mode: MODE_TREND, pile });
   },
   triggerEvent: 'hover',
-  single: false,
   stackedPileOnly: true
 };
 
@@ -99,7 +108,6 @@ export const VARIANCE = {
     event.publish('decompose.fgm.coverDispMode', { mode: MODE_VARIANCE, pile });
   },
   triggerEvent: 'hover',
-  single: false,
   stackedPileOnly: true
 };
 
@@ -107,6 +115,7 @@ export default [
   INSPECT,
   DISPERSE,
   TRASH,
+  RECOVER,
   MEAN,
   VARIANCE,
   TREND,
