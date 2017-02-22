@@ -74,7 +74,9 @@ export const RECOVER = {
   trigger (pile) {
     store.dispatch(recoverPiles([pile.id]));
   },
-  trashedOnly: true
+  trashedOnly: true,
+  closeOnClick: true,
+  unsetHighlightOnClick: true
 };
 
 export const TRASH = {
@@ -84,7 +86,9 @@ export const TRASH = {
   shortCut: 'R',
   trigger (pile) {
     store.dispatch(trashPiles([pile.id]));
-  }
+  },
+  closeOnClick: true,
+  unsetHighlightOnClick: true
 };
 
 export const TREND = {
