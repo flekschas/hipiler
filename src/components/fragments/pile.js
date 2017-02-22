@@ -64,7 +64,9 @@ export default class Pile {
     this.dims = dims;
     this.geometry = new BufferGeometry({ attributes: SHADER_ATTRIBUTES });
     this.highlighted = false;
-    this.id = parseInt(id, 10);
+    this.id = id;
+    this.idNumeric = parseInt(`${id}`.replace('_', ''), 10);
+    this.isTrashed = false;
     this.metrics = {};
     this.orderedLocally = false;
     this.pileMatrices = [];
@@ -99,6 +101,14 @@ export default class Pile {
     }
 
     return isSingleMatrix;
+  }
+
+  get piles () {
+    return this.isTrashed ? fgmState.pilesTrash : fgmState.piles;
+  }
+
+  get pileMeshes () {
+    return this.isTrashed ? fgmState.pileMeshesTrash : fgmState.pileMeshes;
   }
 
   /**
@@ -326,10 +336,10 @@ export default class Pile {
   destroy () {
     this.unsetHoverState();
 
-    const meshIndex = fgmState.pileMeshes.indexOf(this.mesh);
+    const meshIndex = this.pileMeshes.indexOf(this.mesh);
 
     if (meshIndex >= 0) {
-      fgmState.pileMeshes.splice(fgmState.pileMeshes.indexOf(this.mesh), 1);
+      this.pileMeshes.splice(this.pileMeshes.indexOf(this.mesh), 1);
     }
 
     this.geometry.dispose();
@@ -337,10 +347,10 @@ export default class Pile {
     this.render = false;
     this.pileMatrices = [];
 
-    const pileIndex = fgmState.piles.indexOf(this);
+    const pileIndex = this.piles.indexOf(this);
 
     if (pileIndex >= 0) {
-      fgmState.piles.splice(fgmState.piles.indexOf(this), 1);
+      this.piles.splice(this.piles.indexOf(this), 1);
     }
 
     fgmState.pilesIdx[this.id] = undefined;
@@ -357,7 +367,7 @@ export default class Pile {
 
     // UPDATE COVER MATRIX CELLS + PILE PREVIEWS
     if (this.mesh) {
-      fgmState.pileMeshes.splice(fgmState.pileMeshes.indexOf(this.mesh), 1);
+      this.pileMeshes.splice(this.pileMeshes.indexOf(this.mesh), 1);
       fgmState.scene.remove(this.mesh);
     }
 
@@ -409,7 +419,7 @@ export default class Pile {
     this.matrixFrame.position.set(-1, -1, Z_BASE);
 
     this.mesh.pile = this;
-    fgmState.pileMeshes.push(this.mesh);
+    this.pileMeshes.push(this.mesh);
     this.mesh.position.set(this.x, this.y, Z_BASE);
     fgmState.scene.add(this.mesh);
   }
@@ -428,7 +438,7 @@ export default class Pile {
   drawCoverDifference (positions, colors, numMatrices, x, y, i, j) {
     let value = (
       this.coverMatrix[i][j] -
-      fgmState.piles[fgmState.piles.indexOf(this) - 1].coverMatrix[i][j]
+      this.piles[this.piles.indexOf(this) - 1].coverMatrix[i][j]
     );
 
     let valueInv = 1 - Math.abs(value);
@@ -629,7 +639,13 @@ export default class Pile {
 
     // Frist create labels
     menuCommands
-      .filter(command => !command.stackedPileOnly || this.pileMatrices.length > 1)
+      .filter(command =>
+        (!command.stackedPileOnly || this.pileMatrices.length > 1) &&
+        (
+          (!command.trashedOnly && !this.isTrashed) ||
+          (command.trashedOnly && this.isTrashed)
+        )
+      )
       .forEach((command) => {
         command.pile = this;
 
@@ -725,7 +741,7 @@ export default class Pile {
     let labelText;
 
     if (this.pileMatrices.length === 1) {
-      labelText = this.id + 1;
+      labelText = this.idNumeric + 1;
     }
 
     if (this.pileMatrices.length > 1) {
@@ -932,6 +948,17 @@ export default class Pile {
   }
 
   /**
+   * Hide this instance.
+   */
+  hide () {
+    this.unsetHoverState();
+    this.geometry.dispose();
+    this.render = false;
+
+    fgmState.scene.remove(this.mesh);
+  }
+
+  /**
    * Hover gaps.
    *
    * @param   {boolean} hoverGap - If `true` hover gaps.
@@ -974,6 +1001,35 @@ export default class Pile {
     this.mesh.position.set(this.x, this.y, this.mesh.position.z);
 
     return this;
+  }
+
+  recover () {
+    if (!this.isTrashed) {
+      return;
+    }
+
+    this.unsetHoverState();
+    this.geometry.dispose();
+    this.render = false;
+    fgmState.scene.remove(this.mesh);
+
+    const meshIndex = fgmState.pileMeshesTrash.indexOf(this.mesh);
+
+    if (meshIndex >= 0) {
+      fgmState.pileMeshesTrash.splice(meshIndex, 1);
+    }
+
+    const pileIndex = fgmState.pilesTrash.indexOf(this);
+
+    if (pileIndex >= 0) {
+      fgmState.pilesTrash.splice(pileIndex, 1);
+    }
+
+    fgmState.pilesIdx[this.idNumeric] = this;
+
+    this.isTrashed = false;
+
+    console.log('RECOVERED', fgmState.pilesTrash, fgmState.pileMeshesTrash);
   }
 
   /**
@@ -1105,7 +1161,7 @@ export default class Pile {
    * to a special trash array.
    */
   trash () {
-    if (this.id < 0) {
+    if (this.isTrashed) {
       return;
     }
 
@@ -1126,13 +1182,24 @@ export default class Pile {
       fgmState.piles.splice(fgmState.piles.indexOf(this), 1);
     }
 
-    fgmState.pilesIdx[this.id] = undefined;
+    fgmState.pilesIdx[this.idNumeric] = undefined;
+    delete fgmState.pilesIdx[this.idNumeric];
 
-    this.id = -this.id;
-    fgmState.pilesIdx[this.id] = this.id;
+    if (!fgmState.pilesIdx[this.id]) {
+      fgmState.pilesIdx[this.id] = this;
+    }
 
-    fgmState.pilesTrash.push(this);
-    fgmState.pileMeshesTrash.push(this.mesh);
+    if (!this.isTrashed) {
+      fgmState.pilesTrash.push(this);
+
+      if (this.mesh) {
+        fgmState.pileMeshesTrash.push(this.mesh);
+      }
+    }
+
+    this.isTrashed = true;
+
+    console.log('WOOOORD', fgmState.pilesTrash, fgmState.pileMeshesTrash);
   }
 
   /**
