@@ -442,13 +442,13 @@ export class Fragments {
       this.plotElDim.width - (
         this.gridNumCols * this.gridCellWidth
       )
-    ) / (this.gridNumCols - 1);
+    ) / this.gridNumCols;
 
     this.gridCellSpacingVertical = (
       this.plotElDim.height - (
         this.gridNumRows * this.gridCellHeight
       )
-    ) / (this.gridNumRows - 1);
+    ) / this.gridNumRows;
 
     // Final cell height and width including spacing
     fgmState.gridCellHeightInclSpacing =
