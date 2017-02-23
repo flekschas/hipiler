@@ -998,8 +998,8 @@ export default class Pile {
     this.y = y;
 
     if (!abs) {
-      this.x += this.matrixWidthHalf;
-      this.y = -this.y - this.matrixWidthHalf;
+      this.x += fgmState.gridCellWidthInclSpacingHalf;
+      this.y = -this.y - fgmState.gridCellHeightInclSpacingHalf;
     }
 
     this.mesh.position.set(this.x, this.y, this.mesh.position.z);
