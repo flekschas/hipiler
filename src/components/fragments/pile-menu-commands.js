@@ -11,7 +11,7 @@ import {
 } from 'components/fragments/fragments-actions';
 
 import {
-  MODE_MEAN, MODE_TREND, MODE_VARIANCE, MODE_DIFFERENCE
+  MODE_MAD, MODE_MEAN, MODE_STD
 } from 'components/fragments/fragments-defaults';
 
 import COLORS from 'configs/colors';
@@ -41,14 +41,14 @@ export const DISPERSE = {
   stackedPileOnly: true
 };
 
-export const DIFFERENCE = {
-  name: 'Difference',
+export const MAD = {
+  name: 'Mean Avg. Dev.',
   color: COLORS.WHITE,
   background: 0x666666,
   row: 0,
   shortCut: 'F',
   trigger (pile) {
-    event.publish('decompose.fgm.coverDispMode', { mode: MODE_DIFFERENCE, pile });
+    event.publish('decompose.fgm.coverDispMode', { mode: MODE_MAD, pile });
   },
   triggerEvent: 'hover',
   stackedPileOnly: true
@@ -91,25 +91,13 @@ export const TRASH = {
   unsetHighlightOnClick: true
 };
 
-export const TREND = {
-  name: 'Trend',
-  color: COLORS.WHITE,
-  background: 0x666666,
-  shortCut: 'T',
-  trigger (pile) {
-    event.publish('decompose.fgm.coverDispMode', { mode: MODE_TREND, pile });
-  },
-  triggerEvent: 'hover',
-  stackedPileOnly: true
-};
-
-export const VARIANCE = {
-  name: 'Variance',
+export const STD = {
+  name: 'Standard Dev.',
   color: COLORS.WHITE,
   background: 0x666666,
   shortCut: 'V',
   trigger (pile) {
-    event.publish('decompose.fgm.coverDispMode', { mode: MODE_VARIANCE, pile });
+    event.publish('decompose.fgm.coverDispMode', { mode: MODE_STD, pile });
   },
   triggerEvent: 'hover',
   stackedPileOnly: true
@@ -121,7 +109,6 @@ export default [
   TRASH,
   RECOVER,
   MEAN,
-  VARIANCE,
-  TREND,
-  DIFFERENCE
+  MAD,
+  STD
 ];

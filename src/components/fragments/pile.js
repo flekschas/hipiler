@@ -16,10 +16,9 @@ import {
   METRIC_NOISE,
   METRIC_SHARPNESS,
   METRIC_SIZE,
-  MODE_DIFFERENCE,
+  MODE_MAD,
   MODE_MEAN,
-  MODE_TREND,
-  MODE_VARIANCE,
+  MODE_STD,
   PREVIEW_SIZE,
   SHADER_ATTRIBUTES,
   Z_BASE,
@@ -225,30 +224,108 @@ export default class Pile {
    * @return {object} Self.
    */
   calculateCoverMatrix () {
-    // Create empty this.dims x this.dims matrix
-    this.coverMatrix = new Array(this.dims).fill(new Float32Array(this.dims));
+    const numMatrices = this.pileMatrices.length;
 
-    let numMatrices = this.pileMatrices.length || 1;
+    this.coverMatrix = new Array(this.dims).fill(undefined);
 
-    // Create empty matrix
-    for (let i = 0; i < this.dims; i++) {
-      // Sum up the values across all matrices
-      for (let j = i; j < this.dims; j++) {
-        this.pileMatrices.forEach((pileMatrix) => {
-          this.coverMatrix[i][j] += Math.abs(
-            pileMatrix.matrix[i][j]
-          );
-        });
+    if (numMatrices > 1) {
+      // Create empty this.dims x this.dims matrix
+      this.coverMatrix = this.coverMatrix
+        .map(row => new Float32Array(this.dims));
 
-        // Average values
-        this.coverMatrix[i][j] /= numMatrices;
+      for (let i = 0; i < this.dims; i++) {
+        for (let j = 0; j < this.dims; j++) {
+          switch (this.coverMatrixMode) {
+            case MODE_MAD:
+              this.calculateCellMad(
+                this.coverMatrix,
+                this.pileMatrices,
+                i,
+                j,
+                numMatrices
+              );
+              break;
 
-        // Fill up lower half of the matrix
-        this.coverMatrix[j][i] = this.coverMatrix[i][j];
+            case MODE_STD:
+              this.calculateCellStd(
+                this.coverMatrix,
+                this.pileMatrices,
+                i,
+                j,
+                numMatrices
+              );
+              break;
+
+            default:
+              this.calculateCellMean(
+                this.coverMatrix,
+                this.pileMatrices,
+                i,
+                j,
+                numMatrices
+              );
+              break;
+          }
+        }
       }
+    } else {
+      // Copy first pile matrix
+      this.pileMatrices[0].matrix.forEach((row, index) => {
+        this.coverMatrix[index] = [...row];
+      });
     }
 
     return this;
+  }
+
+  /**
+   * Calculate cell mean absolute difference.
+   *
+   * @param {array} targetMatrix - Target matrix.
+   * @param {array} sourceMatrices - Source matrices used for calclation.
+   * @param {array} i - Index i.
+   * @param {array} j - Index j.
+   */
+  calculateCellMad (targetMatrix, sourceMatrices, i, j, numMatrices) {
+    const mean = sourceMatrices
+      .map(matrix => Math.max(matrix.matrix[i][j], 0))
+      .reduce((a, b) => a + b, 0) / sourceMatrices.length;
+
+    targetMatrix[i][j] = sourceMatrices
+      .map(matrix => Math.max(matrix.matrix[i][j], 0))
+      .reduce((a, b) => a + Math.abs(b - mean), 0) / sourceMatrices.length;
+  }
+
+  /**
+   * Calculate cell mean.
+   *
+   * @param {array} targetMatrix - Target matrix.
+   * @param {array} sourceMatrices - Source matrices used for calclation.
+   * @param {array} i - Index i.
+   * @param {array} j - Index j.
+   */
+  calculateCellMean (targetMatrix, sourceMatrices, i, j, numMatrices) {
+    targetMatrix[i][j] = sourceMatrices
+      .map(matrix => Math.max(matrix.matrix[i][j], 0))
+      .reduce((a, b) => a + b, 0) / numMatrices;
+  }
+
+  /**
+   * Calculate cell standard deviation.
+   *
+   * @param {array} targetMatrix - Target matrix.
+   * @param {array} sourceMatrices - Source matrices used for calclation.
+   * @param {array} i - Index i.
+   * @param {array} j - Index j.
+   */
+  calculateCellStd (targetMatrix, sourceMatrices, i, j) {
+    const mean = sourceMatrices
+      .map(matrix => Math.max(matrix.matrix[i][j], 0))
+      .reduce((a, b) => a + b, 0) / sourceMatrices.length;
+
+    targetMatrix[i][j] = Math.sqrt(sourceMatrices
+      .map(matrix => Math.max(matrix.matrix[i][j], 0))
+      .reduce((a, b) => a + ((b - mean) ** 2), 0) / (sourceMatrices.length - 1));
   }
 
   /**
@@ -429,36 +506,22 @@ export default class Pile {
   }
 
   /**
-   * Draw difference cover matrix.
+   * Draw mean average deviation cover matrix.
    *
    * @param {array} positions - Positions array to be changed in-place.
    * @param {array} colors - Colors array to be changed in-place.
-   * @param {number} numMatrices - Number of matrices.
    * @param {number} x - X coordinate.
    * @param {number} y - Y coordinate.
-   * @param {number} i - I matrix index.
-   * @param {number} j - J matrix index.
+   * @param {number} value - Cover matrix value.
    */
-  drawCoverDifference (positions, colors, numMatrices, x, y, i, j) {
-    let value = (
-      this.coverMatrix[i][j] -
-      this.piles[this.piles.indexOf(this) - 1].coverMatrix[i][j]
-    );
-
-    let valueInv = 1 - Math.abs(value);
-    let color = [1, valueInv, valueInv];
-
-    if (value > 0) {
-      color = [valueInv, valueInv, 1];
-    }
-
+  drawCoverMad (positions, colors, x, y, value) {
     add2dSqrtBuffRect(
       positions,
       -y,
       -x,
       fgmState.cellSize,
       colors,
-      color
+      colorOrange(1 - value)
     );
   }
 
@@ -467,102 +530,38 @@ export default class Pile {
    *
    * @param {array} positions - Positions array to be changed in-place.
    * @param {array} colors - Colors array to be changed in-place.
-   * @param {number} numMatrices - Number of matrices.
    * @param {number} x - X coordinate.
    * @param {number} y - Y coordinate.
-   * @param {number} i - I matrix index.
-   * @param {number} j - J matrix index.
+   * @param {number} value - Cover matrix value.
    */
-  drawCoverMean (positions, colors, numMatrices, x, y, i, j) {
-    let value = 0;
-
-    this.pileMatrices.forEach((pileMatrix) => {
-      // Make sure we're not subtracting low quality bins, which have a value
-      // of `-1`.
-      if (pileMatrix.matrix[i][j] > 0) {
-        value += pileMatrix.matrix[i][j];
-      }
-    });
-
-    value /= numMatrices;
-
-    const valueInv = 1 - cellValue(value);
-
+  drawCoverMean (positions, colors, x, y, value) {
     add2dSqrtBuffRect(
       positions,
       -y,
       -x,
       fgmState.cellSize,
       colors,
-      [valueInv, valueInv, valueInv]
+      new Array(3).fill(1 - value)
     );
   }
 
   /**
-   * Draw trend cover matrix.
-   *
-   * @description
-   * Not sure what this means right now
+   * Draw standard variation cover matrix.
    *
    * @param {array} positions - Positions array to be changed in-place.
    * @param {array} colors - Colors array to be changed in-place.
-   * @param {number} numMatrices - Number of matrices.
    * @param {number} x - X coordinate.
    * @param {number} y - Y coordinate.
-   * @param {number} i - I matrix index.
-   * @param {number} j - J matrix index.
+   * @param {number} value - Cover matrix value.
    */
-  drawCoverTrend (positions, colors, numMatrices, x, y, i, j) {
-    const value = (
-      this.pileMatrices[this.pileMatrices.length - 1].matrix[i][j] -
-      this.pileMatrices[0].matrix[i][j]
-    );
-    const valueInv = 1 - Math.abs(value);
-
-    let color = colorOrange(valueInv);
-
-    if (value > 0) {
-      color = colorBlue(valueInv);
-    }
-
+  drawCoverStd (positions, colors, x, y, value) {
     add2dSqrtBuffRect(
       positions,
       -y,
       -x,
       fgmState.cellSize,
       colors,
-      color
-    );
-  }
-
-  /**
-   * Draw the variance using the standard variation across matrices.
-   *
-   * @param {array} positions - Positions array to be changed in-place.
-   * @param {array} colors - Colors array to be changed in-place.
-   * @param {number} numMatrices - Number of matrices.
-   * @param {number} x - X coordinate.
-   * @param {number} y - Y coordinate.
-   * @param {number} i - I matrix index.
-   * @param {number} j - J matrix index.
-   */
-  drawCoverVariance (positions, colors, numMatrices, x, y, i, j) {
-    const values = [];
-
-    this.pileMatrices.forEach((pileMatrix) => {
-      values.push(pileMatrix.matrix[i][j]);
-    });
-
-    // standard deviation = varianz^2
-    const value = 1 - cellValue(Math.sqrt(stats.variance(values)));
-
-    add2dSqrtBuffRect(
-      positions,
-      -y,
-      -x,
-      fgmState.cellSize,
-      colors,
-      colorOrange(value)
+      colorOrange(1 - value)
     );
   }
 
@@ -599,8 +598,6 @@ export default class Pile {
    * @param {array} colors - Colors array to be changed in-place.
    */
   drawMultipleMatrices (positions, colors) {
-    const numMatrices = this.pileMatrices.length;
-
     // Show cover matrix
     for (let i = 0; i < this.dims; i++) {
       let x = (
@@ -616,18 +613,17 @@ export default class Pile {
           (j * fgmState.cellSize)
         );
 
+        const value = this.coverMatrix[i][j];
+
         switch (this.coverMatrixMode) {
-          case MODE_DIFFERENCE:
-            this.drawCoverDifference(positions, colors, numMatrices, x, y, i, j);
+          case MODE_MAD:
+            this.drawCoverMad(positions, colors, x, y, value);
             break;
-          case MODE_TREND:
-            this.drawCoverTrend(positions, colors, numMatrices, x, y, i, j);
-            break;
-          case MODE_VARIANCE:
-            this.drawCoverVariance(positions, colors, numMatrices, x, y, i, j);
+          case MODE_STD:
+            this.drawCoverStd(positions, colors, x, y, value);
             break;
           default:
-            this.drawCoverMean(positions, colors, numMatrices, x, y, i, j);
+            this.drawCoverMean(positions, colors, x, y, value);
             break;
         }
       }
@@ -1007,6 +1003,11 @@ export default class Pile {
     return this;
   }
 
+  /**
+   * Recover pile from trash.
+   *
+   * @return {object} Self.
+   */
   recover () {
     if (!this.isTrashed) {
       return;
@@ -1033,7 +1034,7 @@ export default class Pile {
 
     this.isTrashed = false;
 
-    console.log('RECOVERED', fgmState.pilesTrash, fgmState.pileMeshesTrash);
+    return this;
   }
 
   /**
@@ -1080,7 +1081,10 @@ export default class Pile {
    * @return {object} Self.
    */
   setCoverMatrixMode (mode) {
-    this.coverMatrixMode = mode;
+    if (this.coverMatrixMode !== mode) {
+      this.coverMatrixMode = mode;
+      this.calculateCoverMatrix();
+    }
 
     return this;
   }
@@ -1140,7 +1144,10 @@ export default class Pile {
   showSingle (matrix) {
     this.singleMatrix = matrix;
 
-    this.draw(true);
+    if (this.singleMatrixPrev !== this.singleMatrix) {
+      this.draw(true);
+      this.singleMatrixPrev = this.singleMatrix;
+    }
 
     return this;
   }
@@ -1204,8 +1211,6 @@ export default class Pile {
     }
 
     this.isTrashed = true;
-
-    console.log('WOOOORD', fgmState.pilesTrash, fgmState.pileMeshesTrash);
   }
 
   /**
@@ -1250,11 +1255,10 @@ export default class Pile {
   /**
    * Update label.
    *
-   * @param {boolean} updateLabels - If `true` update label.
    * @return {object} Self.
    */
-  updateLabels (updateLabels) {
-    if (updateLabels && fgmState.hoveredCell) {
+  updateLabels () {
+    if (fgmState.hoveredCell) {
       const x = (
         -this.matrixWidthHalf +
         (fgmState.cellSize * fgmState.hoveredCell.col) +

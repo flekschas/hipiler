@@ -90,32 +90,25 @@ export const METRIC_SHARPNESS = 'sharpness';
 export const METRIC_SIZE = 'size';
 
 /**
- * Harmonic Mean
+ * Mean
  *
  * @type {Number}
  */
 export const MODE_MEAN = 0;
 
 /**
- * Not sure
+ * Mean average deviation
  *
  * @type {Number}
  */
-export const MODE_TREND = 1;
+export const MODE_MAD = 1;
 
 /**
- * Statistical variance
+ * Standard deviaton
  *
  * @type {Number}
  */
-export const MODE_VARIANCE = 2;
-
-/**
- * Stuff
- *
- * @type {Number}
- */
-export const MODE_DIFFERENCE = 3;
+export const MODE_STD = 2;
 
 export const ORDER_DATA = 0;
 
