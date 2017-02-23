@@ -79,7 +79,7 @@ export const MARGIN_TOP = 2;
 
 export const MATRIX_GAP_HORIZONTAL = 10;
 
-export const MATRIX_GAP_VERTICAL = 20;
+export const MATRIX_GAP_VERTICAL = 10;
 
 export const METRIC_DIST_DIAG = 'distToDiag';
 
@@ -123,11 +123,13 @@ export const ORDER_GLOBAL = 1;
 
 export const ORDER_LOCAL = 2;
 
+export const PILE_LABEL_HEIGHT = 10;
+
 export const PILES = {};
 
-export const PILING_DIRECTION = 'horizontal';
-
 export const PREVIEW_SIZE = 3;
+
+export const PREVIEW_MAX = 5;
 
 export const SHADER_ATTRIBUTES = {
   customColor: { type: 'c', value: [] }
