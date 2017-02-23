@@ -64,7 +64,6 @@ import {
   MODE_VARIANCE,
   MODE_DIFFERENCE,
   PILE_LABEL_HEIGHT,
-  PILING_DIRECTION,
   PREVIEW_MAX,
   PREVIEW_SIZE,
   WEB_GL_CONFIG,
@@ -306,21 +305,13 @@ export class Fragments {
     this._isInitialized = !!value;
   }
 
-  // get matrixHeightInclSpacing () {
-  //   return this.matrixWidth + MATRIX_GAP_VERTICAL;
-  // }
-
   get matrixWidth () {
     return this.fragDims * fgmState.cellSize;
   }
 
-  // get matrixWidthInclSpacing () {
-  //   return this.matrixWidth + this.colSpacingExtra + MATRIX_GAP_HORIZONTAL;
-  // }
-
-  // get matrixWidthHalf () {
-  //   return this.matrixWidth / 2;
-  // }
+  get matrixWidthHalf () {
+    return this.matrixWidth / 2;
+  }
 
   get piles () {
     return this.trashIsActive ? fgmState.pilesTrash : fgmState.piles;
@@ -471,17 +462,6 @@ export class Fragments {
 
     this.gridCellWidthInclSpacingHalf =
       this.gridCellWidthInclSpacing / 2;
-
-    console.log(
-      this.gridCellHeight,
-      this.gridCellWidth,
-      this.gridNumCols,
-      this.gridNumRows,
-      this.gridCellSpacingHorizontal,
-      this.gridCellHeightInclSpacing,
-      this.gridCellHeightInclSpacing,
-      this.gridCellWidthInclSpacing
-    );
   }
 
   /**
@@ -670,16 +650,19 @@ export class Fragments {
 
     // Preview single matrices of piles with multiple matrices
     if (fgmState.hoveredPile.pileMatrices.length > 1) {
-      if (this.mouse.y > y + this.matrixWidthHalf) {
-        let d = this.mouse.y - (y + this.matrixWidthHalf);
+      const absY = this.relToAbsPositionY(this.mouse.y);
+
+      if (absY > y + this.matrixWidthHalf) {
+        let d = absY - (y + this.matrixWidthHalf);
         let i = Math.floor(d / PREVIEW_SIZE);
+
         fgmState.hoveredPile.showSingle(
           fgmState.hoveredPile.getMatrix(i)
         );
         this.hoveredMatrix = fgmState.hoveredPile.getMatrix(i);
       } else {
-        fgmState.hoveredPile.showSingle(undefined);
-        this.resetHighlightedPile();
+        fgmState.hoveredPile.showSingle();
+        // this.resetHighlightedPile();
       }
     }
 

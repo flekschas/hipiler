@@ -94,9 +94,13 @@ export default class Pile {
   }
 
   get isSingleMatrix () {
+    if (this.singleMatrix) {
+      return true;
+    }
+
     const isSingleMatrix = this.pileMatrices.length === 1;
 
-    if (isSingleMatrix && !this.singleMatrix) {
+    if (isSingleMatrix) {
       this.singleMatrix = this.pileMatrices[0];
     }
 
@@ -361,7 +365,7 @@ export default class Pile {
    *
    * @return {object} Self.
    */
-  draw () {
+  draw (noMenu) {
     const vertexPositions = [];
     const vertexColors = [];
 
@@ -407,7 +411,7 @@ export default class Pile {
     this.mesh = new Mesh(this.geometry, fgmState.shaderMaterial);
     this.mesh.scale.set(this.scale, this.scale, this.scale);
 
-    if (this === fgmState.hoveredPile) {
+    if (this === fgmState.hoveredPile && !noMenu) {
       this.drawMenu();
     }
 
@@ -1128,13 +1132,15 @@ export default class Pile {
   }
 
   /**
-   * Show single matrix
+   * Show single matrix.
    *
    * @param {object} matrix - Matrix to be shown.
    * @return {object} Self.
    */
   showSingle (matrix) {
     this.singleMatrix = matrix;
+
+    this.draw(true);
 
     return this;
   }
