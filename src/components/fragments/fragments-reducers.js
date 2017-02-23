@@ -94,17 +94,24 @@ export function piles (state = PILES, action) {
     case STACK_PILES: {
       const newState = { ...state };
 
-      // Add piles of source piles onto the target pile
-      newState[action.payload.targetPile]
-        .push(...action.payload.sourcePiles
-          .map(pileId => newState[pileId])
-          .reduce((a, b) => a.concat(b), [])
-        );
+      console.log(action.payload.pileStacks);
 
-      // Reset the source piles
-      action.payload.sourcePiles.forEach(
-        (pileId) => { newState[pileId] = []; }
-      );
+      Object.keys(action.payload.pileStacks).forEach((targetPile) => {
+        const sourcePiles = action.payload.pileStacks[targetPile];
+
+        // Add piles of source piles onto the target pile
+        newState[targetPile]
+          .push(
+            ...sourcePiles
+              .map(pileId => newState[pileId])
+              .reduce((a, b) => a.concat(b), [])
+          );
+
+        // Reset the source piles
+        sourcePiles.forEach(
+          (pileId) => { newState[pileId] = []; }
+        );
+      });
 
       return newState;
     }

@@ -84,9 +84,9 @@ export const setShowSpecialCells = showSpecialCells => ({
 
 export const STACK_PILES = 'STACK_PILES';
 
-export const stackPiles = (targetPile, sourcePiles) => ({
+export const stackPiles = pileStacks => ({
   type: STACK_PILES,
-  payload: { targetPile, sourcePiles }
+  payload: { pileStacks }
 });
 
 export const TRASH_PILES = 'TRASH_PILES';
