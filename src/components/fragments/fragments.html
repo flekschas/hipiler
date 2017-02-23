@@ -81,13 +81,12 @@
                 click.delegate="arrangeYDescChangeHandler()">
             </div>
           </li>
-          <li class="flex-c flex-d-c">
-            <label for="settings-fgm-round-lasso">Round Lasso</label>
-            <input
-              type="checkbox"
-              id="settings-fgm-round-lasso"
-              checked.bind="lassoIsRound"
-              click.delegate="lassoIsRoundChangeHandler()">
+          <li>
+            <button
+              class="flex-c flex-jc-c flex-a-c rel button is-icon-only"
+              click.delegate="groupPiles()">
+              Group
+            </button>
           </li>
           <li>
             <button
@@ -131,6 +130,14 @@
           <li class="flex-c flex-d-c">
             <label for="settings-fgm-is-fixed-cat-colors">Fix Colors</label>
             <input type="checkbox" id="settings-fgm-is-fixed-cat-colors">
+          </li>
+          <li class="flex-c flex-d-c">
+            <label for="settings-fgm-round-lasso">Round Lasso</label>
+            <input
+              type="checkbox"
+              id="settings-fgm-round-lasso"
+              checked.bind="lassoIsRound"
+              click.delegate="lassoIsRoundChangeHandler()">
           </li>
         </ul>
       </div>
