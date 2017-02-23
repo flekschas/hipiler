@@ -46,22 +46,6 @@ export class Decompose {
     });
   }
 
-  update () {
-    try {
-      this.updateCssDb(this.store.getState().present.decompose.columns);
-    } catch (e) {
-      logger.error('State invalid', e);
-    }
-  }
-
-  updateCss (columns) {
-    COLUMN_NAMES.forEach((columnName) => {
-      this.css[columnName] = {
-        flexBasis: `${columns[`${columnName}Width`]}${columns[`${columnName}WidthUnit`]}`
-      };
-    });
-  }
-
   columnDragStartHandler (event, target) {
     this.dragging = {
       target,
@@ -182,6 +166,14 @@ export class Decompose {
     this.store.dispatch(updateWidth(columnToUpdate, width));
   }
 
+  update () {
+    try {
+      this.updateCssDb(this.store.getState().present.decompose.columns);
+    } catch (e) {
+      logger.error('State invalid', e);
+    }
+  }
+
   updateColumnWidth (dragged) {
     if (dragged.target === 'fragments') {
       const visWidth = this.visEl.getBoundingClientRect().width;
@@ -205,5 +197,13 @@ export class Decompose {
         )
       );
     }
+  }
+
+  updateCss (columns) {
+    COLUMN_NAMES.forEach((columnName) => {
+      this.css[columnName] = {
+        flexBasis: `${columns[`${columnName}Width`]}${columns[`${columnName}WidthUnit`]}`
+      };
+    });
   }
 }
