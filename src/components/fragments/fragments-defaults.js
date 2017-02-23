@@ -77,9 +77,9 @@ export const MARGIN_RIGHT = 2;
 
 export const MARGIN_TOP = 2;
 
-export const MATRIX_GAP_HORIZONTAL = 10;
+export const MATRIX_GAP_HORIZONTAL = 6;
 
-export const MATRIX_GAP_VERTICAL = 10;
+export const MATRIX_GAP_VERTICAL = 6;
 
 export const METRIC_DIST_DIAG = 'distToDiag';
 
