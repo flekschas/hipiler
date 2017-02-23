@@ -1821,24 +1821,6 @@ export class Fragments {
         targetPile.id,
         piles.map(pile => pile.id)
       ));
-
-      // const matrices = this.getPilesMatrices(piles);
-
-      // matrices.forEach((matrix) => {
-      //   let sourcePile = matrix.pile;
-
-      //   if (sourcePile !== targetPile) {
-      //     this.destroyPile(sourcePile);
-      //   }
-      // });
-
-      // targetPile.addMatrices(matrices);
-      // this.sortByOriginalOrder(targetPile);
-
-      // this.redrawPiles(fgmState.piles);
-
-      // this.updateLayout();
-      // this.render();
     });
   }
 
@@ -2219,10 +2201,12 @@ export class Fragments {
    * Toggle trash.
    */
   toggleTrash () {
-    if (this.trashIsActive) {
-      this.hideTrash();
-    } else {
-      this.showTrash();
+    if (this.trashSize) {
+      if (this.trashIsActive) {
+        this.hideTrash();
+      } else {
+        this.showTrash();
+      }
     }
   }
 
@@ -2423,6 +2407,10 @@ export class Fragments {
                 pile.draw();
               } else if (pile.render) {
                 pile.hide();
+              }
+
+              if (!this.trashSize) {
+                this.hideTrash();
               }
             } else if (pileConfig.id[0] === '_') {
               pile.trash();
