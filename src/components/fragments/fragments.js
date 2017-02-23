@@ -451,17 +451,17 @@ export class Fragments {
     ) / (this.gridNumRows - 1);
 
     // Final cell height and width including spacing
-    this.gridCellHeightInclSpacing =
+    fgmState.gridCellHeightInclSpacing =
       this.gridCellHeight + this.gridCellSpacingVertical;
 
-    this.gridCellWidthInclSpacing =
+    fgmState.gridCellWidthInclSpacing =
       this.gridCellWidth + this.gridCellSpacingHorizontal;
 
-    this.gridCellHeightInclSpacingHalf =
-      this.gridCellHeightInclSpacing / 2;
+    fgmState.gridCellHeightInclSpacingHalf =
+      fgmState.gridCellHeightInclSpacing / 2;
 
-    this.gridCellWidthInclSpacingHalf =
-      this.gridCellWidthInclSpacing / 2;
+    fgmState.gridCellWidthInclSpacingHalf =
+      fgmState.gridCellWidthInclSpacing / 2;
   }
 
   /**
@@ -1281,12 +1281,12 @@ export class Fragments {
    */
   getLayoutPosition1D (pileSortIndex) {
     let x = (
-      this.gridCellWidthInclSpacing * (pileSortIndex % this.gridNumCols)
+      fgmState.gridCellWidthInclSpacing * (pileSortIndex % this.gridNumCols)
     ) || MARGIN_LEFT;
 
     let y = (
       Math.trunc(pileSortIndex / this.gridNumCols) *
-      (this.gridCellHeightInclSpacing + MATRIX_GAP_VERTICAL)
+      fgmState.gridCellHeightInclSpacing
     ) || MARGIN_TOP;
 
     return { x, y };
