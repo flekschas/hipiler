@@ -667,12 +667,12 @@ export class Fragments {
     }
 
     // Check if we're hovering a gap
-    if (this.relToAbsPositionX(this.mouse.x) > x + this.matrixWidthHalf) {
-      fgmState.hoveredGapPile = fgmState.hoveredPile;
-    } else if (fgmState.hoveredGapPile) {
-      fgmState.hoveredGapPile.draw();
-      fgmState.hoveredGapPile = undefined;
-    }
+    // if (this.relToAbsPositionX(this.mouse.x) > x + this.matrixWidthHalf) {
+    //   fgmState.hoveredGapPile = fgmState.hoveredPile;
+    // } else if (fgmState.hoveredGapPile) {
+    //   fgmState.hoveredGapPile.draw();
+    //   fgmState.hoveredGapPile = undefined;
+    // }
 
     this.hoveredCell = undefined;
 
@@ -686,17 +686,16 @@ export class Fragments {
         col >= 0 ||
         col < fgmState.focusNodes.length
       ) {
-        fgmState.hoveredPile.updateLabels(true);
+        fgmState.hoveredPile.updateLabels();
         this.hoveredCell = { row, col };
       }
     }
 
     for (let i = 0; i < this.piles.length; i++) {
       this.piles[i].updateHoveredCell();
-      this.piles[i].updateLabels(false);
     }
 
-    fgmState.hoveredPile.updateLabels(true);
+    fgmState.hoveredPile.updateLabels();
 
     fgmState.previousHoveredPile = fgmState.hoveredPile;
   }
@@ -717,8 +716,8 @@ export class Fragments {
 
     if (fgmState.previousHoveredPile) {
       fgmState.previousHoveredPile.showSingle(undefined);
+      fgmState.previousHoveredPile.setCoverMatrixMode(this.coverDispMode);
       this.highlightFrame.visible = false;
-      fgmState.previousHoveredPile.coverMatrixMode = this.coverDispMode;
       fgmState.previousHoveredPile.draw();
       fgmState.previousHoveredPile = undefined;
     }
