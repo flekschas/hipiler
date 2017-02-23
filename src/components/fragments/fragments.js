@@ -49,6 +49,7 @@ import {
   LASSO_LINE,
   LASSO_MATERIAL,
   LASSO_MIN_MOVE,
+  MARGIN_BOTTOM,
   MARGIN_LEFT,
   MARGIN_RIGHT,
   MARGIN_TOP,
@@ -62,7 +63,9 @@ import {
   MODE_TREND,
   MODE_VARIANCE,
   MODE_DIFFERENCE,
+  PILE_LABEL_HEIGHT,
   PILING_DIRECTION,
+  PREVIEW_MAX,
   PREVIEW_SIZE,
   WEB_GL_CONFIG,
   Z_BASE,
@@ -275,18 +278,8 @@ export class Fragments {
     return this._plotElDim;
   }
 
-  get rowSpacingExtra () {
-    const spacing = (this.plotElDim.width - (
-      this.numColumns * this.matrixWidth
-      ) - ((this.numColumns - 1) * MATRIX_GAP_HORIZONTAL)) / (this.numColumns - 1);
-    return spacing;
-  }
-
-  get numColumns () {
-    return Math.floor(
-      (this.plotElDim.width - MARGIN_LEFT - MARGIN_RIGHT) /
-      (this.matrixWidth + MATRIX_GAP_HORIZONTAL)
-    );
+  get pilePreviewHeight () {
+    return PREVIEW_MAX * PREVIEW_SIZE;
   }
 
   get isErrored () {
@@ -313,21 +306,21 @@ export class Fragments {
     this._isInitialized = !!value;
   }
 
-  get matrixHeightInclSpacing () {
-    return this.matrixWidth + MATRIX_GAP_VERTICAL;
-  }
+  // get matrixHeightInclSpacing () {
+  //   return this.matrixWidth + MATRIX_GAP_VERTICAL;
+  // }
 
   get matrixWidth () {
     return this.fragDims * fgmState.cellSize;
   }
 
-  get matrixWidthInclSpacing () {
-    return this.matrixWidth + this.rowSpacingExtra + MATRIX_GAP_HORIZONTAL;
-  }
+  // get matrixWidthInclSpacing () {
+  //   return this.matrixWidth + this.colSpacingExtra + MATRIX_GAP_HORIZONTAL;
+  // }
 
-  get matrixWidthHalf () {
-    return this.matrixWidth / 2;
-  }
+  // get matrixWidthHalf () {
+  //   return this.matrixWidth / 2;
+  // }
 
   get piles () {
     return this.trashIsActive ? fgmState.pilesTrash : fgmState.piles;
@@ -424,6 +417,71 @@ export class Fragments {
    */
   calcEuclideanDistance (startX, currentX, startY, currentY) {
     return Math.sqrt((startX - currentX) ** 2) + ((startY - currentY) ** 2);
+  }
+
+  /**
+   * Set grid properties.
+   */
+  calcGrid () {
+    this.getPlotElDim();
+
+    // Raw cell height and width
+    this.gridCellHeight = (
+      this.matrixWidth +
+      this.pilePreviewHeight +
+      PILE_LABEL_HEIGHT +
+      MATRIX_GAP_VERTICAL
+    );
+
+    this.gridCellWidth = this.matrixWidth + MATRIX_GAP_HORIZONTAL;
+
+    // Columns and rows
+    this.gridNumCols = Math.floor(
+      (this.plotElDim.width - MARGIN_LEFT - MARGIN_RIGHT) /
+      this.gridCellWidth
+    );
+
+    this.gridNumRows = Math.floor(
+      (this.plotElDim.height - MARGIN_TOP - MARGIN_BOTTOM) /
+      this.gridCellHeight
+    );
+
+    // Extra spacing
+    this.gridCellSpacingHorizontal = (
+      this.plotElDim.width - (
+        this.gridNumCols * this.gridCellWidth
+      )
+    ) / (this.gridNumCols - 1);
+
+    this.gridCellSpacingVertical = (
+      this.plotElDim.height - (
+        this.gridNumRows * this.gridCellHeight
+      )
+    ) / (this.gridNumRows - 1);
+
+    // Final cell height and width including spacing
+    this.gridCellHeightInclSpacing =
+      this.gridCellHeight + this.gridCellSpacingVertical;
+
+    this.gridCellWidthInclSpacing =
+      this.gridCellWidth + this.gridCellSpacingHorizontal;
+
+    this.gridCellHeightInclSpacingHalf =
+      this.gridCellHeightInclSpacing / 2;
+
+    this.gridCellWidthInclSpacingHalf =
+      this.gridCellWidthInclSpacing / 2;
+
+    console.log(
+      this.gridCellHeight,
+      this.gridCellWidth,
+      this.gridNumCols,
+      this.gridNumRows,
+      this.gridCellSpacingHorizontal,
+      this.gridCellHeightInclSpacing,
+      this.gridCellHeightInclSpacing,
+      this.gridCellWidthInclSpacing
+    );
   }
 
   /**
@@ -1239,52 +1297,16 @@ export class Fragments {
    * @return {object} Object with x and y coordinates
    */
   getLayoutPosition1D (pileSortIndex) {
-    const numCol = this.numColumns;
+    let x = (
+      this.gridCellWidthInclSpacing * (pileSortIndex % this.gridNumCols)
+    ) || MARGIN_LEFT;
 
-    let x;
-    let y;
+    let y = (
+      Math.trunc(pileSortIndex / this.gridNumCols) *
+      (this.gridCellHeightInclSpacing + MATRIX_GAP_VERTICAL)
+    ) || MARGIN_TOP;
 
-    if (PILING_DIRECTION === 'horizontal') {
-      x = (
-        this.matrixWidthInclSpacing * (pileSortIndex % numCol)
-      ) || MARGIN_LEFT;
-
-      y = (
-        Math.trunc(pileSortIndex / numCol) *
-        (this.matrixWidth + MATRIX_GAP_VERTICAL)
-      ) || MARGIN_TOP;
-
-      return { x, y };
-    }
-
-    let col = Math.floor(pileSortIndex % this.numColumns);
-    y = MARGIN_TOP;
-    let currh = 0;
-    let temp;
-
-    for (let i = 0; i < this.piles.length; i++) {
-      if (i > 0 && i % this.numColumns === 0) {  // when new row starts
-        if (i > pileSortIndex) {
-          break;
-        } else {
-          y += currh + this.matrixWidth + MATRIX_GAP_VERTICAL;
-          currh = 0;
-        }
-      }
-
-      temp = this.piles[i].size() * 2;  // 2 = preview height
-
-      if (temp > currh) {
-        currh = temp;
-      }
-    }
-
-    return {
-      x: MARGIN_LEFT + (
-        col * (this.matrixWidth + MATRIX_GAP_HORIZONTAL)
-      ) + this.matrixWidthHalf,
-      y: y + currh
-    };
+    return { x, y };
   }
 
   /**
@@ -1445,6 +1467,8 @@ export class Fragments {
    */
   initPlot (data) {
     this.fragDims = data.dims;
+
+    this.calcGrid();
 
     this.highlightFrame = createRectFrame(
       this.matrixWidth,
@@ -2126,8 +2150,8 @@ export class Fragments {
    * @param {number} numFragments - Number of fragmets.
    */
   setScrollLimit (numFragments = this.piles.length) {
-    const contentHeight = this.matrixHeightInclSpacing *
-      Math.ceil(numFragments / this.numColumns);
+    const contentHeight = this.gridCellHeight *
+      Math.ceil(numFragments / this.gridNumCols);
 
     const scrollHeight = contentHeight - this.plotElDim.height;
 
@@ -2233,16 +2257,18 @@ export class Fragments {
    */
   update () {
     try {
-      const state = this.store.getState().present.decompose.fragments;
+      const state = this.store.getState().present.decompose;
+      const stateFgm = state.fragments;
 
-      this.updateAnimation(state.animation);
-      this.updateArrangeMetrics(state.arrangeMetrics);
-      this.updateCoverDispMode(state.coverDispMode);
-      this.updateCellSize(state.cellSize);
-      this.updateConfig(state.config);
-      this.updateLassoIsRound(state.lassoIsRound);
-      this.updatePiles(state.piles);
-      this.updateShowSpecialCells(state.showSpecialCells);
+      this.updateGrid(state.columns);
+      this.updateAnimation(stateFgm.animation);
+      this.updateArrangeMetrics(stateFgm.arrangeMetrics);
+      this.updateCoverDispMode(stateFgm.coverDispMode);
+      this.updateCellSize(stateFgm.cellSize);
+      this.updateConfig(stateFgm.config);
+      this.updateLassoIsRound(stateFgm.lassoIsRound);
+      this.updatePiles(stateFgm.piles);
+      this.updateShowSpecialCells(stateFgm.showSpecialCells);
     } catch (e) {
       logger.error('State is invalid', e);
     }
@@ -2325,15 +2351,29 @@ export class Fragments {
   }
 
   /**
-   * [updateConfig description]
+   * Handle updating the config
    *
-   * @param {[type]} newConfig - [description]
-   * @return {[type]} [description]
+   * @param {object} newConfig - New config
    */
   updateConfig (newConfig) {
     if (this.fragments.config !== newConfig) {
       this.fragments.config = newConfig;
       this.loadData(this.fragments.config);
+    }
+  }
+
+  /**
+   * Handle updating the grid if necessary
+   *
+   * @param {object} columns - Decompose column information.
+   */
+  updateGrid (columns) {
+    const update = this.decomposeColums !== columns;
+
+    this.decomposeColums = columns;
+
+    if (this.isInitialized && update) {
+      this.calcGrid();
     }
   }
 
