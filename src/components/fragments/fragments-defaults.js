@@ -79,6 +79,14 @@ export const MATRIX_GAP_HORIZONTAL = 6;
 
 export const MATRIX_GAP_VERTICAL = 6;
 
+export const MATRIX_ORIENTATION_UNDEF = 0;
+
+export const MATRIX_ORIENTATION_INITIAL = 1;
+
+export const MATRIX_ORIENTATION_5_TO_3 = 2;
+
+export const MATRIX_ORIENTATION_3_TO_5 = 3;
+
 export const METRIC_DIST_DIAG = 'distToDiag';
 
 export const METRIC_NOISE = 'noise';

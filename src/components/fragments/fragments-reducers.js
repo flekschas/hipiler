@@ -11,6 +11,7 @@ import {
   SET_CELL_SIZE,
   SET_COVER_DISP_MODE,
   SET_LASSO_IS_ROUND,
+  SET_MATRIX_ORIENTATION,
   SET_PILES,
   SET_SHOW_SPECIAL_CELLS,
   TRASH_PILES,
@@ -23,6 +24,7 @@ import {
   CELL_SIZE,
   CONFIG,
   LASSO_IS_ROUND,
+  MATRIX_ORIENTATION_INITIAL,
   MODE_MEAN,
   PILES,
   SHOW_SPECIAL_CELLS
@@ -192,6 +194,16 @@ export function lassoIsRound (state = LASSO_IS_ROUND, action) {
   }
 }
 
+export function matrixOrientation (state = MATRIX_ORIENTATION_INITIAL, action) {
+  switch (action.type) {
+    case SET_MATRIX_ORIENTATION:
+      return action.payload.orientation;
+
+    default:
+      return state;
+  }
+}
+
 export function showSpecialCells (state = SHOW_SPECIAL_CELLS, action) {
   switch (action.type) {
     case SET_SHOW_SPECIAL_CELLS:
@@ -209,6 +221,7 @@ export default combineReducers({
   config,
   coverDispMode,
   lassoIsRound,
+  matrixOrientation,
   piles,
   showSpecialCells
 });

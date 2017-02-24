@@ -32,6 +32,7 @@ import {
   setCellSize,
   setCoverDispMode,
   setLassoIsRound,
+  setMatrixOrientation,
   setPiles,
   setShowSpecialCells,
   stackPiles
@@ -55,6 +56,10 @@ import {
   MARGIN_TOP,
   MATRIX_GAP_HORIZONTAL,
   MATRIX_GAP_VERTICAL,
+  MATRIX_ORIENTATION_3_TO_5,
+  MATRIX_ORIENTATION_5_TO_3,
+  MATRIX_ORIENTATION_INITIAL,
+  MATRIX_ORIENTATION_UNDEF,
   METRIC_DIST_DIAG,
   METRIC_NOISE,
   METRIC_SHARPNESS,
@@ -198,6 +203,20 @@ export class Fragments {
       name: 'Standard Dev.'
     }];
 
+    this.matrixOrientations = [{
+      id: MATRIX_ORIENTATION_UNDEF,
+      name: '---'
+    }, {
+      id: MATRIX_ORIENTATION_INITIAL,
+      name: 'Intial'
+    }, {
+      id: MATRIX_ORIENTATION_5_TO_3,
+      name: '5\' to 3\''
+    }, {
+      id: MATRIX_ORIENTATION_3_TO_5,
+      name: '3\' to 5\''
+    }];
+
     this.arrangeSelectedEventId = 'fgm.arrange';
     this.metrics = [{
       id: METRIC_SIZE,
@@ -317,12 +336,12 @@ export class Fragments {
     return this.trashIsActive ? fgmState.pileMeshesTrash : fgmState.pileMeshes;
   }
 
-  get showSpecialCells () {
-    return fgmState.showSpecialCells;
-  }
-
   get rawMatrices () {
     return fgmState.matrices.map(matrix => matrix.matrix);
+  }
+
+  get state () {
+    return fgmState;
   }
 
   get trashSize () {
@@ -1813,6 +1832,23 @@ export class Fragments {
   }
 
   /**
+   * Matrix orientation change handler.
+   *
+   * @param {object} event - Event object.
+   */
+  matrixOrientationChangeHandler (event) {
+    try {
+      this.store.dispatch(
+        setMatrixOrientation(
+          parseInt(event.target.selectedOptions[0].value, 10)
+        )
+      );
+    } catch (error) {
+      logger.error('Matrix orientation could not be set.', error);
+    }
+  }
+
+  /**
    * Move multiple files and animate the move
    *
    * @param {array} piles - Piles to be moved.
@@ -2325,6 +2361,7 @@ export class Fragments {
       this.updateCellSize(stateFgm.cellSize);
       this.updateConfig(stateFgm.config);
       this.updateLassoIsRound(stateFgm.lassoIsRound);
+      this.updateMatrixOrientation(stateFgm.matrixOrientation);
       this.updatePiles(stateFgm.piles);
       this.updateShowSpecialCells(stateFgm.showSpecialCells);
     } catch (e) {
@@ -2463,6 +2500,26 @@ export class Fragments {
         const pos = this.getLayoutPosition(pile);
         pile.moveTo(pos.x, pos.y);
       });
+  }
+
+  /**
+   * Update the orientation of all matrices.
+   *
+   * @param {number} orientation - Matrix orientation number.
+   */
+  updateMatrixOrientation (orientation) {
+    if (fgmState.matrixOrientation === orientation) {
+      return;
+    }
+
+    fgmState.matrixOrientation = orientation;
+
+    console.log('GIRLS', fgmState.matrixOrientation);
+
+    if (this.isInitialized) {
+      this.redrawPiles(this.piles);
+      this.render();
+    }
   }
 
   /**

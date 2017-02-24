@@ -61,6 +61,13 @@ export const setLassoIsRound = lassoIsRound => ({
   payload: { lassoIsRound }
 });
 
+export const SET_MATRIX_ORIENTATION = 'SET_MATRIX_ORIENTATION';
+
+export const setMatrixOrientation = orientation => ({
+  type: SET_MATRIX_ORIENTATION,
+  payload: { orientation }
+});
+
 export const SET_PILE_MODE = 'SET_PILE_MODE';
 
 export const setPileMode = (mode, pile) => ({

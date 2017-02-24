@@ -1,5 +1,9 @@
 import { Scene } from 'three';
 
+import {
+  MATRIX_ORIENTATION_INITIAL
+} from 'components/fragments/fragments-defaults';
+
 
 const State = {
   activeMatrixInPileIndex: undefined,
@@ -25,6 +29,7 @@ const State = {
   matrices: [],
   matricesPileIndex: [],
   matrixGapMouseover: false,
+  matrixOrientation: MATRIX_ORIENTATION_INITIAL,
   matrixPos: [],
   matrixStrings: '',
   matrixWidth: undefined,
