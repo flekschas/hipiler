@@ -437,6 +437,8 @@ export class Fragments {
       this.gridCellHeight
     );
 
+    this.visiblePilesMax = this.gridNumCols * this.gridNumRows;
+
     // Extra spacing
     this.gridCellSpacingHorizontal = (
       this.plotElDim.width - (
@@ -1322,7 +1324,7 @@ export class Fragments {
    * This function stacks up snippets by pairwise similarity.
    */
   groupPiles () {
-    const toBePiled = this.piles.length - (this.gridNumCols * this.gridNumRows);
+    const toBePiled = this.piles.length - this.visiblePilesMax;
 
     if (toBePiled <= 0) {
       return;
