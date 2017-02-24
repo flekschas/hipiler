@@ -7,4 +7,14 @@ export default class Matrix {
 
     this.dim = matrix.length;
   }
+
+  /**
+   * Flatten  a 2D array.
+   *
+   * @param {array} matrix - 2D matrix to be flattened.
+   * @return {array} 1D arrays.
+   */
+  static flatten (matrix) {
+    return matrix.reduce((a, b) => a.concat(b), []);
+  }
 }
