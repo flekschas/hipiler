@@ -36,7 +36,6 @@ import {
   add2dSqrtBuffRect,
   addBufferedRect,
   cellValue,
-  colorBlue,
   colorOrange,
   createRect,
   createRectFrame,
@@ -54,6 +53,7 @@ const logger = LogManager.getLogger('pile');  // eslint-disable-line no-unused-v
 
 export default class Pile {
   constructor (id, scene, scale, dims) {
+    this.avgMatrix = [];
     this.cellFrame = createRectFrame(
       fgmState.cellSize, fgmState.cellSize, 0xff0000, 1
     );
@@ -213,65 +213,42 @@ export default class Pile {
     this.pileMatrices.push(...matrices);
     matrices.forEach((matrix) => { matrix.pile = this; });
 
+    this.calculateAvgMatrix();
     this.calculateCoverMatrix();
 
     return this;
   }
 
   /**
-   * Calculate global matrix.
-   *
+   * Calculate a-per pile average matrix.
+
    * @return {object} Self.
    */
-  calculateCoverMatrix () {
+  calculateAvgMatrix () {
     const numMatrices = this.pileMatrices.length;
 
-    this.coverMatrix = new Array(this.dims).fill(undefined);
+    this.avgMatrix = new Array(this.dims).fill(undefined);
 
     if (numMatrices > 1) {
       // Create empty this.dims x this.dims matrix
-      this.coverMatrix = this.coverMatrix
+      this.avgMatrix = this.avgMatrix
         .map(row => new Float32Array(this.dims));
 
       for (let i = 0; i < this.dims; i++) {
         for (let j = 0; j < this.dims; j++) {
-          switch (this.coverMatrixMode) {
-            case MODE_MAD:
-              this.calculateCellMad(
-                this.coverMatrix,
-                this.pileMatrices,
-                i,
-                j,
-                numMatrices
-              );
-              break;
-
-            case MODE_STD:
-              this.calculateCellStd(
-                this.coverMatrix,
-                this.pileMatrices,
-                i,
-                j,
-                numMatrices
-              );
-              break;
-
-            default:
-              this.calculateCellMean(
-                this.coverMatrix,
-                this.pileMatrices,
-                i,
-                j,
-                numMatrices
-              );
-              break;
-          }
+          this.calculateCellMean(
+            this.avgMatrix,
+            this.pileMatrices,
+            i,
+            j,
+            numMatrices
+          );
         }
       }
     } else {
       // Copy first pile matrix
       this.pileMatrices[0].matrix.forEach((row, index) => {
-        this.coverMatrix[index] = [...row];
+        this.avgMatrix[index] = [...row];
       });
     }
 
@@ -326,6 +303,70 @@ export default class Pile {
     targetMatrix[i][j] = Math.sqrt(sourceMatrices
       .map(matrix => Math.max(matrix.matrix[i][j], 0))
       .reduce((a, b) => a + ((b - mean) ** 2), 0) / (sourceMatrices.length - 1));
+  }
+
+  /**
+   * Calculate global matrix.
+   *
+   * @return {object} Self.
+   */
+  calculateCoverMatrix () {
+    const numMatrices = this.pileMatrices.length;
+
+    this.coverMatrix = new Array(this.dims).fill(undefined);
+
+    if (numMatrices > 1) {
+      // Create empty this.dims x this.dims matrix
+      this.coverMatrix = this.coverMatrix
+        .map(row => new Float32Array(this.dims));
+
+      if (
+        this.coverMatrixMode === MODE_MAD ||
+        this.coverMatrixMode === MODE_STD
+      ) {
+        for (let i = 0; i < this.dims; i++) {
+          for (let j = 0; j < this.dims; j++) {
+            switch (this.coverMatrixMode) {
+              case MODE_MAD:
+                this.calculateCellMad(
+                  this.coverMatrix,
+                  this.pileMatrices,
+                  i,
+                  j,
+                  numMatrices
+                );
+                break;
+
+              case MODE_STD:
+                this.calculateCellStd(
+                  this.coverMatrix,
+                  this.pileMatrices,
+                  i,
+                  j,
+                  numMatrices
+                );
+                break;
+
+              default:
+                // Nothing
+                break;
+            }
+          }
+        }
+      } else {
+        // Copy the average matrix from `this.avgMatrix`
+        this.avgMatrix.forEach((row, index) => {
+          this.coverMatrix[index] = row.slice();
+        });
+      }
+    } else {
+      // Copy first pile matrix
+      this.pileMatrices[0].matrix.forEach((row, index) => {
+        this.coverMatrix[index] = row.slice();
+      });
+    }
+
+    return this;
   }
 
   /**
@@ -1056,6 +1097,7 @@ export default class Pile {
       }
     });
 
+    this.calculateAvgMatrix();
     this.calculateCoverMatrix();
 
     return this;
@@ -1099,6 +1141,7 @@ export default class Pile {
     this.pileMatrices = matrices;
     matrices.forEach((matrix) => { matrix.pile = this; });
 
+    this.calculateAvgMatrix();
     this.calculateCoverMatrix();
 
     return this;
