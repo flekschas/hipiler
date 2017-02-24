@@ -1315,6 +1315,90 @@ export class Fragments {
   }
 
   /**
+   * Automatically groups piles such that the user doesn't have to scroll
+   * anymore.
+   *
+   * @description
+   * This function stacks up snippets by pairwise similarity.
+   */
+  groupPiles () {
+    const toBePiled = this.piles.length - (this.gridNumCols * this.gridNumRows);
+
+    if (toBePiled <= 0) {
+      return;
+    }
+
+    // Get a copy of the pointers to piles
+    const _piles = this.piles.slice();
+
+    // Sort piles by their ranking
+    _piles.sort((a, b) => a.rank - b.rank);
+
+    // Calculate the pairwise distance between ordered matrices
+    const pairwiseDistances = _piles.map((pile, index) => {
+      if (index === 0) {
+        return Infinity;
+      }
+
+      return this.calcDistanceEucl(
+        Matrix.flatten(_piles[index - 1].avgMatrix),
+        Matrix.flatten(_piles[index].avgMatrix)
+      );
+    });
+
+    // Sort piles by distance
+    const pilesIdxSortedByDistance = pairwiseDistances
+      .map((distance, index) => ({ distance, index }))
+      .sort((a, b) => b.distance - a.distance);
+
+    // Create an augmented array of all piles for silent stacking
+    const pilesAugmented = _piles.map(pile => ({
+      isStackedUp: false,
+      pile,
+      pileStack: []
+    }));
+
+    const getTargetPile = function (piles, index) {
+      if (piles[index].isStackedUp) {
+        return getTargetPile(pilesAugmented, index - 1);
+      }
+      return pilesAugmented[index];
+    };
+
+    // Silentely stack up piles
+    for (let i = 0; i < toBePiled; i++) {
+      const pileId = pilesIdxSortedByDistance.pop();
+
+      const targetPile = getTargetPile(pilesAugmented, pileId.index - 1);
+      const sourcePile = pilesAugmented[pileId.index];
+
+      targetPile.pileStack.push(sourcePile.pile.id, ...sourcePile.pileStack);
+
+      // Reset the source pile's pile stack
+      sourcePile.isStackedUp = true;
+    }
+
+    const batchPileStacking = {};
+
+    // Reduce to batch piling
+    pilesAugmented
+      .filter(pile => !pile.isStackedUp && pile.pileStack.length > 0)
+      .forEach((pile) => {
+        batchPileStacking[pile.pile.id] = pile.pileStack;
+      });
+
+    this.store.dispatch(stackPiles(batchPileStacking));
+  }
+
+  calcDistanceEucl (matrixA, matrixB) {
+    return Math.sqrt(matrixA.reduce(
+      (acc, valueA, index) =>
+        acc + ((Math.max(valueA, 0) - Math.max(matrixB[index], 0)) ** 2),
+      0
+    ));
+  }
+
+  /**
    * Helper method to show an error message
    *
    * @param {string} message - Error to be shown
@@ -1816,10 +1900,9 @@ export class Fragments {
     animation.finally(() => {
       targetPile.elevateTo(Z_BASE);
 
-      this.store.dispatch(stackPiles(
-        targetPile.id,
-        piles.map(pile => pile.id)
-      ));
+      this.store.dispatch(stackPiles({
+        [targetPile.id]: piles.map(pile => pile.id)
+      }));
     });
   }
 
@@ -2114,7 +2197,7 @@ export class Fragments {
    * @param {number} numFragments - Number of fragmets.
    */
   setScrollLimit (numFragments = this.piles.length) {
-    const contentHeight = this.gridCellHeight *
+    const contentHeight = fgmState.gridCellHeightInclSpacing *
       Math.ceil(numFragments / this.gridNumCols);
 
     const scrollHeight = contentHeight - this.plotElDim.height;
