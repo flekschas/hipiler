@@ -554,7 +554,7 @@ export default class Pile {
 
     this.drawPileLabel(isHovering);
 
-    this.drawStrandArrow(isHovering);
+    this.drawStrandArrows(isHovering);
 
     // Add frame
     this.mesh.add(this.matrixFrame);
@@ -571,8 +571,8 @@ export default class Pile {
    *
    * @param {array} isHovering - If `true` user is currently hovering this pile.
    */
-  drawStrandArrow (isHovering) {
-    this.strandArrow = new ArrowHelper(
+  drawStrandArrows (isHovering) {
+    this.strandArrowX = new ArrowHelper(
       new Vector3(1, 0, 0),
       new Vector3(
         this.matrixWidthHalf - 13,
@@ -580,12 +580,26 @@ export default class Pile {
         0
       ),
       STRAND_ARROW_LENGTH,
-      isHovering ? COLORS.GRAY_DARK : COLORS.GRAY_LIGHT,
+      isHovering ? COLORS.GRAY_DARK : COLORS.GRAY_LIGHTER,
       STRAND_ARROW_HEAD_LENGTH,
       STRAND_ARROW_HEAD_WIDTH
     );
 
-    this.mesh.add(this.strandArrow);
+    this.strandArrowY = new ArrowHelper(
+      new Vector3(0, -1, 0),
+      new Vector3(
+        this.matrixWidthHalf - 20,
+        -this.matrixWidthHalf - 4,
+        0
+      ),
+      STRAND_ARROW_LENGTH,
+      isHovering ? COLORS.GRAY_DARK : COLORS.GRAY_LIGHTER,
+      STRAND_ARROW_HEAD_LENGTH,
+      STRAND_ARROW_HEAD_WIDTH
+    );
+
+    this.mesh.add(this.strandArrowX);
+    this.mesh.add(this.strandArrowY);
   }
 
   /**
