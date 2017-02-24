@@ -1,8 +1,6 @@
 // Aurelia
 import { LogManager } from 'aurelia-framework';
 
-import { stats } from 'science';
-
 import {
   Box3, BufferAttribute, BufferGeometry, Mesh, MeshBasicMaterial, TextGeometry
 } from 'three';
@@ -27,7 +25,8 @@ import {
 
 import {
   MENU_LABEL_SPACING,
-  MENU_PADDING
+  MENU_PADDING,
+  PREVIEW_LOW_QUAL_THRESHOLD
 } from 'components/fragments/pile-defaults';
 
 import fgmState from 'components/fragments/fragments-state';
@@ -282,9 +281,21 @@ export default class Pile {
    * @param {array} j - Index j.
    */
   calculateCellMean (targetMatrix, sourceMatrices, i, j, numMatrices) {
+    let lowQualCounter = 0;
+
     targetMatrix[i][j] = sourceMatrices
-      .map(matrix => Math.max(matrix.matrix[i][j], 0))
-      .reduce((a, b) => a + b, 0) / numMatrices;
+      .map(matrix => matrix.matrix[i][j])
+      .reduce((acc, value) => {
+        if (value < 0) { lowQualCounter += 1; }
+        return acc + value;
+      }, 0);
+
+    if (lowQualCounter === numMatrices) {
+      // We keep the low quality info in case all cells are of low quality
+      targetMatrix[i][j] = -1;
+    } else {
+      targetMatrix[i][j] = (targetMatrix[i][j] + lowQualCounter) / numMatrices;
+    }
   }
 
   /**
@@ -582,7 +593,10 @@ export default class Pile {
       -x,
       fgmState.cellSize,
       colors,
-      new Array(3).fill(1 - value)
+      this.getGrayTone(
+        value,
+        fgmState.showSpecialCells
+      )
     );
   }
 
@@ -823,10 +837,14 @@ export default class Pile {
         let value = 0;
 
         for (let j = 0; j < this.dims; j++) {
-          value += pileMatrix.matrix[i][j];
+          value += pileMatrix.matrix[j][i];
         }
 
-        let valueInv = 1 - cellValue(value / this.dims);
+        if (value < -this.dims * PREVIEW_LOW_QUAL_THRESHOLD) {
+          value = -1;
+        } else {
+          value = cellValue(value / this.dims);
+        }
 
         let x = (
           -this.matrixWidthHalf +
@@ -855,7 +873,7 @@ export default class Pile {
           fgmState.cellSize,
           PREVIEW_SIZE - 0.3,
           colors,
-          [valueInv, valueInv, valueInv]
+          this.getGrayTone(value, fgmState.showSpecialCells)
         );
       }
     });
