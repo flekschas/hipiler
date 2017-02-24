@@ -59,10 +59,9 @@ import {
   METRIC_NOISE,
   METRIC_SHARPNESS,
   METRIC_SIZE,
+  MODE_MAD,
   MODE_MEAN,
-  MODE_TREND,
-  MODE_VARIANCE,
-  MODE_DIFFERENCE,
+  MODE_STD,
   PILE_LABEL_HEIGHT,
   PREVIEW_MAX,
   PREVIEW_SIZE,
@@ -192,14 +191,11 @@ export class Fragments {
       id: MODE_MEAN,
       name: 'Mean'
     }, {
-      id: MODE_TREND,
-      name: 'Trend'
+      id: MODE_MAD,
+      name: 'Mean Avg. Dev.'
     }, {
-      id: MODE_VARIANCE,
-      name: 'Variance'
-    }, {
-      id: MODE_DIFFERENCE,
-      name: 'Difference'
+      id: MODE_STD,
+      name: 'Standard Dev.'
     }];
 
     this.arrangeSelectedEventId = 'fgm.arrange';
@@ -319,6 +315,10 @@ export class Fragments {
 
   get pileMeshes () {
     return this.trashIsActive ? fgmState.pileMeshesTrash : fgmState.pileMeshes;
+  }
+
+  get showSpecialCells () {
+    return fgmState.showSpecialCells;
   }
 
   get rawMatrices () {
@@ -1053,6 +1053,21 @@ export class Fragments {
   }
 
   /**
+   * Drag start handler
+   */
+  dragPileStartHandler () {
+    // Don't do raycasting. "Freeze" the current state of
+    // highlighte items and move matrix with cursor.
+    this.dragPile = fgmState.hoveredPile;
+    this.dragPile.moveTo(
+      this.relToAbsPositionX(this.mouse.x),
+      this.relToAbsPositionY(this.mouse.y),
+      true
+    );
+    this.dragPile.elevateTo(Z_DRAG);
+  }
+
+  /**
    * Draw lasso handler.
    *
    * @param {number} startX - Start X position.
@@ -1141,21 +1156,6 @@ export class Fragments {
     );
 
     fgmState.scene.add(this.lassoObject);
-  }
-
-  /**
-   * Drag start handler
-   */
-  dragPileStartHandler () {
-    // Don't do raycasting. "Freeze" the current state of
-    // highlighte items and move matrix with cursor.
-    this.dragPile = fgmState.hoveredPile;
-    this.dragPile.moveTo(
-      this.relToAbsPositionX(this.mouse.x),
-      this.relToAbsPositionY(this.mouse.y),
-      true
-    );
-    this.dragPile.elevateTo(Z_DRAG);
   }
 
   /**
@@ -1250,8 +1250,15 @@ export class Fragments {
     return pilesSelected;
   }
 
+  /**
+   * Get selection of round lasso.
+   *
+   * @return {array} Slected piles.
+   */
   getLassoRoundSelection () {
-    return Object.keys(this.lassoRoundSelection).map(pileId => fgmState.pilesIdx[pileId]);
+    return Object.keys(
+      this.lassoRoundSelection).map(pileId => fgmState.pilesIdx[pileId]
+    );
   }
 
   /**
@@ -1261,7 +1268,7 @@ export class Fragments {
    * @return {object} Object with x and y coordinates
    */
   getLayoutPosition (pile) {
-    const numArrMets = this.arrangeMetrics.length;
+    // const numArrMets = this.arrangeMetrics.length;
 
     // if (numArrMets === 2) {
     //   return this.getLayoutPosition2D(pile.ranking);

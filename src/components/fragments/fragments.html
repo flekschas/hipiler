@@ -85,7 +85,7 @@
             <button
               class="flex-c flex-jc-c flex-a-c rel button ${piles.length > visiblePilesMax ? 'is-enabled' : 'is-disabled'}"
               click.delegate="groupPiles()"
-              disabled.bind="trashSize === 0">
+              disabled.bind="piles.length <= visiblePilesMax">
               Group
             </button>
           </li>
@@ -109,16 +109,8 @@
             <input
               type="checkbox"
               id="settings-fgm-show-low-quality"
-              checked.bind="fgmState.showSpecialCells"
+              checked.bind="showSpecialCells"
               click.delegate="showSpecialCellsChangeHandler()">
-          </li>
-          <li class="flex-c flex-d-c">
-            <label for="settings-fgm-animate">Animate</label>
-            <input
-              type="checkbox"
-              id="settings-fgm-animate"
-              checked.bind="fgmState.animation"
-              click.delegate="animationChangeHandler()">
           </li>
           <li class="flex-c flex-d-c">
             <label for="settings-fgm-order-cluster">Cluster</label>
