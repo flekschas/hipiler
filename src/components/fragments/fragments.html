@@ -33,14 +33,14 @@
               change.delegate="cellSizeChangedHandler($event)">
           </li>
           <li class="flex-c flex-d-c">
-            <label for="settings-fgm-cover">Cover Mode</label>
+            <label for="settings-fgm-matrix-orientation">Orientation</label>
             <select
-              id="settings-fgm-cover"
-              change.delegate="coverDispModeChangeHandler($event)">
+              id="settings-fgm-matrix-orientation"
+              change.delegate="matrixOrientationChangeHandler($event)">
               <option
-                repeat.for="option of coverDispModes"
+                repeat.for="option of matrixOrientations"
                 value.one-way="option.id"
-                selected.bind="option.id === coverDispMode">${option.name}</option>
+                selected.bind="option.id === state.matrixOrientation">${option.name}</option>
             </select>
           </li>
           <li class="flex-c flex-d-c">
@@ -103,13 +103,24 @@
         <!-- Second row of controls -->
         <ul class="flex-c settings-list">
           <li class="flex-c flex-d-c">
+            <label for="settings-fgm-cover">Cover Mode</label>
+            <select
+              id="settings-fgm-cover"
+              change.delegate="coverDispModeChangeHandler($event)">
+              <option
+                repeat.for="option of coverDispModes"
+                value.one-way="option.id"
+                selected.bind="option.id === coverDispMode">${option.name}</option>
+            </select>
+          </li>
+          <li class="flex-c flex-d-c">
             <label
               for="settings-fgm-show-low-quality"
               title="Show low quality cells">Low Qual.</label>
             <input
               type="checkbox"
               id="settings-fgm-show-low-quality"
-              checked.bind="showSpecialCells"
+              checked.bind="state.showSpecialCells"
               click.delegate="showSpecialCellsChangeHandler()">
           </li>
           <li class="flex-c flex-d-c">
