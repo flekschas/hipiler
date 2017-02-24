@@ -94,8 +94,6 @@ export function piles (state = PILES, action) {
     case STACK_PILES: {
       const newState = { ...state };
 
-      console.log(action.payload.pileStacks);
-
       Object.keys(action.payload.pileStacks).forEach((targetPile) => {
         const sourcePiles = action.payload.pileStacks[targetPile];
 
