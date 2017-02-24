@@ -83,8 +83,9 @@
           </li>
           <li>
             <button
-              class="flex-c flex-jc-c flex-a-c rel button is-icon-only"
-              click.delegate="groupPiles()">
+              class="flex-c flex-jc-c flex-a-c rel button ${piles.length > visiblePilesMax ? 'is-enabled' : 'is-disabled'}"
+              click.delegate="groupPiles()"
+              disabled.bind="trashSize === 0">
               Group
             </button>
           </li>
