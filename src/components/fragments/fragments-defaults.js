@@ -19,8 +19,6 @@ export const CLICK_DELAY_TIME = 300;
 
 export const DBL_CLICK_DELAY_TIME = 250;
 
-export const COLOR_LOW_QUALITY = [1, 0.890196078, 0.835294118];
-
 /**
  * External config to initialize fragments.
  *

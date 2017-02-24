@@ -18,6 +18,11 @@ export const BLUE = 0x4e40ff;
 export const PRIMARY = ORANGE;
 export const SECONDARY = BLUE;
 
+export const LOW_QUALITY_BLUE = 0xdcd9ff;
+export const LOW_QUALITY_BLUE_ARR = [0.862745098, 0.850980392, 1];
+export const LOW_QUALITY_ORANGE = 0xffd9cb;
+export const LOW_QUALITY_ORANGE_ARR = [1, 0.890196078, 0.835294118];
+
 export default {
   BLACK,
   GRAY,
@@ -34,5 +39,9 @@ export default {
   YELLOW,
   BLUE,
   PRIMARY,
-  SECONDARY
+  SECONDARY,
+  LOW_QUALITY_BLUE,
+  LOW_QUALITY_BLUE_ARR,
+  LOW_QUALITY_ORANGE,
+  LOW_QUALITY_ORANGE_ARR
 };
