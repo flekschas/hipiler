@@ -2,13 +2,19 @@
 import { LogManager } from 'aurelia-framework';
 
 import {
-  Box3, BufferAttribute, BufferGeometry, Mesh, MeshBasicMaterial, TextGeometry
+  ArrowHelper,
+  Box3,
+  BufferAttribute,
+  BufferGeometry,
+  Mesh,
+  MeshBasicMaterial,
+  TextGeometry,
+  Vector3
 } from 'three';
 
 import menuCommands from 'components/fragments/pile-menu-commands';
 
 import {
-  COLOR_LOW_QUALITY,
   MATRIX_GAP_HORIZONTAL,
   METRIC_DIST_DIAG,
   METRIC_NOISE,
@@ -26,7 +32,10 @@ import {
 import {
   MENU_LABEL_SPACING,
   MENU_PADDING,
-  PREVIEW_LOW_QUAL_THRESHOLD
+  PREVIEW_LOW_QUAL_THRESHOLD,
+  STRAND_ARROW_LENGTH,
+  STRAND_ARROW_HEAD_LENGTH,
+  STRAND_ARROW_HEAD_WIDTH
 } from 'components/fragments/pile-defaults';
 
 import fgmState from 'components/fragments/fragments-state';
@@ -497,6 +506,7 @@ export default class Pile {
   draw (noMenu) {
     const vertexPositions = [];
     const vertexColors = [];
+    const isHovering = this === fgmState.hoveredPile;
 
     // UPDATE COVER MATRIX CELLS + PILE PREVIEWS
     if (this.mesh) {
@@ -518,12 +528,10 @@ export default class Pile {
       this.drawMultipleMatrices(vertexPositions, vertexColors);
     }
 
-    // Draw previews
     if (this.pileMatrices.length > 1) {
       this.drawPreviews(vertexPositions, vertexColors);
     }
 
-    // Draw gap
     // this.drawGap(vertexPositions, vertexColors);
 
      // CREATE + ADD MESH
@@ -540,12 +548,13 @@ export default class Pile {
     this.mesh = new Mesh(this.geometry, fgmState.shaderMaterial);
     this.mesh.scale.set(this.scale, this.scale, this.scale);
 
-    if (this === fgmState.hoveredPile && !noMenu) {
+    if (isHovering && !noMenu) {
       this.drawMenu();
     }
 
-    // Draw pile labels
-    this.drawPileLabel();
+    this.drawPileLabel(isHovering);
+
+    this.drawStrandArrow(isHovering);
 
     // Add frame
     this.mesh.add(this.matrixFrame);
@@ -555,6 +564,28 @@ export default class Pile {
     this.pileMeshes.push(this.mesh);
     this.mesh.position.set(this.x, this.y, Z_BASE);
     fgmState.scene.add(this.mesh);
+  }
+
+  /**
+   * Draw strand arrow.
+   *
+   * @param {array} isHovering - If `true` user is currently hovering this pile.
+   */
+  drawStrandArrow (isHovering) {
+    this.strandArrow = new ArrowHelper(
+      new Vector3(1, 0, 0),
+      new Vector3(
+        this.matrixWidthHalf - 13,
+        -this.matrixWidthHalf - 9,
+        0
+      ),
+      STRAND_ARROW_LENGTH,
+      isHovering ? COLORS.GRAY_DARK : COLORS.GRAY_LIGHT,
+      STRAND_ARROW_HEAD_LENGTH,
+      STRAND_ARROW_HEAD_WIDTH
+    );
+
+    this.mesh.add(this.strandArrow);
   }
 
   /**
@@ -791,8 +822,10 @@ export default class Pile {
 
   /**
    * Draw pile label.
+   *
+   * @param {array} isHovering - If `true` user is currently hovering this pile.
    */
-  drawPileLabel () {
+  drawPileLabel (isHovering) {
     let labelText;
 
     if (this.pileMatrices.length === 1) {
@@ -815,7 +848,7 @@ export default class Pile {
       -this.matrixWidthHalf - 13,
       0,
       8,
-      COLORS.GRAY
+      isHovering ? COLORS.GRAY_DARK : COLORS.GRAY_LIGHT
     );
 
     label.scale.set(1 / this.scale, 1 / this.scale, 1 / this.scale);
@@ -940,7 +973,7 @@ export default class Pile {
     switch (value) {
       case -1:
         if (showSpecialCells) {
-          return COLOR_LOW_QUALITY;
+          return COLORS.LOW_QUALITY_BLUE_ARR;
         }
 
         return [1, 1, 1];
