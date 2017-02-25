@@ -48,6 +48,8 @@ const State = {
   previousHoveredPile: undefined,
   scene: new Scene(),
   selectedMatrices: [],
+  strandArrowRects: [],
+  strandArrowRectsTrash: [],
   visiblePileTools: []
 };
 

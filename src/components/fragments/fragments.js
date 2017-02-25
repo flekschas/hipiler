@@ -344,6 +344,11 @@ export class Fragments {
     return fgmState;
   }
 
+  get strandArrowRects () {
+    return this.isTrashed ?
+      fgmState.strandArrowRectsTrash : fgmState.strandArrowRects;
+  }
+
   get trashSize () {
     return fgmState.pilesTrash.length;
   }
@@ -527,6 +532,10 @@ export class Fragments {
     } else if (this.hoveredMatrix) {
       this.splitPile(this.hoveredMatrix);
       this.hoveredMatrix = undefined;
+    } else if (this.hoveredStrandArrow) {
+      this.hoveredStrandArrow.userData.pile.flipMatrix(
+        this.hoveredStrandArrow.userData.axis
+      ).draw();
     }
 
     if (fgmState.hoveredPile) {
@@ -754,6 +763,7 @@ export class Fragments {
 
     this.hoveredTool = undefined;
     this.hoveredMatrix = undefined;
+    this.hoveredStrandArrow = undefined;
 
     fgmState.scene.updateMatrixWorld();
     this.camera.updateProjectionMatrix();
@@ -1763,7 +1773,7 @@ export class Fragments {
   mouseMoveGeneralHandler () {
     this.raycaster.setFromCamera(this.mouse, this.camera);
 
-    // test for menu-mouse over
+    // Check if the user mouses over the pile menu
     if (fgmState.visiblePileTools.length > 0) {
       let intersects = this.raycaster
         .intersectObjects(fgmState.visiblePileTools);
@@ -1775,6 +1785,16 @@ export class Fragments {
         }
         return;
       }
+    }
+
+    // Check if the user mouses over a strand arrow
+    this.intersects = this.raycaster.intersectObjects(this.strandArrowRects);
+
+    if (this.intersects.length) {
+      this.hoveredStrandArrow = this.intersects[0].object;
+      this.previousHoveredStrandArrow = this.hoveredStrandArrow;
+    } else if (this.previousHoveredStrandArrow) {
+      this.previousHoveredStrandArrow = undefined;
     }
 
     // Check if we intersect with a pile
