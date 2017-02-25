@@ -5,7 +5,51 @@ export default class Matrix {
     this.locus = locus;
     this.measures = measures;
 
+    this.orientationX = 1;
+    this.orientationY = 1;
+
     this.dim = matrix.length;
+  }
+
+  /**
+   * Flip the raw matix's x axis in-place.
+   *
+   * @param {array} matrix - 2D matrix to be flipped.
+   * @return {number} Orientation.
+   */
+  flipX () {
+    Matrix.flipX(this.matrix);
+    this.orientationX *= -1;
+  }
+  /**
+   * Flip the raw matix's x axis in-place.
+   *
+   * @param {array} matrix - 2D matrix to be flipped.
+   * @return {number} Orientation.
+   */
+  flipY () {
+    Matrix.flipY(this.matrix);
+    this.orientationY *= -1;
+  }
+
+  /**
+   * Flip the raw matix's x axis in-place.
+   *
+   * @param {array} matrix - 2D matrix to be flipped.
+   * @return {number} Orientation.
+   */
+  static flipX (matrix) {
+    matrix.map(row => row.reverse());
+  }
+
+  /**
+   * Flip the raw matix's y axis in-place.
+   *
+   * @param {array} matrix - 2D matrix to be flipped.
+   * @return {object} Orientation.
+   */
+  static flipY (matrix) {
+    matrix.reverse();
   }
 
   /**
