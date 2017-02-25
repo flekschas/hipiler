@@ -53,6 +53,8 @@ import {
 
 import caps from 'utils/caps';
 
+import Matrix from 'components/fragments/matrix';
+
 import COLORS from 'configs/colors';
 
 
@@ -138,6 +140,11 @@ export default class Pile {
    */
   get std () {
     return Math.sqrt(this.variance);
+  }
+
+  get strandArrowRects () {
+    return this.isTrashed ?
+      fgmState.strandArrowRectsTrash : fgmState.strandArrowRects;
   }
 
   /**
@@ -504,8 +511,8 @@ export default class Pile {
    * @return {object} Self.
    */
   draw (noMenu) {
-    const vertexPositions = [];
-    const vertexColors = [];
+    const positions = [];
+    const colors = [];
     const isHovering = this === fgmState.hoveredPile;
 
     // UPDATE COVER MATRIX CELLS + PILE PREVIEWS
@@ -521,28 +528,28 @@ export default class Pile {
     if (this.isSingleMatrix) {
       this.drawSingleMatrix(
         this.singleMatrix.matrix,
-        vertexPositions,
-        vertexColors
+        positions,
+        colors
       );
     } else {
-      this.drawMultipleMatrices(vertexPositions, vertexColors);
+      this.drawMultipleMatrices(positions, colors);
     }
 
     if (this.pileMatrices.length > 1) {
-      this.drawPreviews(vertexPositions, vertexColors);
+      this.drawPreviews(positions, colors);
     }
 
-    // this.drawGap(vertexPositions, vertexColors);
+    // this.drawGap(positions, colors);
 
      // CREATE + ADD MESH
     this.geometry.addAttribute(
       'position',
-      new BufferAttribute(makeBuffer3f(vertexPositions), 3)
+      new BufferAttribute(makeBuffer3f(positions), 3)
     );
 
     this.geometry.addAttribute(
       'customColor',
-      new BufferAttribute(makeBuffer3f(vertexColors), 3)
+      new BufferAttribute(makeBuffer3f(colors), 3)
     );
 
     this.mesh = new Mesh(this.geometry, fgmState.shaderMaterial);
@@ -554,8 +561,6 @@ export default class Pile {
 
     this.drawPileLabel(isHovering);
 
-    this.drawStrandArrows(isHovering);
-
     // Add frame
     this.mesh.add(this.matrixFrame);
     this.matrixFrame.position.set(-1, -1, Z_BASE);
@@ -564,10 +569,12 @@ export default class Pile {
     this.pileMeshes.push(this.mesh);
     this.mesh.position.set(this.x, this.y, Z_BASE);
     fgmState.scene.add(this.mesh);
+
+    this.drawStrandArrows(isHovering);
   }
 
   /**
-   * Draw strand arrow.
+   * Draw strand arrows for both axis.
    *
    * @param {array} isHovering - If `true` user is currently hovering this pile.
    */
@@ -577,7 +584,7 @@ export default class Pile {
       new Vector3(
         this.matrixWidthHalf - 13,
         -this.matrixWidthHalf - 9,
-        0
+        1
       ),
       STRAND_ARROW_LENGTH,
       isHovering ? COLORS.GRAY_DARK : COLORS.GRAY_LIGHTER,
@@ -590,7 +597,7 @@ export default class Pile {
       new Vector3(
         this.matrixWidthHalf - 20,
         -this.matrixWidthHalf - 4,
-        0
+        1
       ),
       STRAND_ARROW_LENGTH,
       isHovering ? COLORS.GRAY_DARK : COLORS.GRAY_LIGHTER,
@@ -598,6 +605,42 @@ export default class Pile {
       STRAND_ARROW_HEAD_WIDTH
     );
 
+    // Remove previous rects
+    if (this.strandArrowRectX) {
+      this.strandArrowRects.splice(
+        this.strandArrowRects.indexOf(this.strandArrowRectX), 1
+      );
+      fgmState.scene.remove(this.strandArrowRectX);
+    }
+
+    if (this.strandArrowRectY) {
+      this.strandArrowRects.splice(
+        this.strandArrowRects.indexOf(this.strandArrowRectY), 1
+      );
+      fgmState.scene.remove(this.strandArrowRectY);
+    }
+
+    // Create new rects
+    this.strandArrowRectX = createRect(10, 10, COLORS.WHITE);
+    this.strandArrowRectX.position.set(
+      this.x + this.matrixWidthHalf - 7,
+      this.y - this.matrixWidthHalf - 9,
+      0
+    );
+
+    this.strandArrowRectY = createRect(10, 10, COLORS.WHITE);
+    this.strandArrowRectY.position.set(
+      this.x + this.matrixWidthHalf - 20,
+      this.y - this.matrixWidthHalf - 9,
+      0
+    );
+
+    this.strandArrowRects.push(
+      this.strandArrowRectX, this.strandArrowRectY
+    );
+
+    this.mesh.add(this.strandArrowRectX);
+    this.mesh.add(this.strandArrowRectY);
     this.mesh.add(this.strandArrowX);
     this.mesh.add(this.strandArrowY);
   }
@@ -973,6 +1016,40 @@ export default class Pile {
     this.mesh.position.set(this.x, this.y, z);
 
     return this;
+  }
+
+  /**
+   * Flip the matrix.
+   *
+   * @param {string} axis - Either 'x' or 'y'.
+   */
+  flipMatrix (axis) {
+    if (this.pileMatrices.length === 1) {
+      switch (axis) {
+        case 'x':
+          Matrix.flipX(this.pileMatrices[0]);
+          Matrix.flipX(this.avgMatrix);
+          Matrix.flipX(this.coverMatrix);
+          break;
+
+        case 'y':
+          Matrix.flipY(this.pileMatrices[0]);
+          Matrix.flipY(this.avgMatrix);
+          Matrix.flipY(this.coverMatrix);
+          break;
+
+        default:
+          Matrix.flipX(this.pileMatrices[0]);
+          Matrix.flipX(this.avgMatrix);
+          Matrix.flipX(this.coverMatrix);
+          Matrix.flipY(this.pileMatrices[0]);
+          Matrix.flipY(this.avgMatrix);
+          Matrix.flipY(this.coverMatrix);
+          break;
+      }
+
+      this.render();
+    }
   }
 
   /**
