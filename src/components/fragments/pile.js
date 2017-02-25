@@ -579,10 +579,13 @@ export default class Pile {
    * @param {array} isHovering - If `true` user is currently hovering this pile.
    */
   drawStrandArrows (isHovering) {
+    const offsetX = this.pileMatrices[0].orientationX === -1 ? 10 : 0;
+    const offsetY = this.pileMatrices[0].orientationY === -1 ? 10 : 0;
+
     this.strandArrowX = new ArrowHelper(
-      new Vector3(1, 0, 0),
+      new Vector3(this.pileMatrices[0].orientationX * 1, 0, 0),
       new Vector3(
-        this.matrixWidthHalf - 13,
+        this.matrixWidthHalf - 13 + offsetX,
         -this.matrixWidthHalf - 9,
         1
       ),
@@ -593,10 +596,10 @@ export default class Pile {
     );
 
     this.strandArrowY = new ArrowHelper(
-      new Vector3(0, -1, 0),
+      new Vector3(0, this.pileMatrices[0].orientationY * -1, 0),
       new Vector3(
         this.matrixWidthHalf - 20,
-        -this.matrixWidthHalf - 4,
+        -this.matrixWidthHalf - 4 - offsetY,
         1
       ),
       STRAND_ARROW_LENGTH,
@@ -623,17 +626,21 @@ export default class Pile {
     // Create new rects
     this.strandArrowRectX = createRect(10, 10, COLORS.WHITE);
     this.strandArrowRectX.position.set(
-      this.x + this.matrixWidthHalf - 7,
-      this.y - this.matrixWidthHalf - 9,
+      this.matrixWidthHalf - 7,
+      -this.matrixWidthHalf - 9,
       0
     );
+    this.strandArrowRectX.userData.pile = this;
+    this.strandArrowRectX.userData.axis = 'x';
 
     this.strandArrowRectY = createRect(10, 10, COLORS.WHITE);
     this.strandArrowRectY.position.set(
-      this.x + this.matrixWidthHalf - 20,
-      this.y - this.matrixWidthHalf - 9,
+      this.matrixWidthHalf - 20,
+      -this.matrixWidthHalf - 9,
       0
     );
+    this.strandArrowRectY.userData.pile = this;
+    this.strandArrowRectY.userData.axis = 'y';
 
     this.strandArrowRects.push(
       this.strandArrowRectX, this.strandArrowRectY
@@ -1022,34 +1029,35 @@ export default class Pile {
    * Flip the matrix.
    *
    * @param {string} axis - Either 'x' or 'y'.
+   * @return {object} Self.
    */
   flipMatrix (axis) {
     if (this.pileMatrices.length === 1) {
       switch (axis) {
         case 'x':
-          Matrix.flipX(this.pileMatrices[0]);
+          this.pileMatrices[0].flipX();
           Matrix.flipX(this.avgMatrix);
           Matrix.flipX(this.coverMatrix);
           break;
 
         case 'y':
-          Matrix.flipY(this.pileMatrices[0]);
+          this.pileMatrices[0].flipY();
           Matrix.flipY(this.avgMatrix);
           Matrix.flipY(this.coverMatrix);
           break;
 
         default:
-          Matrix.flipX(this.pileMatrices[0]);
+          this.pileMatrices[0].flipX();
           Matrix.flipX(this.avgMatrix);
           Matrix.flipX(this.coverMatrix);
-          Matrix.flipY(this.pileMatrices[0]);
+          this.pileMatrices[0].flipY();
           Matrix.flipY(this.avgMatrix);
           Matrix.flipY(this.coverMatrix);
           break;
       }
-
-      this.render();
     }
+
+    return this;
   }
 
   /**
