@@ -157,6 +157,7 @@ export class Fragments {
      // Array containing the orderings for all piles, when not all nodes are
      // focused on.
     this.focusNodeAllPileOrdering = [];
+    this.dataMeasures = {};
 
     this.nodes = [];
     this.focusNodes = [];  // currently visible nodes (changed by the user)
@@ -1531,15 +1532,28 @@ export class Fragments {
    */
   initMatrices (fragments) {
     fragments.forEach((fragment, index) => {
+      const measures = {};
+
+      Object.keys(this.dataMeasures).forEach((measure) => {
+        measures[measure] = fragment[this.dataMeasures[measure]];
+      });
+
       fgmState.matrices.push(new Matrix(
         index,
-        fragment.matrix,
+        fragment[this.dataIdxMatrix],
         {
-          xStart: fragment.start1,
-          xEnd: fragment.end1,
-          yStart: fragment.start2,
-          yEnd: fragment.end2
-        }
+          chrom1: fragment[this.dataIdxChrom1],
+          start1: fragment[this.dataIdxStart1],
+          end1: fragment[this.dataIdxEnd1],
+          chrom2: fragment[this.dataIdxChrom2],
+          start2: fragment[this.dataIdxStart2],
+          end2: fragment[this.dataIdxEnd2]
+        },
+        {
+          strand1: fragment[this.dataIdxStrand1],
+          strand2: fragment[this.dataIdxStrand2]
+        },
+        measures
       ));
     });
   }
@@ -1570,7 +1584,13 @@ export class Fragments {
    * @param {object} data - Data object with the fragments.
    */
   initPlot (data) {
-    this.fragDims = data.dims;
+    if (data.fragments.length === 0) {
+      this.noData = true;
+      logger.error('No data available.');
+      return;
+    }
+
+    this.fragDims = data.fragments[0][this.dataIdxMatrix].length;
 
     this.calcGrid();
 
@@ -1711,7 +1731,98 @@ export class Fragments {
   }
 
   /**
-   * Load fragments.
+   * Extract loci object.
+   *
+   * @param {object} config - Fragment config.
+   * @return {array} API ready loci list
+   */
+  extractLoci (config) {
+    const chrom1 = config.fragmentsHeader.indexOf('chrom1');
+    const start1 = config.fragmentsHeader.indexOf('start1');
+    const end1 = config.fragmentsHeader.indexOf('end1');
+    const chrom2 = config.fragmentsHeader.indexOf('chrom2');
+    const start2 = config.fragmentsHeader.indexOf('start2');
+    const end2 = config.fragmentsHeader.indexOf('end2');
+    const dataset = config.fragmentsHeader.indexOf('dataset');
+    const zoomOutLevel = config.fragmentsHeader.indexOf('zoomOutLevel');
+
+    if (-1 in [
+      chrom1, start1, end1, chrom2, start2, end2, dataset, zoomOutLevel
+    ]) {
+      logger.error('Config broken. Missing mandatory headers.');
+      return;
+    }
+
+    return config.fragments.map(fragment => [
+      fragment[chrom1],
+      fragment[start1],
+      fragment[end1],
+      fragment[chrom2],
+      fragment[start2],
+      fragment[end2],
+      fragment[dataset],
+      fragment[zoomOutLevel]
+    ]);
+  }
+
+  /**
+   * Combine the config and raw matrix to the final data model
+   *
+   * @param {object} config - Fragment config.
+   * @param {array} rawMatrices - Raw matrices.
+   * @return {object} Object with the config and combined raw matrices.
+   */
+  initData (config, rawMatrices) {
+    const header = ['matrix', ...config.fragmentsHeader];
+
+    this.dataIdxMatrix = 0;
+    this.dataIdxChrom1 = header.indexOf('chrom1');
+    this.dataIdxStart1 = header.indexOf('start1');
+    this.dataIdxEnd1 = header.indexOf('end1');
+    this.dataIdxStrand1 = header.indexOf('strand1');
+    this.dataIdxChrom2 = header.indexOf('chrom2');
+    this.dataIdxStart2 = header.indexOf('start2');
+    this.dataIdxEnd2 = header.indexOf('end2');
+    this.dataIdxStrand2 = header.indexOf('strand2');
+    this.dataIdxDataset = header.indexOf('dataset');
+    this.dataIdxZoomOutLevel = header.indexOf('zoomOutLevel');
+
+    const usedIdx = [
+      this.dataIdxMatrix,
+      this.dataIdxChrom1,
+      this.dataIdxStart1,
+      this.dataIdxEnd1,
+      this.dataIdxStrand1,
+      this.dataIdxChrom2,
+      this.dataIdxStart2,
+      this.dataIdxEnd2,
+      this.dataIdxStrand2,
+      this.dataIdxDataset,
+      this.dataIdxZoomOutLevel
+    ];
+
+    if (-1 in usedIdx) {
+      logger.error('Data broken. Missing mandatory header fields.');
+      return;
+    }
+
+    // Extract measures
+    header.forEach((headerField, index) => {
+      if (!(index in usedIdx)) {
+        this.dataMeasures[headerField] = index;
+      }
+    });
+
+    return {
+      header,
+      fragments: config.fragments.map(
+        (fragment, index) => [rawMatrices[index], ...fragment]
+      )
+    };
+  }
+
+  /**
+   * Load fragment matrices.
    *
    * @param {object} config - Config.
    * @return {object} A promise resolving to `true` if the data is successfully
@@ -1721,25 +1832,34 @@ export class Fragments {
     const loadData = new Promise((resolve, reject) => {
       let dataUrl;
 
-      const queryString = this.prepareQueryString(config.queries);
+      const queryString = config.apiParams ?
+        this.prepareQueryString(config.apiParams) : '';
 
       try {
-        dataUrl = `${config.endpoint}${queryString}`;
+        dataUrl = `${config.api}${queryString}`;
       } catch (e) {
         this.hasErrored('Config is broken');
         reject(Error(this.errorMsg));
       }
 
-      json(dataUrl, (error, results) => {
-        if (error) {
-          this.hasErrored('Could not load data');
-          reject(Error(this.errorMsg));
-        } else {
-          this.isLoading = false;
-          this.data = results;  // Just for convenience
-          resolve(results);
-        }
-      });
+      const postData = {
+        loci: this.extractLoci(config)
+      };
+
+      json(dataUrl)
+        .header('Content-Type', 'application/json')
+        .post(JSON.stringify(postData), (error, results) => {
+          if (error) {
+            this.hasErrored('Could not load data');
+            reject(Error(this.errorMsg));
+          } else {
+            this.isLoading = false;
+            this.data = this.initData(
+              config, results.fragments
+            );
+            resolve(this.data);
+          }
+        });
     });
 
     loadData
@@ -2533,8 +2653,6 @@ export class Fragments {
     }
 
     fgmState.matrixOrientation = orientation;
-
-    console.log('GIRLS', fgmState.matrixOrientation);
 
     if (this.isInitialized) {
       this.redrawPiles(this.piles);

@@ -1,12 +1,13 @@
 export default class Matrix {
-  constructor (id, matrix, locus, measures) {
+  constructor (id, matrix, locus, orientation, measures) {
     this.id = id;
     this.matrix = matrix;
     this.locus = locus;
     this.measures = measures;
+    this.orientation = orientation;
 
-    this.orientationX = 1;
-    this.orientationY = 1;
+    this.orientationX = this.orientation.strand1 === 'coding' ? 1 : -1;
+    this.orientationY = this.orientation.strand2 === 'coding' ? 1 : -1;
 
     this.dim = matrix.length;
   }
