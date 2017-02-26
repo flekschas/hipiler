@@ -1189,6 +1189,41 @@ export class Fragments {
   }
 
   /**
+   * Extract loci object.
+   *
+   * @param {object} config - Fragment config.
+   * @return {array} API ready loci list
+   */
+  extractLoci (config) {
+    const chrom1 = config.fragmentsHeader.indexOf('chrom1');
+    const start1 = config.fragmentsHeader.indexOf('start1');
+    const end1 = config.fragmentsHeader.indexOf('end1');
+    const chrom2 = config.fragmentsHeader.indexOf('chrom2');
+    const start2 = config.fragmentsHeader.indexOf('start2');
+    const end2 = config.fragmentsHeader.indexOf('end2');
+    const dataset = config.fragmentsHeader.indexOf('dataset');
+    const zoomOutLevel = config.fragmentsHeader.indexOf('zoomOutLevel');
+
+    if (-1 in [
+      chrom1, start1, end1, chrom2, start2, end2, dataset, zoomOutLevel
+    ]) {
+      logger.error('Config broken. Missing mandatory headers.');
+      return;
+    }
+
+    return config.fragments.map(fragment => [
+      fragment[chrom1],
+      fragment[start1],
+      fragment[end1],
+      fragment[chrom2],
+      fragment[start2],
+      fragment[end2],
+      fragment[dataset],
+      fragment[zoomOutLevel]
+    ]);
+  }
+
+  /**
    * [focusOn description]
    *
    * @param {[type]} nodes - [description]
@@ -1472,6 +1507,62 @@ export class Fragments {
   }
 
   /**
+   * Combine the config and raw matrix to the final data model
+   *
+   * @param {object} config - Fragment config.
+   * @param {array} rawMatrices - Raw matrices.
+   * @return {object} Object with the config and combined raw matrices.
+   */
+  initData (config, rawMatrices) {
+    const header = ['matrix', ...config.fragmentsHeader];
+
+    this.dataIdxMatrix = 0;
+    this.dataIdxChrom1 = header.indexOf('chrom1');
+    this.dataIdxStart1 = header.indexOf('start1');
+    this.dataIdxEnd1 = header.indexOf('end1');
+    this.dataIdxStrand1 = header.indexOf('strand1');
+    this.dataIdxChrom2 = header.indexOf('chrom2');
+    this.dataIdxStart2 = header.indexOf('start2');
+    this.dataIdxEnd2 = header.indexOf('end2');
+    this.dataIdxStrand2 = header.indexOf('strand2');
+    this.dataIdxDataset = header.indexOf('dataset');
+    this.dataIdxZoomOutLevel = header.indexOf('zoomOutLevel');
+
+    const usedIdx = [
+      this.dataIdxMatrix,
+      this.dataIdxChrom1,
+      this.dataIdxStart1,
+      this.dataIdxEnd1,
+      this.dataIdxStrand1,
+      this.dataIdxChrom2,
+      this.dataIdxStart2,
+      this.dataIdxEnd2,
+      this.dataIdxStrand2,
+      this.dataIdxDataset,
+      this.dataIdxZoomOutLevel
+    ];
+
+    if (-1 in usedIdx) {
+      logger.error('Data broken. Missing mandatory header fields.');
+      return;
+    }
+
+    // Extract measures
+    header.forEach((headerField, index) => {
+      if (!(index in usedIdx)) {
+        this.dataMeasures[headerField] = index;
+      }
+    });
+
+    return {
+      header,
+      fragments: config.fragments.map(
+        (fragment, index) => [rawMatrices[index], ...fragment]
+      )
+    };
+  }
+
+  /**
    * Initialize event listeners
    */
   initEventListeners () {
@@ -1728,97 +1819,6 @@ export class Fragments {
     this.store.dispatch(setLassoIsRound(!this.lassoIsRound));
 
     return true;
-  }
-
-  /**
-   * Extract loci object.
-   *
-   * @param {object} config - Fragment config.
-   * @return {array} API ready loci list
-   */
-  extractLoci (config) {
-    const chrom1 = config.fragmentsHeader.indexOf('chrom1');
-    const start1 = config.fragmentsHeader.indexOf('start1');
-    const end1 = config.fragmentsHeader.indexOf('end1');
-    const chrom2 = config.fragmentsHeader.indexOf('chrom2');
-    const start2 = config.fragmentsHeader.indexOf('start2');
-    const end2 = config.fragmentsHeader.indexOf('end2');
-    const dataset = config.fragmentsHeader.indexOf('dataset');
-    const zoomOutLevel = config.fragmentsHeader.indexOf('zoomOutLevel');
-
-    if (-1 in [
-      chrom1, start1, end1, chrom2, start2, end2, dataset, zoomOutLevel
-    ]) {
-      logger.error('Config broken. Missing mandatory headers.');
-      return;
-    }
-
-    return config.fragments.map(fragment => [
-      fragment[chrom1],
-      fragment[start1],
-      fragment[end1],
-      fragment[chrom2],
-      fragment[start2],
-      fragment[end2],
-      fragment[dataset],
-      fragment[zoomOutLevel]
-    ]);
-  }
-
-  /**
-   * Combine the config and raw matrix to the final data model
-   *
-   * @param {object} config - Fragment config.
-   * @param {array} rawMatrices - Raw matrices.
-   * @return {object} Object with the config and combined raw matrices.
-   */
-  initData (config, rawMatrices) {
-    const header = ['matrix', ...config.fragmentsHeader];
-
-    this.dataIdxMatrix = 0;
-    this.dataIdxChrom1 = header.indexOf('chrom1');
-    this.dataIdxStart1 = header.indexOf('start1');
-    this.dataIdxEnd1 = header.indexOf('end1');
-    this.dataIdxStrand1 = header.indexOf('strand1');
-    this.dataIdxChrom2 = header.indexOf('chrom2');
-    this.dataIdxStart2 = header.indexOf('start2');
-    this.dataIdxEnd2 = header.indexOf('end2');
-    this.dataIdxStrand2 = header.indexOf('strand2');
-    this.dataIdxDataset = header.indexOf('dataset');
-    this.dataIdxZoomOutLevel = header.indexOf('zoomOutLevel');
-
-    const usedIdx = [
-      this.dataIdxMatrix,
-      this.dataIdxChrom1,
-      this.dataIdxStart1,
-      this.dataIdxEnd1,
-      this.dataIdxStrand1,
-      this.dataIdxChrom2,
-      this.dataIdxStart2,
-      this.dataIdxEnd2,
-      this.dataIdxStrand2,
-      this.dataIdxDataset,
-      this.dataIdxZoomOutLevel
-    ];
-
-    if (-1 in usedIdx) {
-      logger.error('Data broken. Missing mandatory header fields.');
-      return;
-    }
-
-    // Extract measures
-    header.forEach((headerField, index) => {
-      if (!(index in usedIdx)) {
-        this.dataMeasures[headerField] = index;
-      }
-    });
-
-    return {
-      header,
-      fragments: config.fragments.map(
-        (fragment, index) => [rawMatrices[index], ...fragment]
-      )
-    };
   }
 
   /**
