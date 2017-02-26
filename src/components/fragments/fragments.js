@@ -2576,8 +2576,8 @@ export class Fragments {
         COLORS.PRIMARY,
         HIGHLIGHT_FRAME_LINE_WIDTH
       );
-      fgmState.scene.add(this.highlightFrame);
 
+      this.calcGrid();
       this.updateLayout();
       this.redrawPiles(this.piles);
       this.setScrollLimit(this.data.fragments.length);
