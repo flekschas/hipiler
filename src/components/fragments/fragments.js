@@ -469,8 +469,6 @@ export class Fragments {
 
     fgmState.gridCellWidthInclSpacingHalf =
       fgmState.gridCellWidthInclSpacing / 2;
-
-    console.log('calcGrid', this.gridNumCols);
   }
 
   /**
@@ -2595,6 +2593,8 @@ export class Fragments {
     }
 
     if (this.isInitialized) {
+      this.calcGrid();
+      this.piles.forEach(pile => pile.updateFrame());
       this.redrawPiles();
       this.updateLayout().then(() => {
         this.render();
@@ -2642,11 +2642,8 @@ export class Fragments {
       );
 
       this.calcGrid();
-
       this.redrawPiles();
-
       this.setScrollLimit(this.data.fragments.length);
-
       this.updateLayout(this.piles, this.arrangeMeasures, true).then(() => {
         this.render();
       });
