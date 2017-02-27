@@ -1231,8 +1231,9 @@ export class Fragments {
     // redraw
     this.piles.forEach(pile => pile.updateFrame());
     this.redrawPiles(this.piles);
-    this.updateLayout();
-    this.render();
+    this.updateLayout().then(() => {
+      this.render();
+    });
   }
 
   /**
@@ -1313,9 +1314,11 @@ export class Fragments {
    * Get position for a pile.
    *
    * @param {number} pileSortIndex - Pile sort index.
+   * @param {boolean} abs - If `true` the position needs to be adjusted to the
+   *   WebGL coordinates.
    * @return {object} Object with x and y coordinates
    */
-  getLayoutPosition (pile) {
+  getLayoutPosition (pile, abs) {
     // const numArrMets = this.arrangeMeasures.length;
 
     // if (numArrMets === 2) {
@@ -1326,16 +1329,18 @@ export class Fragments {
     //   return this.getLayoutPosition2D(pile.ranking);
     // }
 
-    return this.getLayoutPosition1D(pile.rank);
+    return this.getLayoutPosition1D(pile.rank, abs);
   }
 
   /**
    * Get position for a pile given the current sort order.
    *
    * @param {number} pileSortIndex - Pile sort index.
+   * @param {boolean} abs - If `true` the position needs to be adjusted to the
+   *   WebGL coordinates.
    * @return {object} Object with x and y coordinates
    */
-  getLayoutPosition1D (pileSortIndex) {
+  getLayoutPosition1D (pileSortIndex, abs) {
     let x = (
       fgmState.gridCellWidthInclSpacing * (pileSortIndex % this.gridNumCols)
     ) || MARGIN_LEFT;
@@ -1344,6 +1349,11 @@ export class Fragments {
       Math.trunc(pileSortIndex / this.gridNumCols) *
       fgmState.gridCellHeightInclSpacing
     ) || MARGIN_TOP;
+
+    if (abs) {
+      x += fgmState.gridCellWidthInclSpacingHalf;
+      y = -y - fgmState.gridCellHeightInclSpacingHalf;
+    }
 
     return { x, y };
   }
@@ -2288,8 +2298,9 @@ export class Fragments {
 
     this.isLoading = true;
 
-    this.updateLayout();
-    this.render();
+    this.updateLayout().then(() => {
+      this.render();
+    });
   }
 
   /**
@@ -2377,9 +2388,10 @@ export class Fragments {
 
     this.trashIsActive = false;
 
-    this.updateLayout();
     this.setScrollLimit();
-    this.render();
+    this.updateLayout(this.piles, this.arrangeMeasures, true).then(() => {
+      this.render();
+    });
   }
 
   /**
@@ -2396,9 +2408,10 @@ export class Fragments {
 
     this.trashIsActive = true;
 
-    this.updateLayout();
     this.setScrollLimit();
-    this.render();
+    this.updateLayout(this.piles, [], true).then(() => {
+      this.render();
+    });
   }
 
   /**
@@ -2438,12 +2451,13 @@ export class Fragments {
       }
 
       this.pileUp(m, pileNew);
-      this.updateLayout();
 
       pileNew.draw();
       pileSrc.draw();
 
-      this.render();
+      this.updateLayout().then(() => {
+        this.render();
+      });
     } else {
       // Needs refactoring
       // this.pilingAnimations.push(SplitAnimation(matrix));
@@ -2468,8 +2482,10 @@ export class Fragments {
       if (this.pilingAnimations.length === 0) {
         clearInterval(this.interval);
         this.interval = undefined;
-        this.updateLayout();
         this.pilingAnimations = [];
+        this.updateLayout().then(() => {
+          this.render();
+        });
       }
 
       this.render();
@@ -2541,8 +2557,9 @@ export class Fragments {
     this.selectMeasure(this.arrangeMeasures, fgmState.measures);
 
     if (this.isInitialized) {
-      this.updateLayout();
-      this.render();
+      this.updateLayout().then(() => {
+        this.render();
+      });
     }
   }
 
@@ -2586,10 +2603,12 @@ export class Fragments {
       );
 
       this.calcGrid();
-      this.updateLayout();
       this.redrawPiles(this.piles);
       this.setScrollLimit(this.data.fragments.length);
-      this.render();
+
+      this.updateLayout().then(() => {
+        this.render();
+      });
     }
   }
 
@@ -2632,22 +2651,41 @@ export class Fragments {
   /**
    * Update every pile
    *
-   * @param {number} pileRank - Rank of pile.
+   * @param {array} piles - Piles to be re-arranged.
+   * @param {array} measures - Measures used for arraning.
+   * @param {boolean} noAnimation - If `true` the piles are not animated.
+   * @return {object} Promise resolving when to layout if fully updated.
    */
   updateLayout (
     piles = this.piles,
     measures = this.arrangeMeasures,
-    pileRank = 0
+    noAnimation = false
   ) {
-    this.arrange(piles, this.trashIsActive ? [] : measures);
+    return new Promise((resolve, reject) => {
+      this.arrange(piles, this.trashIsActive ? [] : measures);
 
-    piles
-      // Needs to be changed or disabled for 2D
-      .filter(pile => pile.rank >= pileRank)
-      .forEach((pile, index) => {
-        const pos = this.getLayoutPosition(pile);
-        pile.moveTo(pos.x, pos.y);
-      });
+      let animation;
+
+      if (!noAnimation) {
+        animation = this.movePilesAnimated(
+          piles,
+          piles.map(pile => this.getLayoutPosition(pile, true))
+        );
+      } else {
+        animation = Promise.reject(Error('No animation'));
+      }
+
+      animation
+        .catch(() => {
+          piles.forEach((pile) => {
+            const pos = this.getLayoutPosition(pile);
+            pile.moveTo(pos.x, pos.y);
+          });
+        })
+        .finally(() => {
+          resolve();
+        });
+    });
   }
 
   /**
@@ -2719,9 +2757,10 @@ export class Fragments {
         });
 
       this.calculateDistanceMatrix();
-      this.updateLayout();
       this.setScrollLimit();
-      this.render();
+      this.updateLayout().then(() => {
+        this.render();
+      });
     }
   }
 
