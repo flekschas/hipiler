@@ -35,10 +35,23 @@ import {
 import deepClone from 'utils/deep-clone';
 
 
+function copyPilesState (state) {
+  // Create copy of old state
+  const newState = {};
+
+  Object.keys(state).forEach((prop) => {
+    newState[prop] = state[prop].slice();
+  });
+
+  return newState;
+}
+
+
 export function piles (state = PILES, action) {
   switch (action.type) {
     case ADD_PILES: {
-      const newState = { ...state };
+      // Create copy of old state
+      const newState = copyPilesState(state);
 
       Object.keys(action.payload.piles).forEach((pileId) => {
         newState[pileId] = action.payload.piles[pileId];
@@ -47,7 +60,8 @@ export function piles (state = PILES, action) {
     }
 
     case DISPERSE_PILES: {
-      const newState = { ...state };
+      // Create copy of old state
+      const newState = copyPilesState(state);
 
       // Disperse matrices
       action.payload.piles
@@ -67,7 +81,8 @@ export function piles (state = PILES, action) {
     }
 
     case REMOVE_PILES: {
-      const newState = { ...state };
+      // Create copy of old state
+      const newState = copyPilesState(state);
 
       action.payload.piles
         .forEach((pileId) => {
@@ -79,7 +94,8 @@ export function piles (state = PILES, action) {
     }
 
     case RECOVER_PILES: {
-      const newState = { ...state };
+      // Create copy of old state
+      const newState = copyPilesState(state);
 
       action.payload.piles
         .forEach((pileId) => {
@@ -97,11 +113,7 @@ export function piles (state = PILES, action) {
 
     case STACK_PILES: {
       // Create copy of old state
-      const newState = {};
-
-      Object.keys(state).forEach((prop) => {
-        newState[prop] = state[prop].slice();
-      });
+      const newState = copyPilesState(state);
 
       // Adust new state
       Object.keys(action.payload.pileStacks).forEach((targetPile) => {
@@ -125,7 +137,8 @@ export function piles (state = PILES, action) {
     }
 
     case TRASH_PILES: {
-      const newState = { ...state };
+      // Create copy of old state
+      const newState = copyPilesState(state);
 
       action.payload.piles
         .forEach((pileId) => {
