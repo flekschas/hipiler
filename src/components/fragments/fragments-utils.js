@@ -1,6 +1,7 @@
 import { scaleLinear } from 'd3';
 
 import {
+  DoubleSide,
   Geometry,
   Line,
   LineBasicMaterial,
@@ -8,9 +9,15 @@ import {
   Mesh,
   MeshBasicMaterial,
   PlaneBufferGeometry,
+  ShaderMaterial,
   TextGeometry,
   Vector3
 } from 'three';
+
+import {
+  LINE,
+  LINE_SHADER
+} from 'components/fragments/fragments-defaults';
 
 import fgmState from './fragments-state';
 
@@ -190,6 +197,28 @@ export function makeBuffer3f (array) {
   });
 
   return buffer;
+}
+
+export function createLineFrame (width, height, color, lineWidth) {
+  const wh = width / 2;
+  const hh = height / 2;
+
+  const coordinates = [
+    [-wh + 1, -hh + 1],
+    [-wh + 1, hh + 1],
+    [wh + 1, hh + 1],
+    [wh + 1, -hh + 1]
+  ];
+
+  const geometry = LINE(coordinates, { closed: true });
+
+  const material = new ShaderMaterial(LINE_SHADER({
+    side: DoubleSide,
+    diffuse: color,
+    thickness: lineWidth
+  }));
+
+  return new Mesh(geometry, material);
 }
 
 export function createRectFrame (w, h, color, lineWidth) {
