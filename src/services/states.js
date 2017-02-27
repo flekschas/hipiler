@@ -3,6 +3,7 @@ import localForage from 'localForage';
 import { applyMiddleware, compose, createStore } from 'redux';
 import { autoRehydrate, persistStore, purgeStoredState } from 'redux-persist';
 import thunk from 'redux-thunk';
+import freeze from 'redux-freeze';
 import undoable, { ActionCreators } from 'redux-undo';
 
 import appReducer from 'app-reducer';
@@ -20,7 +21,8 @@ export default class States {
       undefined,
       compose(
         autoRehydrate(),
-        applyMiddleware(thunk)
+        applyMiddleware(thunk),
+        applyMiddleware(freeze)
       )
     );
 

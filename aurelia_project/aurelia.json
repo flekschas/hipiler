@@ -116,6 +116,7 @@
           "aurelia-task-queue",
           "aurelia-templating",
           "aurelia-templating-binding",
+          "deep-freeze-strict",
           "polyline-miter-util",
           "polyline-normals",
           "text",
@@ -168,6 +169,11 @@
             "name": "redux",
             "path": "../node_modules/redux/dist",
             "main": "redux"
+          },
+          {
+            "name": "redux-freeze",
+            "path": "../node_modules/redux-freeze/lib",
+            "main": "middleware"
           },
           {
             "name": "redux-promise-middleware",
