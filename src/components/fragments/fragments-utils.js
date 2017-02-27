@@ -231,7 +231,7 @@ export function createText (string, x, y, z, size, color, weight) {
     size: size || 8,
     height: 1,
     weight: weight || 'normal',
-    curveSegments: 5,
+    curveSegments: 1,
     font: fgmState.font,
     bevelEnabled: false
   });

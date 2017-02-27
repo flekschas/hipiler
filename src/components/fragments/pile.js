@@ -47,8 +47,6 @@ import {
   makeBuffer3f
 } from 'components/fragments/fragments-utils';
 
-import caps from 'utils/caps';
-
 import Matrix from 'components/fragments/matrix';
 
 import COLORS from 'configs/colors';
@@ -61,7 +59,7 @@ export default class Pile {
   constructor (id, scene, scale, dims) {
     this.avgMatrix = [];
     this.cellFrame = createRectFrame(
-      fgmState.cellSize, fgmState.cellSize, 0xff0000, 1
+      this.cellSize, this.cellSize, 0xff0000, 1
     );
     this.colored = false;
     this.coverMatrix = [];
@@ -77,7 +75,7 @@ export default class Pile {
     this.pileMatrices = [];
     this.rank = this.id;
     this.render = true;
-    this.scale = scale;
+    this.scale = 1;
     this.scene = scene;
     this.showNodeLabels = false;
     this.x = 0;
@@ -90,8 +88,12 @@ export default class Pile {
 
   /****************************** Getter / Setter *****************************/
 
+  get cellSize () {
+    return fgmState.cellSize * fgmState.scale;
+  }
+
   get matrixWidth () {
-    return this.dims * fgmState.cellSize;
+    return this.dims * this.cellSize;
   }
 
   get matrixWidthHalf () {
@@ -433,7 +435,7 @@ export default class Pile {
 
     // this.drawGap(positions, colors);
 
-     // CREATE + ADD MESH
+    // CREATE + ADD MESH
     this.geometry.addAttribute(
       'position',
       new BufferAttribute(makeBuffer3f(positions), 3)
@@ -558,7 +560,7 @@ export default class Pile {
       positions,
       -y,
       -x,
-      fgmState.cellSize,
+      this.cellSize,
       colors,
       colorOrange(1 - value)
     );
@@ -578,7 +580,7 @@ export default class Pile {
       positions,
       -y,
       -x,
-      fgmState.cellSize,
+      this.cellSize,
       colors,
       this.getGrayTone(
         value,
@@ -601,7 +603,7 @@ export default class Pile {
       positions,
       -y,
       -x,
-      fgmState.cellSize,
+      this.cellSize,
       colors,
       colorOrange(1 - value)
     );
@@ -644,15 +646,15 @@ export default class Pile {
     for (let i = 0; i < this.dims; i++) {
       let x = (
         -this.matrixWidthHalf +
-        (fgmState.cellSize / 2) +
-        (i * fgmState.cellSize)
+        (this.cellSize / 2) +
+        (i * this.cellSize)
       );
 
       for (let j = 0; j < this.dims; j++) {
         let y = (
           this.matrixWidthHalf -
-          (fgmState.cellSize / 2) -
-          (j * fgmState.cellSize)
+          (this.cellSize / 2) -
+          (j * this.cellSize)
         );
 
         const value = this.coverMatrix[i][j];
@@ -782,34 +784,45 @@ export default class Pile {
    * @param {array} isHovering - If `true` user is currently hovering this pile.
    */
   drawPileLabel (isHovering) {
+    const numPiles = this.pileMatrices.length;
+    const idReadible = this.idNumeric + 1;
+    const scale = 1 / this.scale;
     let labelText;
 
-    if (this.pileMatrices.length === 1) {
-      labelText = this.idNumeric + 1;
-    }
-
-    if (this.pileMatrices.length > 1) {
-      labelText = `${(
-        fgmState.matrices.indexOf(this.pileMatrices[0]) + 1
-      )} (${this.pileMatrices.length})`;
+    if (numPiles === 1) {
+      labelText = idReadible;
+    } else {
+      labelText = `${idReadible} (${numPiles})`;
 
       if (this.singleMatrix) {
         labelText += `: ${this.singleMatrix.id + 1}`;
       }
     }
 
-    const label = createText(
-      labelText,
-      -this.matrixWidthHalf - 2,
-      -this.matrixWidthHalf - 13,
-      0,
-      8,
-      isHovering ? COLORS.GRAY_DARK : COLORS.GRAY_LIGHT
-    );
+    if (this.labelText !== labelText) {
+      this.labelText = labelText;
 
-    label.scale.set(1 / this.scale, 1 / this.scale, 1 / this.scale);
+      this.label = createText(
+        this.labelText,
+        -this.matrixWidthHalf - 2,
+        -this.matrixWidthHalf - 13,
+        0,
+        8,
+        isHovering ? COLORS.GRAY_DARK : COLORS.GRAY_LIGHT
+      );
+    } else {
+      this.label.material.color.setHex(
+        isHovering ? COLORS.GRAY_DARK : COLORS.GRAY_LIGHT
+      );
+      this.label.position.set(
+        -this.matrixWidthHalf - 2,
+        -this.matrixWidthHalf - 13,
+        0
+      );
+    }
 
-    this.mesh.add(label);
+    this.label.scale.set(scale, scale, scale);
+    this.mesh.add(this.label);
   }
 
   /**
@@ -837,8 +850,8 @@ export default class Pile {
 
         let x = (
           -this.matrixWidthHalf +
-          (fgmState.cellSize * i) +
-          (fgmState.cellSize / 2)
+          (this.cellSize * i) +
+          (this.cellSize / 2)
         );
 
         // White border, i.e., spacing
@@ -847,7 +860,7 @@ export default class Pile {
           x,
           y,
           0.5,
-          fgmState.cellSize,
+          this.cellSize,
           PREVIEW_SIZE,
           colors,
           [1, 1, 1]
@@ -859,7 +872,7 @@ export default class Pile {
           x,
           y,
           0.5,
-          fgmState.cellSize,
+          this.cellSize,
           PREVIEW_SIZE - 0.3,
           colors,
           this.getGrayTone(value, fgmState.showSpecialCells)
@@ -879,22 +892,22 @@ export default class Pile {
     for (let i = 0; i < this.dims; i++) {
       let x = (
         -this.matrixWidthHalf +
-        (fgmState.cellSize / 2) +
-        (i * fgmState.cellSize)
+        (this.cellSize / 2) +
+        (i * this.cellSize)
       );
 
       for (let j = 0; j < this.dims; j++) {
         let y = (
           this.matrixWidthHalf -
-          (fgmState.cellSize / 2) -
-          (j * fgmState.cellSize)
+          (this.cellSize / 2) -
+          (j * this.cellSize)
         );
 
         add2dSqrtBuffRect(
           positions,
           -y,
           -x,
-          fgmState.cellSize,
+          this.cellSize,
           colors,
           this.getGrayTone(
             cellValue(matrix[i][j]),
@@ -1147,19 +1160,6 @@ export default class Pile {
   }
 
   /**
-   * Scale to ???.
-   *
-   * @param {Number} scale - Scale.
-   * @return {object} Self.
-   */
-  scaleTo (scale) {
-    this.scale = scale;
-    this.mesh.scale.set(scale, scale, scale);
-
-    return this;
-  }
-
-  /**
    * Set cover matrix.
    *
    * @param {number} mode - Cover display mode number.
@@ -1218,6 +1218,22 @@ export default class Pile {
    */
   showLabels (showLabels) {
     this.showNodeLabels = showLabels;
+
+    return this;
+  }
+
+  /**
+   * Rescale mesh.
+   *
+   * @param {Number} scale - Scale.
+   * @return {object} Self.
+   */
+  setScale (scale) {
+    if (scale) {
+      this.scale = scale;
+    }
+
+    this.mesh.scale.set(this.scale, this.scale, this.scale);
 
     return this;
   }
@@ -1323,13 +1339,13 @@ export default class Pile {
       this.mesh.add(this.cellFrame);
       const x = (
         -this.matrixWidthHalf +
-        (fgmState.cellSize * fgmState.hoveredCell.col) +
-        fgmState.cellSize_HALF
+        (this.cellSize * fgmState.hoveredCell.col) +
+        (this.cellSize / 2)
       );
       const y = (
         this.matrixWidthHalf -
-        (fgmState.cellSize * fgmState.hoveredCell.row) -
-        fgmState.cellSize_HALF
+        (this.cellSize * fgmState.hoveredCell.row) -
+        (this.cellSize / 2)
       );
       this.cellFrame.position.set(x, y, 1);
     } else if (this.mesh.children.indexOf(this.cellFrame) > -1) {
@@ -1348,13 +1364,13 @@ export default class Pile {
     if (fgmState.hoveredCell) {
       const x = (
         -this.matrixWidthHalf +
-        (fgmState.cellSize * fgmState.hoveredCell.col) +
-        fgmState.cellSize_HALF
+        (this.cellSize * fgmState.hoveredCell.col) +
+        (this.cellSize / 2)
       );
       const y = (
         this.matrixWidthHalf -
-        (fgmState.cellSize * fgmState.overedCell.row) -
-        fgmState.cellSize_HALF
+        (this.cellSize * fgmState.overedCell.row) -
+        (this.cellSize / 2)
       );
 
       let sCol = fgmState.nodes[fgmState.focusNodes[fgmState.hoveredCell.col]].name;
