@@ -28,7 +28,7 @@ import {
   // addPiles,
   dispersePiles,
   setAnimation,
-  setArrangeMetrics,
+  setArrangeMeasures,
   setCellSize,
   setCoverDispMode,
   setLassoIsRound,
@@ -39,7 +39,7 @@ import {
 } from 'components/fragments/fragments-actions';
 
 import {
-  ARRANGE_METRICS,
+  ARRANGE_MEASURES,
   CELL_SIZE,
   CLICK_DELAY_TIME,
   DBL_CLICK_DELAY_TIME,
@@ -60,10 +60,6 @@ import {
   MATRIX_ORIENTATION_5_TO_3,
   MATRIX_ORIENTATION_INITIAL,
   MATRIX_ORIENTATION_UNDEF,
-  METRIC_DIST_DIAG,
-  METRIC_NOISE,
-  METRIC_SHARPNESS,
-  METRIC_SIZE,
   MODE_MAD,
   MODE_MEAN,
   MODE_STD,
@@ -219,19 +215,6 @@ export class Fragments {
     }];
 
     this.arrangeSelectedEventId = 'fgm.arrange';
-    this.metrics = [{
-      id: METRIC_SIZE,
-      name: 'Size'
-    }, {
-      id: METRIC_DIST_DIAG,
-      name: 'Distance'
-    }, {
-      id: METRIC_NOISE,
-      name: 'Noise'
-    }, {
-      id: METRIC_SHARPNESS,
-      name: 'Sharpness'
-    }];
 
     this.event.subscribe(
       'decompose.fgm.coverDispMode',
@@ -358,27 +341,27 @@ export class Fragments {
   /* ---------------------------- Custom Methods ---------------------------- */
 
   /**
-   * Arranges piles according to the given metrics.
+   * Arranges piles according to the given measures.
    *
    * @description
    * This is the entry point for arranging
    *
    * @param {array} piles - All piles.
-   * @param {array} metrics - Selected metrics.
+   * @param {array} measures - Selected measures.
    */
-  arrange (piles, metrics) {
-    if (!metrics || !metrics.length) {
+  arrange (piles, measures) {
+    if (!measures || !measures.length) {
       this.rank(piles);
     }
 
-    if (metrics.length === 1) {
-      this.rank(piles, metrics[0]);
+    if (measures.length === 1) {
+      this.rank(piles, measures[0]);
     }
 
-    // if (metrics.length === 2) {
+    // if (measures.length === 2) {
     // }
 
-    // if (metrics.length > 2) {
+    // if (measures.length > 2) {
     // }
   }
 
@@ -392,20 +375,20 @@ export class Fragments {
   }
 
   /**
-   * Handles changes of arrange metrics amd dispatches the appropriate action.
+   * Handles changes of arrange measures amd dispatches the appropriate action.
    *
-   * @param {array} metrics - List of metrics to arrange piles.
+   * @param {array} measures - List of measures to arrange piles.
    */
-  arrangeChangeHandler (metrics) {
-    let arrangeMetrics;
+  arrangeChangeHandler (measures) {
+    let arrangeMeasures;
 
     try {
-      arrangeMetrics = metrics.map(metric => metric.id);
+      arrangeMeasures = measures.map(metric => metric.id);
     } catch (e) {
-      arrangeMetrics = [];
+      arrangeMeasures = [];
     }
 
-    this.store.dispatch(setArrangeMetrics(arrangeMetrics));
+    this.store.dispatch(setArrangeMeasures(arrangeMeasures));
   }
 
   /**
@@ -1333,7 +1316,7 @@ export class Fragments {
    * @return {object} Object with x and y coordinates
    */
   getLayoutPosition (pile) {
-    // const numArrMets = this.arrangeMetrics.length;
+    // const numArrMets = this.arrangeMeasures.length;
 
     // if (numArrMets === 2) {
     //   return this.getLayoutPosition2D(pile.ranking);
@@ -1551,8 +1534,20 @@ export class Fragments {
     header.forEach((headerField, index) => {
       if (!(index in usedIdx)) {
         this.dataMeasures[headerField] = index;
+        fgmState.measures.push({
+          id: headerField,
+          name: headerField[0].toUpperCase() +
+            headerField.slice(1).replace(/[-_]/g, ' ')
+        });
       }
     });
+
+    this.selectMeasure(this.arrangeMeasures, fgmState.measures);
+
+    // Let the multi/select component know
+    this.event.publish(
+      `${EVENT_BASE_NAME}.${this.arrangeSelectedEventId}.update`
+    );
 
     return {
       header,
@@ -1867,6 +1862,9 @@ export class Fragments {
       .catch(error => this.reject.isDataLoaded(error));
   }
 
+  /**
+   * Three JS font loader.
+   */
   loadFont () {
     const fontLoader = new FontLoader();
 
@@ -2111,17 +2109,17 @@ export class Fragments {
   }
 
   /**
-   * Rank matrices according to the metric
+   * Rank matrices according to some measure
    *
    * @param {array} piles - Piles to be ranked.
-   * @param {string} metric - Matric ID
-   * @param {boolean} desc - If `true` rank descending by metric.
+   * @param {string} measure - Measure ID
+   * @param {boolean} desc - If `true` rank descending by measure.
    */
-  rank (piles, metric, desc) {
-    if (metric) {
-      // First we calculate the actual value
+  rank (piles, measure, desc) {
+    if (measure) {
+      // First we get the measurement
       piles.forEach((pile) => {
-        pile.calculateMetrics([metric]);
+        pile.assessMeasures([measure]);
       });
     }
 
@@ -2129,11 +2127,11 @@ export class Fragments {
     // Note: we won't sort the original pile array but instead only assign a
     // rank.
     const pilesSortHelper = piles.map((pile, index) => {
-      const baseRank = pile.isTrashed ? index : pile.id;
+      const baseRank = pile.isTrashed ? index : pile.idNumeric;
 
       return {
         id: pile.id,
-        value: metric ? pile.metrics[metric] : baseRank
+        value: measure ? pile.measures[measure] : baseRank
       };
     });
 
@@ -2230,78 +2228,17 @@ export class Fragments {
   }
 
   /**
-   * Sorts matrices in pile according to time
+   * Helper method for selecting selected measures
    *
-   * @param {[type]} pile - [description]
-   * @return {[type]} [description]
+   * @param {array} selectedMeasures - Array of selected measure IDs.
+   * @param {array} measures - Array of measure objects.
    */
-  sortByOriginalOrder (pile) {
-    pile.pileMatrices.sort(this.matrixTimeComparator);
-  }
-
-  /**
-   * Splits a pile at the position of the passed matrix. The passed matrix
-   * becomes the base for the new pile.
-   *
-   * @param {array} matrix - Matrix
-   * @param {boolean} noAnimation - If `true` force no animation.
-   */
-  splitPile (matrix, noAnimation) {
-    if (noAnimation) {
-      let pileSrc = matrix.pile;
-      let pileNew = new Pile(
-        this.piles.length,
-        fgmState.scene,
-        this.fragScale,
-        this.fragDims
-      );
-
-      pileNew.colored = pileSrc.colored;
-      this.piles.splice(this.piles.indexOf(pileSrc) + 1, 0, pileNew);
-
-      let m = [];
-      for (let i = pileSrc.getMatrixPosition(matrix); i < pileSrc.size(); i++) {
-        // Needs refactoring
-        m.push(pileSrc.getMatrix(i));
-      }
-
-      this.pileUp(m, pileNew);
-      this.updateLayout();
-
-      pileNew.draw();
-      pileSrc.draw();
-
-      this.render();
-    } else {
-      // Needs refactoring
-      // this.pilingAnimations.push(SplitAnimation(matrix));
-      // this.startAnimations();
-    }
-  }
-
-  /**
-   * Starts all animations in pilingAnimations array.
-   */
-  startAnimations () {
-    clearInterval(this.interval);
-
-    this.interval = setInterval(() => {
-      this.pilingAnimations.forEach((pileAnimation, index) => {
-        pileAnimation.step();
-        if (pileAnimation.done) {
-          this.pilingAnimations.splice(index, 1);
-        }
-      });
-
-      if (this.pilingAnimations.length === 0) {
-        clearInterval(this.interval);
-        this.interval = undefined;
-        this.updateLayout();
-        this.pilingAnimations = [];
-      }
-
-      this.render();
-    }, 500 / FPS);
+  selectMeasure (selectedMeasures, measures) {
+    selectedMeasures.forEach((selectedMeasure) => {
+      measures
+        .filter(measure => measure.id === selectedMeasure)
+        .forEach((measure) => { measure.isSelected = true; });
+    });
   }
 
   /**
@@ -2465,6 +2402,81 @@ export class Fragments {
   }
 
   /**
+   * Sorts matrices in pile according to time
+   *
+   * @param {[type]} pile - [description]
+   * @return {[type]} [description]
+   */
+  sortByOriginalOrder (pile) {
+    pile.pileMatrices.sort(this.matrixTimeComparator);
+  }
+
+  /**
+   * Splits a pile at the position of the passed matrix. The passed matrix
+   * becomes the base for the new pile.
+   *
+   * @param {array} matrix - Matrix
+   * @param {boolean} noAnimation - If `true` force no animation.
+   */
+  splitPile (matrix, noAnimation) {
+    if (noAnimation) {
+      let pileSrc = matrix.pile;
+      let pileNew = new Pile(
+        this.piles.length,
+        fgmState.scene,
+        this.fragScale,
+        this.fragDims
+      );
+
+      pileNew.colored = pileSrc.colored;
+      this.piles.splice(this.piles.indexOf(pileSrc) + 1, 0, pileNew);
+
+      let m = [];
+      for (let i = pileSrc.getMatrixPosition(matrix); i < pileSrc.size(); i++) {
+        // Needs refactoring
+        m.push(pileSrc.getMatrix(i));
+      }
+
+      this.pileUp(m, pileNew);
+      this.updateLayout();
+
+      pileNew.draw();
+      pileSrc.draw();
+
+      this.render();
+    } else {
+      // Needs refactoring
+      // this.pilingAnimations.push(SplitAnimation(matrix));
+      // this.startAnimations();
+    }
+  }
+
+  /**
+   * Starts all animations in pilingAnimations array.
+   */
+  startAnimations () {
+    clearInterval(this.interval);
+
+    this.interval = setInterval(() => {
+      this.pilingAnimations.forEach((pileAnimation, index) => {
+        pileAnimation.step();
+        if (pileAnimation.done) {
+          this.pilingAnimations.splice(index, 1);
+        }
+      });
+
+      if (this.pilingAnimations.length === 0) {
+        clearInterval(this.interval);
+        this.interval = undefined;
+        this.updateLayout();
+        this.pilingAnimations = [];
+      }
+
+      this.render();
+    }, 500 / FPS);
+  }
+
+  /**
    * Toggle trash.
    */
   toggleTrash () {
@@ -2496,7 +2508,7 @@ export class Fragments {
 
       this.updateGrid(state.columns);
       this.updateAnimation(stateFgm.animation);
-      this.updateArrangeMetrics(stateFgm.arrangeMetrics);
+      this.updateArrangeMeasures(stateFgm.arrangeMeasures);
       this.updateCoverDispMode(stateFgm.coverDispMode);
       this.updateCellSize(stateFgm.cellSize);
       this.updateConfig(stateFgm.config);
@@ -2519,18 +2531,14 @@ export class Fragments {
   }
 
   /**
-   * Update the arrange metrics.
+   * Update the arrange measures.
    *
-   * @param {array} arrangeMetrics - Array of metric IDs.
+   * @param {array} arrangeMeasures - Array of measure IDs.
    */
-  updateArrangeMetrics (arrangeMetrics) {
-    this.arrangeMetrics = arrangeMetrics || ARRANGE_METRICS;
+  updateArrangeMeasures (arrangeMeasures) {
+    this.arrangeMeasures = arrangeMeasures || ARRANGE_MEASURES;
 
-    this.arrangeMetrics.forEach((arrangeMetric) => {
-      this.metrics
-        .filter(metric => metric.id === arrangeMetric)
-        .forEach((metric) => { metric.isSelected = true; });
-    });
+    this.selectMeasure(this.arrangeMeasures, fgmState.measures);
 
     if (this.isInitialized) {
       this.updateLayout();
@@ -2628,10 +2636,10 @@ export class Fragments {
    */
   updateLayout (
     piles = this.piles,
-    metrics = this.arrangeMetrics,
+    measures = this.arrangeMeasures,
     pileRank = 0
   ) {
-    this.arrange(piles, this.trashIsActive ? [] : metrics);
+    this.arrange(piles, this.trashIsActive ? [] : measures);
 
     piles
       // Needs to be changed or disabled for 2D

@@ -44,42 +44,12 @@
             </select>
           </li>
           <li class="flex-c flex-d-c">
-            <label for="settings-fgm-arrange-x">Arrange X</label>
-            <div class="flex-c">
-              <select
-                id="settings-fgm-arrange-x"
-                change.delegate="arrangeXChangeHandler($event)">
-                <option value="">Choose…</option>
-                <option
-                  repeat.for="metric of metrics"
-                  value.one-way="metric.id">${metric.name}</option>
-              </select>
-              <label for="settings-fgm-arrange-x-desc">Desc</label>
-              <input
-                id="settings-fgm-arrange-x-desc"
-                type="checkbox"
-                checked.bind="fgmState.arrangeXDesc"
-                click.delegate="arrangeXDescChangeHandler()">
-            </div>
-          </li>
-          <li class="flex-c flex-d-c">
-            <label for="settings-fgm-arrange-y">Arrange Y</label>
-            <div class="flex-c">
-              <select
-                id="settings-fgm-arrange-y"
-                change.delegate="arrangeYChangeHandler($event)">
-                <option value="">Choose…</option>
-                <option
-                  repeat.for="metric of metrics"
-                  value.one-way="metric.id">${metric.name}</option>
-              </select>
-              <label for="settings-fgm-arrange-y-desc">Desc</label>
-              <input
-                id="settings-fgm-arrange-y-desc"
-                type="checkbox"
-                checked.bind="fgmState.arrangeYDesc"
-                click.delegate="arrangeYDescChangeHandler()">
-            </div>
+            <label for="settings-fgm-order-cluster">Arrange</label>
+            <multi-select
+              bottom-up="true"
+              options.bind="state.measures"
+              event-id.bind="arrangeSelectedEventId"
+              placeholder="Choose…"></multi-select>
           </li>
           <li>
             <button
@@ -122,14 +92,6 @@
               id="settings-fgm-show-low-quality"
               checked.bind="state.showSpecialCells"
               click.delegate="showSpecialCellsChangeHandler()">
-          </li>
-          <li class="flex-c flex-d-c">
-            <label for="settings-fgm-order-cluster">Cluster</label>
-            <multi-select
-              bottom-up="true"
-              options.bind="metrics"
-              event-id.bind="arrangeSelectedEventId"
-              placeholder="Choose…"></multi-select>
           </li>
           <li class="flex-c flex-d-c">
             <label for="settings-fgm-is-fixed-cat-colors">Fix Colors</label>

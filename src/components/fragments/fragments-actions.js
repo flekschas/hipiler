@@ -33,11 +33,11 @@ export const setAnimation = animation => ({
   payload: { animation: !!animation }
 });
 
-export const SET_ARRANGE_METRICS = 'SET_ARRANGE_METRICS';
+export const SET_ARRANGE_MEASURES = 'SET_ARRANGE_MEASURES';
 
-export const setArrangeMetrics = arrangeMetrics => ({
-  type: SET_ARRANGE_METRICS,
-  payload: { arrangeMetrics }
+export const setArrangeMeasures = arrangeMeasures => ({
+  type: SET_ARRANGE_MEASURES,
+  payload: { arrangeMeasures }
 });
 
 export const SET_CELL_SIZE = 'SET_CELL_SIZE';

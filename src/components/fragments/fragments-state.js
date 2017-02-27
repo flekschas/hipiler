@@ -35,6 +35,7 @@ const State = {
   matrixWidth: undefined,
   matrixWidthHalf: undefined,
   maxDistance: 0,
+  measures: [],
   mouse: undefined,
   nodes: [],
   openedPileMatrices: [],

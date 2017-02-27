@@ -7,7 +7,7 @@ import {
   REMOVE_PILES,
   STACK_PILES,
   SET_ANIMATION,
-  SET_ARRANGE_METRICS,
+  SET_ARRANGE_MEASURES,
   SET_CELL_SIZE,
   SET_COVER_DISP_MODE,
   SET_LASSO_IS_ROUND,
@@ -20,7 +20,7 @@ import {
 
 import {
   ANIMATION,
-  ARRANGE_METRICS,
+  ARRANGE_MEASURES,
   CELL_SIZE,
   CONFIG,
   LASSO_IS_ROUND,
@@ -144,10 +144,10 @@ export function animation (state = ANIMATION, action) {
   }
 }
 
-export function arrangeMetrics (state = ARRANGE_METRICS, action) {
+export function arrangeMeasures (state = ARRANGE_MEASURES, action) {
   switch (action.type) {
-    case SET_ARRANGE_METRICS:
-      return action.payload.arrangeMetrics.slice();
+    case SET_ARRANGE_MEASURES:
+      return action.payload.arrangeMeasures.slice();
 
     default:
       return state;
@@ -216,7 +216,7 @@ export function showSpecialCells (state = SHOW_SPECIAL_CELLS, action) {
 
 export default combineReducers({
   animation,
-  arrangeMetrics,
+  arrangeMeasures,
   cellSize,
   config,
   coverDispMode,

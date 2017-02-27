@@ -182,6 +182,7 @@ export class MultiSelect {
   }
 
   update () {
+    this.selectedOptions = [];
     this.options
       .filter(option => option.isSelected)
       .forEach((option) => {

@@ -16,10 +16,6 @@ import menuCommands from 'components/fragments/pile-menu-commands';
 
 import {
   MATRIX_GAP_HORIZONTAL,
-  METRIC_DIST_DIAG,
-  METRIC_NOISE,
-  METRIC_SHARPNESS,
-  METRIC_SIZE,
   MODE_MAD,
   MODE_MEAN,
   MODE_STD,
@@ -76,7 +72,7 @@ export default class Pile {
     this.id = id;
     this.idNumeric = parseInt(`${id}`.replace('_', ''), 10);
     this.isTrashed = false;
-    this.metrics = {};
+    this.measures = {};
     this.orderedLocally = false;
     this.pileMatrices = [];
     this.rank = this.id;
@@ -133,58 +129,9 @@ export default class Pile {
     return this.pileMatrices.length;
   }
 
-  /**
-   * Standard deviation
-   *
-   * @return {number}
-   */
-  get std () {
-    return Math.sqrt(this.variance);
-  }
-
   get strandArrowRects () {
     return this.isTrashed ?
       fgmState.strandArrowRectsTrash : fgmState.strandArrowRects;
-  }
-
-  /**
-   * Get the sample variance of the matrix
-   *
-   * @description
-   * First the values across the x and y dimensions are aggregated. Next the
-   * variance across `dims` number of bins is calculated. The aggregated value
-   * of each bin is assumed to represent the relative number of counts.
-   *
-   * @return {number} Variance.
-   */
-  get variance () {
-    const matrixAvg = this.average();
-
-    // Get the sum
-    const sum = matrixAvg.reduce(
-      (a, b) => a + b.reduce((c, d) => c + d, 0), 0
-    );
-
-    let middle = (this.dims - 1) / 2;
-
-    if (!this.dims % 2) {
-      middle = (this.dims - 2) / 2;
-    }
-
-    let variance = 0;
-
-    matrixAvg.forEach((row, i) => {
-      row.forEach((cell, j) => {
-        const distanceSquared = (
-          ((i - middle) ** 2) +
-          ((j - middle) ** 2)
-        );
-
-        variance += distanceSquared * cell;
-      });
-    });
-
-    return variance / (sum || 1);
   }
 
 
@@ -228,6 +175,7 @@ export default class Pile {
     this.pileMatrices.push(...matrices);
     matrices.forEach((matrix) => { matrix.pile = this; });
 
+    this.assessMeasures();
     this.calculateAvgMatrix();
     this.calculateCoverMatrix();
 
@@ -397,76 +345,20 @@ export default class Pile {
   }
 
   /**
-   * Calculates pile metrics.
-   *
-   * @param {array} metrics - List of metric IDs
-   * @param {boolean} force - If `true` re-caclulate metrics.
+   * Assess the average measure.
    */
-  calculateMetrics (metrics, force) {
-    metrics.forEach((metric) => {
+  assessMeasures () {
+    const numMatrices = this.pileMatrices.length;
+
+    fgmState.measures.map(measure => measure.id).forEach((measureId) => {
       try {
-        this[`calculateMetric${caps(metric)}`](force);
+        this.measures[measureId] = this.pileMatrices
+          .map(matrix => matrix.measures[measureId])
+          .reduce((acc, value) => acc + value, 0) / numMatrices;
       } catch (e) {
-        logger.error(`Metric (${metric}) is unknown`);
+        logger.error(`Measure (${measureId}) is unknown`);
       }
     });
-  }
-
-  /**
-   * Calculates the distance to diagonal.
-   *
-   * @param {boolean} force - If `true` re-caclulate metric.
-   */
-  calculateMetricDistToDiag (force) {
-    if (typeof this.metrics[METRIC_DIST_DIAG] === 'undefined' || force) {
-      let size = 0;
-
-      this.pileMatrices.forEach((matrix) => {
-        size += Math.abs(matrix.locus.xEnd - matrix.locus.yStart);
-      });
-
-      this.metrics[METRIC_DIST_DIAG] = size / this.pileMatrices.length;
-    }
-  }
-
-  /**
-   * Calculates the noise level.
-   *
-   * @param {boolean} force - If `true` re-caclulate metric.
-   */
-  calculateMetricNoise (force) {
-    if (typeof this.metrics[METRIC_NOISE] === 'undefined' || force) {
-      this.metrics[METRIC_NOISE] = this.std;
-    }
-  }
-
-  /**
-   * Calculates the sharpness.
-   *
-   * @param {boolean} force - If `true` re-caclulate metric.
-   */
-  calculateMetricSharpness (force) {
-    if (typeof this.metrics[METRIC_SHARPNESS] === 'undefined' || force) {
-      this.metrics[METRIC_SHARPNESS] = this.variance;
-    }
-  }
-
-  /**
-   * Calculates the size.
-   *
-   * @param {boolean} force - If `true` re-caclulate metric.
-   */
-  calculateMetricSize (force) {
-    if (typeof this.metrics[METRIC_SIZE] === 'undefined' || force) {
-      let size = 0;
-
-      this.pileMatrices.forEach((matrix) => {
-        size += (matrix.locus.xEnd - matrix.locus.xStart) *
-          (matrix.locus.yEnd - matrix.locus.yStart);
-      });
-
-      this.metrics[METRIC_SIZE] = size / this.pileMatrices.length;
-    }
   }
 
   /**
@@ -1247,6 +1139,7 @@ export default class Pile {
       }
     });
 
+    this.assessMeasures();
     this.calculateAvgMatrix();
     this.calculateCoverMatrix();
 
@@ -1291,6 +1184,7 @@ export default class Pile {
     this.pileMatrices = matrices;
     matrices.forEach((matrix) => { matrix.pile = this; });
 
+    this.assessMeasures();
     this.calculateAvgMatrix();
     this.calculateCoverMatrix();
 

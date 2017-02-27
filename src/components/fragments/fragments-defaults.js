@@ -7,7 +7,7 @@ import COLOR from 'configs/colors';
 
 export const ANIMATION = true;
 
-export const ARRANGE_METRICS = [];
+export const ARRANGE_MEASURES = [];
 
 export const CELL_SIZE = 6;
 
@@ -86,14 +86,6 @@ export const MATRIX_ORIENTATION_INITIAL = 1;
 export const MATRIX_ORIENTATION_5_TO_3 = 2;
 
 export const MATRIX_ORIENTATION_3_TO_5 = 3;
-
-export const METRIC_DIST_DIAG = 'distToDiag';
-
-export const METRIC_NOISE = 'noise';
-
-export const METRIC_SHARPNESS = 'sharpness';
-
-export const METRIC_SIZE = 'size';
 
 /**
  * Mean
