@@ -6,6 +6,7 @@ import {
   Box3,
   BufferAttribute,
   BufferGeometry,
+  Color,
   Mesh,
   MeshBasicMaterial,
   TextGeometry,
@@ -15,6 +16,8 @@ import {
 import menuCommands from 'components/fragments/pile-menu-commands';
 
 import {
+  MATRIX_FRAME_THICKNESS,
+  MATRIX_FRAME_THICKNESS_MAX,
   MATRIX_GAP_HORIZONTAL,
   MODE_MAD,
   MODE_MEAN,
@@ -41,6 +44,7 @@ import {
   addBufferedRect,
   cellValue,
   colorOrange,
+  createLineFrame,
   createRect,
   createRectFrame,
   createText,
@@ -70,6 +74,8 @@ export default class Pile {
     this.id = id;
     this.idNumeric = parseInt(`${id}`.replace('_', ''), 10);
     this.isTrashed = false;
+    this.matrixFrameThickness = MATRIX_FRAME_THICKNESS;
+    this.matrixFrameColor = COLORS.GRAY_LIGHT;
     this.measures = {};
     this.orderedLocally = false;
     this.pileMatrices = [];
@@ -83,7 +89,7 @@ export default class Pile {
 
     fgmState.pilesIdx[this.id] = this;
 
-    this.updateFrame();
+    this.frameCreate();
   }
 
   /****************************** Getter / Setter *****************************/
@@ -966,6 +972,80 @@ export default class Pile {
   }
 
   /**
+   * Create matrix frame.
+   *
+   * @return {object} Self.
+   */
+  frameCreate () {
+    if (this.matrixFrame) {
+      fgmState.scene.remove(this.matrixFrame);
+    }
+
+    this.matrixFrame = createLineFrame(
+      this.matrixWidth,
+      this.matrixWidth,
+      this.matrixFrameColor,
+      this.matrixFrameThickness
+    );
+
+    fgmState.scene.add(this.matrixFrame);
+
+    return this;
+  }
+
+  /**
+   * Highlight the matrix frame
+   *
+   * @return {object} Self.
+   */
+  frameHighlight () {
+    this.matrixFrame.material.uniforms.diffuse.value = new Color(COLORS.ORANGE);
+
+    return this;
+  }
+
+  /**
+   * Frame requires update after matrix size has changed through filtering.
+   *
+   * @return {object} Self.
+   */
+  frameReset () {
+    this.matrixFrame.material.uniforms.thickness.value =
+      this.matrixFrameThickness;
+    this.matrixFrame.material.uniforms.diffuse.value = new Color(
+      this.matrixFrameColor
+    );
+
+    return this;
+  }
+
+  /**
+   * Frame requires update after matrix size has changed through filtering.
+   *
+   * @return {object} Self.
+   */
+  frameUpdate (encoding) {
+    if (encoding === null) {
+      this.matrixFrameThickness = MATRIX_FRAME_THICKNESS;
+    } else {
+      this.matrixFrameThickness = (
+        this.measures[encoding] /
+        fgmState.dataMeasuresMax[encoding] *
+        MATRIX_FRAME_THICKNESS_MAX
+      );
+    }
+
+    this.matrixFrame.material.uniforms.thickness.value =
+      this.matrixFrameThickness;
+
+    // this.matrixFrame.material.uniforms.diffuse.value = new Color(
+    //   this.matrixFrameColor
+    // );
+
+    return this;
+  }
+
+  /**
    * Get gray tone color from value
    *
    * @param {number} value - Valuer of the cell.
@@ -1314,19 +1394,6 @@ export default class Pile {
     }
 
     this.isTrashed = true;
-  }
-
-  /**
-   * Frame requires update after matrix size has changed through filtering.
-   *
-   * @return {object} Self.
-   */
-  updateFrame () {
-    this.matrixFrame = createRectFrame(
-      this.matrixWidth, this.matrixWidth, 0xaaaaaa, 0.1
-    );
-
-    return this;
   }
 
   /**
