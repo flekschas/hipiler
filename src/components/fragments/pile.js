@@ -107,26 +107,24 @@ export default class Pile {
     return this.matrixWidth / 2;
   }
 
-  get isSingleMatrix () {
-    if (this.singleMatrix) {
-      return true;
-    }
-
-    const isSingleMatrix = this.pileMatrices.length === 1;
-
-    if (isSingleMatrix) {
-      this.singleMatrix = this.pileMatrices[0];
-    }
-
-    return isSingleMatrix;
-  }
-
   get piles () {
     return this.isTrashed ? fgmState.pilesTrash : fgmState.piles;
   }
 
   get pileMeshes () {
     return this.isTrashed ? fgmState.pileMeshesTrash : fgmState.pileMeshes;
+  }
+
+  get singleMatrix () {
+    if (this._singleMatrix) {
+      return this._singleMatrix;
+    }
+
+    if (this.pileMatrices.length === 1) {
+      return this.pileMatrices[0];
+    }
+
+    return undefined;
   }
 
   /**
@@ -300,8 +298,6 @@ export default class Pile {
 
     this.coverMatrix = new Array(this.dims).fill(undefined);
 
-    console.log('calculateCoverMatrix', numMatrices);
-
     if (numMatrices > 1) {
       // Create empty this.dims x this.dims matrix
       this.coverMatrix = this.coverMatrix
@@ -429,7 +425,7 @@ export default class Pile {
       attributes: SHADER_ATTRIBUTES
     });
 
-    if (this.isSingleMatrix) {
+    if (this.singleMatrix) {
       this.drawSingleMatrix(
         this.singleMatrix.matrix,
         positions,
@@ -467,7 +463,7 @@ export default class Pile {
 
     // Add frame
     this.mesh.add(this.matrixFrame);
-    this.matrixFrame.position.set(-1, -1, Z_BASE);
+    this.matrixFrame.position.set(0, 0, Z_BASE);
 
     this.mesh.pile = this;
     this.pileMeshes.push(this.mesh);
@@ -981,18 +977,12 @@ export default class Pile {
    * @return {object} Self.
    */
   frameCreate () {
-    if (this.matrixFrame) {
-      fgmState.scene.remove(this.matrixFrame);
-    }
-
     this.matrixFrame = createLineFrame(
       this.matrixWidth,
       this.matrixWidth,
       this.matrixFrameColor,
       this.matrixFrameThickness
     );
-
-    fgmState.scene.add(this.matrixFrame);
 
     return this;
   }
@@ -1028,9 +1018,10 @@ export default class Pile {
    *
    * @return {object} Self.
    */
-  frameUpdate (encoding) {
+  frameUpdate (encoding = fgmState.matrixFrameEncoding) {
     if (encoding === null) {
       this.matrixFrameThickness = MATRIX_FRAME_THICKNESS;
+      this.matrixFrameColor = COLORS.GRAY_LIGHT;
     } else {
       const relVal = (
         this.measures[encoding] /
@@ -1276,6 +1267,7 @@ export default class Pile {
    */
   setMatrices (matrices) {
     this.pileMatrices = matrices;
+
     matrices.forEach((matrix) => { matrix.pile = this; });
 
     this.assessMeasures();
@@ -1340,11 +1332,11 @@ export default class Pile {
    * @return {object} Self.
    */
   showSingle (matrix) {
-    this.singleMatrix = matrix;
+    this._singleMatrix = matrix;
 
-    if (this.singleMatrixPrev !== this.singleMatrix) {
+    if (this._singleMatrixPrev !== this._singleMatrix) {
       this.draw(true);
-      this.singleMatrixPrev = this.singleMatrix;
+      this._singleMatrixPrev = this._singleMatrix;
     }
 
     return this;
