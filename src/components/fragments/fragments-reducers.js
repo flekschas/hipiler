@@ -11,6 +11,7 @@ import {
   SET_CELL_SIZE,
   SET_COVER_DISP_MODE,
   SET_LASSO_IS_ROUND,
+  SET_MATRIX_FRAME_ENCODING,
   SET_MATRIX_ORIENTATION,
   SET_PILES,
   SET_SHOW_SPECIAL_CELLS,
@@ -24,6 +25,7 @@ import {
   CELL_SIZE,
   CONFIG,
   LASSO_IS_ROUND,
+  MATRIX_FRAME_ENCODING,
   MATRIX_ORIENTATION_INITIAL,
   MODE_MEAN,
   PILES,
@@ -194,6 +196,16 @@ export function lassoIsRound (state = LASSO_IS_ROUND, action) {
   }
 }
 
+export function matrixFrameEncoding (state = MATRIX_FRAME_ENCODING, action) {
+  switch (action.type) {
+    case SET_MATRIX_FRAME_ENCODING:
+      return action.payload.frameEncoding;
+
+    default:
+      return state;
+  }
+}
+
 export function matrixOrientation (state = MATRIX_ORIENTATION_INITIAL, action) {
   switch (action.type) {
     case SET_MATRIX_ORIENTATION:
@@ -221,6 +233,7 @@ export default combineReducers({
   config,
   coverDispMode,
   lassoIsRound,
+  matrixFrameEncoding,
   matrixOrientation,
   piles,
   showSpecialCells

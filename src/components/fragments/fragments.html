@@ -94,8 +94,20 @@
               click.delegate="showSpecialCellsChangeHandler()">
           </li>
           <li class="flex-c flex-d-c">
-            <label for="settings-fgm-is-fixed-cat-colors">Fix Colors</label>
-            <input type="checkbox" id="settings-fgm-is-fixed-cat-colors">
+            <label
+              for="settings-fgm-matrix-frame-encoding"
+              title="Frame encoding">Frame Enc.</label>
+            <select
+              id="settings-fgm-matrix-frame-encoding"
+              change.delegate="matrixFrameEncodingChangeHandler($event)">
+              <option
+                value=""
+                selected.bind="!state.matrixFrameEncoding">---</option>
+              <option
+                repeat.for="option of state.measures"
+                value.one-way="option.id"
+                selected.bind="option.id === state.matrixFrameEncoding">${option.name}</option>
+            </select>
           </li>
           <li class="flex-c flex-d-c">
             <label for="settings-fgm-round-lasso">Round Lasso</label>

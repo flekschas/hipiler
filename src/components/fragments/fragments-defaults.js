@@ -51,7 +51,9 @@ export const LABEL_TEXT_SPEC = {
 
 export const LASSO_IS_ROUND = true;
 
-export const LASSO_LINE = threeLine2d(THREE);
+export const LINE = threeLine2d(THREE);
+
+export const LINE_SHADER = threeLine2dShader(THREE);
 
 export const LASSO_LINE_WIDTH = 2;
 
@@ -74,6 +76,12 @@ export const MARGIN_LEFT = 2;
 export const MARGIN_RIGHT = 2;
 
 export const MARGIN_TOP = 2;
+
+export const MATRIX_FRAME_ENCODING = null;
+
+export const MATRIX_FRAME_THICKNESS = 1;
+
+export const MATRIX_FRAME_THICKNESS_MAX = 10;
 
 export const MATRIX_GAP_HORIZONTAL = 6;
 

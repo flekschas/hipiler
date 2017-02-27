@@ -32,6 +32,7 @@ import {
   setCellSize,
   setCoverDispMode,
   setLassoIsRound,
+  setMatrixFrameEncoding,
   setMatrixOrientation,
   setPiles,
   setShowSpecialCells,
@@ -46,13 +47,14 @@ import {
   FONT_URL,
   FPS,
   HIGHLIGHT_FRAME_LINE_WIDTH,
-  LASSO_LINE,
+  LINE,
   LASSO_MATERIAL,
   LASSO_MIN_MOVE,
   MARGIN_BOTTOM,
   MARGIN_LEFT,
   MARGIN_RIGHT,
   MARGIN_TOP,
+  MATRIX_FRAME_ENCODING,
   MATRIX_GAP_HORIZONTAL,
   MATRIX_GAP_VERTICAL,
   MATRIX_ORIENTATION_3_TO_5,
@@ -68,7 +70,6 @@ import {
   WEB_GL_CONFIG,
   Z_BASE,
   Z_DRAG,
-  Z_HIGHLIGHT,
   Z_LASSO,
   Z_STACK_PILE_TARGET
 } from 'components/fragments/fragments-defaults';
@@ -709,6 +710,8 @@ export class Fragments {
     fgmState.hoveredPile.updateLabels();
 
     fgmState.previousHoveredPile = fgmState.hoveredPile;
+
+    this.render();
   }
 
   /**
@@ -1152,8 +1155,8 @@ export class Fragments {
       this.lassoRoundSelection[this.intersects[0].object.pile.id] = true;
     }
 
-    //create our geometry
-    let curveGeometry = LASSO_LINE(this.lassoRoundCoords);
+    // Create geometry
+    let curveGeometry = LINE(this.lassoRoundCoords);
 
     fgmState.scene.remove(this.lassoObject);
 
@@ -1226,7 +1229,7 @@ export class Fragments {
     fgmState.scene.add(this.highlightFrame);
 
     // redraw
-    this.piles.forEach(pile => pile.updateFrame());
+    this.piles.forEach(pile => pile.frameUpdate());
     this.redrawPiles();
     this.updateLayout().then(() => {
       this.render();
@@ -1505,12 +1508,12 @@ export class Fragments {
    * @param {object} pile - Pile to be highlighted.
    */
   highlightPile (pile) {
+    if (fgmState.previousHoveredPile && fgmState.previousHoveredPile !== pile) {
+      fgmState.previousHoveredPile.frameReset();
+    }
+
     if (typeof pile !== 'undefined') {
-      this.highlightFrame.position.set(pile.x, pile.y, Z_HIGHLIGHT);
-      this.highlightFrame.visible = true;
-      fgmState.scene.add(this.highlightFrame);
-    } else {
-      fgmState.scene.remove(this.highlightFrame);
+      pile.frameHighlight();
     }
   }
 
@@ -1523,6 +1526,9 @@ export class Fragments {
    */
   initData (config, rawMatrices) {
     const header = ['matrix', ...config.fragmentsHeader];
+    const fragments = config.fragments.map(
+      (fragment, index) => [rawMatrices[index], ...fragment]
+    );
 
     this.dataIdxMatrix = 0;
     this.dataIdxChrom1 = header.indexOf('chrom1');
@@ -1567,6 +1573,20 @@ export class Fragments {
       }
     });
 
+    const measureIdx = Object.keys(this.dataMeasures);
+
+    // Extract min and max measures
+    let max = new Float32Array(measureIdx.length);
+    fragments
+      .map(fragment => measureIdx.map(id => fragment[this.dataMeasures[id]]))
+      .forEach((measures) => {
+        max = max.map((value, index) => Math.max(value, measures[index]));
+      });
+
+    measureIdx.forEach((measure, index) => {
+      fgmState.dataMeasuresMax[measure] = max[index];
+    });
+
     this.selectMeasure(this.arrangeMeasures, fgmState.measures);
 
     // Let the multi/select component know
@@ -1574,12 +1594,7 @@ export class Fragments {
       `${EVENT_BASE_NAME}.${this.arrangeSelectedEventId}.update`
     );
 
-    return {
-      header,
-      fragments: config.fragments.map(
-        (fragment, index) => [rawMatrices[index], ...fragment]
-      )
-    };
+    return { header, fragments };
   }
 
   /**
@@ -1992,6 +2007,25 @@ export class Fragments {
     }
 
     this.startAnimations();
+  }
+
+  /**
+   * Matrix frame encoding change handler.
+   *
+   * @param {object} event - Event object.
+   */
+  matrixFrameEncodingChangeHandler (event) {
+    try {
+      let val = event.target.selectedOptions[0].value;
+      if (!event.target.selectedOptions[0].value.length) {
+        val = MATRIX_FRAME_ENCODING;
+      }
+      console.log(val);
+
+      this.store.dispatch(setMatrixFrameEncoding(val));
+    } catch (error) {
+      logger.error('Matrix frame encoding could not be set.', error);
+    }
   }
 
   /**
@@ -2553,6 +2587,7 @@ export class Fragments {
       this.updateCellSize(stateFgm.cellSize);
       this.updateConfig(stateFgm.config);
       this.updateLassoIsRound(stateFgm.lassoIsRound);
+      this.updateMatrixFrameEncoding(stateFgm.matrixFrameEncoding);
       this.updateMatrixOrientation(stateFgm.matrixOrientation);
       this.updatePiles(stateFgm.piles);
       this.updateShowSpecialCells(stateFgm.showSpecialCells);
@@ -2594,7 +2629,7 @@ export class Fragments {
 
     if (this.isInitialized) {
       this.calcGrid();
-      this.piles.forEach(pile => pile.updateFrame());
+      this.piles.forEach(pile => pile.frameUpdate());
       this.redrawPiles();
       this.updateLayout().then(() => {
         this.render();
@@ -2630,7 +2665,7 @@ export class Fragments {
     fgmState.cellSize = newSize;
 
     if (this.isInitialized && update) {
-      this.piles.forEach(pile => pile.updateFrame());
+      this.piles.forEach(pile => pile.frameUpdate());
 
       // Update highlighting frame
       fgmState.scene.remove(this.highlightFrame);
@@ -2726,6 +2761,28 @@ export class Fragments {
           resolve();
         });
     });
+  }
+
+  /**
+   * Update the matrix frame encoding of all matrices.
+   *
+   * @param {string} encoding - Matrix measure.
+   */
+  updateMatrixFrameEncoding (encoding) {
+    if (fgmState.matrixFrameEncoding === encoding) {
+      return;
+    }
+
+    fgmState.matrixFrameEncoding = encoding;
+
+    console.log('GIRLS', encoding);
+
+    if (this.isInitialized) {
+      this.piles.forEach((pile) => {
+        pile.frameUpdate(fgmState.matrixFrameEncoding);
+      });
+      this.render();
+    }
   }
 
   /**

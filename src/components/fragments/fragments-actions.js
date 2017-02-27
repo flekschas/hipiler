@@ -68,6 +68,13 @@ export const setMatrixOrientation = orientation => ({
   payload: { orientation }
 });
 
+export const SET_MATRIX_FRAME_ENCODING = 'SET_MATRIX_FRAME_ENCODING';
+
+export const setMatrixFrameEncoding = frameEncoding => ({
+  type: SET_MATRIX_FRAME_ENCODING,
+  payload: { frameEncoding }
+});
+
 export const SET_PILE_MODE = 'SET_PILE_MODE';
 
 export const setPileMode = (mode, pile) => ({
