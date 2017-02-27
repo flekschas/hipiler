@@ -206,10 +206,10 @@ export function createLineFrame (width, height, color, lineWidth) {
   const hh = height / 2;
 
   const coordinates = [
-    [-wh + 1, -hh + 1],
-    [-wh + 1, hh + 1],
-    [wh + 1, hh + 1],
-    [wh + 1, -hh + 1]
+    [-wh, -hh],
+    [-wh, hh],
+    [wh, hh],
+    [wh, -hh]
   ];
 
   const geometry = LINE(coordinates, { closed: true });
