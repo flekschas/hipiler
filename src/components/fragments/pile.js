@@ -48,6 +48,7 @@ import {
   createRect,
   createRectFrame,
   createText,
+  frameValue,
   makeBuffer3f
 } from 'components/fragments/fragments-utils';
 
@@ -184,6 +185,7 @@ export default class Pile {
     matrices.forEach((matrix) => { matrix.pile = this; });
 
     this.assessMeasures();
+    this.frameUpdate(fgmState.matrixFrameEncoding);
     this.calculateAvgMatrix();
     this.calculateCoverMatrix();
 
@@ -297,6 +299,8 @@ export default class Pile {
     const numMatrices = this.pileMatrices.length;
 
     this.coverMatrix = new Array(this.dims).fill(undefined);
+
+    console.log('calculateCoverMatrix', numMatrices);
 
     if (numMatrices > 1) {
       // Create empty this.dims x this.dims matrix
@@ -1028,19 +1032,28 @@ export default class Pile {
     if (encoding === null) {
       this.matrixFrameThickness = MATRIX_FRAME_THICKNESS;
     } else {
-      this.matrixFrameThickness = (
+      const relVal = (
         this.measures[encoding] /
-        fgmState.dataMeasuresMax[encoding] *
-        MATRIX_FRAME_THICKNESS_MAX
+        fgmState.dataMeasuresMax[encoding]
       );
+
+      this.matrixFrameThickness = Math.max(
+        relVal * MATRIX_FRAME_THICKNESS_MAX,
+        MATRIX_FRAME_THICKNESS
+      );
+
+      const relColorVal = frameValue(1 - relVal);
+      this.matrixFrameColor = new Color(
+        relColorVal, relColorVal, relColorVal
+      ).getHex();
     }
 
     this.matrixFrame.material.uniforms.thickness.value =
       this.matrixFrameThickness;
 
-    // this.matrixFrame.material.uniforms.diffuse.value = new Color(
-    //   this.matrixFrameColor
-    // );
+    this.matrixFrame.material.uniforms.diffuse.value = new Color(
+      this.matrixFrameColor
+    );
 
     return this;
   }
@@ -1233,6 +1246,7 @@ export default class Pile {
     });
 
     this.assessMeasures();
+    this.frameUpdate(fgmState.matrixFrameEncoding);
     this.calculateAvgMatrix();
     this.calculateCoverMatrix();
 
@@ -1265,6 +1279,7 @@ export default class Pile {
     matrices.forEach((matrix) => { matrix.pile = this; });
 
     this.assessMeasures();
+    this.frameUpdate(fgmState.matrixFrameEncoding);
     this.calculateAvgMatrix();
     this.calculateCoverMatrix();
 

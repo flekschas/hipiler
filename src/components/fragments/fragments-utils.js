@@ -63,6 +63,8 @@ export function calculateDistances (matrices) {
 
 export const cellValue = scaleLinear().range([0, 1]).nice();
 
+export const frameValue = scaleLinear().range([0.1, 0.9]).nice();
+
 /**
  * Map a value to a relative color array for blue.
  *
