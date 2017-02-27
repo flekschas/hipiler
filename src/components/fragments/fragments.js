@@ -433,15 +433,15 @@ export class Fragments {
     this.gridCellWidth = this.matrixWidth + MATRIX_GAP_HORIZONTAL;
 
     // Columns and rows
-    this.gridNumCols = Math.floor(
+    this.gridNumCols = Math.max(Math.floor(
       (this.plotElDim.width - MARGIN_LEFT - MARGIN_RIGHT) /
       this.gridCellWidth
-    );
+    ), 1);
 
-    this.gridNumRows = Math.floor(
+    this.gridNumRows = Math.max(Math.floor(
       (this.plotElDim.height - MARGIN_TOP - MARGIN_BOTTOM) /
       this.gridCellHeight
-    );
+    ), 1);
 
     this.visiblePilesMax = this.gridNumCols * this.gridNumRows;
 
@@ -1562,6 +1562,8 @@ export class Fragments {
     }
 
     // Extract measures
+    this.dataMeasures = [];
+    fgmState.measures = [];
     header.forEach((headerField, index) => {
       if (!(index in usedIdx)) {
         this.dataMeasures[headerField] = index;
@@ -1692,7 +1694,9 @@ export class Fragments {
    */
   initPiles (matrices, pileConfig = {}) {
     if (this.checkPileConfig(matrices, pileConfig)) {
-      this.updatePiles(pileConfig, true);
+      const update = {};
+      this.updatePiles(pileConfig, true, update);
+      this.updateRendering(update);
     } else {
       const pilesNew = {};
 
@@ -1864,6 +1868,8 @@ export class Fragments {
    *   loaded.
    */
   loadData (config) {
+    this.isLoading = true;
+
     const loadData = new Promise((resolve, reject) => {
       let dataUrl;
 
@@ -2020,7 +2026,6 @@ export class Fragments {
       if (!event.target.selectedOptions[0].value.length) {
         val = MATRIX_FRAME_ENCODING;
       }
-      console.log(val);
 
       this.store.dispatch(setMatrixFrameEncoding(val));
     } catch (error) {
@@ -2580,19 +2585,60 @@ export class Fragments {
       const state = this.store.getState().present.decompose;
       const stateFgm = state.fragments;
 
-      this.updateGrid(state.columns);
+      const update = {};
+
+      this.updatePlotSize(state.columns, update);
+
       this.updateAnimation(stateFgm.animation);
-      this.updateArrangeMeasures(stateFgm.arrangeMeasures);
-      this.updateCoverDispMode(stateFgm.coverDispMode);
-      this.updateCellSize(stateFgm.cellSize);
+      this.updateArrangeMeasures(stateFgm.arrangeMeasures, update);
+      this.updateCoverDispMode(stateFgm.coverDispMode, update);
+      this.updateCellSize(stateFgm.cellSize, update);
       this.updateConfig(stateFgm.config);
       this.updateLassoIsRound(stateFgm.lassoIsRound);
-      this.updateMatrixFrameEncoding(stateFgm.matrixFrameEncoding);
-      this.updateMatrixOrientation(stateFgm.matrixOrientation);
-      this.updatePiles(stateFgm.piles);
-      this.updateShowSpecialCells(stateFgm.showSpecialCells);
+      this.updateMatrixFrameEncoding(stateFgm.matrixFrameEncoding, update);
+      this.updateMatrixOrientation(stateFgm.matrixOrientation, update);
+      this.updatePiles(stateFgm.piles, false, update);
+      this.updateShowSpecialCells(stateFgm.showSpecialCells, update);
+
+      this.updateRendering(update);
     } catch (e) {
       logger.error('State is invalid', e);
+    }
+  }
+
+  updateRendering (update) {
+    if (update.webgl) {
+      this.updateWebGl();
+    }
+
+    if (update.grid) {
+      this.calcGrid();
+    }
+
+    if (update.pileFrames) {
+      this.piles.forEach(pile => pile.frameUpdate());
+    }
+
+    if (update.pileFramesRecreate) {
+      this.piles.forEach(pile => pile.frameCreate());
+    }
+
+    if (update.piles || update.pileFramesRecreate) {
+      this.redrawPiles();
+    }
+
+    if (update.scrollLimit) {
+      this.setScrollLimit();
+    }
+
+    if (this.isInitialized) {
+      this.render();
+    }
+
+    if (update.layout) {
+      this.updateLayout().then(() => {
+        this.render();
+      });
     }
   }
 
@@ -2603,6 +2649,8 @@ export class Fragments {
    */
   updateAnimation (animation) {
     fgmState.animation = animation;
+
+    return 0;
   }
 
   /**
@@ -2610,7 +2658,7 @@ export class Fragments {
    *
    * @param {array} arrangeMeasures - Array of measure IDs.
    */
-  updateArrangeMeasures (arrangeMeasures) {
+  updateArrangeMeasures (arrangeMeasures, update) {
     const _arrangeMeasures = arrangeMeasures || ARRANGE_MEASURES;
 
     if (this.arrangeMeasures === _arrangeMeasures) {
@@ -2628,12 +2676,10 @@ export class Fragments {
     }
 
     if (this.isInitialized) {
-      this.calcGrid();
-      this.piles.forEach(pile => pile.frameUpdate());
-      this.redrawPiles();
-      this.updateLayout().then(() => {
-        this.render();
-      });
+      update.grid = true;
+      update.piles = true;
+      update.pileFrames = true;
+      update.layout = true;
     }
   }
 
@@ -2642,15 +2688,17 @@ export class Fragments {
    *
    * @param {number} coverDispMode - Display mode number.
    */
-  updateCoverDispMode (coverDispMode) {
-    const update = this.coverDispMode !== coverDispMode;
+  updateCoverDispMode (coverDispMode, update) {
+    if (this.coverDispMode === coverDispMode) {
+      return;
+    }
 
     this.coverDispMode = coverDispMode;
 
-    if (this.isInitialized && update) {
+    if (this.isInitialized) {
       this.setPileMode(this.coverDispMode, this.piles);
-      this.redrawPiles();
-      this.render();
+      update.grid = true;
+      update.piles = true;
     }
   }
 
@@ -2659,29 +2707,19 @@ export class Fragments {
    *
    * @param {number} newSize - New cell size
    */
-  updateCellSize (newSize) {
-    const update = fgmState.cellSize !== newSize;
+  updateCellSize (newSize, update) {
+    if (fgmState.cellSize === newSize) {
+      return;
+    }
 
     fgmState.cellSize = newSize;
 
-    if (this.isInitialized && update) {
-      this.piles.forEach(pile => pile.frameUpdate());
-
-      // Update highlighting frame
-      fgmState.scene.remove(this.highlightFrame);
-      this.highlightFrame = createRectFrame(
-        this.matrixWidth,
-        this.matrixWidth,
-        COLORS.PRIMARY,
-        HIGHLIGHT_FRAME_LINE_WIDTH
-      );
-
-      this.calcGrid();
-      this.redrawPiles();
-      this.setScrollLimit(this.data.fragments.length);
-      this.updateLayout(this.piles, this.arrangeMeasures, true).then(() => {
-        this.render();
-      });
+    if (this.isInitialized) {
+      update.grid = true;
+      update.piles = true;
+      update.pileFramesRecreate = true;
+      update.layout = true;
+      update.scrollLimit = true;
     }
   }
 
@@ -2694,23 +2732,6 @@ export class Fragments {
     if (this.fragments.config !== newConfig) {
       this.fragments.config = newConfig;
       this.loadData(this.fragments.config);
-    }
-  }
-
-  /**
-   * Handle updating the grid if necessary
-   *
-   * @param {object} columns - Decompose column information.
-   */
-  updateGrid (columns) {
-    if (this.decomposeColums === columns) {
-      return;
-    }
-
-    this.decomposeColums = columns;
-
-    if (this.isInitialized) {
-      this.calcGrid();
     }
   }
 
@@ -2768,20 +2789,15 @@ export class Fragments {
    *
    * @param {string} encoding - Matrix measure.
    */
-  updateMatrixFrameEncoding (encoding) {
+  updateMatrixFrameEncoding (encoding, update) {
     if (fgmState.matrixFrameEncoding === encoding) {
       return;
     }
 
     fgmState.matrixFrameEncoding = encoding;
 
-    console.log('GIRLS', encoding);
-
     if (this.isInitialized) {
-      this.piles.forEach((pile) => {
-        pile.frameUpdate(fgmState.matrixFrameEncoding);
-      });
-      this.render();
+      update.pileFrames = true;
     }
   }
 
@@ -2790,7 +2806,7 @@ export class Fragments {
    *
    * @param {number} orientation - Matrix orientation number.
    */
-  updateMatrixOrientation (orientation) {
+  updateMatrixOrientation (orientation, update) {
     if (fgmState.matrixOrientation === orientation) {
       return;
     }
@@ -2798,8 +2814,7 @@ export class Fragments {
     fgmState.matrixOrientation = orientation;
 
     if (this.isInitialized) {
-      this.redrawPiles();
-      this.render();
+      update.piles = true;
     }
   }
 
@@ -2809,7 +2824,7 @@ export class Fragments {
    * @param {object} pileConfigs - Config object
    * @param {boolean} forced - If `true` force update
    */
-  updatePiles (pileConfigs, forced) {
+  updatePiles (pileConfigs, forced, update) {
     if (this.pileConfigs !== pileConfigs && (this.isInitialized || forced)) {
       this.pileConfigs = pileConfigs;
 
@@ -2854,10 +2869,27 @@ export class Fragments {
         });
 
       this.calculateDistanceMatrix();
-      this.setScrollLimit();
-      this.updateLayout().then(() => {
-        this.render();
-      });
+
+      update.layout = true;
+      update.scrollLimit = true;
+    }
+  }
+
+  /**
+   * Handle updating the grid if necessary
+   *
+   * @param {object} columns - Decompose column information.
+   */
+  updatePlotSize (columns, update) {
+    if (this.decomposeColums === columns) {
+      return;
+    }
+
+    this.decomposeColums = columns;
+
+    if (this.isInitialized) {
+      update.grid = true;
+      update.webgl = true;
     }
   }
 
@@ -2866,14 +2898,37 @@ export class Fragments {
    *
    * @param {boolean} showSpecialCells - If `true` show special cells.
    */
-  updateShowSpecialCells (showSpecialCells) {
-    const update = fgmState.showSpecialCells !== showSpecialCells;
+  updateShowSpecialCells (showSpecialCells, update) {
+    if (fgmState.showSpecialCells === showSpecialCells) {
+      return;
+    }
 
     fgmState.showSpecialCells = showSpecialCells;
 
-    if (this.isInitialized && update) {
-      this.redrawPiles();
-      this.render();
+    if (this.isInitialized) {
+      update.piles = true;
+    }
+  }
+
+  /**
+   * Initialize the canvas container.
+   */
+  updateWebGl () {
+    if (this.isInitialized) {
+      this.getPlotElDim();
+
+      this.camera.left = this.plotElDim.width / -2;
+      this.camera.right = this.plotElDim.width / 2;
+      this.camera.top = this.plotElDim.height / 2;
+      this.camera.bottom = this.plotElDim.height / -2;
+
+      this.camera.position.x = (this.plotElDim.width / 2);
+      this.scrollLimitTop = MARGIN_TOP - (this.plotElDim.height / 2);
+      this.camera.position.y = this.scrollLimitTop;
+
+      this.camera.updateProjectionMatrix();
+
+      this.renderer.setSize(this.plotElDim.width, this.plotElDim.height);
     }
   }
 }
