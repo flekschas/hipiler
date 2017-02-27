@@ -1,6 +1,7 @@
 import { Scene } from 'three';
 
 import {
+  CELL_SIZE,
   MATRIX_ORIENTATION_INITIAL
 } from 'components/fragments/fragments-defaults';
 
@@ -9,6 +10,7 @@ const State = {
   activeMatrixInPileIndex: undefined,
   activePile: undefined,
   adjacentDistances: undefined,
+  cellSize: CELL_SIZE,
   dragActive: false,
   draggingMatrix: undefined,
   dragPile: undefined,
@@ -47,6 +49,7 @@ const State = {
   pilesTrash: [],
   pilingMethod: 'clustered',
   previousHoveredPile: undefined,
+  scale: 1,
   scene: new Scene(),
   selectedMatrices: [],
   strandArrowRects: [],

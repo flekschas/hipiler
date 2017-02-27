@@ -40,7 +40,6 @@ import {
 
 import {
   ARRANGE_MEASURES,
-  CELL_SIZE,
   CLICK_DELAY_TIME,
   DBL_CLICK_DELAY_TIME,
   DURATION,
@@ -136,8 +135,6 @@ export class Fragments {
     this.store.subscribe(this.update.bind(this));
 
     this.fragments = {};
-
-    fgmState.cellSize = CELL_SIZE;
     this.maxDistance = 0;
     this.pilingMethod = 'clustered';
     this.matrixStrings = '';
@@ -160,7 +157,6 @@ export class Fragments {
 
     this._isLoadedSession = false;
     this._isSavedSession = false;
-    this.fragScale = 1;
 
     this.pileIDCount = 0;
     this.startPile = 0;
@@ -269,7 +265,7 @@ export class Fragments {
   /* ----------------------- Getter / Setter Variables ---------------------- */
 
   get cellSize () {
-    return fgmState.cellSize;
+    return fgmState.cellSize * fgmState.scale;
   }
 
   get plotElDim () {
@@ -305,7 +301,7 @@ export class Fragments {
   }
 
   get matrixWidth () {
-    return this.fragDims * fgmState.cellSize;
+    return this.fragDims * this.cellSize;
   }
 
   get matrixWidthHalf () {
@@ -359,6 +355,7 @@ export class Fragments {
     }
 
     // if (measures.length === 2) {
+
     // }
 
     // if (measures.length > 2) {
@@ -472,6 +469,8 @@ export class Fragments {
 
     fgmState.gridCellWidthInclSpacingHalf =
       fgmState.gridCellWidthInclSpacing / 2;
+
+    console.log('calcGrid', this.gridNumCols);
   }
 
   /**
@@ -632,7 +631,7 @@ export class Fragments {
       const pile = new Pile(
         pileId,
         fgmState.scene,
-        this.fragScale,
+        fgmState.scale,
         this.fragDims
       );
 
@@ -692,8 +691,8 @@ export class Fragments {
 
     if (event.shiftKey) {
       // test which cell is hovered.
-      let col = Math.floor((this.mouse.x - (x - this.matrixWidthHalf)) / fgmState.cellSize);
-      let row = Math.floor(-(this.mouse.y - (y + this.matrixWidthHalf)) / fgmState.cellSize);
+      let col = Math.floor((this.mouse.x - (x - this.matrixWidthHalf)) / this.cellSize);
+      let row = Math.floor(-(this.mouse.y - (y + this.matrixWidthHalf)) / this.cellSize);
       if (
         row >= 0 ||
         row < fgmState.focusNodes.length ||
@@ -1147,7 +1146,7 @@ export class Fragments {
       this.relToAbsPositionY(currentY)
     ]);
 
-    if (!this.lassoRoundMinMove && dist > LASSO_MIN_MOVE * fgmState.cellSize) {
+    if (!this.lassoRoundMinMove && dist > LASSO_MIN_MOVE * this.cellSize) {
       this.lassoRoundMinMove = true;
     }
 
@@ -1216,7 +1215,7 @@ export class Fragments {
     fgmState.focusNodes = nodes;
 
     // update sizes
-    this.matrixWidth = fgmState.cellSize * fgmState.focusNodes.length;
+    this.matrixWidth = this.cellSize * fgmState.focusNodes.length;
     this.matrixWidthHalf = this.matrixWidth / 2;
 
     fgmState.calculateDistanceMatrix();
@@ -1230,7 +1229,7 @@ export class Fragments {
 
     // redraw
     this.piles.forEach(pile => pile.updateFrame());
-    this.redrawPiles(this.piles);
+    this.redrawPiles();
     this.updateLayout().then(() => {
       this.render();
     });
@@ -1319,10 +1318,10 @@ export class Fragments {
    * @return {object} Object with x and y coordinates
    */
   getLayoutPosition (pile, abs) {
-    // const numArrMets = this.arrangeMeasures.length;
+    const numArrMets = this.arrangeMeasures.length;
 
-    // if (numArrMets === 2) {
-    //   return this.getLayoutPosition2D(pile.ranking);
+    // if (numArrMets === 2 && !this.trashIsActive) {
+    //   return this.getLayoutPosition2D(pile, this.arrangeMeasures, abs);
     // }
 
     // if (numArrMets > 2) {
@@ -1341,6 +1340,24 @@ export class Fragments {
    * @return {object} Object with x and y coordinates
    */
   getLayoutPosition1D (pileSortIndex, abs) {
+    let x = (
+      fgmState.gridCellWidthInclSpacing * (pileSortIndex % this.gridNumCols)
+    ) || MARGIN_LEFT;
+
+    let y = (
+      Math.trunc(pileSortIndex / this.gridNumCols) *
+      fgmState.gridCellHeightInclSpacing
+    ) || MARGIN_TOP;
+
+    if (abs) {
+      x += fgmState.gridCellWidthInclSpacingHalf;
+      y = -y - fgmState.gridCellHeightInclSpacingHalf;
+    }
+
+    return { x, y };
+  }
+
+  getLayoutPosition2D (pile, arrangeMeasures, abs) {
     let x = (
       fgmState.gridCellWidthInclSpacing * (pileSortIndex % this.gridNumCols)
     ) || MARGIN_LEFT;
@@ -2161,8 +2178,17 @@ export class Fragments {
    *
    * @param {array} piles - List of piles to be redrawn.
    */
-  redrawPiles (piles) {
+  redrawPiles (piles = this.piles) {
     piles.forEach(pile => pile.draw());
+  }
+
+  /**
+   * Rescale piles.
+   *
+   * @param {array} piles - List of piles to be redrawn.
+   */
+  rescalePiles (piles = this.piles) {
+    piles.forEach(pile => pile.setScale());
   }
 
   /**
@@ -2282,7 +2308,7 @@ export class Fragments {
       const newPile = new Pile(
         this.piles.length,
         fgmState.scene,
-        this.fragScale,
+        fgmState.scale,
         this.fragDims
       );
 
@@ -2437,7 +2463,7 @@ export class Fragments {
       let pileNew = new Pile(
         this.piles.length,
         fgmState.scene,
-        this.fragScale,
+        fgmState.scale,
         this.fragDims
       );
 
@@ -2552,11 +2578,24 @@ export class Fragments {
    * @param {array} arrangeMeasures - Array of measure IDs.
    */
   updateArrangeMeasures (arrangeMeasures) {
-    this.arrangeMeasures = arrangeMeasures || ARRANGE_MEASURES;
+    const _arrangeMeasures = arrangeMeasures || ARRANGE_MEASURES;
+
+    if (this.arrangeMeasures === _arrangeMeasures) {
+      return;
+    }
+
+    this.arrangeMeasures = _arrangeMeasures;
 
     this.selectMeasure(this.arrangeMeasures, fgmState.measures);
 
+    if (this.arrangeMeasures.length > 1) {
+      fgmState.scale = 0.25;
+    } else {
+      fgmState.scale = 1;
+    }
+
     if (this.isInitialized) {
+      this.redrawPiles();
       this.updateLayout().then(() => {
         this.render();
       });
@@ -2575,7 +2614,7 @@ export class Fragments {
 
     if (this.isInitialized && update) {
       this.setPileMode(this.coverDispMode, this.piles);
-      this.redrawPiles(this.piles);
+      this.redrawPiles();
       this.render();
     }
   }
@@ -2603,10 +2642,12 @@ export class Fragments {
       );
 
       this.calcGrid();
-      this.redrawPiles(this.piles);
+
+      this.redrawPiles();
+
       this.setScrollLimit(this.data.fragments.length);
 
-      this.updateLayout().then(() => {
+      this.updateLayout(this.piles, this.arrangeMeasures, true).then(() => {
         this.render();
       });
     }
@@ -2630,11 +2671,13 @@ export class Fragments {
    * @param {object} columns - Decompose column information.
    */
   updateGrid (columns) {
-    const update = this.decomposeColums !== columns;
+    if (this.decomposeColums === columns) {
+      return;
+    }
 
     this.decomposeColums = columns;
 
-    if (this.isInitialized && update) {
+    if (this.isInitialized) {
       this.calcGrid();
     }
   }
@@ -2701,7 +2744,7 @@ export class Fragments {
     fgmState.matrixOrientation = orientation;
 
     if (this.isInitialized) {
-      this.redrawPiles(this.piles);
+      this.redrawPiles();
       this.render();
     }
   }
@@ -2775,7 +2818,7 @@ export class Fragments {
     fgmState.showSpecialCells = showSpecialCells;
 
     if (this.isInitialized && update) {
-      this.redrawPiles(this.piles);
+      this.redrawPiles();
       this.render();
     }
   }
