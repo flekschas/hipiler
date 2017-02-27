@@ -96,8 +96,14 @@ export function piles (state = PILES, action) {
     }
 
     case STACK_PILES: {
-      const newState = { ...state };
+      // Create copy of old state
+      const newState = {};
 
+      Object.keys(state).forEach((prop) => {
+        newState[prop] = state[prop].slice();
+      });
+
+      // Adust new state
       Object.keys(action.payload.pileStacks).forEach((targetPile) => {
         const sourcePiles = action.payload.pileStacks[targetPile];
 
