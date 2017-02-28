@@ -27,7 +27,10 @@
         </header>
         <higlass class="full-wh no-overflow column-content"></higlass>
       </div>
-      <div class="fragments-view rel" ref="fragmentsColEl">
+      <div
+        class="fragments-view rel"
+        ref="fragmentsColEl"
+        transitionend.delegate="transtionEnd()">
         <button
           class="column-resizer draggable horizontal-only"
           ref="fragmentsDragger"
@@ -56,7 +59,9 @@
             </li>
           </ul>
         </header>
-        <fragments class="full-wh no-overflow column-content"></fragments>
+        <fragments
+          class="full-wh no-overflow column-content"
+          base-el-is-init.bind="init"></fragments>
       </div>
     </div>
     <div class="stats-view rel" css.one-way="css.stats" ref="statsColEl">

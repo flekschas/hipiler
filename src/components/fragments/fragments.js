@@ -1,5 +1,9 @@
 // Aurelia
-import { inject, LogManager } from 'aurelia-framework';
+import {
+  bindable,
+  inject,
+  LogManager
+} from 'aurelia-framework';
 
 import { EventAggregator } from 'aurelia-event-aggregator';
 
@@ -132,6 +136,8 @@ const sortAsc = (a, b) => {
 
 @inject(EventAggregator, States)
 export class Fragments {
+  @bindable baseElIsInit = false;
+
   constructor (eventAggregator, states) {
     this.event = eventAggregator;
 
@@ -240,6 +246,11 @@ export class Fragments {
       this.reject.isAttached = reject;
     });
 
+    this.isBaseElInit = new Promise((resolve, reject) => {
+      this.resolve.isBaseElInit = resolve;
+      this.reject.isBaseElInit = reject;
+    });
+
     this.isDataLoaded = new Promise((resolve, reject) => {
       this.resolve.isDataLoaded = resolve;
       this.reject.isDataLoaded = reject;
@@ -250,10 +261,23 @@ export class Fragments {
       this.reject.isFontLoaded = reject;
     });
 
+    this.isInitBase = new Promise((resolve, reject) => {
+      this.resolve.isInitBase = resolve;
+      this.reject.isInitBase = reject;
+    });
+
     this.update();
+    this.loadFont();
 
     Promise
-      .all([this.isDataLoaded, this.isFontLoaded, this.isAttached])
+      .all([this.isAttached, this.isBaseElInit])
+      .then(() => { this.init(); })
+      .catch((error) => {
+        logger.error('Failed to initialize the fragment plot', error);
+      });
+
+    Promise
+      .all([this.isDataLoaded, this.isFontLoaded, this.isInitBase])
       .then(() => { this.initPlot(this.data); })
       .catch((error) => {
         logger.error('Failed to initialize the fragment plot', error);
@@ -261,17 +285,13 @@ export class Fragments {
   }
 
   attached () {
-    this.loadFont();
+    this.resolve.isAttached();
+  }
 
-    this.getPlotElDim();
-
-    this.initShader();
-    this.initWebGl();
-    this.initEventListeners();
-
-    this.plotEl.appendChild(this.canvas);
-
-    this.resolve.isAttached(true);
+  baseElIsInitChanged () {
+    if (this.baseElIsInit) {
+      this.resolve.isBaseElInit();
+    }
   }
 
 
@@ -1576,6 +1596,21 @@ export class Fragments {
     if (typeof pile !== 'undefined') {
       pile.frameHighlight();
     }
+  }
+
+  /**
+   * General init
+   */
+  init () {
+    this.getPlotElDim();
+
+    this.initShader();
+    this.initWebGl();
+    this.initEventListeners();
+
+    this.plotEl.appendChild(this.canvas);
+
+    this.resolve.isInitBase();
   }
 
   /**

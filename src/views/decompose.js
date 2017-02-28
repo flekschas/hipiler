@@ -31,6 +31,8 @@ export class Decompose {
     this.fragments = {};
     this.stats = {};
 
+    this.init = false;
+
     this.updateCssDb = debounce(this.updateCss.bind(this), 50);
 
     this.update();
@@ -38,12 +40,7 @@ export class Decompose {
 
   attached () {
     this.$baseEl = new $(this.baseEl);
-
-    requestNextAnimationFrame(() => {
-      new $(this.matrixColEl).addClass('is-transitionable');
-      new $(this.fragmentsColEl).addClass('is-transitionable');
-      new $(this.statsColEl).addClass('is-transitionable');
-    });
+    this.isInitReady = true;
   }
 
   columnDragStartHandler (event, target) {
@@ -131,6 +128,18 @@ export class Decompose {
     }, transition.fast);
 
     this.dragging = undefined;
+  }
+
+  transtionEnd () {
+    if (this.isInitReady && !this.init) {
+      this.init = true;
+
+      requestNextAnimationFrame(() => {
+        new $(this.matrixColEl).addClass('is-transitionable');
+        new $(this.fragmentsColEl).addClass('is-transitionable');
+        new $(this.statsColEl).addClass('is-transitionable');
+      });
+    }
   }
 
   maximizeColumn (column) {
