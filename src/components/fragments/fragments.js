@@ -72,7 +72,8 @@ import {
   Z_BASE,
   Z_DRAG,
   Z_LASSO,
-  Z_STACK_PILE_TARGET
+  Z_STACK_PILE_TARGET,
+  ZOOM_DELAY_TIME
 } from 'components/fragments/fragments-defaults';
 
 import fgmState from 'components/fragments/fragments-state';
@@ -523,10 +524,8 @@ export class Fragments {
 
   /**
    * Handle click events
-   *
-   * @param {object} event - Event object
    */
-  canvasClickHandler (event) {
+  canvasClickHandler () {
     if (this.mouseIsDown) {
       return;
     }
@@ -567,10 +566,8 @@ export class Fragments {
 
   /**
    * Handle double click events.
-   *
-   * @param {object} event - Event object.
    */
-  canvasDblClickHandler (event) {
+  canvasDblClickHandler () {
     // Disabled for now
     // if (
     //   fgmState.hoveredPile &&
@@ -603,6 +600,11 @@ export class Fragments {
     };
 
     this.mouseDownTime = Date.now();
+
+    this.mouseDownDwelling = setTimeout(() => {
+      fgmState.hoveredPile.frameSetTemp(COLORS.GREEN, 2, true).draw(true);
+      this.render();
+    }, ZOOM_DELAY_TIME);
 
     // // test if mouse dwells on a matrix -> open pile
     // if (
@@ -825,24 +827,22 @@ export class Fragments {
    * @description
    * Single and double mouse clicks interfere with mouse up events when
    * listeneing to them separately.
-   *
-   * @param {object} event - Event object.
    */
-  canvasMouseClickHandler (event) {
+  canvasMouseClickHandler () {
     this.mouseDownTimeDelta = Date.now() - this.mouseDownTime;
 
-    if (Date.now() - this.mouseDownTime < CLICK_DELAY_TIME) {
+    if (this.mouseDownTimeDelta < CLICK_DELAY_TIME) {
       this.mouseClickCounter += 1;
 
       switch (this.mouseClickCounter) {
         case 2:
           clearTimeout(this.mouseClickTimeout);
-          this.canvasDblClickHandler(event);
+          this.canvasDblClickHandler();
           this.mouseClickCounter = 0;
           break;
 
         default:
-          this.canvasClickHandler(event);
+          this.canvasClickHandler();
           this.mouseClickTimeout = setTimeout(() => {
             this.mouseClickCounter = 0;
           }, DBL_CLICK_DELAY_TIME);
@@ -850,6 +850,10 @@ export class Fragments {
       }
     } else {
       this.mouseClickCounter = 0;
+
+      if (fgmState.layout2d && this.mouseDownTimeDelta > ZOOM_DELAY_TIME) {
+        fgmState.hoveredPile.scaleTo(6).draw();
+      }
     }
   }
 
@@ -865,6 +869,8 @@ export class Fragments {
     this.camera.updateProjectionMatrix();
     fgmState.scene.remove(this.lassoObject);
     this.mouseIsDown = false;
+
+    clearTimeout(this.mouseDownDwelling);
 
     let pilesSelected = [];
 

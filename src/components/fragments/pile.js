@@ -29,7 +29,6 @@ import {
 } from 'components/fragments/fragments-defaults';
 
 import {
-  MENU_DELAY,
   MENU_LABEL_SPACING,
   MENU_PADDING,
   PREVIEW_LOW_QUAL_THRESHOLD,
@@ -476,6 +475,8 @@ export default class Pile {
     if (!fgmState.layout2d) {
       this.drawStrandArrows(isHovering);
     }
+
+    return this;
   }
 
   /**
@@ -1049,6 +1050,32 @@ export default class Pile {
   }
 
   /**
+   * Temporarily change the matrix frame.
+   *
+   * @param {number} color - HEX color number.
+   * @param {number} thickness - Frame thickness.
+   * @param  {boolean} isMinThickness - If `true` `thickness` is the minimum.
+   * @return {object} Self.
+   */
+  frameSetTemp (color, thickness, isMinThickness = false) {
+    if (color) {
+      this.matrixFrame.material.uniforms.diffuse.value = new Color(color);
+    }
+
+    if (thickness) {
+      let _thickness = thickness;
+
+      if (isMinThickness) {
+        _thickness = Math.min(thickness, this.matrixFrameThickness);
+      }
+
+      this.matrixFrame.material.uniforms.thickness.value = _thickness;
+    }
+
+    return this;
+  }
+
+  /**
    * Frame requires update after matrix size has changed through filtering.
    *
    * @return {object} Self.
@@ -1280,6 +1307,18 @@ export default class Pile {
   }
 
   /**
+   * Adjust scale to enforce a certain cellsize
+   *
+   * @param {number} cellSize - Enforced cell size.
+   * @return {object} Self.
+   */
+  scaleTo (cellSize) {
+    this.setScale(cellSize / this.cellSize);
+
+    return this;
+  }
+
+  /**
    * Set cover matrix.
    *
    * @param {number} mode - Cover display mode number.
@@ -1347,10 +1386,10 @@ export default class Pile {
   /**
    * Rescale mesh.
    *
-   * @param {Number} scale - Scale.
+   * @param {number} scale - Scale to be set.
    * @return {object} Self.
    */
-  setScale (scale) {
+  setScale (scale = 1) {
     if (scale) {
       this.scale = scale;
     }

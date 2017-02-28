@@ -165,3 +165,5 @@ export const Z_LASSO = 2;
 export const Z_MENU = 2;
 
 export const Z_STACK_PILE_TARGET = 2;
+
+export const ZOOM_DELAY_TIME = 500;
