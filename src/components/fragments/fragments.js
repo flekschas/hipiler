@@ -350,7 +350,7 @@ export class Fragments {
   }
 
   get previewSize () {
-    return this.cellSize * (this.cellSize > 3 ? 1 : PREVIEW_SIZE);
+    return this.cellSize * (this.cellSize > 2 ? 1 : PREVIEW_SIZE);
   }
 
   get rawMatrices () {
