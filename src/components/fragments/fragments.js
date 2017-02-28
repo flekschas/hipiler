@@ -632,10 +632,12 @@ export class Fragments {
 
     this.mouseDownTime = Date.now();
 
-    this.mouseDownDwelling = setTimeout(() => {
-      fgmState.hoveredPile.frameSetTemp(COLORS.GREEN, 2, true).draw(true);
-      this.render();
-    }, ZOOM_DELAY_TIME);
+    if (fgmState.hoveredPile) {
+      this.mouseDownDwelling = setTimeout(() => {
+        fgmState.hoveredPile.frameSetTemp(COLORS.GREEN, 2, true).draw(true);
+        this.render();
+      }, ZOOM_DELAY_TIME);
+    }
 
     // // test if mouse dwells on a matrix -> open pile
     // if (
