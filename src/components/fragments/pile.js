@@ -466,7 +466,7 @@ export default class Pile {
 
     // Add frame
     this.mesh.add(this.matrixFrame);
-    this.matrixFrame.position.set(0, 0, Z_BASE);
+    this.matrixFrame.position.set(0, 0, 0);
 
     this.mesh.pile = this;
     this.pileMeshes.push(this.mesh);
