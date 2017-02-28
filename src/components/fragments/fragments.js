@@ -326,7 +326,7 @@ export class Fragments {
   }
 
   get previewSize () {
-    return this.cellSize > 3 ? PREVIEW_SIZE / 2 : PREVIEW_SIZE;
+    return this.cellSize * (this.cellSize > 3 ? 1 : PREVIEW_SIZE);
   }
 
   get rawMatrices () {
@@ -586,7 +586,7 @@ export class Fragments {
       this.dispersePileHandler(fgmState.hoveredPile);
       fgmState.hoveredPile = undefined;
     } else if (this.pileZoomed) {
-      this.pileZoomed.setScale().draw();
+      this.pileZoomed.setScale().frameCreate().draw();
       this.pileZoomed = undefined;
     }
   }
@@ -671,7 +671,7 @@ export class Fragments {
    * @param {number} pileId - Pile ID.
    * @return {object} New or retrieved pile
    */
-  createPile (pileId) {
+  pileCreate (pileId) {
     if (!fgmState.pilesIdx[pileId]) {
       const pile = new Pile(
         pileId,
@@ -710,9 +710,9 @@ export class Fragments {
     if (fgmState.hoveredPile.pileMatrices.length > 1) {
       const absY = this.relToAbsPositionY(this.mouse.y);
 
-      if (absY > y + this.matrixWidthHalf) {
-        let d = absY - (y + this.matrixWidthHalf);
-        let i = Math.floor(d / this.previewSize);
+      if (absY > y + fgmState.hoveredPile.matrixWidthHalf) {
+        let d = absY - (y + fgmState.hoveredPile.matrixWidthHalf);
+        let i = Math.floor(d / fgmState.hoveredPile.previewSize);
 
         fgmState.hoveredPile.showSingle(
           fgmState.hoveredPile.getMatrix(i)
@@ -859,7 +859,7 @@ export class Fragments {
       this.mouseClickCounter = 0;
 
       if (fgmState.layout2d && this.mouseDownTimeDelta > ZOOM_DELAY_TIME) {
-        this.pileZoomed = fgmState.hoveredPile.scaleTo(6).draw();
+        this.pileZoomed = fgmState.hoveredPile.scaleTo(6).frameCreate().draw();
       }
     }
   }
@@ -2888,7 +2888,7 @@ export class Fragments {
 
           if (pileConfig.matrixIds.length) {
             if (!pile) {
-              pile = this.createPile(pileConfig.id);
+              pile = this.pileCreate(pileConfig.id);
               this.destroyAltPile(pileConfig.id);
             }
 

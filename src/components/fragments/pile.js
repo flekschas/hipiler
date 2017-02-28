@@ -96,7 +96,11 @@ export default class Pile {
   /****************************** Getter / Setter *****************************/
 
   get cellSize () {
-    return fgmState.cellSize * (fgmState.trashIsActive ? 1 : fgmState.scale);
+    return (
+      fgmState.cellSize *
+      (fgmState.trashIsActive ? 1 : fgmState.scale) *
+      this.scale
+    );
   }
 
   get matrixWidth () {
@@ -116,7 +120,11 @@ export default class Pile {
   }
 
   get previewSize () {
-    return this.cellSize * this.scale > 3 ? PREVIEW_SIZE / 2 : PREVIEW_SIZE;
+    return this.cellSize * (this.cellSize > 3 ? 1 : PREVIEW_SIZE);
+  }
+
+  get previewSpacing () {
+    return this.cellSize > 2 ? 1 : 0.25;
   }
 
   get singleMatrix () {
@@ -457,7 +465,7 @@ export default class Pile {
     );
 
     this.mesh = new Mesh(this.geometry, fgmState.shaderMaterial);
-    this.mesh.scale.set(this.scale, this.scale, this.scale);
+    // this.mesh.scale.set(this.scale, this.scale, this.scale);
 
     if (isHovering && !noMenu) {
       this.drawMenu();
@@ -749,7 +757,7 @@ export default class Pile {
         rect.add(frame);
         rect.add(label);
         rect.pileTool = command;
-        rect.scale.set(1 / this.scale, 1 / this.scale, 0.9);
+        // rect.scale.set(1 / this.scale, 1 / this.scale, 0.9);
 
         labels.push({
           label,
@@ -919,7 +927,7 @@ export default class Pile {
           y,
           0.5,
           this.cellSize,
-          this.previewSize - 0.3,
+          this.previewSize - this.previewSpacing,
           colors,
           this.getGrayTone(value, fgmState.showSpecialCells)
         );
