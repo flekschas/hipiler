@@ -74,6 +74,7 @@ export default class Pile {
     this.highlighted = false;
     this.id = id;
     this.idNumeric = parseInt(`${id}`.replace('_', ''), 10);
+    this.isDrawn = false;
     this.isTrashed = false;
     this.matrixFrameThickness = MATRIX_FRAME_THICKNESS;
     this.matrixFrameColor = COLORS.GRAY_LIGHT;
@@ -81,7 +82,6 @@ export default class Pile {
     this.orderedLocally = false;
     this.pileMatrices = [];
     this.rank = this.id;
-    this.render = true;
     this.scale = 1;
     this.scene = scene;
     this.showNodeLabels = false;
@@ -405,7 +405,7 @@ export default class Pile {
 
     this.geometry.dispose();
     fgmState.scene.remove(this.mesh);
-    this.render = false;
+    this.isDrawn = false;
     this.pileMatrices = [];
 
     const pileIndex = this.piles.indexOf(this);
@@ -487,6 +487,8 @@ export default class Pile {
     if (!fgmState.layout2d) {
       this.drawStrandArrows(isHovering);
     }
+
+    this.isDrawn = true;
 
     return this;
   }
@@ -1207,7 +1209,7 @@ export default class Pile {
   hide () {
     this.unsetHoverState();
     this.geometry.dispose();
-    this.render = false;
+    this.isDrawn = false;
 
     fgmState.scene.remove(this.mesh);
   }
@@ -1269,7 +1271,7 @@ export default class Pile {
 
     this.unsetHoverState();
     this.geometry.dispose();
-    this.render = false;
+    this.isDrawn = false;
     fgmState.scene.remove(this.mesh);
 
     const meshIndex = fgmState.pileMeshesTrash.indexOf(this.mesh);
@@ -1456,7 +1458,7 @@ export default class Pile {
 
     this.unsetHoverState();
     this.geometry.dispose();
-    this.render = false;
+    this.isDrawn = false;
     fgmState.scene.remove(this.mesh);
 
     const meshIndex = fgmState.pileMeshes.indexOf(this.mesh);

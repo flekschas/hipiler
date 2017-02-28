@@ -2727,6 +2727,11 @@ export class Fragments {
         this.render();
       });
     }
+
+    if (update.drawPilesAfter) {
+      this.redrawPiles();
+      this.render();
+    }
   }
 
   /**
@@ -2936,9 +2941,9 @@ export class Fragments {
             ));
 
             if (fgmState.trashIsActive) {
-              if (pile.isTrashed && !pile.render) {
+              if (pile.isTrashed && !pile.isDrawn) {
                 pile.draw();
-              } else if (pile.render) {
+              } else if (pile.isDrawn) {
                 pile.hide();
               }
 
@@ -2949,7 +2954,7 @@ export class Fragments {
               pile.trash();
             } else if (pile.isTrashed) {
               pile.recover();
-            } else {
+            } else if (!pile.isDrawn) {
               pile.draw();
             }
           } else if (pile) {
@@ -2962,6 +2967,7 @@ export class Fragments {
 
       update.layout = true;
       update.scrollLimit = true;
+      update.drawPilesAfter = true;
     }
   }
 
