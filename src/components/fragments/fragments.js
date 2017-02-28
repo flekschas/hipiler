@@ -65,6 +65,7 @@ import {
   MODE_MEAN,
   MODE_STD,
   PILE_LABEL_HEIGHT,
+  PILE_MENU_CLOSING_DELAY,
   PREVIEW_MAX,
   PREVIEW_SIZE,
   WEB_GL_CONFIG,
@@ -187,7 +188,10 @@ export class Fragments {
 
     this.mouseClickCounter = 0;
 
-    this.closePileMenuDb = debounce(this.closePileMenu.bind(this), 2000);
+    this.closePileMenuDb = debounce(
+      this.closePileMenu.bind(this),
+      PILE_MENU_CLOSING_DELAY
+    );
 
     this.coverDispModes = [{
       id: MODE_MEAN,

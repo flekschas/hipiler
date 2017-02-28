@@ -124,6 +124,8 @@ export const ORDER_LOCAL = 2;
 
 export const PILE_LABEL_HEIGHT = 10;
 
+export const PILE_MENU_CLOSING_DELAY = 200;
+
 export const PILES = {};
 
 export const PREVIEW_SIZE = 3;
