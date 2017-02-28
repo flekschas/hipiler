@@ -29,6 +29,7 @@ import {
 } from 'components/fragments/fragments-defaults';
 
 import {
+  MENU_DELAY,
   MENU_LABEL_SPACING,
   MENU_PADDING,
   PREVIEW_LOW_QUAL_THRESHOLD,
@@ -96,7 +97,7 @@ export default class Pile {
   /****************************** Getter / Setter *****************************/
 
   get cellSize () {
-    return fgmState.cellSize * fgmState.scale;
+    return fgmState.cellSize * (fgmState.trashIsActive ? 1 : fgmState.scale);
   }
 
   get matrixWidth () {
@@ -691,6 +692,10 @@ export default class Pile {
     let maxWidth = 0;
     let maxHeight = 0;
     let labels = [];
+
+    this.menuIsActive = true;
+
+    fgmState.menuPile = this;
 
     // Frist create labels
     menuCommands
