@@ -1026,6 +1026,15 @@ export class Fragments {
    * @param {object} pile - Pile to be dispersed.
    */
   dispersePileHandler (pile) {
+    this.fromDisperse = {
+      sourcePile: pile,
+      targetPilesIds: {}
+    };
+
+    pile.pileMatrices.slice(1).forEach((pileMatrix) => {
+      this.fromDisperse.targetPilesIds[pileMatrix.id] = true;
+    });
+
     this.store.dispatch(dispersePiles([pile.id]));
   }
 
@@ -2956,11 +2965,24 @@ export class Fragments {
               pile.recover();
             } else if (!pile.isDrawn) {
               pile.draw();
+              if (
+                this.fromDisperse &&
+                this.fromDisperse.targetPilesIds[pile.id]
+              ) {
+                // To make it look like a real disperse
+                pile.moveTo(
+                  this.fromDisperse.sourcePile.x,
+                  this.fromDisperse.sourcePile.y,
+                  true
+                );
+              }
             }
           } else if (pile) {
             pile.destroy();
           }
         });
+
+      this.fromDisperse = undefined;
 
       // this.calculateDistanceMatrix();
       this.assessMeasuresMax();
