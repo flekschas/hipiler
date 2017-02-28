@@ -270,7 +270,7 @@ export class Fragments {
   }
 
   get plotElDim () {
-    return this._plotElDim;
+    return fgmState.plotElDim;
   }
 
   get pilePreviewHeight () {
@@ -1400,7 +1400,7 @@ export class Fragments {
    * @return {object} Client rectangle object of the base element.
    */
   getPlotElDim () {
-    this._plotElDim = this.plotEl.getBoundingClientRect();
+    fgmState.plotElDim = this.plotEl.getBoundingClientRect();
 
     return this.plotElDim;
   }

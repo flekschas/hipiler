@@ -689,6 +689,7 @@ export default class Pile {
    */
   drawMenu () {
     let maxWidth = 0;
+    let maxHeight = 0;
     let labels = [];
 
     // Frist create labels
@@ -750,34 +751,61 @@ export default class Pile {
         });
 
         maxWidth = Math.max(maxWidth, labelWidth);
+        maxHeight = Math.max(maxHeight, labelHeight);
       });
 
     let marginTop = 0;
+    const isRight = (
+      this.x + MENU_PADDING - this.matrixWidthHalf - (maxWidth / 2)
+    ) < 5;
+
+    let isBottomTop = (
+      this.y -
+      MENU_PADDING +
+      this.matrixWidthHalf -
+      (maxHeight / 2) -
+      (labels.length * (maxHeight + 1)) -
+      marginTop
+    ) < -fgmState.plotElDim.height;
+
+    console.log('right? botomTop?', isRight, isBottomTop, -fgmState.plotElDim.height);
 
     // Next create the rectangle and position the buttons
     labels.forEach((label, index) => {
-      let x = this.x + MENU_PADDING - this.matrixWidthHalf - (label.width / 2);
+      let x;
+      let y;
 
-      if (x < 0) {
+      if (isRight) {
         x = this.x + this.matrixWidthHalf - MENU_PADDING + (label.width / 2);
+      } else {
+        x = this.x - this.matrixWidthHalf + MENU_PADDING - (label.width / 2);
       }
 
-      if (typeof label.marginTop !== 'undefined') {
-        marginTop += label.marginTop;
-      }
-
-      label.rect.position.set(
-        x,
-        (
+      if (isBottomTop) {
+        y = (
+          this.y +
+          MENU_PADDING -
+          this.matrixWidthHalf +
+          (label.height / 2) +
+          (index * (label.height + 1)) +
+          marginTop
+        );
+      } else {
+        y = (
           this.y -
           MENU_PADDING +
           this.matrixWidthHalf -
           (label.height / 2) -
           (index * (label.height + 1)) -
           marginTop
-        ),
-        Z_MENU
-      );
+        );
+      }
+
+      if (typeof label.marginTop !== 'undefined') {
+        marginTop += label.marginTop;
+      }
+
+      label.rect.position.set(x, y, Z_MENU);
 
       label.label.position.set(
         -(label.width / 2) + 2, -4, 1
