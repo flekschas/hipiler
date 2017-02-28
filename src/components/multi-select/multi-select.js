@@ -44,11 +44,6 @@ export class MultiSelect {
       }
     );
 
-    this.event.subscribe(
-      `${EVENT_BASE_NAME}.${this.eventId}.update`,
-      this.update.bind(this)
-    );
-
     this.update();
   }
 
