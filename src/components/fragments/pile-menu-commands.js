@@ -25,7 +25,9 @@ export const INSPECT = {
   background: COLORS.BLACK,
   shortCut: 'I',
   trigger (pile) {
-    event.publish('decompose.fgm.inspectPile', { pile });
+    event.publish(
+      'decompose.fgm.inspectPile', { pile: this.pile }
+    );
   },
   stackedPileOnly: true
 };
@@ -36,7 +38,7 @@ export const DISPERSE = {
   background: COLORS.BLACK,
   shortCut: 'D',
   trigger (pile) {
-    store.dispatch(dispersePiles([pile.id]));
+    store.dispatch(dispersePiles([this.pile.id]));
   },
   stackedPileOnly: true
 };
@@ -48,7 +50,9 @@ export const MAD = {
   row: 0,
   shortCut: 'F',
   trigger (pile) {
-    event.publish('decompose.fgm.coverDispMode', { mode: MODE_MAD, pile });
+    event.publish(
+      'decompose.fgm.coverDispMode', { mode: MODE_MAD, pile: this.pile }
+    );
   },
   triggerEvent: 'hover',
   stackedPileOnly: true
@@ -60,7 +64,9 @@ export const MEAN = {
   background: 0x666666,
   shortCut: 'M',
   trigger (pile) {
-    event.publish('decompose.fgm.coverDispMode', { mode: MODE_MEAN, pile });
+    event.publish(
+      'decompose.fgm.coverDispMode', { mode: MODE_MEAN, pile: this.pile }
+    );
   },
   triggerEvent: 'hover',
   stackedPileOnly: true
@@ -72,7 +78,7 @@ export const RECOVER = {
   background: COLORS.BLACK,
   shortCut: 'R',
   trigger (pile) {
-    store.dispatch(recoverPiles([pile.id]));
+    store.dispatch(recoverPiles([this.pile.id]));
   },
   trashedOnly: true,
   closeOnClick: true,
@@ -85,7 +91,7 @@ export const TRASH = {
   background: COLORS.BLACK,
   shortCut: 'R',
   trigger (pile) {
-    store.dispatch(trashPiles([pile.id]));
+    store.dispatch(trashPiles([this.pile.id]));
   },
   closeOnClick: true,
   unsetHighlightOnClick: true
@@ -97,7 +103,9 @@ export const STD = {
   background: 0x666666,
   shortCut: 'V',
   trigger (pile) {
-    event.publish('decompose.fgm.coverDispMode', { mode: MODE_STD, pile });
+    event.publish(
+      'decompose.fgm.coverDispMode', { mode: MODE_STD, pile: this.pile }
+    );
   },
   triggerEvent: 'hover',
   stackedPileOnly: true
