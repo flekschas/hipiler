@@ -56,6 +56,7 @@ const State = {
   selectedMatrices: [],
   strandArrowRects: [],
   strandArrowRectsTrash: [],
+  trashIsActive: false,
   visiblePileTools: []
 };
 

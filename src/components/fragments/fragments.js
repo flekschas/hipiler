@@ -90,6 +90,8 @@ import { EVENT_BASE_NAME } from 'components/multi-select/multi-select-defaults';
 
 import COLORS from 'configs/colors';
 
+import debounce from 'utils/debounce';
+
 const logger = LogManager.getLogger('fragments');
 
 /**
@@ -182,9 +184,10 @@ export class Fragments {
     fgmState.showSpecialCells = false;
 
     this.isLoading = true;
-    this.trashIsActive = false;
 
     this.mouseClickCounter = 0;
+
+    this.closePileMenuDb = debounce(this.closePileMenu.bind(this), 2000);
 
     this.coverDispModes = [{
       id: MODE_MEAN,
@@ -266,7 +269,7 @@ export class Fragments {
   /* ----------------------- Getter / Setter Variables ---------------------- */
 
   get cellSize () {
-    return fgmState.cellSize * fgmState.scale;
+    return fgmState.cellSize * (fgmState.trashIsActive ? 1 : fgmState.scale);
   }
 
   get plotElDim () {
@@ -310,11 +313,11 @@ export class Fragments {
   }
 
   get piles () {
-    return this.trashIsActive ? fgmState.pilesTrash : fgmState.piles;
+    return fgmState.trashIsActive ? fgmState.pilesTrash : fgmState.piles;
   }
 
   get pileMeshes () {
-    return this.trashIsActive ? fgmState.pileMeshesTrash : fgmState.pileMeshes;
+    return fgmState.trashIsActive ? fgmState.pileMeshesTrash : fgmState.pileMeshes;
   }
 
   get rawMatrices () {
@@ -650,7 +653,8 @@ export class Fragments {
     let x = pileMesh.position.x;
     let y = pileMesh.position.y;
 
-    if (fgmState.hoveredPile !== pileMesh.pile) {
+    if (fgmState.menuPile && fgmState.menuPile !== pileMesh.pile) {
+      console.log('Closet that thing', fgmState.menuPile.id, pileMesh.pile.id);
       this.closePileMenu();
     }
 
@@ -732,7 +736,7 @@ export class Fragments {
       fgmState.previousHoveredPile.showSingle(undefined);
       fgmState.previousHoveredPile.setCoverMatrixMode(this.coverDispMode);
       this.highlightFrame.visible = false;
-      fgmState.previousHoveredPile.draw();
+      fgmState.previousHoveredPile.draw(false, true);
       fgmState.previousHoveredPile = undefined;
     }
   }
@@ -775,7 +779,7 @@ export class Fragments {
 
     // Remove menu is no pile is hovered
     if (!fgmState.hoveredPile) {
-      this.closePileMenu();
+      this.closePileMenuDb();
     }
 
     this.mouseWentDown = false;
@@ -909,6 +913,7 @@ export class Fragments {
       fgmState.scene.remove(visiblePileTool);
     });
     fgmState.visiblePileTools = [];
+    fgmState.menuPile = undefined;
   }
 
   /**
@@ -1321,7 +1326,7 @@ export class Fragments {
   getLayoutPosition (pile, abs) {
     const numArrMeasures = this.arrangeMeasures.length;
 
-    if (numArrMeasures === 2 && !this.trashIsActive) {
+    if (numArrMeasures === 2 && !fgmState.trashIsActive) {
       return this.getLayoutPosition2D(
         pile,
         this.arrangeMeasures[0],
@@ -2447,16 +2452,18 @@ export class Fragments {
    * Hide trashed piles
    */
   hideTrash () {
+    fgmState.trashIsActive = false;
+
     fgmState.pilesTrash.forEach((pile) => {
       pile.hide();
     });
 
     fgmState.piles.forEach((pile) => {
+      pile.frameCreate();
       pile.draw();
     });
 
-    this.trashIsActive = false;
-
+    this.calcGrid();
     this.setScrollLimit();
     this.updateLayout(this.piles, this.arrangeMeasures, true).then(() => {
       this.render();
@@ -2467,16 +2474,18 @@ export class Fragments {
    * Show trashed piles
    */
   showTrash () {
+    fgmState.trashIsActive = true;
+
     fgmState.piles.forEach((pile) => {
       pile.hide();
     });
 
     fgmState.pilesTrash.forEach((pile) => {
+      pile.frameCreate();
       pile.draw();
     });
 
-    this.trashIsActive = true;
-
+    this.calcGrid();
     this.setScrollLimit();
     this.updateLayout(this.piles, [], true).then(() => {
       this.render();
@@ -2566,7 +2575,7 @@ export class Fragments {
    */
   toggleTrash () {
     if (this.trashSize) {
-      if (this.trashIsActive) {
+      if (fgmState.trashIsActive) {
         this.hideTrash();
       } else {
         this.showTrash();
@@ -2766,7 +2775,7 @@ export class Fragments {
     noAnimation = false
   ) {
     return new Promise((resolve, reject) => {
-      this.arrange(piles, this.trashIsActive ? [] : measures);
+      this.arrange(piles, fgmState.trashIsActive ? [] : measures);
 
       let animation;
 
@@ -2854,7 +2863,7 @@ export class Fragments {
               matrixId => fgmState.matrices[matrixId]
             ));
 
-            if (this.trashIsActive) {
+            if (fgmState.trashIsActive) {
               if (pile.isTrashed && !pile.render) {
                 pile.draw();
               } else if (pile.render) {
