@@ -115,6 +115,10 @@ export default class Pile {
     return this.isTrashed ? fgmState.pileMeshesTrash : fgmState.pileMeshes;
   }
 
+  get previewSize () {
+    return this.cellSize * this.scale > 3 ? PREVIEW_SIZE / 2 : PREVIEW_SIZE;
+  }
+
   get singleMatrix () {
     if (this._singleMatrix) {
       return this._singleMatrix;
@@ -875,7 +879,7 @@ export default class Pile {
    */
   drawPreviews (positions, colors) {
     this.pileMatrices.forEach((pileMatrix, index) => {
-      let y = this.matrixWidthHalf + (PREVIEW_SIZE * (index + 1));
+      let y = this.matrixWidthHalf + (this.previewSize * (index + 1));
 
       for (let i = 0; i < this.dims; i++) {
         let value = 0;
@@ -903,7 +907,7 @@ export default class Pile {
           y,
           0.5,
           this.cellSize,
-          PREVIEW_SIZE,
+          this.previewSize,
           colors,
           [1, 1, 1]
         );
@@ -915,7 +919,7 @@ export default class Pile {
           y,
           0.5,
           this.cellSize,
-          PREVIEW_SIZE - 0.3,
+          this.previewSize - 0.3,
           colors,
           this.getGrayTone(value, fgmState.showSpecialCells)
         );

@@ -282,7 +282,7 @@ export class Fragments {
   }
 
   get pilePreviewHeight () {
-    return PREVIEW_MAX * PREVIEW_SIZE;
+    return PREVIEW_MAX * this.previewSize;
   }
 
   get isErrored () {
@@ -323,6 +323,10 @@ export class Fragments {
 
   get pileMeshes () {
     return fgmState.trashIsActive ? fgmState.pileMeshesTrash : fgmState.pileMeshes;
+  }
+
+  get previewSize () {
+    return this.cellSize > 3 ? PREVIEW_SIZE / 2 : PREVIEW_SIZE;
   }
 
   get rawMatrices () {
@@ -581,6 +585,9 @@ export class Fragments {
     if (fgmState.hoveredPile) {
       this.dispersePileHandler(fgmState.hoveredPile);
       fgmState.hoveredPile = undefined;
+    } else if (this.pileZoomed) {
+      this.pileZoomed.setScale().draw();
+      this.pileZoomed = undefined;
     }
   }
 
@@ -705,7 +712,7 @@ export class Fragments {
 
       if (absY > y + this.matrixWidthHalf) {
         let d = absY - (y + this.matrixWidthHalf);
-        let i = Math.floor(d / PREVIEW_SIZE);
+        let i = Math.floor(d / this.previewSize);
 
         fgmState.hoveredPile.showSingle(
           fgmState.hoveredPile.getMatrix(i)
@@ -852,7 +859,7 @@ export class Fragments {
       this.mouseClickCounter = 0;
 
       if (fgmState.layout2d && this.mouseDownTimeDelta > ZOOM_DELAY_TIME) {
-        fgmState.hoveredPile.scaleTo(6).draw();
+        this.pileZoomed = fgmState.hoveredPile.scaleTo(6).draw();
       }
     }
   }

@@ -128,9 +128,9 @@ export const PILE_MENU_CLOSING_DELAY = 200;
 
 export const PILES = {};
 
-export const PREVIEW_SIZE = 3;
+export const PREVIEW_SIZE = 2;
 
-export const PREVIEW_MAX = 5;
+export const PREVIEW_MAX = 8;
 
 export const SHADER_ATTRIBUTES = {
   customColor: { type: 'c', value: [] }
