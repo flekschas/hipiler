@@ -459,7 +459,9 @@ export default class Pile {
       this.drawMenu();
     }
 
-    this.drawPileLabel(isHovering);
+    if (!fgmState.layout2d) {
+      this.drawPileLabel(isHovering);
+    }
 
     // Add frame
     this.mesh.add(this.matrixFrame);
@@ -470,7 +472,9 @@ export default class Pile {
     this.mesh.position.set(this.x, this.y, Z_BASE);
     fgmState.scene.add(this.mesh);
 
-    this.drawStrandArrows(isHovering);
+    if (!fgmState.layout2d) {
+      this.drawStrandArrows(isHovering);
+    }
   }
 
   /**
