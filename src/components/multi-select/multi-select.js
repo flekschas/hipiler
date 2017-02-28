@@ -4,26 +4,34 @@ import {
   bindingMode,
   inject
 } from 'aurelia-framework';
-
 import { EventAggregator } from 'aurelia-event-aggregator';
+
+// Injectables
+import States from 'services/states';
 
 import { EVENT_BASE_NAME } from 'components/multi-select/multi-select-defaults';
 
 import hasParent from 'utils/has-parent';
 import mod from 'utils/mod';
+import queryObj from 'utils/query-obj';
 
-@inject(EventAggregator)
+
+@inject(EventAggregator, States)
 export class MultiSelect {
   @bindable({ defaultBindingMode: bindingMode.oneWay }) bottomUp = false;
   @bindable({ defaultBindingMode: bindingMode.oneWay }) eventId;
-  @bindable options;
+  @bindable options = [];
   @bindable({ defaultBindingMode: bindingMode.oneWay }) placeholder;
+  @bindable({ defaultBindingMode: bindingMode.oneWay }) stateQuery;
 
-  constructor (eventAggregator) {
+  constructor (eventAggregator, states) {
     this.event = eventAggregator;
     this.selectedOptions = [];
     this.search = '';
     this.selectedOptionsIdx = {};
+
+    this.store = states.store;
+    this.store.subscribe(this.update.bind(this));
   }
 
   attached () {
@@ -41,6 +49,10 @@ export class MultiSelect {
       this.update.bind(this)
     );
 
+    this.update();
+  }
+
+  optionsChanged (newValue, oldValue) {
     this.update();
   }
 
@@ -181,12 +193,54 @@ export class MultiSelect {
     }
   }
 
-  update () {
-    this.selectedOptions = [];
-    this.options
-      .filter(option => option.isSelected)
-      .forEach((option) => {
+  selectBatch (options) {
+    options.forEach((option) => {
+      if (typeof this.selectedOptionsIdx[option.id] === 'undefined') {
         this.selectedOptions.push(option);
-      });
+        this.focusedOptionId = -1;
+        option.isSelected = true;
+        option.isFocus = false;
+
+        this.selectedOptionsIdx[option.id] = this.selectedOptions.length - 1;
+
+        this.publish();
+      }
+    });
+  }
+
+  update () {
+    const selectedOptionsState = queryObj(
+      this.store.getState().present, this.stateQuery
+    );
+
+    if (
+      !selectedOptionsState ||
+      this.selectedOptionsState !== selectedOptionsState
+    ) {
+      return;
+    }
+
+    this.selectedOptionsState = selectedOptionsState;
+
+    const newSelection = [];
+
+    const selectedOptionsStack = selectedOptionsState.slice();
+
+    if (selectedOptionsStack.length) {
+      for (let i = 0; i < this.options.length; i++) {
+        const pos = selectedOptionsStack.indexOf(this.options[i].id);
+        if (pos >= 0) {
+          this.options[i].isSelected = true;
+          this.options[i].isFocus = false;
+          newSelection.push(this.options[i]);
+          selectedOptionsStack.splice(pos, 1);
+
+          if (!selectedOptionsStack.length) {
+            break;
+          }
+        }
+      }
+    }
+    this.selectedOptions = newSelection;
   }
 }

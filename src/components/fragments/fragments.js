@@ -194,6 +194,10 @@ export class Fragments {
       PILE_MENU_CLOSING_DELAY
     );
 
+    this.arrangeMeasuresAccessPath = [
+      'decompose', 'fragments', 'arrangeMeasures'
+    ];
+
     this.coverDispModes = [{
       id: MODE_MEAN,
       name: 'Mean'
