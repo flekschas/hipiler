@@ -768,8 +768,6 @@ export default class Pile {
       marginTop
     ) < -fgmState.plotElDim.height;
 
-    console.log('right? botomTop?', isRight, isBottomTop, -fgmState.plotElDim.height);
-
     // Next create the rectangle and position the buttons
     labels.forEach((label, index) => {
       let x;
