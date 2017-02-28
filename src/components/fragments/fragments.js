@@ -344,6 +344,15 @@ export class Fragments {
 
   /* ---------------------------- Custom Methods ---------------------------- */
 
+
+  /**
+   * Handles changes of animation
+   *
+   * @param {boolean} animation - If `true` vbisual changes will be animated.
+   */
+  animationChangeHandler () {
+    this.store.dispatch(setAnimation(!fgmState.animation));
+  }
   /**
    * Arranges piles according to the given measures.
    *
@@ -371,15 +380,6 @@ export class Fragments {
   }
 
   /**
-   * Handles changes of animation
-   *
-   * @param {boolean} animation - If `true` vbisual changes will be animated.
-   */
-  animationChangeHandler () {
-    this.store.dispatch(setAnimation(!fgmState.animation));
-  }
-
-  /**
    * Handles changes of arrange measures amd dispatches the appropriate action.
    *
    * @param {array} measures - List of measures to arrange piles.
@@ -394,6 +394,36 @@ export class Fragments {
     }
 
     this.store.dispatch(setArrangeMeasures(arrangeMeasures));
+  }
+
+  /**
+   * Assess max value of data measures of given piles.
+   *
+   * @param {array} piles - Piles to be assessed.
+   */
+  assessMeasuresMax (piles = this.piles) {
+    // Reset max
+    Object.keys(fgmState.dataMeasuresMax).forEach((measureId) => {
+      fgmState.dataMeasuresMax[measureId] = 0;
+    });
+
+    // Asses max
+    piles
+      .map(
+        pile => pile.pileMatrices.map(
+          matrix => Object.keys(matrix.measures).map(
+            id => ({ id, value: matrix.measures[id] })
+          )
+        )
+      )
+      .reduce((acc, value) => acc.concat(value), [])  // Combine pile matrices
+      .reduce((acc, value) => acc.concat(value), [])  // Combine measures
+      .forEach((measure) => {
+        fgmState.dataMeasuresMax[measure.id] = Math.max(
+          fgmState.dataMeasuresMax[measure.id],
+          measure.value
+        );
+      });
   }
 
   /**
@@ -658,7 +688,6 @@ export class Fragments {
     let y = pileMesh.position.y;
 
     if (fgmState.menuPile && fgmState.menuPile !== pileMesh.pile) {
-      console.log('Closet that thing', fgmState.menuPile.id, pileMesh.pile.id);
       this.closePileMenu();
     }
 
@@ -1587,21 +1616,8 @@ export class Fragments {
           name: headerField[0].toUpperCase() +
             headerField.slice(1).replace(/[-_]/g, ' ')
         });
+        fgmState.dataMeasuresMax[headerField] = 0;
       }
-    });
-
-    const measureIdx = Object.keys(this.dataMeasures);
-
-    // Extract min and max measures
-    let max = new Float32Array(measureIdx.length);
-    fragments
-      .map(fragment => measureIdx.map(id => fragment[this.dataMeasures[id]]))
-      .forEach((measures) => {
-        max = max.map((value, index) => Math.max(value, measures[index]));
-      });
-
-    measureIdx.forEach((measure, index) => {
-      fgmState.dataMeasuresMax[measure] = max[index];
     });
 
     this.selectMeasure(this.arrangeMeasures, fgmState.measures);
@@ -2889,7 +2905,8 @@ export class Fragments {
           }
         });
 
-      this.calculateDistanceMatrix();
+      // this.calculateDistanceMatrix();
+      this.assessMeasuresMax();
 
       update.layout = true;
       update.scrollLimit = true;
