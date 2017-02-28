@@ -1319,11 +1319,16 @@ export class Fragments {
    * @return {object} Object with x and y coordinates
    */
   getLayoutPosition (pile, abs) {
-    const numArrMets = this.arrangeMeasures.length;
+    const numArrMeasures = this.arrangeMeasures.length;
 
-    // if (numArrMets === 2 && !this.trashIsActive) {
-    //   return this.getLayoutPosition2D(pile, this.arrangeMeasures, abs);
-    // }
+    if (numArrMeasures === 2 && !this.trashIsActive) {
+      return this.getLayoutPosition2D(
+        pile,
+        this.arrangeMeasures[0],
+        this.arrangeMeasures[1],
+        abs
+      );
+    }
 
     // if (numArrMets > 2) {
     //   return this.getLayoutPosition2D(pile.ranking);
@@ -1358,15 +1363,16 @@ export class Fragments {
     return { x, y };
   }
 
-  getLayoutPosition2D (pile, arrangeMeasures, abs) {
-    let x = (
-      fgmState.gridCellWidthInclSpacing * (pileSortIndex % this.gridNumCols)
-    ) || MARGIN_LEFT;
+  getLayoutPosition2D (pile, measureX, measureY, abs) {
+    let relX = pile.measures[measureX] / fgmState.dataMeasuresMax[measureX];
+    let relY = pile.measures[measureY] / fgmState.dataMeasuresMax[measureY];
 
-    let y = (
-      Math.trunc(pileSortIndex / this.gridNumCols) *
-      fgmState.gridCellHeightInclSpacing
-    ) || MARGIN_TOP;
+    let x = relX * (
+      this.plotElDim.width - fgmState.gridCellWidthInclSpacing
+    );
+    let y = (1 - relY) * (
+      this.plotElDim.height - (1.5 * fgmState.gridCellWidthInclSpacing)
+    );
 
     if (abs) {
       x += fgmState.gridCellWidthInclSpacingHalf;
@@ -2670,8 +2676,10 @@ export class Fragments {
     this.selectMeasure(this.arrangeMeasures, fgmState.measures);
 
     if (this.arrangeMeasures.length > 1) {
+      fgmState.layout2d = true;
       fgmState.scale = 0.25;
     } else {
+      fgmState.layout2d = false;
       fgmState.scale = 1;
     }
 
