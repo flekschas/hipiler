@@ -220,6 +220,11 @@
             "name": "three-orbit-controls",
             "path": "../node_modules/three-orbit-controls",
             "main": "index"
+          },
+          {
+            "name": "tsne",
+            "path": "../node_modules/tsne-js/build",
+            "main": "tsne.min"
           }
         ]
       }
