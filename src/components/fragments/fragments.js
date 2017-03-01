@@ -149,7 +149,6 @@ export class Fragments {
     this.store.subscribe(this.update.bind(this));
 
     this.colorsPilesIdx = {};
-    this.config;
     this.maxDistance = 0;
     this.pilingMethod = 'clustered';
     this.matrixStrings = '';
