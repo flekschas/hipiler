@@ -680,6 +680,8 @@ export default class Pile {
             labelBBox.y + MENU_LABEL_SPACING
           );
 
+          maxHeight = Math.max(maxHeight, button.height);
+
           const width = Math.ceil(
             labelBBox.x + MENU_LABEL_SPACING
           );
@@ -701,11 +703,10 @@ export default class Pile {
           button.rect.add(button.label);
           button.rect.pileTool = buttonConfig;
 
-          maxWidth = Math.max(maxWidth, button.width);
-          maxHeight = Math.max(maxHeight, button.height);
-
           buttons.push(button);
         });
+
+        maxWidth = Math.max(maxWidth, widthTotal);
 
         labels.push({
           width: widthTotal,
