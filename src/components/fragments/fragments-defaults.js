@@ -129,7 +129,7 @@ export const PILE_MENU_CLOSING_DELAY = 200;
 
 export const PILES = {};
 
-export const PILES_COLORS = { __next: 0 };
+export const PILES_COLORS = {};
 
 export const PILE_COLORS_CATEGORICAL = pileColors.categorical.length;
 

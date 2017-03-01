@@ -249,11 +249,8 @@ export function pilesColors (state = PILES_COLORS, action) {
         if (colorId === -1) {
           newState[pileId] = undefined;
           delete newState[pileId];
-        } else if (pileId !== '__next') {
-          newState[pileId] = colorId;
-          newState.__next = (colorId + 1) % PILE_COLORS_CATEGORICAL;
         } else {
-          newState.__next = colorId;
+          newState[pileId] = colorId;
         }
       });
 
