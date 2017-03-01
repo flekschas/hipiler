@@ -9,8 +9,10 @@ export const GRAY_DARK = 0x666666;
 export const GRAY_DARKER = 0x444444;
 export const GRAY_DARKEST = 0x222222;
 
+export const CYAN = 0x3ae0e5;
 export const GREEN = 0x40bf00;
 export const ORANGE = 0xff5500;
+export const PINK = 0xec3bb6;
 export const RED = 0xf60029;
 export const YELLOW = 0xffcc00;
 export const BLUE = 0x4e40ff;
@@ -33,8 +35,10 @@ export default {
   GRAY_DARK,
   GRAY_DARKER,
   GRAY_DARKEST,
+  CYAN,
   GREEN,
   ORANGE,
+  PINK,
   RED,
   YELLOW,
   BLUE,
