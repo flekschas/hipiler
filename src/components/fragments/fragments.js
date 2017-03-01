@@ -31,6 +31,7 @@ import States from 'services/states';
 import {
   // addPiles,
   dispersePiles,
+  dispersePilesWithColors,
   setAnimation,
   setArrangeMeasures,
   setCellSize,
@@ -1050,7 +1051,19 @@ export class Fragments {
       this.fromDisperse.targetPilesIds[pileMatrix.id] = true;
     });
 
-    this.store.dispatch(dispersePiles([pile.id]));
+    if (pile.color !== pileColors.gray) {
+      const pileColorConfig = { ...this.fromDisperse.targetPilesIds };
+
+      Object.keys(pileColorConfig).forEach((pileId) => {
+        pileColorConfig[pileId] = pile.color.name;
+      });
+      this.store.dispatch(dispersePilesWithColors({
+        piles: [pile.id],
+        colors: pileColorConfig
+      }));
+    } else {
+      this.store.dispatch(dispersePiles([pile.id]));
+    }
   }
 
   /**
