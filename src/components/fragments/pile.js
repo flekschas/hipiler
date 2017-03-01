@@ -28,6 +28,8 @@ import {
   Z_MENU
 } from 'components/fragments/fragments-defaults';
 
+import pileColors from 'components/fragments/pile-colors';
+
 import {
   MENU_LABEL_SPACING,
   MENU_PADDING,
@@ -43,7 +45,6 @@ import {
   add2dSqrtBuffRect,
   addBufferedRect,
   cellValue,
-  colorOrange,
   createLineFrame,
   createRect,
   createRectFrame,
@@ -57,7 +58,7 @@ import Matrix from 'components/fragments/matrix';
 import COLORS from 'configs/colors';
 
 
-const logger = LogManager.getLogger('pile');  // eslint-disable-line no-unused-vars
+const logger = LogManager.getLogger('pile');
 
 
 export default class Pile {
@@ -66,6 +67,7 @@ export default class Pile {
     this.cellFrame = createRectFrame(
       this.cellSize, this.cellSize, 0xff0000, 1
     );
+    this.color = pileColors.gray;
     this.colored = false;
     this.coverMatrix = [];
     this.coverMatrixMode = MODE_MEAN;
@@ -509,7 +511,7 @@ export default class Pile {
       -x,
       this.cellSize,
       colors,
-      colorOrange(1 - value)
+      pileColors.orange(1 - value)
     );
   }
 
@@ -529,7 +531,7 @@ export default class Pile {
       -x,
       this.cellSize,
       colors,
-      this.getGrayTone(
+      this.getColor(
         value,
         fgmState.showSpecialCells
       )
@@ -552,7 +554,7 @@ export default class Pile {
       -x,
       this.cellSize,
       colors,
-      colorOrange(1 - value)
+      pileColors.orange(1 - value)
     );
   }
 
@@ -637,6 +639,8 @@ export default class Pile {
     menuCommands
       .filter(command =>
         (!command.stackedPileOnly || this.pileMatrices.length > 1) &&
+        (!command.isColoredOnly || this.color !== pileColors.gray) &&
+        (!command.isBWOnly || this.color === pileColors.gray) &&
         (
           (!command.trashedOnly && !this.isTrashed) ||
           (command.trashedOnly && this.isTrashed)
@@ -645,54 +649,68 @@ export default class Pile {
       .forEach((command) => {
         command.pile = this;
 
-        const textGeom = new TextGeometry(
-          command.name.toUpperCase(),
-          {
-            size: 8,
-            height: 1,
-            curveSegments: 5,
-            font: fgmState.font,
-            weight: 'bold',
-            bevelEnabled: false
-          }
-        );
+        const buttons = [];
 
-        const textMaterial = new MeshBasicMaterial({ color: command.color });
-        const label = new Mesh(textGeom, textMaterial);
+        let widthTotal = 0;
 
-        // Get label with
-        const labelBBox = new Box3().setFromObject(label).getSize();
-        const labelWidth = Math.ceil(
-          labelBBox.x + MENU_LABEL_SPACING
-        );
-        const labelHeight = Math.ceil(
-          labelBBox.y + MENU_LABEL_SPACING
-        );
+        command.buttons.forEach((buttonConfig) => {
+          const button = {};
 
-        const rect = createRect(
-          labelWidth, labelHeight, command.background
-        );
+          button.label = new Mesh(
+            new TextGeometry(
+              buttonConfig.name.toUpperCase(),
+              {
+                size: 8,
+                height: 1,
+                curveSegments: 5,
+                font: fgmState.font,
+                weight: 'bold',
+                bevelEnabled: false
+              }
+            ),
+            new MeshBasicMaterial({ color: buttonConfig.color })
+          );
 
-        const frame = createRectFrame(
-          labelWidth, labelHeight, COLORS.BLACK, 5
-        );
+          // Get label with
+          const labelBBox = new Box3().setFromObject(button.label).getSize();
 
-        rect.add(frame);
-        rect.add(label);
-        rect.pileTool = command;
-        // rect.scale.set(1 / this.scale, 1 / this.scale, 0.9);
+          button.height = Math.ceil(
+            labelBBox.y + MENU_LABEL_SPACING
+          );
 
-        labels.push({
-          label,
-          width: labelWidth,
-          height: labelHeight,
-          rect,
-          frame,
-          marginTop: command.marginTop
+          const width = Math.ceil(
+            labelBBox.x + MENU_LABEL_SPACING
+          );
+
+          button.width = buttonConfig.minWidth === 1 ?
+            Math.min(width, button.height) : width;
+
+          widthTotal += button.width;
+
+          button.rect = createRect(
+            button.width, button.height, buttonConfig.background
+          );
+
+          button.frame = createRectFrame(
+            button.width, button.height, COLORS.BLACK, 5
+          );
+
+          button.rect.add(button.frame);
+          button.rect.add(button.label);
+          button.rect.pileTool = buttonConfig;
+
+          maxWidth = Math.max(maxWidth, button.width);
+          maxHeight = Math.max(maxHeight, button.height);
+
+          buttons.push(button);
         });
 
-        maxWidth = Math.max(maxWidth, labelWidth);
-        maxHeight = Math.max(maxHeight, labelHeight);
+        labels.push({
+          width: widthTotal,
+          height: maxHeight,
+          marginTop: command.marginTop,
+          buttons
+        });
       });
 
     let marginTop = 0;
@@ -711,47 +729,64 @@ export default class Pile {
 
     // Next create the rectangle and position the buttons
     labels.forEach((label, index) => {
+      let rowWidth = 0;
       let x;
       let y;
 
-      if (isRight) {
-        x = this.x + this.matrixWidthHalf - MENU_PADDING + (label.width / 2);
-      } else {
-        x = this.x - this.matrixWidthHalf + MENU_PADDING - (label.width / 2);
-      }
+      label.buttons.forEach((button) => {
+        if (isRight) {
+          x = (
+            this.x +
+            this.matrixWidthHalf -
+            MENU_PADDING +
+            (button.width / 2) +
+            rowWidth
+        );
+        } else {
+          x = (
+            this.x -
+            this.matrixWidthHalf +
+            MENU_PADDING -
+            (button.width / 2) -
+            rowWidth
+          );
+        }
 
-      if (isBottomTop) {
-        y = (
-          this.y +
-          MENU_PADDING -
-          this.matrixWidthHalf +
-          (label.height / 2) +
-          (index * (label.height + 1)) +
-          marginTop
+        rowWidth += button.width;
+
+        if (isBottomTop) {
+          y = (
+            this.y +
+            MENU_PADDING -
+            this.matrixWidthHalf +
+            (button.height / 2) +
+            (index * (button.height + 1)) +
+            marginTop
+          );
+        } else {
+          y = (
+            this.y -
+            MENU_PADDING +
+            this.matrixWidthHalf -
+            (button.height / 2) -
+            (index * (button.height + 1)) -
+            marginTop
+          );
+        }
+
+        button.rect.position.set(x, y, Z_MENU);
+
+        button.label.position.set(
+          -(button.width / 2) + 2, -4, 1
         );
-      } else {
-        y = (
-          this.y -
-          MENU_PADDING +
-          this.matrixWidthHalf -
-          (label.height / 2) -
-          (index * (label.height + 1)) -
-          marginTop
-        );
-      }
+
+        fgmState.visiblePileTools.push(button.rect);
+        fgmState.scene.add(button.rect);
+      });
 
       if (typeof label.marginTop !== 'undefined') {
         marginTop += label.marginTop;
       }
-
-      label.rect.position.set(x, y, Z_MENU);
-
-      label.label.position.set(
-        -(label.width / 2) + 2, -4, 1
-      );
-
-      fgmState.visiblePileTools.push(label.rect);
-      fgmState.scene.add(label.rect);
     });
   }
 
@@ -852,7 +887,7 @@ export default class Pile {
           this.cellSize,
           this.previewSize - this.previewSpacing,
           colors,
-          this.getGrayTone(value, fgmState.showSpecialCells)
+          this.getColor(value, fgmState.showSpecialCells)
         );
       }
     });
@@ -886,7 +921,7 @@ export default class Pile {
           -x,
           this.cellSize,
           colors,
-          this.getGrayTone(
+          this.getColor(
             cellValue(matrix[i][j]),
             fgmState.showSpecialCells
           )
@@ -1133,7 +1168,7 @@ export default class Pile {
    *   values (e.g., low quality) instead of a color.
    * @return {array} Relative RGB array
    */
-  getGrayTone (value, showSpecialCells) {
+  getColor (value, showSpecialCells) {
     switch (value) {
       case -1:
         if (showSpecialCells) {
@@ -1143,7 +1178,7 @@ export default class Pile {
         return [1, 1, 1];
 
       default:
-        return [1 - value, 1 - value, 1 - value];
+        return this.color(1 - value);
     }
   }
 
@@ -1328,6 +1363,22 @@ export default class Pile {
    */
   scaleTo (cellSize) {
     this.setScale(cellSize / this.cellSize);
+
+    return this;
+  }
+
+  /**
+   * Color pile.
+   *
+   * @param {function} color - Coloring function.
+   * @return {object} Self.
+   */
+  setColor (color) {
+    if (!color || !pileColors[color]) {
+      this.color = pileColors.gray;
+    } else {
+      this.color = pileColors[color];
+    }
 
     return this;
   }

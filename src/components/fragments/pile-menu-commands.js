@@ -19,101 +19,198 @@ import COLORS from 'configs/colors';
 const store = Container.instance.get(States).store;
 const event = Container.instance.get(EventAggregator);
 
+export const BW = {
+  buttons: [
+    {
+      name: 'Black & White',
+      color: COLORS.WHITE,
+      background: COLORS.BLACK,
+      trigger () {
+        event.publish(
+          'decompose.fgm.pileAssignBW', { pile: this.pile }
+        );
+      }
+    }
+  ],
+  isColoredOnly: true
+};
+
+export const COLOR = {
+  isBWOnly: true,
+  buttons: [
+    {
+      name: 'G',
+      minWidth: 1,
+      color: COLORS.BLACK,
+      background: COLORS.GREEN,
+      trigger () {
+        event.publish(
+          'decompose.fgm.pileAssignColor', { pile: this.pile, color: 'green' }
+        );
+      }
+    },
+    {
+      name: 'Y',
+      minWidth: 1,
+      color: COLORS.BLACK,
+      background: COLORS.YELLOW,
+      trigger () {
+        event.publish(
+          'decompose.fgm.pileAssignColor', { pile: this.pile, color: 'yellow' }
+        );
+      }
+    },
+    {
+      name: 'C',
+      minWidth: 1,
+      color: COLORS.BLACK,
+      background: COLORS.CYAN,
+      trigger () {
+        event.publish(
+          'decompose.fgm.pileAssignColor', { pile: this.pile, color: 'cyan' }
+        );
+      }
+    },
+    {
+      name: 'R',
+      minWidth: 1,
+      color: COLORS.WHITE,
+      background: COLORS.RED,
+      trigger () {
+        event.publish(
+          'decompose.fgm.pileAssignColor', { pile: this.pile, color: 'red' }
+        );
+      }
+    },
+    {
+      name: 'B',
+      minWidth: 1,
+      color: COLORS.WHITE,
+      background: COLORS.BLUE,
+      trigger () {
+        event.publish(
+          'decompose.fgm.pileAssignColor', { pile: this.pile, color: 'blue' }
+        );
+      }
+    },
+    {
+      name: 'P',
+      minWidth: 1,
+      color: COLORS.BLACK,
+      background: COLORS.PINK,
+      trigger () {
+        event.publish(
+          'decompose.fgm.pileAssignColor', { pile: this.pile, color: 'pink' }
+        );
+      }
+    }
+  ]
+};
+
 export const INSPECT = {
-  name: 'Inspect',
-  color: COLORS.WHITE,
-  background: COLORS.BLACK,
-  shortCut: 'I',
-  trigger (pile) {
-    event.publish(
-      'decompose.fgm.inspectPile', { pile: this.pile }
-    );
-  },
+  buttons: [{
+    name: 'Inspect',
+    color: COLORS.WHITE,
+    background: COLORS.BLACK,
+    trigger (pile) {
+      event.publish(
+        'decompose.fgm.inspectPile', { pile: this.pile }
+      );
+    }
+  }],
   stackedPileOnly: true
 };
 
 export const DISPERSE = {
-  name: 'Disperse',
-  color: COLORS.WHITE,
-  background: COLORS.BLACK,
-  shortCut: 'D',
-  trigger (pile) {
-    store.dispatch(dispersePiles([this.pile.id]));
-  },
+  buttons: [{
+    name: 'Disperse',
+    color: COLORS.WHITE,
+    background: COLORS.BLACK,
+    trigger (pile) {
+      store.dispatch(dispersePiles([this.pile.id]));
+    }
+  }],
   stackedPileOnly: true
 };
 
 export const MAD = {
-  name: 'Mean Avg. Dev.',
-  color: COLORS.WHITE,
-  background: 0x666666,
-  row: 0,
-  shortCut: 'F',
-  trigger (pile) {
-    event.publish(
-      'decompose.fgm.coverDispMode', { mode: MODE_MAD, pile: this.pile }
-    );
-  },
-  triggerEvent: 'hover',
+  buttons: [{
+    name: 'Mean Avg. Dev.',
+    color: COLORS.WHITE,
+    background: 0x666666,
+    row: 0,
+    trigger (pile) {
+      event.publish(
+        'decompose.fgm.coverDispMode', { mode: MODE_MAD, pile: this.pile }
+      );
+    },
+    triggerEvent: 'hover'
+  }],
   stackedPileOnly: true
 };
 
 export const MEAN = {
-  name: 'Mean',
-  color: COLORS.WHITE,
-  background: 0x666666,
-  shortCut: 'M',
-  trigger (pile) {
-    event.publish(
-      'decompose.fgm.coverDispMode', { mode: MODE_MEAN, pile: this.pile }
-    );
-  },
-  triggerEvent: 'hover',
+  buttons: [{
+    name: 'Mean',
+    color: COLORS.WHITE,
+    background: 0x666666,
+    trigger (pile) {
+      event.publish(
+        'decompose.fgm.coverDispMode', { mode: MODE_MEAN, pile: this.pile }
+      );
+    },
+    triggerEvent: 'hover'
+  }],
   stackedPileOnly: true
 };
 
 export const RECOVER = {
-  name: 'Recover',
-  color: COLORS.WHITE,
-  background: COLORS.BLACK,
-  shortCut: 'R',
-  trigger (pile) {
-    store.dispatch(recoverPiles([this.pile.id]));
-  },
-  trashedOnly: true,
-  closeOnClick: true,
-  unsetHighlightOnClick: true
+  buttons: [{
+    name: 'Recover',
+    color: COLORS.WHITE,
+    background: COLORS.BLACK,
+    trigger (pile) {
+      store.dispatch(recoverPiles([this.pile.id]));
+    },
+    closeOnClick: true,
+    unsetHighlightOnClick: true
+  }],
+  trashedOnly: true
 };
 
 export const TRASH = {
-  name: 'Trash',
-  color: COLORS.WHITE,
-  background: COLORS.BLACK,
-  shortCut: 'R',
-  trigger (pile) {
-    store.dispatch(trashPiles([this.pile.id]));
-  },
-  closeOnClick: true,
+  buttons: [{
+    name: 'Trash',
+    color: COLORS.WHITE,
+    background: COLORS.BLACK,
+    trigger (pile) {
+      store.dispatch(trashPiles([this.pile.id]));
+    },
+    closeOnClick: true
+  }],
   unsetHighlightOnClick: true
 };
 
 export const STD = {
-  name: 'Standard Dev.',
-  color: COLORS.WHITE,
-  background: 0x666666,
-  shortCut: 'V',
-  trigger (pile) {
-    event.publish(
-      'decompose.fgm.coverDispMode', { mode: MODE_STD, pile: this.pile }
-    );
-  },
-  triggerEvent: 'hover',
+  buttons: [{
+    name: 'Standard Dev.',
+    color: COLORS.WHITE,
+    background: 0x666666,
+    trigger (pile) {
+      event.publish(
+        'decompose.fgm.coverDispMode', { mode: MODE_STD, pile: this.pile }
+      );
+    },
+    triggerEvent: 'hover'
+  }],
   stackedPileOnly: true
 };
 
 export default [
   INSPECT,
   DISPERSE,
+  COLOR,
+  BW,
   TRASH,
   RECOVER,
   MEAN,
