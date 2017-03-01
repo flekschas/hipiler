@@ -494,85 +494,6 @@ export default class Pile {
   }
 
   /**
-   * Draw strand arrows for both axis.
-   *
-   * @param {array} isHovering - If `true` user is currently hovering this pile.
-   */
-  drawStrandArrows (isHovering) {
-    const offsetX = this.pileMatrices[0].orientationX === -1 ? 10 : 0;
-    const offsetY = this.pileMatrices[0].orientationY === -1 ? 10 : 0;
-
-    this.strandArrowX = new ArrowHelper(
-      new Vector3(this.pileMatrices[0].orientationX * 1, 0, 0),
-      new Vector3(
-        this.matrixWidthHalf - 13 + offsetX,
-        -this.matrixWidthHalf - 9,
-        1
-      ),
-      STRAND_ARROW_LENGTH,
-      isHovering ? COLORS.GRAY_DARK : COLORS.GRAY_LIGHTER,
-      STRAND_ARROW_HEAD_LENGTH,
-      STRAND_ARROW_HEAD_WIDTH
-    );
-
-    this.strandArrowY = new ArrowHelper(
-      new Vector3(0, this.pileMatrices[0].orientationY * -1, 0),
-      new Vector3(
-        this.matrixWidthHalf - 20,
-        -this.matrixWidthHalf - 4 - offsetY,
-        1
-      ),
-      STRAND_ARROW_LENGTH,
-      isHovering ? COLORS.GRAY_DARK : COLORS.GRAY_LIGHTER,
-      STRAND_ARROW_HEAD_LENGTH,
-      STRAND_ARROW_HEAD_WIDTH
-    );
-
-    // Remove previous rects
-    if (this.strandArrowRectX) {
-      this.strandArrowRects.splice(
-        this.strandArrowRects.indexOf(this.strandArrowRectX), 1
-      );
-      fgmState.scene.remove(this.strandArrowRectX);
-    }
-
-    if (this.strandArrowRectY) {
-      this.strandArrowRects.splice(
-        this.strandArrowRects.indexOf(this.strandArrowRectY), 1
-      );
-      fgmState.scene.remove(this.strandArrowRectY);
-    }
-
-    // Create new rects
-    this.strandArrowRectX = createRect(10, 10, COLORS.WHITE);
-    this.strandArrowRectX.position.set(
-      this.matrixWidthHalf - 7,
-      -this.matrixWidthHalf - 9,
-      0
-    );
-    this.strandArrowRectX.userData.pile = this;
-    this.strandArrowRectX.userData.axis = 'x';
-
-    this.strandArrowRectY = createRect(10, 10, COLORS.WHITE);
-    this.strandArrowRectY.position.set(
-      this.matrixWidthHalf - 20,
-      -this.matrixWidthHalf - 9,
-      0
-    );
-    this.strandArrowRectY.userData.pile = this;
-    this.strandArrowRectY.userData.axis = 'y';
-
-    this.strandArrowRects.push(
-      this.strandArrowRectX, this.strandArrowRectY
-    );
-
-    this.mesh.add(this.strandArrowRectX);
-    this.mesh.add(this.strandArrowRectY);
-    this.mesh.add(this.strandArrowX);
-    this.mesh.add(this.strandArrowY);
-  }
-
-  /**
    * Draw mean average deviation cover matrix.
    *
    * @param {array} positions - Positions array to be changed in-place.
@@ -972,6 +893,85 @@ export default class Pile {
         );
       }
     }
+  }
+
+  /**
+   * Draw strand arrows for both axis.
+   *
+   * @param {array} isHovering - If `true` user is currently hovering this pile.
+   */
+  drawStrandArrows (isHovering) {
+    const offsetX = this.pileMatrices[0].orientationX === -1 ? 10 : 0;
+    const offsetY = this.pileMatrices[0].orientationY === -1 ? 10 : 0;
+
+    this.strandArrowX = new ArrowHelper(
+      new Vector3(this.pileMatrices[0].orientationX * 1, 0, 0),
+      new Vector3(
+        this.matrixWidthHalf - 13 + offsetX,
+        -this.matrixWidthHalf - 9,
+        0
+      ),
+      STRAND_ARROW_LENGTH,
+      isHovering ? COLORS.GRAY_DARK : COLORS.GRAY_LIGHTER,
+      STRAND_ARROW_HEAD_LENGTH,
+      STRAND_ARROW_HEAD_WIDTH
+    );
+
+    this.strandArrowY = new ArrowHelper(
+      new Vector3(0, this.pileMatrices[0].orientationY * -1, 0),
+      new Vector3(
+        this.matrixWidthHalf - 20,
+        -this.matrixWidthHalf - 4 - offsetY,
+        0
+      ),
+      STRAND_ARROW_LENGTH,
+      isHovering ? COLORS.GRAY_DARK : COLORS.GRAY_LIGHTER,
+      STRAND_ARROW_HEAD_LENGTH,
+      STRAND_ARROW_HEAD_WIDTH
+    );
+
+    // Remove previous rects
+    if (this.strandArrowRectX) {
+      this.strandArrowRects.splice(
+        this.strandArrowRects.indexOf(this.strandArrowRectX), 1
+      );
+      fgmState.scene.remove(this.strandArrowRectX);
+    }
+
+    if (this.strandArrowRectY) {
+      this.strandArrowRects.splice(
+        this.strandArrowRects.indexOf(this.strandArrowRectY), 1
+      );
+      fgmState.scene.remove(this.strandArrowRectY);
+    }
+
+    // Create new rects
+    this.strandArrowRectX = createRect(10, 10, COLORS.WHITE);
+    this.strandArrowRectX.position.set(
+      this.matrixWidthHalf - 7,
+      -this.matrixWidthHalf - 9,
+      -1
+    );
+    this.strandArrowRectX.userData.pile = this;
+    this.strandArrowRectX.userData.axis = 'x';
+
+    this.strandArrowRectY = createRect(10, 10, COLORS.WHITE);
+    this.strandArrowRectY.position.set(
+      this.matrixWidthHalf - 20,
+      -this.matrixWidthHalf - 9,
+      -1
+    );
+    this.strandArrowRectY.userData.pile = this;
+    this.strandArrowRectY.userData.axis = 'y';
+
+    this.strandArrowRects.push(
+      this.strandArrowRectX, this.strandArrowRectY
+    );
+
+    this.mesh.add(this.strandArrowRectX);
+    this.mesh.add(this.strandArrowRectY);
+    this.mesh.add(this.strandArrowX);
+    this.mesh.add(this.strandArrowY);
   }
 
   /**
