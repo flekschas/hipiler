@@ -162,7 +162,7 @@ export const Z_HIGHLIGHT = 1.5;
 
 export const Z_LASSO = 2;
 
-export const Z_MENU = 2;
+export const Z_MENU = 4;
 
 export const Z_STACK_PILE_TARGET = 2;
 
