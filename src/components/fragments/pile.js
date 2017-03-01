@@ -647,8 +647,6 @@ export default class Pile {
         )
       )
       .forEach((command) => {
-        command.pile = this;
-
         const buttons = [];
 
         let widthTotal = 0;
@@ -656,6 +654,10 @@ export default class Pile {
         command.buttons.forEach((buttonConfig) => {
           const button = {};
 
+          // Assign this pile to the menu button config
+          buttonConfig.pile = this;
+
+          // Create label
           button.label = new Mesh(
             new TextGeometry(
               buttonConfig.name.toUpperCase(),
@@ -671,7 +673,7 @@ export default class Pile {
             new MeshBasicMaterial({ color: buttonConfig.color })
           );
 
-          // Get label with
+          // Get label width
           const labelBBox = new Box3().setFromObject(button.label).getSize();
 
           button.height = Math.ceil(
