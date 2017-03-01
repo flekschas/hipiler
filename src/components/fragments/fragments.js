@@ -39,6 +39,7 @@ import {
   setMatrixFrameEncoding,
   setMatrixOrientation,
   setPiles,
+  setPilesColors,
   setShowSpecialCells,
   stackPiles
 } from 'components/fragments/fragments-actions';
@@ -83,6 +84,8 @@ import {
 import fgmState from 'components/fragments/fragments-state';
 
 import Pile from 'components/fragments/pile';
+
+import pileColors from 'components/fragments/pile-colors';
 
 import Matrix from 'components/fragments/matrix';
 
@@ -145,7 +148,8 @@ export class Fragments {
     this.store = states.store;
     this.store.subscribe(this.update.bind(this));
 
-    this.fragments = {};
+    this.colorsPilesIdx = {};
+    this.config;
     this.maxDistance = 0;
     this.pilingMethod = 'clustered';
     this.matrixStrings = '';
@@ -234,6 +238,16 @@ export class Fragments {
     this.event.subscribe(
       'decompose.fgm.coverDispMode',
       this.changeCoverDispMode.bind(this)
+    );
+
+    this.event.subscribe(
+      'decompose.fgm.pileAssignColor',
+      this.pileAssignColor.bind(this)
+    );
+
+    this.event.subscribe(
+      'decompose.fgm.pileAssignBW',
+      this.pileAssignBW.bind(this)
     );
 
     // The following setup allows us to imitate deferred objects. I.e., we can
@@ -1788,8 +1802,11 @@ export class Fragments {
    */
   initPiles (matrices, pileConfig = {}) {
     if (this.checkPileConfig(matrices, pileConfig)) {
+      const state = this.store.getState().present.decompose.fragments;
       const update = {};
-      this.updatePiles(pileConfig, true, update);
+
+      this.updatePiles(pileConfig, update, true);
+      this.updatePileColors(state.pilesColors, update, true);
       this.updateRendering(update);
     } else {
       const pilesNew = {};
@@ -2695,7 +2712,8 @@ export class Fragments {
       this.updateLassoIsRound(stateFgm.lassoIsRound);
       this.updateMatrixFrameEncoding(stateFgm.matrixFrameEncoding, update);
       this.updateMatrixOrientation(stateFgm.matrixOrientation, update);
-      this.updatePiles(stateFgm.piles, false, update);
+      this.updatePiles(stateFgm.piles, update);
+      this.updatePileColors(stateFgm.pilesColors, update);
       this.updateShowSpecialCells(stateFgm.showSpecialCells, update);
 
       this.updateRendering(update);
@@ -2704,44 +2722,51 @@ export class Fragments {
     }
   }
 
+  /**
+   * Handler rendering after updates.
+   *
+   * @param {object} update - Object that states what to update
+   */
   updateRendering (update) {
-    if (update.webgl) {
-      this.updateWebGl();
-    }
-
-    if (update.grid) {
-      this.calcGrid();
-    }
-
-    if (update.pileFrames) {
-      this.piles.forEach(pile => pile.frameUpdate());
-    }
-
-    if (update.pileFramesRecreate) {
-      this.piles.forEach(pile => pile.frameCreate());
-    }
-
-    if (update.piles || update.pileFramesRecreate) {
-      this.redrawPiles();
-    }
-
-    if (update.scrollLimit) {
-      this.setScrollLimit();
-    }
-
     if (this.isInitialized) {
-      this.render();
-    }
+      if (update.webgl) {
+        this.updateWebGl();
+      }
 
-    if (update.layout) {
-      this.updateLayout().then(() => {
+      if (update.grid) {
+        this.calcGrid();
+      }
+
+      if (update.pileFrames) {
+        this.piles.forEach(pile => pile.frameUpdate());
+      }
+
+      if (update.pileFramesRecreate) {
+        this.piles.forEach(pile => pile.frameCreate());
+      }
+
+      if (update.piles || update.pileFramesRecreate) {
+        this.redrawPiles();
+      }
+
+      if (update.scrollLimit) {
+        this.setScrollLimit();
+      }
+
+      if (this.isInitialized) {
         this.render();
-      });
-    }
+      }
 
-    if (update.drawPilesAfter) {
-      this.redrawPiles();
-      this.render();
+      if (update.layout) {
+        this.updateLayout().then(() => {
+          this.render();
+        });
+      }
+
+      if (update.drawPilesAfter) {
+        this.redrawPiles();
+        this.render();
+      }
     }
   }
 
@@ -2760,6 +2785,7 @@ export class Fragments {
    * Update the arrange measures.
    *
    * @param {array} arrangeMeasures - Array of measure IDs.
+   * @param {object} update - Update object to bve updated in-place.
    */
   updateArrangeMeasures (arrangeMeasures, update) {
     const _arrangeMeasures = arrangeMeasures || ARRANGE_MEASURES;
@@ -2780,18 +2806,17 @@ export class Fragments {
       fgmState.scale = 1;
     }
 
-    if (this.isInitialized) {
-      update.grid = true;
-      update.piles = true;
-      update.pileFrames = true;
-      update.layout = true;
-    }
+    update.grid = true;
+    update.piles = true;
+    update.pileFrames = true;
+    update.layout = true;
   }
 
   /**
    * Update the display mode of all piles.
    *
    * @param {number} coverDispMode - Display mode number.
+   * @param {object} update - Update object to bve updated in-place.
    */
   updateCoverDispMode (coverDispMode, update) {
     if (this.coverDispMode === coverDispMode) {
@@ -2800,10 +2825,11 @@ export class Fragments {
 
     this.coverDispMode = coverDispMode;
 
+    update.grid = true;
+    update.piles = true;
+
     if (this.isInitialized) {
       this.setPileMode(this.coverDispMode, this.piles);
-      update.grid = true;
-      update.piles = true;
     }
   }
 
@@ -2811,6 +2837,7 @@ export class Fragments {
    * Update the cell size and rerender the piles
    *
    * @param {number} newSize - New cell size
+   * @param {object} update - Update object to bve updated in-place.
    */
   updateCellSize (newSize, update) {
     if (fgmState.cellSize === newSize) {
@@ -2819,13 +2846,11 @@ export class Fragments {
 
     fgmState.cellSize = newSize;
 
-    if (this.isInitialized) {
-      update.grid = true;
-      update.piles = true;
-      update.pileFramesRecreate = true;
-      update.layout = true;
-      update.scrollLimit = true;
-    }
+    update.grid = true;
+    update.piles = true;
+    update.pileFramesRecreate = true;
+    update.layout = true;
+    update.scrollLimit = true;
   }
 
   /**
@@ -2834,9 +2859,9 @@ export class Fragments {
    * @param {object} newConfig - New config
    */
   updateConfig (newConfig) {
-    if (this.fragments.config !== newConfig) {
-      this.fragments.config = newConfig;
-      this.loadData(this.fragments.config);
+    if (this.config !== newConfig) {
+      this.config = newConfig;
+      this.loadData(this.config);
     }
   }
 
@@ -2893,6 +2918,7 @@ export class Fragments {
    * Update the matrix frame encoding of all matrices.
    *
    * @param {string} encoding - Matrix measure.
+   * @param {object} update - Update object to bve updated in-place.
    */
   updateMatrixFrameEncoding (encoding, update) {
     if (fgmState.matrixFrameEncoding === encoding) {
@@ -2901,15 +2927,14 @@ export class Fragments {
 
     fgmState.matrixFrameEncoding = encoding;
 
-    if (this.isInitialized) {
-      update.pileFrames = true;
-    }
+    update.pileFrames = true;
   }
 
   /**
    * Update the orientation of all matrices.
    *
    * @param {number} orientation - Matrix orientation number.
+   * @param {object} update - Update object to bve updated in-place.
    */
   updateMatrixOrientation (orientation, update) {
     if (fgmState.matrixOrientation === orientation) {
@@ -2918,87 +2943,198 @@ export class Fragments {
 
     fgmState.matrixOrientation = orientation;
 
-    if (this.isInitialized) {
-      update.piles = true;
-    }
+    update.piles = true;
   }
 
   /**
    * Update piles
    *
    * @param {object} pileConfigs - Config object
+   * @param {object} update - Update object to bve updated in-place.
    * @param {boolean} forced - If `true` force update
    */
-  updatePiles (pileConfigs, forced, update) {
-    if (this.pileConfigs !== pileConfigs && (this.isInitialized || forced)) {
-      this.pileConfigs = pileConfigs;
-
-      Object.keys(pileConfigs)
-        .map(pileId => ({
-          id: pileId,
-          matrixIds: pileConfigs[pileId]
-        }))
-        .forEach((pileConfig) => {
-          let pile = fgmState.pilesIdx[pileConfig.id];
-
-          if (pileConfig.matrixIds.length) {
-            if (!pile) {
-              pile = this.pileCreate(pileConfig.id);
-              this.destroyAltPile(pileConfig.id);
-            }
-
-            pile.setMatrices(pileConfig.matrixIds.map(
-              matrixId => fgmState.matrices[matrixId]
-            ));
-
-            if (fgmState.trashIsActive) {
-              if (pile.isTrashed && !pile.isDrawn) {
-                pile.draw();
-              } else if (pile.isDrawn) {
-                pile.hide();
-              }
-
-              if (!this.trashSize) {
-                this.hideTrash();
-              }
-            } else if (pileConfig.id[0] === '_') {
-              pile.trash();
-            } else if (pile.isTrashed) {
-              pile.recover();
-            } else if (!pile.isDrawn) {
-              pile.draw();
-              if (
-                this.fromDisperse &&
-                this.fromDisperse.targetPilesIds[pile.id]
-              ) {
-                // To make it look like a real disperse
-                pile.moveTo(
-                  this.fromDisperse.sourcePile.x,
-                  this.fromDisperse.sourcePile.y,
-                  true
-                );
-              }
-            }
-          } else if (pile) {
-            pile.destroy();
-          }
-        });
-
-      this.fromDisperse = undefined;
-
-      // this.calculateDistanceMatrix();
-      this.assessMeasuresMax();
-
-      update.layout = true;
-      update.scrollLimit = true;
-      update.drawPilesAfter = true;
+  updatePiles (pileConfigs, update, forced) {
+    if (
+      (this.pileConfigs === pileConfigs || !this.isInitialized) &&
+      !forced
+    ) {
+      return;
     }
+
+    this.pileConfigs = pileConfigs;
+
+    Object.keys(pileConfigs)
+      .map(pileId => ({
+        id: pileId,
+        matrixIds: pileConfigs[pileId]
+      }))
+      .forEach((pileConfig) => {
+        let pile = fgmState.pilesIdx[pileConfig.id];
+
+        if (pileConfig.matrixIds.length) {
+          if (!pile) {
+            pile = this.pileCreate(pileConfig.id);
+            this.destroyAltPile(pileConfig.id);
+          }
+
+          pile.setMatrices(pileConfig.matrixIds.map(
+            matrixId => fgmState.matrices[matrixId]
+          ));
+
+          if (fgmState.trashIsActive) {
+            if (pile.isTrashed && !pile.isDrawn) {
+              pile.draw();
+            } else if (pile.isDrawn) {
+              pile.hide();
+            }
+
+            if (!this.trashSize) {
+              this.hideTrash();
+            }
+          } else if (pileConfig.id[0] === '_') {
+            pile.trash();
+          } else if (pile.isTrashed) {
+            pile.recover();
+          } else if (!pile.isDrawn) {
+            pile.draw();
+            if (
+              this.fromDisperse &&
+              this.fromDisperse.targetPilesIds[pile.id]
+            ) {
+              // To make it look like a real disperse
+              pile.moveTo(
+                this.fromDisperse.sourcePile.x,
+                this.fromDisperse.sourcePile.y,
+                true
+              );
+            }
+          }
+        } else if (pile) {
+          pile.destroy();
+        }
+      });
+
+    this.fromDisperse = undefined;
+
+    // this.calculateDistanceMatrix();
+    this.assessMeasuresMax();
+
+    update.layout = true;
+    update.scrollLimit = true;
+    update.drawPilesAfter = true;
+  }
+
+  removeFromColorPilesIdx (pile) {
+    if (pile.color !== pileColors.gray) {
+      try {
+        // Try to remove pile from index
+        const prevColor = this.store.getState()
+          .present.decompose.fragments.pilesColors[pile.id];
+
+        const pos = this.colorsPilesIdx[prevColor].indexOf(pile.id);
+
+        if (pos >= 0) {
+          this.colorsPilesIdx[prevColor].splice(pos, 1);
+        }
+      } catch (e) {
+        logger.error('State corrupted');
+      }
+    }
+  }
+
+  /**
+   * Assign random colors
+   *
+   * @param {object} event - Event object.
+   * @return {object} Self.
+   */
+  pileAssignColor (event) {
+    this.removeFromColorPilesIdx(event.pile);
+
+    this.store.dispatch(setPilesColors({ [event.pile.id]: event.color }));
+  }
+
+  /**
+   * Assign random colors
+   *
+   * @param {object} event - Event object.
+   * @return {object} Self.
+   */
+  pileAssignBW (event) {
+    this.removeFromColorPilesIdx(event.pile);
+
+    this.store.dispatch(setPilesColors({ [event.pile.id]: -1 }));
+  }
+
+  /**
+   * Update pile color.
+   *
+   * @param {object} pileColorConfig - Pile color configuration.
+   * @param {object} update - Update object to bve updated in-place.
+   * @param {boolean} forced - If `true` force update
+   */
+  updatePileColors (pileColorConfig, update, forced) {
+    if (
+      (this.pileColorConfig === pileColorConfig || !this.isInitialized) &&
+      !forced
+    ) {
+      return;
+    }
+
+    this.pileColorConfig = pileColorConfig;
+
+    this.piles.forEach((pile) => {
+      if (typeof this.pileColorConfig[pile.id] !== 'undefined') {
+        const color = this.pileColorConfig[pile.id];
+
+        pile.setColor(color);
+
+        if (this.colorsPilesIdx[color]) {
+          this.colorsPilesIdx[color].push(pile);
+        } else {
+          this.colorsPilesIdx[color] = [pile];
+        }
+      } else if (pile.color !== pileColors.gray) {
+        // Unset previously colored pile
+        pile.setColor();
+      }
+    });
+
+    // const usedColors = Object.keys(this.pileColorConfig).map(
+    //   index => parseInt(index, 16)
+    // ).filter(index => !isNaN(index));
+
+    // fgmState.colorsAvailable = pileColors.categorical.map(
+    //   (color, index) => index
+    // ).filter(
+    //   index => usedColors.indexOf(index) === -1
+    // );
+
+    // const coloredPiles = [];
+    // usedColors.forEach((colorId) => {
+    //   coloredPiles.push(this.pileColorConfig[colorId]);
+    //   fgmState.pilesIdx[this.pileColorConfig[colorId]].setColor(
+    //     pileColors.categorical[colorId]
+    //   );
+    // });
+
+    // this.colorsPilesIdx = {};
+
+    // this.piles
+    //   .filter(pile => pile.color !== pileColors.gray)
+    //   .filter(pile => coloredPiles.indexOf(pile.id) === -1)
+    //   .forEach((pile) => {
+    //     pile.setColor();
+    //   });
+
+    update.piles = true;
   }
 
   /**
    * Handle updating the grid if necessary
    *
    * @param {object} columns - Decompose column information.
+   * @param {object} update - Update object to bve updated in-place.
    */
   updatePlotSize (columns, update) {
     if (this.decomposeColums === columns) {
@@ -3007,16 +3143,15 @@ export class Fragments {
 
     this.decomposeColums = columns;
 
-    if (this.isInitialized) {
-      update.grid = true;
-      update.webgl = true;
-    }
+    update.grid = true;
+    update.webgl = true;
   }
 
   /**
    * Update piles when special cells are shown or hidden
    *
    * @param {boolean} showSpecialCells - If `true` show special cells.
+   * @param {object} update - Update object to bve updated in-place.
    */
   updateShowSpecialCells (showSpecialCells, update) {
     if (fgmState.showSpecialCells === showSpecialCells) {
@@ -3025,9 +3160,7 @@ export class Fragments {
 
     fgmState.showSpecialCells = showSpecialCells;
 
-    if (this.isInitialized) {
-      update.piles = true;
-    }
+    update.piles = true;
   }
 
   /**
