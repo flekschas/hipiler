@@ -5,12 +5,16 @@ import {
   MATRIX_ORIENTATION_INITIAL
 } from 'components/fragments/fragments-defaults';
 
+import pilesColors from 'components/fragments/pile-colors';
+
 
 const State = {
   activeMatrixInPileIndex: undefined,
   activePile: undefined,
   adjacentDistances: undefined,
   cellSize: CELL_SIZE,
+  colorsIdx: {},
+  colorsAvailable: pilesColors.categorical.map((color, index) => index),
   dataMeasuresMax: {},
   dragActive: false,
   draggingMatrix: undefined,

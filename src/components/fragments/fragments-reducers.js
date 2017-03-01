@@ -14,6 +14,7 @@ import {
   SET_MATRIX_FRAME_ENCODING,
   SET_MATRIX_ORIENTATION,
   SET_PILES,
+  SET_PILES_COLORS,
   SET_SHOW_SPECIAL_CELLS,
   TRASH_PILES,
   UPDATE_FGM_CONFIG
@@ -29,6 +30,8 @@ import {
   MATRIX_ORIENTATION_INITIAL,
   MODE_MEAN,
   PILES,
+  PILES_COLORS,
+  PILE_COLORS_CATEGORICAL,
   SHOW_SPECIAL_CELLS
 } from 'components/fragments/fragments-defaults';
 
@@ -235,6 +238,33 @@ export function matrixOrientation (state = MATRIX_ORIENTATION_INITIAL, action) {
   }
 }
 
+export function pilesColors (state = PILES_COLORS, action) {
+  switch (action.type) {
+    case SET_PILES_COLORS: {
+      const newState = { ...state };
+
+      Object.keys(action.payload.pilesColors).forEach((pileId) => {
+        const colorId = action.payload.pilesColors[pileId];
+
+        if (colorId === -1) {
+          newState[pileId] = undefined;
+          delete newState[pileId];
+        } else if (pileId !== '__next') {
+          newState[pileId] = colorId;
+          newState.__next = (colorId + 1) % PILE_COLORS_CATEGORICAL;
+        } else {
+          newState.__next = colorId;
+        }
+      });
+
+      return newState;
+    }
+
+    default:
+      return state;
+  }
+}
+
 export function showSpecialCells (state = SHOW_SPECIAL_CELLS, action) {
   switch (action.type) {
     case SET_SHOW_SPECIAL_CELLS:
@@ -255,5 +285,6 @@ export default combineReducers({
   matrixFrameEncoding,
   matrixOrientation,
   piles,
+  pilesColors,
   showSpecialCells
 });

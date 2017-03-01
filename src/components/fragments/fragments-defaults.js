@@ -3,6 +3,7 @@ import threeLine2d from 'three-line-2d';
 import threeLine2dShader from 'three-line-2d-shader';
 
 import COLOR from 'configs/colors';
+import pileColors from 'components/fragments/pile-colors';
 
 
 export const ANIMATION = true;
@@ -127,6 +128,10 @@ export const PILE_LABEL_HEIGHT = 10;
 export const PILE_MENU_CLOSING_DELAY = 200;
 
 export const PILES = {};
+
+export const PILES_COLORS = { __next: 0 };
+
+export const PILE_COLORS_CATEGORICAL = pileColors.categorical.length;
 
 export const PREVIEW_SIZE = 2;
 

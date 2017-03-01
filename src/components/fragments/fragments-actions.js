@@ -89,6 +89,13 @@ export const setPiles = piles => ({
   payload: { piles }
 });
 
+export const SET_PILES_COLORS = 'SET_PILES_COLORS';
+
+export const setPilesColors = pilesColors => ({
+  type: SET_PILES_COLORS,
+  payload: { pilesColors }
+});
+
 export const SET_SHOW_SPECIAL_CELLS = 'SET_SHOW_SPECIAL_CELLS';
 
 export const setShowSpecialCells = showSpecialCells => ({
