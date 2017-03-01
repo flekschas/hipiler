@@ -12,6 +12,13 @@ export const dispersePiles = piles => ({
   payload: { piles }
 });
 
+export const DISPERSE_PILES_WITH_COLOR = 'DISPERSE_PILES_WITH_COLOR';
+
+export const dispersePilesWithColors = piles => (dispath) => {
+  dispath(dispersePiles(piles.piles));
+  dispath(setPilesColors(piles.colors));
+};
+
 export const RECOVER_PILES = 'RECOVER_PILES';
 
 export const recoverPiles = piles => ({
