@@ -31,7 +31,6 @@ import {
   MODE_MEAN,
   PILES,
   PILES_COLORS,
-  PILE_COLORS_CATEGORICAL,
   SHOW_SPECIAL_CELLS
 } from 'components/fragments/fragments-defaults';
 

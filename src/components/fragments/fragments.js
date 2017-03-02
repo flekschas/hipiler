@@ -390,12 +390,11 @@ export class Fragments {
 
   /**
    * Handles changes of animation
-   *
-   * @param {boolean} animation - If `true` vbisual changes will be animated.
    */
   animationChangeHandler () {
     this.store.dispatch(setAnimation(!fgmState.animation));
   }
+
   /**
    * Arranges piles according to the given measures.
    *
