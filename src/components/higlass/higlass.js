@@ -179,8 +179,9 @@ export class Higlass {
   }
 
   updateConfig (config, update) {
-    if (this.config === config) { return; }
+    if (this.originalConfig === config) { return; }
 
+    this.originalConfig = config;
     this.config = deepClone(config);
 
     this.originalColoring = config
