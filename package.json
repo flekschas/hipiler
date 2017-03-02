@@ -13,7 +13,7 @@
     "aurelia-bootstrapper": "2.0.1",
     "bluebird": "3.4.7",
     "d3": "4.5.0",
-    "higlass": "hms-dbmi/higlass#annotation-track",
+    "higlass": "hms-dbmi/higlass#8059fda4bc2bc653511e150e3018d5fc604bcd0d",
     "redux": "3.6.0",
     "redux-persist": "4.1.0",
     "redux-promise-middleware": "4.2.0",
