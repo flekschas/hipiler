@@ -1,5 +1,6 @@
 <template>
   <require from="components/svg-icon/svg-icon"></require>
+  <require from="components/spinner.html"></require>
 
   <div class="flex-c flex-a-c flex-jc-c full-dim error-indicator ${isErrored ? 'is-active' : ''}">
     <div class="flex-c flex-d-c flex-jc-c flex-a-c">
@@ -18,12 +19,33 @@
     <footer class="bottom-bar">
       <ul class="flex-c settings-list">
         <li class="flex-c flex-d-c">
-          <label for="settings-hg-grayscale">Grayscale</label>
-          <input type="checkbox" id="settings-hg-grayscale">
+          <label
+            for="settings-hg-grayscale">Grayscale</label>
+          <input
+            type="checkbox"
+            id="settings-hg-grayscale"
+            checked.bind="!!grayscale"
+            click.delegate="grayscaleChangeHandler()">
         </li>
         <li class="flex-c flex-d-c">
-          <label for="settings-hg-colors">Colors</label>
-          <input type="checkbox" id="hg-settings-hg-colors">
+          <label
+            for="settings-hg-interactions"
+            title="Highlight Snippets Locations">Interactions</label>
+          <input
+            type="checkbox"
+            id="settings-hg-interactions"
+            checked.bind="interactions"
+            click.delegate="interactionsChangeHandler()">
+        </li>
+        <li class="flex-c flex-d-c">
+          <label
+            for="settings-hg-highlight-fragments"
+            title="Highlight Snippets Locations">Highl. Snipp.</label>
+          <input
+            type="checkbox"
+            id="settings-hg-highlight-fragments"
+            checked.bind="fragmentsHighlight"
+            click.delegate="fragmentsHighlightChangeHandler()">
         </li>
         <li if.bind="currentRoute !== 'matrix'">
           <a
