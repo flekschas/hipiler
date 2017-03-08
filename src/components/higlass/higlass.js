@@ -253,7 +253,7 @@ export class Higlass {
   render (config) {
     this.areServersAvailable(config)
       .then(() => {
-        hg(this.plotEl, config, OPTIONS, (api) => { this.api = api; });
+        hg(this.plotEl, deepClone(config), OPTIONS, (api) => { this.api = api; });
       })
       .catch((error) => {
         this.hasErrored('Server not available');
