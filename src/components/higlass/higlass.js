@@ -217,7 +217,7 @@ export class Higlass {
   }
 
   updateFragmentsHighlight (fgmHighlight, fgmConfig, update, force) {
-    if (this.fgmHighlight === fgmHighlight && !force) { return; }
+    if (this.fragmentsHighlight === fgmHighlight && !force) { return; }
 
     this.fragmentsHighlight = fgmHighlight;
 
@@ -230,15 +230,21 @@ export class Higlass {
     if (this.fragmentsHighlight) {
       const loci = this.extractLoci(fgmConfig);
 
-      this.config.views[0].tracks.center.push({
-        type: '2d-chromosome-annotations',
-        chromInfoPath: '//s3.amazonaws.com/pkerp/data/hg19/chromSizes.tsv',
-        options: {
-          minRectWidth: 2,
-          minRectHeight: 2,
-          regions: loci
-        }
-      });
+      if (this.loci !== loci) {
+        this.loci = loci;
+        this.loci2dTrack = {
+          uid: 'f',
+          type: '2d-chromosome-annotations',
+          chromInfoPath: '//s3.amazonaws.com/pkerp/data/hg19/chromSizes.tsv',
+          options: {
+            minRectWidth: 2,
+            minRectHeight: 2,
+            regions: loci
+          }
+        };
+      }
+
+      this.config.views[0].tracks.center.push(this.loci2dTrack);
     }
 
     update.render = true;
