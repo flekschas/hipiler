@@ -2954,7 +2954,7 @@ export class Fragments {
 
     update.grid = true;
     update.piles = true;
-    update.pileFrames = true;
+    update.pileFramesRecreate = true;
     update.layout = true;
   }
 
