@@ -23,6 +23,7 @@ import {
 
 // Third party
 import { json } from 'd3';
+import tSNE from 'tsne';
 
 // Injectables
 import States from 'services/states';
@@ -101,6 +102,10 @@ import { EVENT_BASE_NAME } from 'components/multi-select/multi-select-defaults';
 import COLORS from 'configs/colors';
 
 import debounce from 'utils/debounce';
+
+import createWorker from 'utils/create-worker';
+
+import tsneWorker from 'utils/tsne-worker';
 
 const logger = LogManager.getLogger('fragments');
 
@@ -549,6 +554,53 @@ export class Fragments {
 
     fgmState.gridCellWidthInclSpacingHalf =
       fgmState.gridCellWidthInclSpacing / 2;
+  }
+
+  calcLayoutPositionsMD (piles = this.piles, measures = this.arrangeMeasures) {
+    this.isLoading = true;
+
+    return new Promise((resolve, reject) => {
+      const pileMeasures = this.piles.map(
+        pile => this.arrangeMeasures.map(
+          measure => pile.measures[measure]
+        )
+      );
+
+      console.log('data for tsne', pileMeasures);
+
+      const worker = createWorker(tSNE, tsneWorker);
+
+      const costs = [];
+      let pos;
+
+      worker.onmessage = function (event) {
+        if (event.data.pos) {
+          pos = event.data.pos;
+          console.log('posityion', pos);
+        }
+
+        if (event.data.iterations) {
+          costs[event.data.iterations] = event.data.cost;
+        }
+
+        if (event.data.stop) {
+          console.log('stopped with message', event.data);
+          worker.terminate();
+          this.isLoading = false;
+          resolve(true);
+        }
+      };
+
+      worker.postMessage({
+        nIter: 500,
+        dim: 2,
+        perplexity: 20.0,
+        // earlyExaggeration: 4.0,
+        // learningRate: 100.0,
+        metric: 'euclidean', //'euclidean',
+        data: pileMeasures
+      });
+    });
   }
 
   /**
@@ -1441,8 +1493,16 @@ export class Fragments {
       );
     }
 
-    // if (numArrMets > 2) {
-    //   return this.getLayoutPosition2D(pile.ranking);
+    // if (numArrMeasures > 2 && !fgmState.trashIsActive) {
+    //   if (!this.clusteringIsCalculated) {
+    //     this.clusterLayout = this.calcLayoutPositionsMD(
+    //       this.piles, this.arrangeMeasures
+    //     );
+    //   } else {
+    //     this.clusterLayout = Promise.resolve();
+    //   }
+
+    //   return this.getLayoutPositionMD(pile, abs);
     // }
 
     return this.getLayoutPosition1D(pile.rank, abs);
@@ -1474,6 +1534,16 @@ export class Fragments {
     return { x, y };
   }
 
+  /**
+   * Get pile position for 2 dimenions
+   *
+   * @param {object} pile - Pile to be poisioned.
+   * @param {[type]} measureX - Measure for X axis.
+   * @param {[type]} measureY - Measure for Y axis.
+   * @param {boolean} abs - If `true` the position needs to be adjusted to the
+   *   WebGL coordinates.
+   * @return {object} Object with x and y coordinates.
+   */
   getLayoutPosition2D (pile, measureX, measureY, abs) {
     let relX = pile.measures[measureX] / fgmState.dataMeasuresMax[measureX];
     let relY = pile.measures[measureY] / fgmState.dataMeasuresMax[measureY];
@@ -1484,6 +1554,26 @@ export class Fragments {
     let y = (1 - relY) * (
       this.plotElDim.height - (1.5 * fgmState.gridCellWidthInclSpacing)
     );
+
+    if (abs) {
+      x += fgmState.gridCellWidthInclSpacingHalf;
+      y = -y - fgmState.gridCellHeightInclSpacingHalf;
+    }
+
+    return { x, y };
+  }
+
+  /**
+   * Get pile position for multi dimensional clustering.
+   *
+   * @param {object} pile - Pile to be poisioned.
+   * @param {boolean} abs - If `true` the position needs to be adjusted to the
+   *   WebGL coordinates.
+   * @return {object} Object with x and y coordinates.
+   */
+  getLayoutPositionMD (pile, abs) {
+    let x = this.clusterPos[pile.idNumeric].x;
+    let y = this.clusterPos[pile.idNumeric].y;
 
     if (abs) {
       x += fgmState.gridCellWidthInclSpacingHalf;
@@ -2756,7 +2846,10 @@ export class Fragments {
         this.piles.forEach(pile => pile.frameCreate());
       }
 
-      if (update.piles || update.pileFramesRecreate) {
+      if (
+        (update.piles || update.pileFramesRecreate) &&
+        !update.drawPilesAfter
+      ) {
         this.redrawPiles();
       }
 
@@ -2914,6 +3007,7 @@ export class Fragments {
 
       animation
         .catch(() => {
+          // Animations never fired. Just set the position.
           piles.forEach((pile) => {
             const pos = this.getLayoutPosition(pile);
             pile.moveTo(pos.x, pos.y);
@@ -2993,9 +3087,7 @@ export class Fragments {
           ));
 
           if (fgmState.trashIsActive) {
-            if (pile.isTrashed && !pile.isDrawn) {
-              pile.draw();
-            } else if (pile.isDrawn) {
+            if (pile.isTrashed && pile.isDrawn) {
               pile.hide();
             }
 
@@ -3007,7 +3099,6 @@ export class Fragments {
           } else if (pile.isTrashed) {
             pile.recover();
           } else if (!pile.isDrawn) {
-            pile.draw();
             if (
               this.fromDisperse &&
               this.fromDisperse.targetPilesIds[pile.id]
