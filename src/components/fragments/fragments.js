@@ -757,6 +757,30 @@ export class Fragments {
   }
 
   /**
+   * Assign random colors
+   *
+   * @param {object} event - Event object.
+   * @return {object} Self.
+   */
+  pileAssignBW (event) {
+    this.removeFromColorPilesIdx(event.pile);
+
+    this.store.dispatch(setPilesColors({ [event.pile.id]: -1 }));
+  }
+
+  /**
+   * Assign random colors
+   *
+   * @param {object} event - Event object.
+   * @return {object} Self.
+   */
+  pileAssignColor (event) {
+    this.removeFromColorPilesIdx(event.pile);
+
+    this.store.dispatch(setPilesColors({ [event.pile.id]: event.color }));
+  }
+
+  /**
    * Create a new instance
    *
    * @param {number} pileId - Pile ID.
@@ -2474,6 +2498,24 @@ export class Fragments {
     return ((y - 1) / 2 * this.plotElDim.height);
   }
 
+  removeFromColorPilesIdx (pile) {
+    if (pile.color !== pileColors.gray) {
+      try {
+        // Try to remove pile from index
+        const prevColor = this.store.getState()
+          .present.decompose.fragments.pilesColors[pile.id];
+
+        const pos = this.colorsPilesIdx[prevColor].indexOf(pile.id);
+
+        if (pos >= 0) {
+          this.colorsPilesIdx[prevColor].splice(pos, 1);
+        }
+      } catch (e) {
+        logger.error('State corrupted');
+      }
+    }
+  }
+
   /**
    * [removeFromPile description]
    *
@@ -3124,48 +3166,6 @@ export class Fragments {
     update.layout = true;
     update.scrollLimit = true;
     update.drawPilesAfter = true;
-  }
-
-  removeFromColorPilesIdx (pile) {
-    if (pile.color !== pileColors.gray) {
-      try {
-        // Try to remove pile from index
-        const prevColor = this.store.getState()
-          .present.decompose.fragments.pilesColors[pile.id];
-
-        const pos = this.colorsPilesIdx[prevColor].indexOf(pile.id);
-
-        if (pos >= 0) {
-          this.colorsPilesIdx[prevColor].splice(pos, 1);
-        }
-      } catch (e) {
-        logger.error('State corrupted');
-      }
-    }
-  }
-
-  /**
-   * Assign random colors
-   *
-   * @param {object} event - Event object.
-   * @return {object} Self.
-   */
-  pileAssignColor (event) {
-    this.removeFromColorPilesIdx(event.pile);
-
-    this.store.dispatch(setPilesColors({ [event.pile.id]: event.color }));
-  }
-
-  /**
-   * Assign random colors
-   *
-   * @param {object} event - Event object.
-   * @return {object} Self.
-   */
-  pileAssignBW (event) {
-    this.removeFromColorPilesIdx(event.pile);
-
-    this.store.dispatch(setPilesColors({ [event.pile.id]: -1 }));
   }
 
   /**
