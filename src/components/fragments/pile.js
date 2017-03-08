@@ -31,6 +31,7 @@ import {
 import pileColors from 'components/fragments/pile-colors';
 
 import {
+  LABEL_MIN_CELL_SIZE,
   MENU_LABEL_SPACING,
   MENU_PADDING,
   PREVIEW_LOW_QUAL_THRESHOLD,
@@ -473,7 +474,10 @@ export default class Pile {
       this.drawMenu();
     }
 
-    if (!fgmState.layout2d) {
+    if (
+      !fgmState.layout2d &&
+      !(this.cellSize < LABEL_MIN_CELL_SIZE)
+    ) {
       this.drawPileLabel(isHovering);
     }
 
