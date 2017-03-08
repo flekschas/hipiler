@@ -1,0 +1,122 @@
+@import 'colors';
+@import 'transitions';
+
+.axis {
+  position: absolute;
+  color: $gray;
+  font-size: 0.8rem;
+
+  &.axis-x {
+    left: 1rem;
+    right: 0;
+    height: 1rem;
+    box-shadow: inset -3px 0 0 0 $gray-lighter;
+
+    .axis-line {
+      left: 0;
+      width: 100%;
+      height: 1px;
+    }
+
+    .axis-labels-min {
+      margin-left: 0.25rem;
+    }
+
+    .axis-labels-max {
+      margin-right: 0.25rem;
+    }
+  }
+
+  &.axis-y {
+    top: 1rem;
+    bottom: 0.5rem;
+    width: 1rem;
+    box-shadow: inset 0 -3px 0 0 $gray-lighter;
+
+    .axis-line {
+      top: 0;
+      width: 1px;
+      height: 100%;
+    }
+
+    .axis-labels-min {
+      margin-bottom: 0.5rem;
+    }
+
+    .axis-labels-max {
+      margin-top: 0.5rem;
+    }
+  }
+
+  &.axis-top {
+    top: 0;
+
+    .axis-line {
+      bottom: 0;
+    }
+  }
+
+  &.axis-bottom {
+    bottom: 0;
+
+    .axis-line {
+      top: 0;
+    }
+  }
+
+  &.axis-left {
+    left: 0;
+
+    .axis-line {
+      right: 0;
+    }
+
+    .axis-labels {
+      height: 100%;
+
+      > span {
+        transform: rotate(-90deg);
+      }
+    }
+  }
+
+  &.axis-right {
+    right: 0;
+
+    .axis-line {
+      left: 0;
+    }
+  }
+
+  .axis-labels-min,
+  .axis-labels-max,
+  .axis-labels-name {
+    white-space: nowrap;
+  }
+
+  .axis-line {
+    position: absolute;
+    background: $gray-lighter;
+  }
+
+  .axis-arrow {
+    right: 0;
+  }
+}
+
+.axis-switch {
+  position: absolute;
+  z-index: 2;
+  top: 0;
+  left: 0;
+  width: 1rem;
+  height: 1rem;
+  color: $gray;
+  background: $white;
+
+  &:hover,
+  &:active {
+    color: $primary;
+    cursor: pointer;
+  }
+}
