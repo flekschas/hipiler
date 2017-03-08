@@ -233,7 +233,7 @@ export class Higlass {
       if (this.loci !== loci) {
         this.loci = loci;
         this.loci2dTrack = {
-          uid: 'f',
+          uid: 'g',
           type: '2d-chromosome-annotations',
           chromInfoPath: '//s3.amazonaws.com/pkerp/data/hg19/chromSizes.tsv',
           options: {
