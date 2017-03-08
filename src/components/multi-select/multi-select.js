@@ -210,7 +210,8 @@ export class MultiSelect {
 
     if (
       !selectedOptionsState ||
-      this.selectedOptionsState !== selectedOptionsState
+      this.options.length === 0 ||
+      this.selectedOptionsState === selectedOptionsState
     ) {
       return;
     }
