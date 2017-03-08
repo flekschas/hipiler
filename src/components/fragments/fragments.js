@@ -352,6 +352,10 @@ export class Fragments {
     this._isInitialized = !!value;
   }
 
+  get isLayout2d () {
+    return fgmState.isLayout2d;
+  }
+
   get matrixWidth () {
     return this.fragDims * this.cellSize;
   }
@@ -435,7 +439,7 @@ export class Fragments {
     let arrangeMeasures;
 
     try {
-      arrangeMeasures = measures.map(metric => metric.id);
+      arrangeMeasures = measures.map(measure => measure.id);
     } catch (e) {
       arrangeMeasures = [];
     }
@@ -973,7 +977,7 @@ export class Fragments {
     } else {
       this.mouseClickCounter = 0;
 
-      if (fgmState.layout2d && this.mouseDownTimeDelta > ZOOM_DELAY_TIME) {
+      if (this.isLayout2d && this.mouseDownTimeDelta > ZOOM_DELAY_TIME) {
         this.pileZoomed = fgmState.hoveredPile.scaleTo(6).frameCreate().draw();
       }
     }
@@ -1394,6 +1398,24 @@ export class Fragments {
   }
 
   /**
+   * Flip X and Y axis in 2D scatterplot view.
+   */
+  flipXY () {
+    if (this.arrangeMeasures.length !== 2) { return; }
+
+    let arrangeMeasures;
+
+    try {
+      arrangeMeasures = this.store.getState().present
+        .decompose.fragments.arrangeMeasures;
+    } catch (e) {
+      logger.error('State is corrupted', e);
+    }
+
+    this.store.dispatch(setArrangeMeasures(arrangeMeasures.reverse()));
+  }
+
+  /**
    * [focusOn description]
    *
    * @param {[type]} nodes - [description]
@@ -1572,12 +1594,17 @@ export class Fragments {
     let relX = pile.measures[measureX] / fgmState.dataMeasuresMax[measureX];
     let relY = pile.measures[measureY] / fgmState.dataMeasuresMax[measureY];
 
-    let x = relX * (
-      this.plotElDim.width - fgmState.gridCellWidthInclSpacing
-    );
-    let y = (1 - relY) * (
-      this.plotElDim.height - (1.5 * fgmState.gridCellWidthInclSpacing)
-    );
+    let x = 16 + (relX * (
+      this.plotElDim.width -
+      fgmState.gridCellWidthInclSpacing -
+      (1.5 * 16)
+    ));
+
+    let y = 16 + ((1 - relY) * (
+      this.plotElDim.height -
+      (1.5 * fgmState.gridCellWidthInclSpacing) -
+      (1.5 * 16)
+    ));
 
     if (abs) {
       x += fgmState.gridCellWidthInclSpacingHalf;
@@ -1815,8 +1842,7 @@ export class Fragments {
         this.dataMeasures[headerField] = index;
         fgmState.measures.push({
           id: headerField,
-          name: headerField[0].toUpperCase() +
-            headerField.slice(1).replace(/[-_]/g, ' ')
+          name: this.wurstCaseToNice(headerField)
         });
         fgmState.dataMeasuresMax[headerField] = 0;
       }
@@ -2942,13 +2968,17 @@ export class Fragments {
 
     this.arrangeMeasures = _arrangeMeasures;
 
+    this.arrangeMeasuresReadible = this.arrangeMeasures.map(
+      measure => this.wurstCaseToNice(measure)
+    );
+
     this.selectMeasure(this.arrangeMeasures, fgmState.measures);
 
     if (this.arrangeMeasures.length > 1) {
-      fgmState.layout2d = true;
+      fgmState.isLayout2d = true;
       fgmState.scale = 0.25;
     } else {
-      fgmState.layout2d = false;
+      fgmState.isLayout2d = false;
       fgmState.scale = 1;
     }
 
@@ -3285,5 +3315,15 @@ export class Fragments {
 
       this.renderer.setSize(this.plotElDim.width, this.plotElDim.height);
     }
+  }
+
+  /**
+   * Nicefy that wurstified string
+   *
+   * @param {string} str - Wurstified string to be nicefied.
+   * @return {string} Nicefied string.
+   */
+  wurstCaseToNice (str) {
+    return `${str[0].toUpperCase()}${str.slice(1).replace(/[-_]/g, ' ')}`;
   }
 }

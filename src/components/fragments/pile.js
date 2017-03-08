@@ -475,7 +475,7 @@ export default class Pile {
     }
 
     if (
-      !fgmState.layout2d &&
+      !fgmState.isLayout2d &&
       !(this.cellSize < LABEL_MIN_CELL_SIZE)
     ) {
       this.drawPileLabel(isHovering);
@@ -490,7 +490,7 @@ export default class Pile {
     this.mesh.position.set(this.x, this.y, Z_BASE);
     fgmState.scene.add(this.mesh);
 
-    if (!fgmState.layout2d) {
+    if (!fgmState.isLayout2d) {
       this.drawStrandArrows(isHovering);
     }
 
