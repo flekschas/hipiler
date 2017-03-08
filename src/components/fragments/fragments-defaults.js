@@ -80,7 +80,7 @@ export const MARGIN_TOP = 2;
 
 export const MATRIX_FRAME_ENCODING = null;
 
-export const MATRIX_FRAME_THICKNESS = 1;
+export const MATRIX_FRAME_THICKNESS = 2;
 
 export const MATRIX_FRAME_THICKNESS_MAX = 10;
 
