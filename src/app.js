@@ -9,7 +9,11 @@ import States from 'services/states';
 // Utils
 import $ from 'utils/dom-el';
 import { updateConfigs } from 'app-actions';
-import { routes } from 'configs/app';
+import {
+  name as appName,
+  nameShort as appNameShort,
+  routes
+} from 'configs/app';
 import { externalLinks } from 'configs/nav';
 import dragDrop from 'utils/drag-drop';
 import readJsonFile from 'utils/read-json-file';
@@ -31,6 +35,9 @@ export default class App {
     this.reset = states.reset.bind(states);
 
     this.isRehydrated = states.isRehydrated;
+
+    this.appName = appName;
+    this.appNameShort = appNameShort;
 
     this.update();
 
@@ -74,7 +81,16 @@ export default class App {
   configureRouter (config, router) {
     this.router = router;
 
+    config.title = appName;
+
     config.map(routes);
+
+    config.mapUnknownRoutes(() => ({
+      route: 'not-found',
+      moduleId: 'views/not-found'
+    }));
+
+    config.fallbackRoute('/');
   }
 
   get currentRoute () {
