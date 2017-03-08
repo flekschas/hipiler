@@ -1,3 +1,7 @@
+export const name = 'HiPiler';
+
+export const nameShort = 'HiP';
+
 export const environments = {
   dev: {
     debug: true,
