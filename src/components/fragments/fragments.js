@@ -1635,6 +1635,23 @@ export class Fragments {
   }
 
   /**
+   * Niceify numeric measure
+   *
+   * @param {number} measure - Measure to be nicefied.
+   * @return {number} Niceified value.
+   */
+  nicefyMeasure (measure) {
+    let nicefied = measure;
+
+    if (parseInt(measure, 10) !== measure) {
+      // Float
+      nicefied = Math.round(measure * 1000) / 1000;
+    }
+
+    return nicefied;
+  }
+
+  /**
    * Get matrices of piles
    *
    * @param {array} piles - Piles.
@@ -2930,8 +2947,10 @@ export class Fragments {
       }
 
       if (update.layout) {
-        this.updateLayout().then(() => {
-          this.render();
+        window.requestAnimationFrame(() => {
+          this.updateLayout().then(() => {
+            this.render();
+          });
         });
       }
 

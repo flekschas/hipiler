@@ -20,18 +20,18 @@
       </button>
       <div class="axis axis-x axis-top" if.bind="isLayout2d">
         <div class="flex-c flex-jc-sb axis-labels">
-          <span class="axis-labels-min">Min</span>
+          <span class="axis-labels-min">0</span>
           <span class="axis-labels-name">${arrangeMeasuresReadible[0]}</span>
-          <span class="axis-labels-max">Max</span>
+          <span class="axis-labels-max">${nicefyMeasure(state.dataMeasuresMax[arrangeMeasures[0]])}</span>
         </div>
         <div class="axis-line"></div>
         <div class="axis-arrow"></div>
       </div>
       <div class="axis axis-y axis-left" if.bind="isLayout2d">
         <div class="flex-c flex-jc-sb flex-d-c axis-labels">
-          <span class="axis-labels-max">Max</span>
+          <span class="axis-labels-max">${nicefyMeasure(state.dataMeasuresMax[arrangeMeasures[1]])}</span>
           <span class="axis-labels-name">${arrangeMeasuresReadible[1]}</span>
-          <span class="axis-labels-min">Min</span>
+          <span class="axis-labels-min">0</span>
         </div>
         <div class="axis-line"></div>
         <div class="axis-arrow"></div>
