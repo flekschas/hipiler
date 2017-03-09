@@ -13,7 +13,7 @@
     "aurelia-bootstrapper": "2.1.1",
     "bluebird": "3.4.7",
     "d3": "4.5.0",
-    "higlass": "hms-dbmi/higlass#175649c19a69469cde58d97fad357e1d014c2daa",
+    "higlass": "hms-dbmi/higlass#97ebbfbf1aa2f6686c618acc65ec845f17dc28de",
     "localforage": "1.5.0",
     "redux": "3.6.0",
     "redux-persist": "4.1.0",
