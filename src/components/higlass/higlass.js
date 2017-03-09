@@ -38,6 +38,8 @@ export class Higlass {
     this.checkColumnsDb = debounce(this.checkColumns.bind(this), 150);
 
     this.isLoading = true;
+
+    this.locationTracker = {};
   }
 
   attached () {
@@ -142,6 +144,32 @@ export class Higlass {
     this.isErrored = true;
   }
 
+  initApi (api, state) {
+    this.config.views.forEach((view) => {
+      this.locationTracker[view.uid] = {
+        callback: this.trackGenomicLocation(view.uid)
+      };
+
+      if (view.trackLocation) {
+        this.api.on(
+          'location',
+          view.uid,
+          this.locationTracker[view.uid].callback,
+          (id) => {
+            this.locationTracker[view.uid].id = id;
+            console.log('girly girl', this.locationTracker[view.uid].id);
+          }
+        );
+      }
+    });
+  }
+
+  trackGenomicLocation (viewId) {
+    return (location) => {
+      console.log('GIRLS', viewId, location);
+    };
+  }
+
   /**
    * Handles changes of interaction.
    */
@@ -184,9 +212,6 @@ export class Higlass {
     this.originalConfig = config;
     this.config = deepClone(config);
 
-    this.originalColoring = config
-      .views[0].tracks.center[0].contents[0].options.colorRange.slice();
-
     update.render = true;
   }
 
@@ -195,7 +220,7 @@ export class Higlass {
 
     this.interactions = interactions;
 
-    this.config.zoomFixed = !this.interactions;
+    // this.config.zoomFixed = !this.interactions;
 
     update.render = true;
   }
@@ -205,13 +230,16 @@ export class Higlass {
 
     this.grayscale = grayscale;
 
-    if (this.grayscale) {
-      this.config.views[0].tracks.center[0].contents[0].options.colorRange =
-        GRAYSCALE_COLORS;
-    } else {
-      this.config.views[0].tracks.center[0].contents[0].options.colorRange =
-        this.originalColoring;
-    }
+    this.config.views.forEach((view, index) => {
+      if (grayscale) {
+        view.tracks.center[0].contents[0].options.colorRange =
+          GRAYSCALE_COLORS;
+      } else {
+        view.tracks.center[0].contents[0].options.colorRange =
+          this.originalColoring.views[index]
+            .tracks.center[0].contents[0].options.colorRange.slice();
+      }
+    });
 
     update.render = true;
   }
@@ -221,11 +249,15 @@ export class Higlass {
 
     this.fragmentsHighlight = fgmHighlight;
 
-    if (this.config.views[0].tracks.center.length > 1) {
-      this.config.views[0].tracks.center = [
-        this.config.views[0].tracks.center[0]
-      ];
-    }
+    this.config.views
+      .filter(view => view.tracks.center.length > 1)
+      .forEach((view) => {
+        const last = view.tracks.center.length - 1;
+
+        if (view.tracks.center[last].type === '2d-chromosome-annotations') {
+          view.tracks.center.pop();
+        }
+      });
 
     if (this.fragmentsHighlight) {
       const loci = this.extractLoci(fgmConfig);
@@ -233,7 +265,7 @@ export class Higlass {
       if (this.loci !== loci) {
         this.loci = loci;
         this.loci2dTrack = {
-          uid: 'g',
+          uid: '2d',
           type: '2d-chromosome-annotations',
           chromInfoPath: '//s3.amazonaws.com/pkerp/data/hg19/chromSizes.tsv',
           options: {
@@ -244,7 +276,12 @@ export class Higlass {
         };
       }
 
-      this.config.views[0].tracks.center.push(this.loci2dTrack);
+      this.config.views.forEach((view) => {
+        const _loci = deepClone(this.loci2dTrack);
+        _loci.uid = `${view.uid}.2d`;
+
+        view.tracks.center.push(_loci);
+      });
     }
 
     update.render = true;
@@ -253,7 +290,14 @@ export class Higlass {
   render (config) {
     this.areServersAvailable(config)
       .then(() => {
-        hg(this.plotEl, deepClone(config), OPTIONS, (api) => { this.api = api; });
+        hg(
+          this.plotEl,
+          deepClone(config),
+          OPTIONS,
+          (api) => { this.api = api; }
+        );
+
+        this.initApi(this.api);
       })
       .catch((error) => {
         this.hasErrored('Server not available');
