@@ -4,6 +4,7 @@ import {
   SET_GRAYSCALE,
   SET_FRAGMENTS_HIGHLIGHT,
   SET_INTERACTIONS,
+  SET_SELECTION_VIEW,
   UPDATE_HGL_CONFIG
 } from 'components/higlass/higlass-actions';
 
@@ -11,7 +12,8 @@ import {
   CONFIG,
   FRAGMENTS_HIGHLIGHT,
   GRAYSCALE,
-  INTERACTIONS
+  INTERACTIONS,
+  SELECTION_VIEW
 } from 'components/higlass/higlass-defaults';
 
 import deepClone from 'utils/deep-clone';
@@ -56,9 +58,20 @@ function interactions (state = INTERACTIONS, action) {
   }
 }
 
+function selectionView (state = SELECTION_VIEW, action) {
+  switch (action.type) {
+    case SET_SELECTION_VIEW:
+      return action.payload.domains.slice();
+
+    default:
+      return state;
+  }
+}
+
 export default combineReducers({
   config,
   fragmentsHighlight,
   grayscale,
-  interactions
+  interactions,
+  selectionView
 });

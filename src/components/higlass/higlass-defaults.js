@@ -12,3 +12,5 @@ export const GRAYSCALE_COLORS = [
 ];
 
 export const INTERACTIONS = false;
+
+export const SELECTION_VIEW = [];

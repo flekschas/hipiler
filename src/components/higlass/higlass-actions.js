@@ -19,6 +19,13 @@ export const setInteractions = interactions => ({
   payload: { interactions }
 });
 
+export const SET_SELECTION_VIEW = 'SET_SELECTION_VIEW';
+
+export const setSelectionView = domains => ({
+  type: SET_SELECTION_VIEW,
+  payload: { domains }
+});
+
 export const UPDATE_HGL_CONFIG = 'UPDATE_HGL_CONFIG';
 
 export const updateConfig = config => ({
