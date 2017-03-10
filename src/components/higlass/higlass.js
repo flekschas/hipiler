@@ -1,6 +1,9 @@
 // Aurelia
 import { inject, LogManager } from 'aurelia-framework';
 
+// Third party
+import { json } from 'd3';
+
 // Injectables
 import States from 'services/states';
 
@@ -13,12 +16,14 @@ import { requestNextAnimationFrame } from 'utils/request-animation-frame';
 import {
   setGrayscale,
   setFragmentsHighlight,
-  setInteractions
+  setInteractions,
+  setSelectionView
 } from 'components/higlass/higlass-actions';
 import {
   GRAYSCALE_COLORS
 } from 'components/higlass/higlass-defaults';
 
+import arraysEqual from 'utils/arrays-equal';
 import deepClone from 'utils/deep-clone';
 
 const logger = LogManager.getLogger('higlass');
@@ -144,7 +149,12 @@ export class Higlass {
     this.isErrored = true;
   }
 
-  initApi (api, state) {
+  /**
+   * Set up HiGlass listeners
+   *
+   * @param {object} api - HiGlass public API.
+   */
+  initApi (api) {
     this.config.views.forEach((view) => {
       this.locationTracker[view.uid] = {
         callback: this.trackGenomicLocation(view.uid)
@@ -155,19 +165,10 @@ export class Higlass {
           'location',
           view.uid,
           this.locationTracker[view.uid].callback,
-          (id) => {
-            this.locationTracker[view.uid].id = id;
-            console.log('girly girl', this.locationTracker[view.uid].id);
-          }
+          (id) => { this.locationTracker[view.uid].id = id; }
         );
       }
     });
-  }
-
-  trackGenomicLocation (viewId) {
-    return (location) => {
-      console.log('GIRLS', viewId, location);
-    };
   }
 
   /**
@@ -177,6 +178,51 @@ export class Higlass {
     this.store.dispatch(setInteractions(!this.interactions));
 
     return true;
+  }
+
+  /**
+   * Load chromosom size infos
+   *
+   * @param {string} chromInfoUrl - Chromosom size info path.
+   */
+  loadChromInfo (chromInfoUrl) {
+    json(chromInfoUrl, (error, chromInfo) => {
+      if (error) { logger.error(error); }
+
+      this.chromInfo = chromInfo;
+    });
+  }
+
+  /**
+   * Track genome locations
+   *
+   * @param {string} viewId - ID of the view to be tracked.
+   */
+  trackGenomicLocation (viewId) {
+    return (location) => {
+      if (
+        this.location === location ||
+        arraysEqual(this.location, location)
+      ) { return; }
+
+      this.location = location;
+
+      if (!this.chromInfo) { return; }
+
+      // Get global locations
+      const xStart = this.chromInfo[location[0]].offset + location[1];
+      const xEnd = this.chromInfo[location[2]].offset + location[3];
+      const yStart = this.chromInfo[location[4]].offset + location[5];
+      const yEnd = this.chromInfo[location[6]].offset + location[7];
+
+      // Update state
+      this.store.dispatch(setSelectionView([
+        xStart,
+        xEnd,
+        yStart,
+        yEnd
+      ]));
+    };
   }
 
   update () {
@@ -197,6 +243,7 @@ export class Higlass {
         update,
         update.render
       );
+      this.updateSelectionView(state.higlass.selectionView, update);
 
       if (update.render) {
         this.renderDb(this.config);
@@ -207,16 +254,33 @@ export class Higlass {
   }
 
   updateConfig (config, update) {
-    if (this.originalConfig === config) { return; }
+    if (
+      this.originalConfig === config ||
+      Object.keys(config).length === 0
+    ) { return; }
 
     this.originalConfig = config;
     this.config = deepClone(config);
+
+    if (!this.chromInfo && this.config.chromInfoPath) {
+      this.loadChromInfo(this.config.chromInfoPath);
+    }
+
+    this.config.views.forEach((view, index) => {
+      if (view.selectionView) {
+        this.selectionViewId = index;
+      }
+    });
 
     update.render = true;
   }
 
   updateInteractions (interactions, update, force) {
-    if (this.interactions === interactions && !force) { return; }
+    if (
+      (this.interactions === interactions && !force) &&
+      this.config &&
+      this.config.views.length === 1
+    ) { return; }
 
     this.interactions = interactions;
 
@@ -226,7 +290,10 @@ export class Higlass {
   }
 
   updateGrayscale (grayscale, update, force) {
-    if (this.grayscale === grayscale && !force) { return; }
+    if (
+      (this.grayscale === grayscale && !force) &&
+      this.config
+    ) { return; }
 
     this.grayscale = grayscale;
 
@@ -245,7 +312,10 @@ export class Higlass {
   }
 
   updateFragmentsHighlight (fgmHighlight, fgmConfig, update, force) {
-    if (this.fragmentsHighlight === fgmHighlight && !force) { return; }
+    if (
+      (this.fragmentsHighlight === fgmHighlight && !force) &&
+      this.config
+    ) { return; }
 
     this.fragmentsHighlight = fgmHighlight;
 
@@ -285,6 +355,28 @@ export class Higlass {
     }
 
     update.render = true;
+  }
+
+  updateSelectionView (selectionViewDomains, update) {
+    if (
+      (
+        this.selectionViewDomains === selectionViewDomains ||
+        typeof this.selectionViewId === 'undefined'
+      ) &&
+      this.config
+    ) { return; }
+
+    this.selectionViewDomains = selectionViewDomains;
+
+    this.config.views[this.selectionViewId].initialXDomain = [
+      selectionViewDomains[0],
+      selectionViewDomains[1]
+    ];
+
+    this.config.views[this.selectionViewId].initialYDomain = [
+      selectionViewDomains[2],
+      selectionViewDomains[3]
+    ];
   }
 
   render (config) {

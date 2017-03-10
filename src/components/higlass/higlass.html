@@ -27,7 +27,7 @@
             checked.bind="!!grayscale"
             click.delegate="grayscaleChangeHandler()">
         </li>
-        <li class="flex-c flex-d-c">
+        <li class="flex-c flex-d-c" if.bind="config.views.length === 1">
           <label
             for="settings-hg-interactions"
             title="Highlight Snippets Locations">Interactions</label>
