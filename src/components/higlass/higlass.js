@@ -277,8 +277,8 @@ export class Higlass {
 
   updateInteractions (interactions, update, force) {
     if (
-      (this.interactions === interactions && !force) &&
-      this.config &&
+      (this.interactions === interactions && !force) ||
+      !this.config ||
       this.config.views.length === 1
     ) { return; }
 
@@ -291,11 +291,13 @@ export class Higlass {
 
   updateGrayscale (grayscale, update, force) {
     if (
-      (this.grayscale === grayscale && !force) &&
-      this.config
+      (this.grayscale === grayscale && !force) ||
+      !this.config
     ) { return; }
 
     this.grayscale = grayscale;
+
+    console.log(this.config);
 
     this.config.views.forEach((view, index) => {
       if (grayscale) {
@@ -313,8 +315,8 @@ export class Higlass {
 
   updateFragmentsHighlight (fgmHighlight, fgmConfig, update, force) {
     if (
-      (this.fragmentsHighlight === fgmHighlight && !force) &&
-      this.config
+      (this.fragmentsHighlight === fgmHighlight && !force) ||
+      !this.config
     ) { return; }
 
     this.fragmentsHighlight = fgmHighlight;
@@ -362,8 +364,8 @@ export class Higlass {
       (
         this.selectionViewDomains === selectionViewDomains ||
         typeof this.selectionViewId === 'undefined'
-      ) &&
-      this.config
+      ) ||
+      !this.config
     ) { return; }
 
     this.selectionViewDomains = selectionViewDomains;
