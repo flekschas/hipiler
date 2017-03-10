@@ -37,6 +37,7 @@ import {
   setArrangeMeasures,
   setCellSize,
   setCoverDispMode,
+  setHiglassSubSelection,
   setLassoIsRound,
   setMatrixFrameEncoding,
   setMatrixOrientation,
@@ -1793,6 +1794,15 @@ export class Fragments {
   }
 
   /**
+   * HiGlass sub selection change handler.
+   */
+  higlassSubSelectionChangeHandler () {
+    this.store.dispatch(setHiglassSubSelection(!this.higlassSubSelection));
+
+    return true;
+  }
+
+  /**
    * General init
    */
   init () {
@@ -2895,6 +2905,7 @@ export class Fragments {
       this.updateCoverDispMode(stateFgm.coverDispMode, update);
       this.updateCellSize(stateFgm.cellSize, update);
       this.updateConfig(stateFgm.config);
+      this.updateHiglassSubSelection(stateFgm.higlassSubSelection, update);
       this.updateLassoIsRound(stateFgm.lassoIsRound);
       this.updateMatrixFrameEncoding(stateFgm.matrixFrameEncoding, update);
       this.updateMatrixOrientation(stateFgm.matrixOrientation, update);
@@ -3049,19 +3060,32 @@ export class Fragments {
   }
 
   /**
-   * Handle updating the config
+   * Handle updating the config.
    *
    * @param {object} newConfig - New config
    */
   updateConfig (newConfig) {
-    if (this.config !== newConfig) {
+    if (
+      this.config !== newConfig &&
+      Object.keys(newConfig).length > 0
+    ) {
       this.config = newConfig;
       this.loadData(this.config);
     }
   }
 
   /**
-   * Update lasso is round
+   * Update HiGlass sub-selection.
+   *
+   * @param {boolean} higlassSubSelection - If `true` piles are selected based
+   *   on a HiGlass view.
+   */
+  updateHiglassSubSelection (higlassSubSelection) {
+    this.higlassSubSelection = higlassSubSelection;
+  }
+
+  /**
+   * Update lasso is round.
    *
    * @param {boolean} lassoIsRound - If `true` lasso is round.
    */
@@ -3070,7 +3094,7 @@ export class Fragments {
   }
 
   /**
-   * Update every pile
+   * Update every pile.
    *
    * @param {array} piles - Piles to be re-arranged.
    * @param {array} measures - Measures used for arraning.

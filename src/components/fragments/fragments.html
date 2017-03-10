@@ -54,17 +54,6 @@
               change.delegate="cellSizeChangedHandler($event)">
           </li>
           <li class="flex-c flex-d-c">
-            <label for="settings-fgm-matrix-orientation">Orientation</label>
-            <select
-              id="settings-fgm-matrix-orientation"
-              change.delegate="matrixOrientationChangeHandler($event)">
-              <option
-                repeat.for="option of matrixOrientations"
-                value.one-way="option.id"
-                selected.bind="option.id === state.matrixOrientation">${option.name}</option>
-            </select>
-          </li>
-          <li class="flex-c flex-d-c">
             <label for="settings-fgm-order-cluster">Arrange</label>
             <multi-select
               bottom-up="true"
@@ -72,6 +61,16 @@
               event-id.bind="arrangeSelectedEventId"
               state-query.bind="arrangeMeasuresAccessPath"
               placeholder="Choose…"></multi-select>
+          </li>
+          <li class="flex-c flex-d-c">
+            <label
+              for="settings-fgm-hg-sub-selection"
+              title="Enable sub-selection with HiGlass">Sub-Select.</label>
+            <input
+              type="checkbox"
+              id="settings-fgm-hg-sub-selection"
+              checked.bind="higlassSubSelection"
+              click.delegate="higlassSubSelectionChangeHandler()">
           </li>
           <li>
             <button
@@ -129,6 +128,17 @@
                 repeat.for="option of state.measures"
                 value.one-way="option.id"
                 selected.bind="option.id === state.matrixFrameEncoding">${option.name}</option>
+            </select>
+          </li>
+          <li class="flex-c flex-d-c">
+            <label for="settings-fgm-matrix-orientation">Orientation</label>
+            <select
+              id="settings-fgm-matrix-orientation"
+              change.delegate="matrixOrientationChangeHandler($event)">
+              <option
+                repeat.for="option of matrixOrientations"
+                value.one-way="option.id"
+                selected.bind="option.id === state.matrixOrientation">${option.name}</option>
             </select>
           </li>
           <li class="flex-c flex-d-c">
