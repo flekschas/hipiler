@@ -1,5 +1,5 @@
 // Third party
-import localForage from 'localForage';
+import localforage from 'localForage';
 import { applyMiddleware, compose, createStore } from 'redux';
 import { autoRehydrate, persistStore, purgeStoredState } from 'redux-persist';
 import thunk from 'redux-thunk';
@@ -9,7 +9,7 @@ import undoable, { ActionCreators } from 'redux-undo';
 import appReducer from 'app-reducer';
 
 const CONFIG = {
-  storage: localForage,
+  storage: localforage,
   debounce: 75,
   keyPrefix: 'matrixDecompositionMethods.'
 };
