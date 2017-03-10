@@ -227,7 +227,6 @@ export class Higlass {
       const yEnd = this.chromInfoData[location[6]].offset + location[7];
 
       // Update state
-      console.log('DATONGA');
       this.store.dispatch(setSelectionView([
         xStart,
         xEnd,
