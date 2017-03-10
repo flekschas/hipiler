@@ -289,6 +289,7 @@ export default combineReducers({
   cellSize,
   config,
   coverDispMode,
+  higlassSubSelection,
   lassoIsRound,
   matrixFrameEncoding,
   matrixOrientation,
