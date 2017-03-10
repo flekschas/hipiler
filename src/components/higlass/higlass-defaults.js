@@ -14,3 +14,5 @@ export const GRAYSCALE_COLORS = [
 export const INTERACTIONS = false;
 
 export const SELECTION_VIEW = [];
+
+export const SELECTION_DOMAIN_DISPATCH_DEBOUNCE = 100;

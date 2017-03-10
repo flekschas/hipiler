@@ -5,6 +5,7 @@ import { inject, LogManager } from 'aurelia-framework';
 import { json } from 'd3';
 
 // Injectables
+import ChromInfo from 'services/chrom-info';
 import States from 'services/states';
 
 // Utils etc.
@@ -20,7 +21,8 @@ import {
   setSelectionView
 } from 'components/higlass/higlass-actions';
 import {
-  GRAYSCALE_COLORS
+  GRAYSCALE_COLORS,
+  SELECTION_DOMAIN_DISPATCH_DEBOUNCE
 } from 'components/higlass/higlass-defaults';
 
 import arraysEqual from 'utils/arrays-equal';
@@ -32,9 +34,9 @@ const OPTIONS = {
   bounded: true
 };
 
-@inject(States)
+@inject(ChromInfo, States)
 export class Higlass {
-  constructor (states) {
+  constructor (chromInfo, states) {
     // Link the Redux store
     this.store = states.store;
     this.store.subscribe(this.update.bind(this));
@@ -45,6 +47,8 @@ export class Higlass {
     this.isLoading = true;
 
     this.locationTracker = {};
+
+    this.chromInfo = chromInfo;
   }
 
   attached () {
@@ -55,6 +59,10 @@ export class Higlass {
 
 
   /* ----------------------- Getter / Setter Variables ---------------------- */
+
+  get chromInfoData () {
+    return this.chromInfo.get();
+  }
 
   get isErrored () {
     return this._isErrored;
@@ -157,7 +165,10 @@ export class Higlass {
   initApi (api) {
     this.config.views.forEach((view) => {
       this.locationTracker[view.uid] = {
-        callback: this.trackGenomicLocation(view.uid)
+        callback: debounce(
+          this.trackGenomicLocation(view.uid),
+          SELECTION_DOMAIN_DISPATCH_DEBOUNCE
+        )
       };
 
       if (view.trackLocation) {
@@ -189,7 +200,7 @@ export class Higlass {
     json(chromInfoUrl, (error, chromInfo) => {
       if (error) { logger.error(error); }
 
-      this.chromInfo = chromInfo;
+      this.chromInfo.set(chromInfo);
     });
   }
 
@@ -207,15 +218,16 @@ export class Higlass {
 
       this.location = location;
 
-      if (!this.chromInfo) { return; }
+      if (!this.chromInfoData) { return; }
 
       // Get global locations
-      const xStart = this.chromInfo[location[0]].offset + location[1];
-      const xEnd = this.chromInfo[location[2]].offset + location[3];
-      const yStart = this.chromInfo[location[4]].offset + location[5];
-      const yEnd = this.chromInfo[location[6]].offset + location[7];
+      const xStart = this.chromInfoData[location[0]].offset + location[1];
+      const xEnd = this.chromInfoData[location[2]].offset + location[3];
+      const yStart = this.chromInfoData[location[4]].offset + location[5];
+      const yEnd = this.chromInfoData[location[6]].offset + location[7];
 
       // Update state
+      console.log('DATONGA');
       this.store.dispatch(setSelectionView([
         xStart,
         xEnd,
@@ -262,7 +274,7 @@ export class Higlass {
     this.originalConfig = config;
     this.config = deepClone(config);
 
-    if (!this.chromInfo && this.config.chromInfoPath) {
+    if (!this.chromInfoData && this.config.chromInfoPath) {
       this.loadChromInfo(this.config.chromInfoPath);
     }
 
@@ -296,8 +308,6 @@ export class Higlass {
     ) { return; }
 
     this.grayscale = grayscale;
-
-    console.log(this.config);
 
     this.config.views.forEach((view, index) => {
       if (grayscale) {
