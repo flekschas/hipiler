@@ -61,6 +61,13 @@ export const setCoverDispMode = coverDispMode => ({
   payload: { coverDispMode }
 });
 
+export const SET_HIGLASS_SUB_SELECTION = 'SET_HIGLASS_SUB_SELECTION';
+
+export const setHiglassSubSelection = higlassSubSelection => ({
+  type: SET_HIGLASS_SUB_SELECTION,
+  payload: { higlassSubSelection }
+});
+
 export const SET_LASSO_IS_ROUND = 'SET_LASSO_IS_ROUND';
 
 export const setLassoIsRound = lassoIsRound => ({

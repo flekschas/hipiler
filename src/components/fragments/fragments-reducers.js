@@ -10,6 +10,7 @@ import {
   SET_ARRANGE_MEASURES,
   SET_CELL_SIZE,
   SET_COVER_DISP_MODE,
+  SET_HIGLASS_SUB_SELECTION,
   SET_LASSO_IS_ROUND,
   SET_MATRIX_FRAME_ENCODING,
   SET_MATRIX_ORIENTATION,
@@ -25,6 +26,7 @@ import {
   ARRANGE_MEASURES,
   CELL_SIZE,
   CONFIG,
+  HIGLASS_SUB_SELECTION,
   LASSO_IS_ROUND,
   MATRIX_FRAME_ENCODING,
   MATRIX_ORIENTATION_INITIAL,
@@ -201,6 +203,16 @@ export function coverDispMode (state = MODE_MEAN, action) {
   switch (action.type) {
     case SET_COVER_DISP_MODE:
       return action.payload.coverDispMode;
+
+    default:
+      return state;
+  }
+}
+
+export function higlassSubSelection (state = HIGLASS_SUB_SELECTION, action) {
+  switch (action.type) {
+    case SET_HIGLASS_SUB_SELECTION:
+      return action.payload.higlassSubSelection;
 
     default:
       return state;

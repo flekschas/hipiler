@@ -40,6 +40,8 @@ export const FPS = 25;
 
 export const HIGHLIGHT_FRAME_LINE_WIDTH = 5;
 
+export const HIGLASS_SUB_SELECTION = true;
+
 export const LABEL_DIST = 60;
 
 export const LABEL_WIDTH = 130;
