@@ -10,6 +10,8 @@ export default class Matrix {
     this.orientationY = this.orientation.strand2 === 'coding' ? 1 : -1;
 
     this.dim = matrix.length;
+
+    this.visible = true;
   }
 
   /**
