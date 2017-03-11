@@ -26,6 +26,7 @@ import { json } from 'd3';
 import tSNE from 'tsne';
 
 // Injectables
+import ChromInfo from 'services/chrom-info';
 import States from 'services/states';
 
 // Utils etc.
@@ -102,10 +103,9 @@ import { EVENT_BASE_NAME } from 'components/multi-select/multi-select-defaults';
 
 import COLORS from 'configs/colors';
 
+import arraysEqual from 'utils/arrays-equal';
 import debounce from 'utils/debounce';
-
 import createWorker from 'utils/create-worker';
-
 import tsneWorker from 'utils/tsne-worker';
 
 const logger = LogManager.getLogger('fragments');
@@ -144,12 +144,13 @@ const sortAsc = (a, b) => {
 };
 
 
-@inject(EventAggregator, States)
+@inject(ChromInfo, EventAggregator, States)
 export class Fragments {
   @bindable baseElIsInit = false;
 
-  constructor (eventAggregator, states) {
+  constructor (chromInfo, eventAggregator, states) {
     this.event = eventAggregator;
+    this.chromInfo = chromInfo;
 
     // Link the Redux store
     this.store = states.store;
@@ -286,6 +287,11 @@ export class Fragments {
       this.reject.isInitBase = reject;
     });
 
+    this.isInitFully = new Promise((resolve, reject) => {
+      this.resolve.isInitFully = resolve;
+      this.reject.isInitFully = reject;
+    });
+
     this.update();
     this.loadFont();
 
@@ -301,6 +307,19 @@ export class Fragments {
       .then(() => { this.initPlot(this.data); })
       .catch((error) => {
         logger.error('Failed to initialize the fragment plot', error);
+      });
+
+    Promise
+      .all([this.chromInfo.ready, this.isInitFully])
+      .then(() => {
+        this.matricesCalcGlobalPos();
+
+        if (this.subSelectingPiles) {
+          this.determinMatrixVisibility();
+        }
+      })
+      .catch((error) => {
+        logger.error('Failed to calculate global matrix positions', error);
       });
   }
 
@@ -319,6 +338,10 @@ export class Fragments {
 
   get cellSize () {
     return fgmState.cellSize * (fgmState.trashIsActive ? 1 : fgmState.scale);
+  }
+
+  get chromInfoData () {
+    return this.chromInfo.get();
   }
 
   get plotElDim () {
@@ -366,7 +389,15 @@ export class Fragments {
   }
 
   get piles () {
-    return fgmState.trashIsActive ? fgmState.pilesTrash : fgmState.piles;
+    if (fgmState.trashIsActive) {
+      return fgmState.pilesTrash;
+    }
+
+    if (this.subSelectingPiles) {
+      return fgmState.piles;
+    }
+
+    return fgmState.piles;
   }
 
   get pileMeshes () {
@@ -388,6 +419,10 @@ export class Fragments {
   get strandArrowRects () {
     return this.isTrashed ?
       fgmState.strandArrowRectsTrash : fgmState.strandArrowRects;
+  }
+
+  get subSelectingPiles () {
+    return this.higlassSubSelection && this.hglSelectionView;
   }
 
   get trashSize () {
@@ -657,6 +692,12 @@ export class Fragments {
     if (fgmState.hoveredPile) {
       // Re-draw hovered pile to show menu.
       fgmState.hoveredPile.draw();
+
+      // Show pile location
+      this.event.publish(
+        'decompose.fgm.pileMouseEnter',
+        fgmState.hoveredPile.pileMatrices.map(matrix => matrix.id)
+      );
     }
 
     this.render();
@@ -895,6 +936,11 @@ export class Fragments {
     }
 
     if (fgmState.previousHoveredPile) {
+      this.event.publish(
+        'decompose.fgm.pileMouseLeave',
+        fgmState.previousHoveredPile.pileMatrices.map(matrix => matrix.id)
+      );
+
       fgmState.previousHoveredPile.showSingle(undefined);
       fgmState.previousHoveredPile.setCoverMatrixMode(this.coverDispMode);
       this.highlightFrame.visible = false;
@@ -1945,6 +1991,8 @@ export class Fragments {
    * @param {array} fragments - Matrix fragments
    */
   initMatrices (fragments) {
+    fgmState.matrices = [];
+
     fragments.forEach((fragment, index) => {
       const measures = {};
 
@@ -2033,6 +2081,8 @@ export class Fragments {
     this.isInitialized = true;
 
     this.initPiles(fgmState.matrices, piles);
+
+    this.resolve.isInitFully();
   }
 
   /**
@@ -2895,17 +2945,20 @@ export class Fragments {
     try {
       const state = this.store.getState().present.decompose;
       const stateFgm = state.fragments;
+      const stateHgl = state.higlass;
 
       const update = {};
 
       this.updatePlotSize(state.columns, update);
+      this.updateHglSelectionView(stateHgl.config);
+      this.updateHglSelectionViewDomains(state.higlass.selectionView, update);
 
       this.updateAnimation(stateFgm.animation);
       this.updateArrangeMeasures(stateFgm.arrangeMeasures, update);
       this.updateCoverDispMode(stateFgm.coverDispMode, update);
       this.updateCellSize(stateFgm.cellSize, update);
       this.updateConfig(stateFgm.config);
-      this.updateHiglassSubSelection(stateFgm.higlassSubSelection, update);
+      this.updateHglSubSelection(stateFgm.higlassSubSelection, update);
       this.updateLassoIsRound(stateFgm.lassoIsRound);
       this.updateMatrixFrameEncoding(stateFgm.matrixFrameEncoding, update);
       this.updateMatrixOrientation(stateFgm.matrixOrientation, update);
@@ -3075,13 +3128,59 @@ export class Fragments {
   }
 
   /**
+   * Check if HiGlass has a selection view.
+   *
+   * @param {object} hglConfig - HiGLass config.
+   */
+  updateHglSelectionView (hglConfig) {
+    try {
+      this.hglSelectionView = hglConfig.views.some(view => view.selectionView);
+    } catch (e) {
+      this.hglSelectionView = false;
+    }
+  }
+
+  /**
+   * Check if HiGlass has a selection view.
+   *
+   * @param {object} hglConfig - HiGLass config.
+   */
+  updateHglSelectionViewDomains (domains, update) {
+    if (
+      this.hglSelectionViewDomains === domains ||
+      arraysEqual(this.hglSelectionViewDomains, domains)
+    ) {
+      return;
+    }
+
+    this.hglSelectionViewDomains = domains;
+
+    // this.determinMatrixVisibility();
+
+    // update.piles = true;
+    // update.pilesForce = true;
+    // update.pileFrames = true;
+    // update.layout = true;
+    // update.scrollLimit = true;
+  }
+
+  /**
    * Update HiGlass sub-selection.
    *
    * @param {boolean} higlassSubSelection - If `true` piles are selected based
    *   on a HiGlass view.
    */
-  updateHiglassSubSelection (higlassSubSelection) {
+  updateHglSubSelection (higlassSubSelection, update) {
+    if (this.higlassSubSelection === higlassSubSelection) {
+      return;
+    }
+
     this.higlassSubSelection = higlassSubSelection;
+
+    update.piles = true;
+    update.pileFrames = true;
+    update.layout = true;
+    update.scrollLimit = true;
   }
 
   /**
@@ -3166,6 +3265,41 @@ export class Fragments {
     update.piles = true;
   }
 
+  matricesCalcGlobalPos () {
+    fgmState.matrices.forEach((matrix) => {
+      let offset = this.chromInfoData[`chr${matrix.locus.chrom1}`].offset;
+
+      matrix.locus.globalStart1 = offset + matrix.locus.start1;
+      matrix.locus.globalEnd1 = offset + matrix.locus.end1;
+
+      offset = this.chromInfoData[`chr${matrix.locus.chrom2}`].offset;
+
+      matrix.locus.globalStart2 = offset + matrix.locus.start2;
+      matrix.locus.globalEnd2 = offset + matrix.locus.end2;
+    });
+
+    this.matricesGlobalPosCalced = true;
+  }
+
+  determinMatrixVisibility () {
+    if (!this.hglSelectionViewDomains) {
+      return;
+    }
+
+    fgmState.matrices.forEach((matrix) => {
+      matrix.visible = false;
+
+      if (
+        matrix.locus.globalStart1 >= this.hglSelectionViewDomains[0] &&
+        matrix.locus.globalEnd1 <= this.hglSelectionViewDomains[1] &&
+        matrix.locus.globalStart2 >= this.hglSelectionViewDomains[2] &&
+        matrix.locus.globalEnd2 <= this.hglSelectionViewDomains[3]
+      ) {
+        matrix.visible = true;
+      }
+    });
+  }
+
   /**
    * Update piles
    *
@@ -3174,14 +3308,19 @@ export class Fragments {
    * @param {boolean} forced - If `true` force update
    */
   updatePiles (pileConfigs, update, forced) {
+    // console.log('updatePiles ', !forced, !update.pilesForce);
+
     if (
       (this.pileConfigs === pileConfigs || !this.isInitialized) &&
-      !forced
+      !forced &&
+      !update.pilesForce
     ) {
       return;
     }
 
     this.pileConfigs = pileConfigs;
+
+    // console.log('updatePiles updatePiles', fgmState.matrices);
 
     Object.keys(pileConfigs)
       .map(pileId => ({
@@ -3197,9 +3336,16 @@ export class Fragments {
             this.destroyAltPile(pileConfig.id);
           }
 
-          pile.setMatrices(pileConfig.matrixIds.map(
-            matrixId => fgmState.matrices[matrixId]
-          ));
+          pile.setMatrices(
+            pileConfig.matrixIds
+              .map(matrixId => fgmState.matrices[matrixId])
+              .filter(matrix => matrix.visible)
+          );
+
+          if (pile.pileMatrices.length === 0) {
+            pile.hide();
+            console.log('hide');
+          }
 
           if (fgmState.trashIsActive) {
             if (pile.isTrashed && pile.isDrawn) {
