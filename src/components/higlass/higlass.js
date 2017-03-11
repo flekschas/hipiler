@@ -1,5 +1,6 @@
 // Aurelia
 import { inject, LogManager } from 'aurelia-framework';
+import { EventAggregator } from 'aurelia-event-aggregator';
 
 // Third party
 import { json } from 'd3';
@@ -21,6 +22,7 @@ import {
   setSelectionView
 } from 'components/higlass/higlass-actions';
 import {
+  FGM_LOCATION_HIGHLIGHT_SIZE,
   GRAYSCALE_COLORS,
   SELECTION_DOMAIN_DISPATCH_DEBOUNCE
 } from 'components/higlass/higlass-defaults';
@@ -34,9 +36,11 @@ const OPTIONS = {
   bounded: true
 };
 
-@inject(ChromInfo, States)
+@inject(ChromInfo, EventAggregator, States)
 export class Higlass {
-  constructor (chromInfo, states) {
+  constructor (chromInfo, event, states) {
+    this.event = event;
+
     // Link the Redux store
     this.store = states.store;
     this.store.subscribe(this.update.bind(this));
@@ -49,6 +53,45 @@ export class Higlass {
     this.locationTracker = {};
 
     this.chromInfo = chromInfo;
+
+    this.event.subscribe(
+      'decompose.fgm.pileMouseEnter',
+      this.highlightFgmLoci.bind(this)
+    );
+
+    this.event.subscribe(
+      'decompose.fgm.pileMouseLeave',
+      this.dehighlightFgmLoci.bind(this)
+    );
+
+    // The following setup allows us to imitate deferred objects. I.e., we can
+    // resolve promises outside their scope.
+    this.resolve = {};
+    this.reject = {};
+
+    this.isLociExtracted = new Promise((resolve, reject) => {
+      this.resolve.isLociExtracted = resolve;
+      this.reject.isLociExtracted = reject;
+    });
+
+    this.isGlobalLociCalced = new Promise((resolve, reject) => {
+      this.resolve.isGlobalLociCalced = resolve;
+      this.reject.isGlobalLociCalced = reject;
+    });
+
+    this.isServersAvailable = new Promise((resolve, reject) => {
+      this.resolve.isServersAvailable = resolve;
+      this.reject.isServersAvailable = reject;
+    });
+
+    Promise
+      .all([this.isLociExtracted, this.chromInfo.ready])
+      .then(() => {
+        // this.loci = this.calcGlobalLoci(this.loci, this.chromInfoData);
+      })
+      .catch((error) => {
+        logger.error('Failed to calculate global genome loci', error);
+      });
   }
 
   attached () {
@@ -79,7 +122,7 @@ export class Higlass {
 
   /* ---------------------------- Custom Methods ---------------------------- */
 
-  areServersAvailable (config) {
+  checkServersAvailablility (config) {
     let servers;
 
     try {
@@ -91,6 +134,68 @@ export class Higlass {
     }
 
     return Promise.all(servers.map(server => ping(server)));
+  }
+
+  highlightFgmLoci (lociIds) {
+    if (!this.loci) { return; }
+
+    const configTmp = deepClone(this.config);
+    const lociTmp = deepClone(this.loci);
+
+    lociTmp.forEach((locus) => {
+      locus[6] = 'rgba(0, 0, 0, 0.8)';
+      locus[7] = 'rgba(255, 255, 255, 0.8)';
+    });
+
+    lociIds.forEach((id) => {
+      lociTmp[id][6] = 'rgba(255, 85, 0, 0.8)';
+      lociTmp[id][7] = 'rgba(255, 85, 0, 0.8)';
+      lociTmp[id][8] = 7;
+      lociTmp[id][9] = 7;
+      const tmp = lociTmp[id];
+      lociTmp.splice(id, 1);
+      lociTmp.push(tmp);
+    });
+
+    configTmp.views
+      .forEach((view) => {
+        view.tracks.center
+          .filter(center => center.type === '2d-chromosome-annotations')
+          .forEach((center) => {
+            center.options.regions = lociTmp;
+          });
+      });
+
+    this.isFgmHighlight = true;
+
+    this.render(configTmp);
+  }
+
+  dehighlightFgmLoci (loci) {
+    if (!this.isFgmHighlight) { return; }
+
+    this.isFgmHighlight = false;
+
+    this.render(this.config);
+  }
+
+  calcGlobalLoci (loci, chromInfo) {
+    const globalLoci = loci.map((locus) => {
+      const offsetX = chromInfo[locus[0]].offset;
+      const offsetY = chromInfo[locus[3]].offset;
+
+      return [
+        ...locus,
+        offsetX + locus[1],
+        offsetX + locus[2],
+        offsetY + locus[4],
+        offsetY + locus[5]
+      ];
+    });
+
+    this.resolve.isGlobalLociCalced();
+
+    return globalLoci;
   }
 
   checkColumns (newColumns) {
@@ -118,7 +223,7 @@ export class Higlass {
     const dataIdxStart2 = fgmConfig.fragmentsHeader.indexOf('start2');
     const dataIdxEnd2 = fgmConfig.fragmentsHeader.indexOf('end2');
 
-    return fgmConfig.fragments.map(fragment => [
+    const loci = fgmConfig.fragments.map(fragment => [
       `chr${fragment[dataIdxChrom1]}`,
       fragment[dataIdxStart1],
       fragment[dataIdxEnd1],
@@ -127,6 +232,10 @@ export class Higlass {
       fragment[dataIdxEnd2],
       'rgba(255, 85, 0, 0.8)'
     ]);
+
+    this.resolve.isLociExtracted();
+
+    return loci;
   }
 
   /**
@@ -204,6 +313,10 @@ export class Higlass {
     });
   }
 
+  updateLociColor () {
+
+  }
+
   /**
    * Track genome locations
    *
@@ -225,6 +338,8 @@ export class Higlass {
       const xEnd = this.chromInfoData[location[2]].offset + location[3];
       const yStart = this.chromInfoData[location[4]].offset + location[5];
       const yEnd = this.chromInfoData[location[6]].offset + location[7];
+
+      this.isGlobalLociCalced.then(this.updateLociColor.bind(this));
 
       // Update state
       this.store.dispatch(setSelectionView([
@@ -273,6 +388,10 @@ export class Higlass {
     this.originalConfig = config;
     this.config = deepClone(config);
 
+    this.checkServersAvailablility(this.originalConfig)
+      .then(() => { this.resolve.isServersAvailable(); })
+      .catch((error) => { this.reject.isServersAvailable(error); });
+
     if (!this.chromInfoData && this.config.chromInfoPath) {
       this.loadChromInfo(this.config.chromInfoPath);
     }
@@ -290,12 +409,12 @@ export class Higlass {
     if (
       (this.interactions === interactions && !force) ||
       !this.config ||
-      this.config.views.length === 1
+      this.config.views.length > 1
     ) { return; }
 
     this.interactions = interactions;
 
-    // this.config.zoomFixed = !this.interactions;
+    this.config.views[0].zoomFixed = !this.interactions;
 
     update.render = true;
   }
@@ -314,7 +433,7 @@ export class Higlass {
           GRAYSCALE_COLORS;
       } else {
         view.tracks.center[0].contents[0].options.colorRange =
-          this.originalColoring.views[index]
+          this.originalConfig.views[index]
             .tracks.center[0].contents[0].options.colorRange.slice();
       }
     });
@@ -350,8 +469,8 @@ export class Higlass {
           type: '2d-chromosome-annotations',
           chromInfoPath: '//s3.amazonaws.com/pkerp/data/hg19/chromSizes.tsv',
           options: {
-            minRectWidth: 2,
-            minRectHeight: 2,
+            minRectWidth: FGM_LOCATION_HIGHLIGHT_SIZE,
+            minRectHeight: FGM_LOCATION_HIGHLIGHT_SIZE,
             regions: loci
           }
         };
@@ -391,7 +510,7 @@ export class Higlass {
   }
 
   render (config) {
-    this.areServersAvailable(config)
+    this.isServersAvailable
       .then(() => {
         hg(
           this.plotEl,
@@ -403,6 +522,7 @@ export class Higlass {
         this.initApi(this.api);
       })
       .catch((error) => {
+        logger.error(error);
         this.hasErrored('Server not available');
       });
   }
