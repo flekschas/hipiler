@@ -457,6 +457,10 @@ export class Fragments {
 
       if (numMeasures === 1) {
         this.rank(piles, measures[0]);
+      }
+
+      if (numMeasures <= 2) {
+        // Resolve now for 0, 1, and 2D
         resolve();
       }
 
