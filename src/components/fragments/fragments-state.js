@@ -16,6 +16,7 @@ const State = {
   colorsIdx: {},
   colorsAvailable: pilesColors.categorical.map((color, index) => index),
   dataMeasuresMax: {},
+  dataMeasuresMin: {},
   dragActive: false,
   draggingMatrix: undefined,
   dragPile: undefined,

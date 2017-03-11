@@ -22,7 +22,7 @@ import {
 
 
 // Third party
-import { json } from 'd3';
+import { json, queue } from 'd3';
 import tSNE from 'tsne';
 
 // Injectables
@@ -492,6 +492,7 @@ export class Fragments {
     // Reset max
     Object.keys(fgmState.dataMeasuresMax).forEach((measureId) => {
       fgmState.dataMeasuresMax[measureId] = 0;
+      fgmState.dataMeasuresMin[measureId] = Infinity;
     });
 
     // Asses max
@@ -508,6 +509,10 @@ export class Fragments {
       .forEach((measure) => {
         fgmState.dataMeasuresMax[measure.id] = Math.max(
           fgmState.dataMeasuresMax[measure.id],
+          measure.value
+        );
+        fgmState.dataMeasuresMin[measure.id] = Math.min(
+          fgmState.dataMeasuresMin[measure.id],
           measure.value
         );
       });
@@ -2028,12 +2033,7 @@ export class Fragments {
    */
   initPiles (matrices, pileConfig = {}) {
     if (this.checkPileConfig(matrices, pileConfig)) {
-      const state = this.store.getState().present.decompose.fragments;
-      const update = {};
-
-      this.updatePiles(pileConfig, update, true);
-      this.updatePileColors(state.pilesColors, update, true);
-      this.updateRendering(update);
+      this.update();
     } else {
       const pilesNew = {};
 
@@ -3240,7 +3240,7 @@ export class Fragments {
    * @param {object} update - Update object to bve updated in-place.
    */
   updateMatrixFrameEncoding (encoding, update) {
-    if (fgmState.matrixFrameEncoding === encoding) {
+    if (fgmState.matrixFrameEncoding === encoding || !this.isInitialized) {
       return;
     }
 
@@ -3344,7 +3344,6 @@ export class Fragments {
 
           if (pile.pileMatrices.length === 0) {
             pile.hide();
-            console.log('hide');
           }
 
           if (fgmState.trashIsActive) {
