@@ -1709,18 +1709,21 @@ export class Fragments {
    * @return {object} Object with x and y coordinates.
    */
   getLayoutPositionMD (pile, abs) {
-    let x = this.relToAbsPositionX(this.clusterPos[pile.idNumeric].x);
-    let y = this.relToAbsPositionY(this.clusterPos[pile.idNumeric].y);
+    let x = this.relToAbsPositionXFgm(this.clusterPos[pile.idNumeric].x);
+    let y = this.relToAbsPositionYFgm(this.clusterPos[pile.idNumeric].y);
 
-    // console.log(
-    //   pile.id,
-    //   this.clusterPos[pile.idNumeric].x, x,
-    //   this.clusterPos[pile.idNumeric].y, y
-    // );
-
-    if (abs) {
-      x += fgmState.gridCellWidthInclSpacingHalf;
-      y -= -fgmState.gridCellHeightInclSpacingHalf;
+    if (
+      this.clusterPos[pile.idNumeric].x === -1 ||
+      this.clusterPos[pile.idNumeric].x === 1 ||
+      this.clusterPos[pile.idNumeric].y === -1 ||
+      this.clusterPos[pile.idNumeric].y === 1
+    ) {
+      console.log(
+        this.clusterPos[pile.idNumeric].x,
+        x,
+        this.clusterPos[pile.idNumeric].y,
+        y
+      );
     }
 
     return { x, y };
@@ -2634,6 +2637,16 @@ export class Fragments {
   }
 
   /**
+   * Convert local to global X positions for fragments.
+   *
+   * @param {number} x - Local x position.
+   * @return {number} Global X position.
+   */
+  relToAbsPositionXFgm (x) {
+    return ((x + 1) / 2 * (this.plotElDim.width - this.matrixWidth)) + this.matrixWidthHalf;
+  }
+
+  /**
    * Convert local to global Y positions.
    *
    * @param {number} x - Local Y position.
@@ -2641,6 +2654,16 @@ export class Fragments {
    */
   relToAbsPositionY (y) {
     return ((y - 1) / 2 * this.plotElDim.height);
+  }
+
+  /**
+   * Convert local to global Y positions for fragments.
+   *
+   * @param {number} x - Local Y position.
+   * @return {number} Global Y position.
+   */
+  relToAbsPositionYFgm (y) {
+    return ((y - 1) / 2 * (this.plotElDim.height - this.matrixWidth)) - this.matrixWidthHalf;
   }
 
   removeFromColorPilesIdx (pile) {
@@ -3101,9 +3124,11 @@ export class Fragments {
 
     if (this.arrangeMeasures.length > 1) {
       fgmState.isLayout2d = this.arrangeMeasures.length === 2;
+      fgmState.isLayoutMd = !fgmState.isLayout2d;
       fgmState.scale = 0.25;
     } else {
       fgmState.isLayout2d = false;
+      fgmState.isLayoutMd = false;
       fgmState.scale = 1;
     }
 
