@@ -1709,24 +1709,10 @@ export class Fragments {
    * @return {object} Object with x and y coordinates.
    */
   getLayoutPositionMD (pile, abs) {
-    let x = this.relToAbsPositionXFgm(this.clusterPos[pile.idNumeric].x);
-    let y = this.relToAbsPositionYFgm(this.clusterPos[pile.idNumeric].y);
-
-    if (
-      this.clusterPos[pile.idNumeric].x === -1 ||
-      this.clusterPos[pile.idNumeric].x === 1 ||
-      this.clusterPos[pile.idNumeric].y === -1 ||
-      this.clusterPos[pile.idNumeric].y === 1
-    ) {
-      console.log(
-        this.clusterPos[pile.idNumeric].x,
-        x,
-        this.clusterPos[pile.idNumeric].y,
-        y
-      );
-    }
-
-    return { x, y };
+    return {
+      x: this.relToAbsPositionXFgm(this.clusterPos[pile.idNumeric].x),
+      y: this.relToAbsPositionYFgm(this.clusterPos[pile.idNumeric].y)
+    };
   }
 
   /**
