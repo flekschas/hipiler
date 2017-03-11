@@ -22,8 +22,7 @@ import {
 
 
 // Third party
-import { json, queue } from 'd3';
-import tSNE from 'tsne';
+import { json, queue, text } from 'd3';
 
 // Injectables
 import ChromInfo from 'services/chrom-info';
@@ -105,8 +104,6 @@ import COLORS from 'configs/colors';
 
 import arraysEqual from 'utils/arrays-equal';
 import debounce from 'utils/debounce';
-import createWorker from 'utils/create-worker';
-import tsneWorker from 'utils/tsne-worker';
 
 const logger = LogManager.getLogger('fragments');
 
@@ -156,6 +153,7 @@ export class Fragments {
     this.store = states.store;
     this.store.subscribe(this.update.bind(this));
 
+    this.clusterPos = {};
     this.colorsPilesIdx = {};
     this.maxDistance = 0;
     this.pilingMethod = 'clustered';
@@ -450,20 +448,34 @@ export class Fragments {
    * @param {array} measures - Selected measures.
    */
   arrange (piles, measures) {
-    if (!measures || !measures.length) {
-      this.rank(piles);
-    }
+    const numMeasures = measures.length;
 
-    if (measures.length === 1) {
-      this.rank(piles, measures[0]);
-    }
+    return new Promise((resolve, reject) => {
+      if (!measures || !numMeasures) {
+        this.rank(piles);
+      }
 
-    // if (measures.length === 2) {
+      if (numMeasures === 1) {
+        this.rank(piles, measures[0]);
+        resolve();
+      }
 
-    // }
+      if (numMeasures > 2 && !fgmState.trashIsActive) {
+        this.clusterLayout = this.calcLayoutPositionsMD(piles, measures);
 
-    // if (measures.length > 2) {
-    // }
+        this.clusterLayout
+          .then((pos) => {
+            piles.forEach((pile, index) => {
+              this.clusterPos[pile.idNumeric] = {
+                x: pos[index][0],
+                y: pos[index][1]
+              };
+            });
+
+            resolve();
+          });
+      }
+    });
   }
 
   /**
@@ -604,6 +616,10 @@ export class Fragments {
   calcLayoutPositionsMD (piles = this.piles, measures = this.arrangeMeasures) {
     this.isLoading = true;
 
+    if (!this.tsneWorker) {
+      this.tSneWorker = this.createTsneWorker();
+    }
+
     return new Promise((resolve, reject) => {
       const pileMeasures = this.piles.map(
         pile => this.arrangeMeasures.map(
@@ -611,40 +627,41 @@ export class Fragments {
         )
       );
 
-      console.log('data for tsne', pileMeasures);
+      this.tSneWorker
+        .then((worker) => {
+          const costs = [];
+          let pos;
 
-      const worker = createWorker(tSNE, tsneWorker);
+          worker.onmessage = (event) => {
+            if (event.data.pos) {
+              pos = event.data.pos;
+            }
 
-      const costs = [];
-      let pos;
+            if (event.data.iterations) {
+              costs[event.data.iterations] = event.data.cost;
+            }
 
-      worker.onmessage = function (event) {
-        if (event.data.pos) {
-          pos = event.data.pos;
-          console.log('posityion', pos);
-        }
+            if (event.data.stop) {
+              logger.debug('t-SNE stopped', event.data);
+              worker.terminate();
+              this.isLoading = false;
+              resolve(pos);
+            }
+          };
 
-        if (event.data.iterations) {
-          costs[event.data.iterations] = event.data.cost;
-        }
-
-        if (event.data.stop) {
-          console.log('stopped with message', event.data);
-          worker.terminate();
-          this.isLoading = false;
-          resolve(true);
-        }
-      };
-
-      worker.postMessage({
-        nIter: 500,
-        dim: 2,
-        perplexity: 20.0,
-        // earlyExaggeration: 4.0,
-        // learningRate: 100.0,
-        metric: 'euclidean', //'euclidean',
-        data: pileMeasures
-      });
+          worker.postMessage({
+            nIter: 500,
+            // dim: 2,
+            perplexity: 20.0,
+            // earlyExaggeration: 4.0,
+            // learningRate: 100.0,
+            // metric: 'euclidean',
+            data: pileMeasures
+          });
+        })
+        .catch((error) => {
+          logger.error('Couldn\'t create t-SNE worker', error);
+        });
     });
   }
 
@@ -805,6 +822,27 @@ export class Fragments {
     } catch (error) {
       logger.error('Display mode could not be set.', error);
     }
+  }
+
+  /**
+   * Load and create t-SNE worker.
+   */
+  createTsneWorker () {
+    return new Promise((resolve, reject) => {
+      queue()
+        .defer(text, 'dist/tsne-worker.js')
+        .await((error, tSneWorker) => {
+          if (error) { logger.error(error); reject(Error(error)); }
+
+          const worker = new Worker(
+            window.URL.createObjectURL(
+              new Blob([tSneWorker], { type: 'text/javascript' })
+            )
+          );
+
+          resolve(worker);
+        });
+    });
   }
 
   /**
@@ -1591,17 +1629,9 @@ export class Fragments {
       );
     }
 
-    // if (numArrMeasures > 2 && !fgmState.trashIsActive) {
-    //   if (!this.clusteringIsCalculated) {
-    //     this.clusterLayout = this.calcLayoutPositionsMD(
-    //       this.piles, this.arrangeMeasures
-    //     );
-    //   } else {
-    //     this.clusterLayout = Promise.resolve();
-    //   }
-
-    //   return this.getLayoutPositionMD(pile, abs);
-    // }
+    if (numArrMeasures > 2 && !fgmState.trashIsActive) {
+      return this.getLayoutPositionMD(pile, abs);
+    }
 
     return this.getLayoutPosition1D(pile.rank, abs);
   }
@@ -1675,12 +1705,18 @@ export class Fragments {
    * @return {object} Object with x and y coordinates.
    */
   getLayoutPositionMD (pile, abs) {
-    let x = this.clusterPos[pile.idNumeric].x;
-    let y = this.clusterPos[pile.idNumeric].y;
+    let x = this.relToAbsPositionX(this.clusterPos[pile.idNumeric].x);
+    let y = this.relToAbsPositionY(this.clusterPos[pile.idNumeric].y);
+
+    // console.log(
+    //   pile.id,
+    //   this.clusterPos[pile.idNumeric].x, x,
+    //   this.clusterPos[pile.idNumeric].y, y
+    // );
 
     if (abs) {
       x += fgmState.gridCellWidthInclSpacingHalf;
-      y = -y - fgmState.gridCellHeightInclSpacingHalf;
+      y -= -fgmState.gridCellHeightInclSpacingHalf;
     }
 
     return { x, y };
@@ -1862,6 +1898,8 @@ export class Fragments {
     this.initShader();
     this.initWebGl();
     this.initEventListeners();
+
+    this.tSneWorker = this.createTsneWorker();
 
     this.plotEl.appendChild(this.canvas);
 
@@ -3058,7 +3096,7 @@ export class Fragments {
     this.selectMeasure(this.arrangeMeasures, fgmState.measures);
 
     if (this.arrangeMeasures.length > 1) {
-      fgmState.isLayout2d = true;
+      fgmState.isLayout2d = this.arrangeMeasures.length === 2;
       fgmState.scale = 0.25;
     } else {
       fgmState.isLayout2d = false;
@@ -3206,29 +3244,29 @@ export class Fragments {
     noAnimation = false
   ) {
     return new Promise((resolve, reject) => {
-      this.arrange(piles, fgmState.trashIsActive ? [] : measures);
+      const arranged = this.arrange(
+        piles, fgmState.trashIsActive ? [] : measures
+      );
 
-      let animation;
+      return arranged
+        .then(() => {
+          if (!noAnimation) {
+            return this.movePilesAnimated(
+              piles,
+              piles.map(pile => this.getLayoutPosition(pile, true))
+            );
+          }
 
-      if (!noAnimation) {
-        animation = this.movePilesAnimated(
-          piles,
-          piles.map(pile => this.getLayoutPosition(pile, true))
-        );
-      } else {
-        animation = Promise.reject(Error('No animation'));
-      }
-
-      animation
-        .catch(() => {
-          // Animations never fired. Just set the position.
+          // Don't animate
           piles.forEach((pile) => {
             const pos = this.getLayoutPosition(pile);
             pile.moveTo(pos.x, pos.y);
           });
+
+          return Promise.resolve();
         })
-        .finally(() => {
-          resolve();
+        .catch((error) => {
+          logger.error('Error arranging snippets', error);
         });
     });
   }
