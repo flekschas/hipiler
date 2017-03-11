@@ -120,7 +120,7 @@
 
   .loading-indicator {
     z-index: 1;
-    background: $white;
+    background: transparentize($white, 0.33);
 
     svg {
       circle{
