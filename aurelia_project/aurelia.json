@@ -83,10 +83,23 @@
     "bundles": [
       {
         "name": "app-bundle.js",
-        "source": [
-          "[**/*.js]",
-          "**/*.{css,html}"
-        ]
+        "source": {
+          "include": [
+            "[**/*.js]",
+            "**/*.{css,html}"
+          ],
+          "exclude": [
+            "**/worker-*.js"
+          ]
+        }
+      },
+      {
+        "name": "tsne-worker.js",
+        "prepend": [
+          "node_modules/tsne-js/build/tsne.min.js",
+          "src/utils/worker-tsne.js"
+        ],
+        "source": []
       },
       {
         "name": "vendor-bundle.js",
@@ -221,11 +234,6 @@
             "name": "three-orbit-controls",
             "path": "../node_modules/three-orbit-controls",
             "main": "index"
-          },
-          {
-            "name": "tsne",
-            "path": "../node_modules/tsne-js/build",
-            "main": "tsne.min"
           }
         ]
       }
