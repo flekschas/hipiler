@@ -39,6 +39,7 @@ import {
   setCellAndGridSize,
   setCoverDispMode,
   setGridCellSizeLock,
+  setGridCellSizeLockAndGridSize,
   setGridSize,
   setHiglassSubSelection,
   setLassoIsRound,
@@ -351,7 +352,13 @@ export class Fragments {
   }
 
   get gridSize () {
-    return fgmState.gridSize * (fgmState.trashIsActive ? 1 : fgmState.scale);
+    let gridSize = fgmState.gridSize;
+
+    if (this.gridSizeTmp) {
+      gridSize = this.gridSizeTmp;
+    }
+
+    return gridSize * (fgmState.trashIsActive ? 1 : fgmState.scale);
   }
 
   get isErrored () {
@@ -608,13 +615,13 @@ export class Fragments {
 
     // Raw cell height and width
     this.gridCellHeight = (
-      this.matrixWidth +
+      this.matrixGridWidth +
       this.pilePreviewHeight +
       PILE_LABEL_HEIGHT +
       MATRIX_GAP_VERTICAL
     );
 
-    this.gridCellWidth = this.matrixWidth + MATRIX_GAP_HORIZONTAL;
+    this.gridCellWidth = this.matrixGridWidth + MATRIX_GAP_HORIZONTAL;
 
     // Columns and rows
     this.gridNumCols = Math.max(Math.floor(
@@ -1889,7 +1896,14 @@ export class Fragments {
    * Lasso is round change handler.
    */
   gridCellSizeLockChangeHandler () {
-    this.store.dispatch(setGridCellSizeLock(!this.gridCellSizeLock));
+    if (!this.gridCellSizeLock) {
+      this.store.dispatch(setGridCellSizeLockAndGridSize({
+        gridCellSizeLock: !this.gridCellSizeLock,
+        gridSize: this.cellSize
+      }));
+    } else {
+      this.store.dispatch(setGridCellSizeLock(!this.gridCellSizeLock));
+    }
 
     return true;
   }
@@ -1901,7 +1915,8 @@ export class Fragments {
    */
   gridSizeChangeHandler (event) {
     this.showGrid = false;
-    console.log('CHANGE', parseInt(event.target.value, 10));
+    this.gridSizeTmp = undefined;
+
     if (this.gridCellSizeLock) {
       logger.error(
         'Wow! The grid size is linked to the cell size. Can\'t change that.'
@@ -1922,7 +1937,8 @@ export class Fragments {
    * @param {object} event - Chaneg event object.
    */
   gridSizeInputHandler (event) {
-    console.log('INOUT', parseInt(event.target.value, 10));
+    this.gridSizeTmp = parseInt(event.target.value, 10);
+    this.calcGrid(parseInt(event.target.value, 10));
   }
 
   /**
@@ -3293,6 +3309,7 @@ export class Fragments {
    * @param {object} update - Update object to bve updated in-place.
    */
   updateGridSize (size, update) {
+    console.log('update to', size, fgmState.gridSize);
     if (fgmState.gridSize === size) { return; }
 
     fgmState.gridSize = size;
@@ -3308,7 +3325,7 @@ export class Fragments {
    * @param {boolean} gridCellSizeLock - If `true` grid size is locked to the
    *   cell size.
    */
-  updateGridCellSizeLock (gridCellSizeLock) {
+  updateGridCellSizeLock (gridCellSizeLock, update) {
     this.gridCellSizeLock = gridCellSizeLock;
   }
 

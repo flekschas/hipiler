@@ -73,6 +73,11 @@ export const setGridCellSizeLock = gridCellSizeLock => ({
   payload: { gridCellSizeLock }
 });
 
+export const setGridCellSizeLockAndGridSize = config => (dispath) => {
+  dispath(setGridCellSizeLock(config.gridCellSizeLock));
+  dispath(setGridSize(config.gridSize));
+};
+
 export const SET_GRID_SIZE = 'SET_GRID_SIZE';
 
 export const setGridSize = gridSize => ({
