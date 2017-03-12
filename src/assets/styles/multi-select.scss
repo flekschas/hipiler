@@ -7,6 +7,7 @@ multi-select {
   font-size: 0.8rem;
 
   input {
+    margin-left: 0.25rem;
     width: 6rem;
     padding: 0.125rem 0;
     background: transparent;
@@ -56,9 +57,11 @@ multi-select {
     &.is-active {
       height: auto;
       opacity: 1;
+      overflow: visible;
     }
 
     > li {
+      padding-left: 0.25rem;
       line-height: 1.5rem;
       border-top: 1px solid $gray-lightest;
 
@@ -102,13 +105,9 @@ multi-select {
     line-height: 1.5rem;
 
     > li {
-      margin-right: 0.25rem;
+      margin-left: 0.25rem;
       border-radius: 0.125rem;
       background: $gray-lightest;
-
-      &:first-child {
-        margin-left: 0.25rem;
-      }
     }
 
     span {
