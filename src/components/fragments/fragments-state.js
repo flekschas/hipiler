@@ -2,6 +2,7 @@ import { Scene } from 'three';
 
 import {
   CELL_SIZE,
+  GRID_SIZE,
   MATRIX_ORIENTATION_INITIAL
 } from 'components/fragments/fragments-defaults';
 
@@ -13,6 +14,7 @@ const State = {
   activePile: undefined,
   adjacentDistances: undefined,
   cellSize: CELL_SIZE,
+  gridSize: GRID_SIZE,
   colorsIdx: {},
   colorsAvailable: pilesColors.categorical.map((color, index) => index),
   dataMeasuresMax: {},

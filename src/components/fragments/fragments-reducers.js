@@ -10,6 +10,8 @@ import {
   SET_ARRANGE_MEASURES,
   SET_CELL_SIZE,
   SET_COVER_DISP_MODE,
+  SET_GRID_CELL_SIZE_LOCK,
+  SET_GRID_SIZE,
   SET_HIGLASS_SUB_SELECTION,
   SET_LASSO_IS_ROUND,
   SET_MATRIX_FRAME_ENCODING,
@@ -26,6 +28,8 @@ import {
   ARRANGE_MEASURES,
   CELL_SIZE,
   CONFIG,
+  GRID_CELL_SIZE_LOCK,
+  GRID_SIZE,
   HIGLASS_SUB_SELECTION,
   LASSO_IS_ROUND,
   MATRIX_FRAME_ENCODING,
@@ -209,6 +213,26 @@ export function coverDispMode (state = MODE_MEAN, action) {
   }
 }
 
+export function gridCellSizeLock (state = GRID_CELL_SIZE_LOCK, action) {
+  switch (action.type) {
+    case SET_GRID_CELL_SIZE_LOCK:
+      return action.payload.gridCellSizeLock;
+
+    default:
+      return state;
+  }
+}
+
+export function gridSize (state = GRID_SIZE, action) {
+  switch (action.type) {
+    case SET_GRID_SIZE:
+      return action.payload.gridSize;
+
+    default:
+      return state;
+  }
+}
+
 export function higlassSubSelection (state = HIGLASS_SUB_SELECTION, action) {
   switch (action.type) {
     case SET_HIGLASS_SUB_SELECTION:
@@ -289,6 +313,8 @@ export default combineReducers({
   cellSize,
   config,
   coverDispMode,
+  gridCellSizeLock,
+  gridSize,
   higlassSubSelection,
   lassoIsRound,
   matrixFrameEncoding,

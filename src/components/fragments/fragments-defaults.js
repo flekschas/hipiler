@@ -38,6 +38,10 @@ export const FONT_URL = 'src/assets/fonts/rubik-regular.json';
 
 export const FPS = 25;
 
+export const GRID_CELL_SIZE_LOCK = true;
+
+export const GRID_SIZE = CELL_SIZE;
+
 export const HIGHLIGHT_FRAME_LINE_WIDTH = 5;
 
 export const HIGLASS_SUB_SELECTION = true;

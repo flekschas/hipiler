@@ -54,11 +54,30 @@ export const setCellSize = cellSize => ({
   payload: { cellSize }
 });
 
+export const setCellAndGridSize = size => (dispath) => {
+  dispath(setCellSize(size));
+  dispath(setGridSize(size));
+};
+
 export const SET_COVER_DISP_MODE = 'SET_COVER_DISP_MODE';
 
 export const setCoverDispMode = coverDispMode => ({
   type: SET_COVER_DISP_MODE,
   payload: { coverDispMode }
+});
+
+export const SET_GRID_CELL_SIZE_LOCK = 'SET_GRID_CELL_SIZE_LOCK';
+
+export const setGridCellSizeLock = gridCellSizeLock => ({
+  type: SET_GRID_CELL_SIZE_LOCK,
+  payload: { gridCellSizeLock }
+});
+
+export const SET_GRID_SIZE = 'SET_GRID_SIZE';
+
+export const setGridSize = gridSize => ({
+  type: SET_GRID_SIZE,
+  payload: { gridSize }
 });
 
 export const SET_HIGLASS_SUB_SELECTION = 'SET_HIGLASS_SUB_SELECTION';
