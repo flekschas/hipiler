@@ -15,28 +15,40 @@
 
   <div class="full-wh flex-c flex-d-c ${fgmState.animation ? 'is-animated' : ''}" ref="baseEl">
     <main class="flex-g-1 rel fragment-plot">
-      <button class="axis-switch is-icon-only" if.bind="isLayout2d">
-        <svg-icon icon-id="flip-xy" click.delegate="flipXY()"></svg-icon>
-      </button>
-      <div class="axis axis-x axis-top" if.bind="isLayout2d">
-        <div class="flex-c flex-jc-sb axis-labels">
-          <span class="axis-labels-min">0</span>
-          <span class="axis-labels-name">${arrangeMeasuresReadible[0]}</span>
-          <span class="axis-labels-max">${nicefyMeasure(state.dataMeasuresMax[arrangeMeasures[0]])}</span>
+      <div class="full-dim" css.one-way="plotWindowCss">
+        <button class="axis-switch is-icon-only" if.bind="isLayout2d">
+          <svg-icon icon-id="flip-xy" click.delegate="flipXY()"></svg-icon>
+        </button>
+        <div class="axis axis-x axis-top" if.bind="isLayout2d">
+          <div class="flex-c flex-jc-sb axis-labels">
+            <span class="axis-labels-min">0</span>
+            <span class="axis-labels-name">${arrangeMeasuresReadible[0]}</span>
+            <span class="axis-labels-max">${nicefyMeasure(state.dataMeasuresMax[arrangeMeasures[0]])}</span>
+          </div>
+          <div class="axis-line"></div>
+          <div class="axis-arrow"></div>
         </div>
-        <div class="axis-line"></div>
-        <div class="axis-arrow"></div>
-      </div>
-      <div class="axis axis-y axis-left" if.bind="isLayout2d">
-        <div class="flex-c flex-jc-sb flex-d-c axis-labels">
-          <span class="axis-labels-max">${nicefyMeasure(state.dataMeasuresMax[arrangeMeasures[1]])}</span>
-          <span class="axis-labels-name">${arrangeMeasuresReadible[1]}</span>
-          <span class="axis-labels-min">0</span>
+        <div class="axis axis-y axis-left" if.bind="isLayout2d">
+          <div class="flex-c flex-jc-sb flex-d-c axis-labels">
+            <span class="axis-labels-max">${nicefyMeasure(state.dataMeasuresMax[arrangeMeasures[1]])}</span>
+            <span class="axis-labels-name">${arra ngeMeasuresReadible[1]}</span>
+            <span class="axis-labels-min">0</span>
+          </div>
+          <div class="axis-line"></div>
+          <div class="axis-arrow"></div>
         </div>
-        <div class="axis-line"></div>
-        <div class="axis-arrow"></div>
+
+        <div class="grid full-dim ${showGrid ? 'is-active' : ''}" if.bind="showGrid">
+          <ol class="columns full-dim flex-c">
+            <li class="column flex-g-1" repeat.for="col of showGridCols"></li>
+          </ol>
+          <ol class="rows full-dim flex-c flex-d-c">
+            <li class="row flex-g-1" repeat.for="row of showGridRows"></li>
+          </ol>
+        </div>
+
+        <div class="full-dim" ref="plotEl"></div>
       </div>
-      <div class="full-dim" ref="plotEl"></div>
     </main>
     <footer class="flex-c bottom-bar ${footerIsExpanded ? 'is-expanded' : ''}">
       <div class="flex-c flex-d-c flex-g-1 settings-container">
@@ -94,7 +106,9 @@
                 max="10"
                 step="1"
                 value.one-way="state.gridSize"
-                change.delegate="gridSizeChangedHandler($event)">
+                mousedown.delegate="gridSizeMousedownHandler($event)"
+                input.delegate="gridSizeInputHandler($event)"
+                change.delegate="gridSizeChangeHandler($event)">
             </li>
             <li class="flex-c flex-d-c ${isLayout1d ? 'is-enabled' : 'is-disabled'}">
               <label
@@ -119,6 +133,22 @@
                 click.delegate="groupPiles()"
                 disabled.bind="piles.length <= visiblePilesMax">
                 Group
+              </button>
+            </li>
+            <li>
+              <button
+                class="flex-c flex-jc-c flex-a-c rel button ${piles.length > visiblePilesMax ? 'is-enabled' : 'is-disabled'}"
+                click.delegate="disperseAll()"
+                disabled.bind="piles.length <= visiblePilesMax">
+                Disperse All
+              </button>
+            </li>
+            <li>
+              <button
+                class="flex-c flex-jc-c flex-a-c rel button ${piles.length > visiblePilesMax ? 'is-enabled' : 'is-disabled'}"
+                click.delegate="disperseAll()"
+                disabled.bind="piles.length <= visiblePilesMax">
+                Disperse All
               </button>
             </li>
           </ul>

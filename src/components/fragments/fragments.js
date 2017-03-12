@@ -36,7 +36,10 @@ import {
   setAnimation,
   setArrangeMeasures,
   setCellSize,
+  setCellAndGridSize,
   setCoverDispMode,
+  setGridCellSizeLock,
+  setGridSize,
   setHiglassSubSelection,
   setLassoIsRound,
   setMatrixFrameEncoding,
@@ -165,6 +168,7 @@ export class Fragments {
     this.dragActive = false;
     this.openedPileRoot = undefined;
     this.openedPileMatrices = [];
+    this.plotWindowCss = {};
     this.shiftDown = false;
     this.allPileOrdering = [];
      // Array containing the orderings for all piles, when not all nodes are
@@ -177,6 +181,10 @@ export class Fragments {
 
     this._isLoadedSession = false;
     this._isSavedSession = false;
+
+    this.showGrid = false;
+    this.showGridCols = [];
+    this.showGridRows = [];
 
     this.pileIDCount = 0;
     this.startPile = 0;
@@ -342,12 +350,8 @@ export class Fragments {
     return this.chromInfo.get();
   }
 
-  get plotElDim () {
-    return fgmState.plotElDim;
-  }
-
-  get pilePreviewHeight () {
-    return PREVIEW_MAX * this.previewSize;
+  get gridSize () {
+    return fgmState.gridSize * (fgmState.trashIsActive ? 1 : fgmState.scale);
   }
 
   get isErrored () {
@@ -378,12 +382,28 @@ export class Fragments {
     return fgmState.isLayout2d;
   }
 
+  get isLayout1d () {
+    return !fgmState.isLayout2d && !fgmState.isLayoutMd;
+  }
+
+  get matrixGridWidth () {
+    return this.fragDims * this.gridSize;
+  }
+
+  get matrixGridWidthHalf () {
+    return this.matrixWidth / 2;
+  }
+
   get matrixWidth () {
     return this.fragDims * this.cellSize;
   }
 
   get matrixWidthHalf () {
     return this.matrixWidth / 2;
+  }
+
+  get pilePreviewHeight () {
+    return PREVIEW_MAX * this.previewSize;
   }
 
   get piles () {
@@ -400,6 +420,10 @@ export class Fragments {
 
   get pileMeshes () {
     return fgmState.trashIsActive ? fgmState.pileMeshesTrash : fgmState.pileMeshes;
+  }
+
+  get plotElDim () {
+    return fgmState.plotElDim;
   }
 
   get previewSize () {
@@ -562,6 +586,21 @@ export class Fragments {
   }
 
   /**
+   * Calculate Euclidean distance between two matrices.
+   *
+   * @param {array} matrixA - Matrix A.
+   * @param {array} matrixB - Matrix B.
+   * @return {number} Euclidean distance between the two matrices.
+   */
+  calcDistanceEucl (matrixA, matrixB) {
+    return Math.sqrt(matrixA.reduce(
+      (acc, valueA, index) =>
+        acc + ((Math.max(valueA, 0) - Math.max(matrixB[index], 0)) ** 2),
+      0
+    ));
+  }
+
+  /**
    * Set grid properties.
    */
   calcGrid () {
@@ -615,6 +654,9 @@ export class Fragments {
 
     fgmState.gridCellWidthInclSpacingHalf =
       fgmState.gridCellWidthInclSpacing / 2;
+
+    this.showGridCols = new Array(this.gridNumCols).fill(0);
+    this.showGridRows = new Array(this.gridNumRows).fill(0);
   }
 
   calcLayoutPositionsMD (piles = this.piles, measures = this.arrangeMeasures) {
@@ -1134,6 +1176,52 @@ export class Fragments {
   }
 
   /**
+   * Handle mousewheel events
+   *
+   * @param {object} event - Mousewheel event.
+   */
+  canvasMouseWheelHandler (event) {
+    event.preventDefault();
+
+    if (event.wheelDelta > 0) {
+      this.camera.position.setY(Math.min(
+        this.camera.position.y + event.wheelDelta, this.scrollLimitTop
+      ));
+    } else {
+      this.camera.position.setY(Math.max(
+        this.camera.position.y + event.wheelDelta, this.scrollLimitBottom
+      ));
+    }
+
+    this.render();
+  }
+
+  /**
+   * Cell size changed handler.
+   *
+   * @param {object} event - Chaneg event object.
+   */
+  cellSizeChangedHandler (event) {
+    let cellSize;
+    try {
+      cellSize = parseInt(event.target.value, 10);
+    } catch (e) {
+      logger.error('Failed parsing the cell size value', e);
+      return;
+    }
+
+    try {
+      if (this.gridCellSizeLock) {
+        this.store.dispatch(setCellAndGridSize(cellSize));
+      } else {
+        this.store.dispatch(setCellSize(cellSize));
+      }
+    } catch (e) {
+      logger.error('Dispatching the changed cell size failed', e);
+    }
+  }
+
+  /**
    * Change the cover display mode of a single pile
    *
    * @param {object} event - Event object.
@@ -1173,40 +1261,6 @@ export class Fragments {
     });
     fgmState.visiblePileTools = [];
     fgmState.menuPile = undefined;
-  }
-
-  /**
-   * Handle mousewheel events
-   *
-   * @param {object} event - Mousewheel event.
-   */
-  canvasMouseWheelHandler (event) {
-    event.preventDefault();
-
-    if (event.wheelDelta > 0) {
-      this.camera.position.setY(Math.min(
-        this.camera.position.y + event.wheelDelta, this.scrollLimitTop
-      ));
-    } else {
-      this.camera.position.setY(Math.max(
-        this.camera.position.y + event.wheelDelta, this.scrollLimitBottom
-      ));
-    }
-
-    this.render();
-  }
-
-  /**
-   * Cell size changed handler.
-   *
-   * @param {object} event - Chaneg event object.
-   */
-  cellSizeChangedHandler (event) {
-    try {
-      this.store.dispatch(setCellSize(parseInt(event.target.value, 10)));
-    } catch (e) {
-      // Somthing weird happened so we'll simply ignore the change
-    }
   }
 
   /**
@@ -1831,12 +1885,55 @@ export class Fragments {
     this.store.dispatch(stackPiles(batchPileStacking));
   }
 
-  calcDistanceEucl (matrixA, matrixB) {
-    return Math.sqrt(matrixA.reduce(
-      (acc, valueA, index) =>
-        acc + ((Math.max(valueA, 0) - Math.max(matrixB[index], 0)) ** 2),
-      0
-    ));
+  /**
+   * Lasso is round change handler.
+   */
+  gridCellSizeLockChangeHandler () {
+    this.store.dispatch(setGridCellSizeLock(!this.gridCellSizeLock));
+
+    return true;
+  }
+
+  /**
+   * Cell size changed handler.
+   *
+   * @param {object} event - Chaneg event object.
+   */
+  gridSizeChangeHandler (event) {
+    this.showGrid = false;
+    console.log('CHANGE', parseInt(event.target.value, 10));
+    if (this.gridCellSizeLock) {
+      logger.error(
+        'Wow! The grid size is linked to the cell size. Can\'t change that.'
+      );
+      return;
+    }
+
+    try {
+      this.store.dispatch(setGridSize(parseInt(event.target.value, 10)));
+    } catch (e) {
+      logger.error('Dispatching the changed grid size failed', e);
+    }
+  }
+
+  /**
+   * Cell size changed handler.
+   *
+   * @param {object} event - Chaneg event object.
+   */
+  gridSizeInputHandler (event) {
+    console.log('INOUT', parseInt(event.target.value, 10));
+  }
+
+  /**
+   * Cell size changed handler.
+   *
+   * @param {object} event - Chaneg event object.
+   */
+  gridSizeMousedownHandler (event) {
+    this.showGrid = true;
+
+    return true;
   }
 
   /**
@@ -1888,6 +1985,7 @@ export class Fragments {
   init () {
     this.getPlotElDim();
 
+    this.initPlotWindow()
     this.initShader();
     this.initWebGl();
     this.initEventListeners();
@@ -2114,6 +2212,15 @@ export class Fragments {
     this.initPiles(fgmState.matrices, piles);
 
     this.resolve.isInitFully();
+  }
+
+  /**
+   * Fix plot window height.
+   */
+  initPlotWindow () {
+    this.plotWindowCss = {
+      height: `${this.plotElDim.height}px`
+    };
   }
 
   /**
@@ -3009,6 +3116,8 @@ export class Fragments {
       this.updateCoverDispMode(stateFgm.coverDispMode, update);
       this.updateCellSize(stateFgm.cellSize, update);
       this.updateConfig(stateFgm.config);
+      this.updateGridSize(stateFgm.gridSize, update);
+      this.updateGridCellSizeLock(stateFgm.gridCellSizeLock, update);
       this.updateHglSubSelection(stateFgm.higlassSubSelection, update);
       this.updateLassoIsRound(stateFgm.lassoIsRound);
       this.updateMatrixFrameEncoding(stateFgm.matrixFrameEncoding, update);
@@ -3016,6 +3125,8 @@ export class Fragments {
       this.updatePiles(stateFgm.piles, update);
       this.updatePileColors(stateFgm.pilesColors, update);
       this.updateShowSpecialCells(stateFgm.showSpecialCells, update);
+
+      // console.log('ASS', this.gridSize, this.gridCellSizeLock);
 
       this.updateRendering(update);
     } catch (e) {
@@ -3146,23 +3257,18 @@ export class Fragments {
   }
 
   /**
-   * Update the cell size and rerender the piles
+   * Update the cell size.
    *
-   * @param {number} newSize - New cell size
+   * @param {number} size - New cell size.
    * @param {object} update - Update object to bve updated in-place.
    */
-  updateCellSize (newSize, update) {
-    if (fgmState.cellSize === newSize) {
-      return;
-    }
+  updateCellSize (size, update) {
+    if (fgmState.cellSize === size) { return; }
 
-    fgmState.cellSize = newSize;
+    fgmState.cellSize = size;
 
-    update.grid = true;
     update.piles = true;
     update.pileFramesRecreate = true;
-    update.layout = true;
-    update.scrollLimit = true;
   }
 
   /**
@@ -3178,6 +3284,32 @@ export class Fragments {
       this.config = newConfig;
       this.loadData(this.config);
     }
+  }
+
+  /**
+   * Update the grid cell size.
+   *
+   * @param {number} newSize - New grid size.
+   * @param {object} update - Update object to bve updated in-place.
+   */
+  updateGridSize (size, update) {
+    if (fgmState.gridSize === size) { return; }
+
+    fgmState.gridSize = size;
+
+    update.grid = true;
+    update.layout = true;
+    update.scrollLimit = true;
+  }
+
+  /**
+   * Update grid to cell size lock.
+   *
+   * @param {boolean} gridCellSizeLock - If `true` grid size is locked to the
+   *   cell size.
+   */
+  updateGridCellSizeLock (gridCellSizeLock) {
+    this.gridCellSizeLock = gridCellSizeLock;
   }
 
   /**

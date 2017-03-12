@@ -1,0 +1,31 @@
+@import 'colors';
+@import 'transitions';
+
+.grid {
+  position: absolute;
+  z-index: 1;
+  opacity: 1;
+  transition: opacity $transition-very-fast $ease-in-out-cubic;
+
+  &.is-active {
+    opacity: 1;
+  }
+
+  .column {
+    position: relative;
+    border-left: 1px solid $primary;
+
+    &:first-child {
+      border-left: 0;
+    }
+  }
+
+  .row {
+    position: relative;
+    border-top: 1px solid $primary;
+
+    &:first-child {
+      border-top: 0;
+    }
+  }
+}
