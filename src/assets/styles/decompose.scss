@@ -197,3 +197,10 @@
     padding: 0.25rem;
   }
 }
+
+.bottom-bar {
+  &.is-expanded,
+  .settings-container {
+    height: 12.5rem;
+  }
+}
