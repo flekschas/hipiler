@@ -48,30 +48,70 @@ html {
     height: 10rem;
   }
 
+  h4 {
+    margin: 0;
+    color: $gray-darker;
+    font-size: 0.85rem;
+    font-weight: normal;
+    text-transform: uppercase;
+    line-height: 2.5rem;
+
+    &:after {
+      content: ':';
+      margin-right: 0.75rem;
+    }
+  }
+
+  .settings-row {
+    box-shadow: inset 0 1px 0 0 $gray-lightest;
+
+    &:first-child {
+      box-shadow: none;
+    }
+  }
+
   .settings-list {
     height: 2.5rem;
     margin-bottom: 0;
 
     > li {
       margin-left: 1rem;
-      padding-top: 0.25rem;
+      padding-top: 0.3rem;
+      padding-bottom: 0.3rem;
 
       &:first-child {
         margin-left: 0;
       }
+
+      &.is-disabled {
+        position: relative;
+
+        &::before {
+          content: '';
+          position: absolute;
+          display: block;
+          top: 1px;
+          right: 0;
+          left: 0;
+          bottom: 0;
+          background: transparentize($white, 0.33);
+        }
+      }
     }
 
     label {
-      font-size: 0.8rem;
+      font-size: 0.7rem;
       text-transform: uppercase;
       margin-bottom: 0.125rem;
       white-space: nowrap;
     }
 
     .button {
-      margin-top: 0.125rem;
+      height: 1.9rem;
+      margin-top: 1px;
+      padding: 0 0.33rem;
       color: $gray-dark;
-      line-height: 1.5rem;
+      line-height: 1.9rem;
       background: transparent;
       box-shadow: inset 0 0 0 1px $gray-lightest;
 
@@ -123,8 +163,8 @@ html {
       }
 
       svg-icon {
-        width: 1.25rem;
-        height: 1.5rem;
+        width: 1.125rem;
+        height: 1.9rem;
       }
 
       .icon-number {
@@ -140,6 +180,23 @@ html {
         box-shadow: -1px 1px 0 0 transparentize($white, 0.25);
         transition: background $transition-very-fast $ease-in-out-cubic,
                     box-shadow $transition-very-fast $ease-in-out-cubic;
+      }
+    }
+
+    .button-group {
+      .button {
+        border-radius: 0;
+        box-shadow: inset 0 0 0 1px $gray-lightest;
+      }
+
+      .button:first-child {
+        border-radius: 0.25rem 0 0 0.25rem;
+        box-shadow: inset 0 0 0 1px $gray-lightest;
+      }
+
+      .button:last-child {
+        border-radius: 0 0.25rem 0.25rem 0;
+        box-shadow: inset 0 0 0 1px $gray-lightest;
       }
     }
   }

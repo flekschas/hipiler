@@ -47,6 +47,16 @@
             checked.bind="fragmentsHighlight"
             click.delegate="fragmentsHighlightChangeHandler()">
         </li>
+        <li class="flex-c flex-d-c">
+          <label
+            for="settings-fgm-selection"
+            title="Enable snippet selection">Selection</label>
+          <input
+            type="checkbox"
+            id="settings-fgm-selection"
+            checked.bind="fgmSelection"
+            click.delegate="fgmSelectionChangeHandler()">
+        </li>
         <li if.bind="currentRoute !== 'matrix'">
           <a
             route-href="route: matrix"
