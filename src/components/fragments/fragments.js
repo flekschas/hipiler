@@ -1899,7 +1899,7 @@ export class Fragments {
     if (!this.gridCellSizeLock) {
       this.store.dispatch(setGridCellSizeLockAndGridSize({
         gridCellSizeLock: !this.gridCellSizeLock,
-        gridSize: this.cellSize
+        gridSize: fgmState.cellSize
       }));
     } else {
       this.store.dispatch(setGridCellSizeLock(!this.gridCellSizeLock));
@@ -1942,12 +1942,23 @@ export class Fragments {
   }
 
   /**
-   * Cell size changed handler.
+   * Cell size mouse down handler.
    *
-   * @param {object} event - Chaneg event object.
+   * @param {object} event - Mouse down event object.
    */
   gridSizeMousedownHandler (event) {
     this.showGrid = true;
+
+    return true;
+  }
+
+  /**
+   * Cell size mouse up handler.
+   *
+   * @param {object} event - Mouse up event object.
+   */
+  gridSizeMouseupHandler (event) {
+    this.showGrid = false;
 
     return true;
   }
