@@ -35,6 +35,7 @@ const State = {
   hoveredMatrix: undefined,
   hoveredPile: undefined,
   hoveredTool: undefined,
+  isLayout2d: false,
   lassoObject: undefined,
   matrices: [],
   matricesPileIndex: [],
