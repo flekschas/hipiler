@@ -18,11 +18,12 @@ multi-select {
   }
 
   >div{
-    box-shadow: 0 0 0 1px transparentize($secondary, 1);
+    border-radius: 0 0 0.125rem 0.125rem;
+    box-shadow: 0 0 0 1px transparentize($gray-lighter, 1);
     transition: box-shadow $transition-very-fast $ease-in-out-cubic;
 
     &.is-active {
-      box-shadow: 0 0 0 1px $secondary;
+      box-shadow: 0 0 0 1px $gray-lighter;
     }
   }
 
@@ -42,7 +43,8 @@ multi-select {
     opacity: 0;
     background: $white;
     overflow: hidden;
-    box-shadow: 0 0 0 1px transparentize($secondary, 1);
+    border-radius: 0.125rem 0.125rem 0 0;
+    box-shadow: 0 0 0 1px transparentize($gray, 1);
     transition: opacity $transition-very-fast $ease-in-out-cubic,
                 box-shadow $transition-very-fast $ease-in-out-cubic;
 
@@ -57,7 +59,7 @@ multi-select {
     }
 
     > li {
-      line-height: 1.25rem;
+      line-height: 1.5rem;
       border-top: 1px solid $gray-lightest;
 
       &:first-child {
@@ -68,16 +70,31 @@ multi-select {
         cursor: pointer;
       }
 
-      &.is-focus {
-        color: $white;
+      &.is-focus,
+      &.is-selected {
+        color: $black;
         border-top-color: $white;
-        background: $secondary;
+      }
+
+      &.is-focus,
+      &.is-focus.is-selected {
+        background: $primary;
+      }
+
+      &.is-selected {
+        font-weight: bold;
+        background: $gray-lightest;
+
+        &:after {
+          content: '✓';
+          margin-left: 0.25rem;
+        }
       }
     }
   }
 
   >div.is-active .options {
-    box-shadow: 0 0 0 1px $secondary;
+    box-shadow: 0 0 0 1px $gray-lighter;
   }
 
   .options-selected {
@@ -88,6 +105,10 @@ multi-select {
       margin-right: 0.25rem;
       border-radius: 0.125rem;
       background: $gray-lightest;
+
+      &:first-child {
+        margin-left: 0.25rem;
+      }
     }
 
     span {

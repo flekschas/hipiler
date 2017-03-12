@@ -8,7 +8,7 @@
           repeat.for="option of selectedOptions"
           class="flex-c">
           <span>${option.name}</span>
-          <button class="flex-c flex-jc-c flex-a-c" click.delegate="removeSelectedOption(option)">
+          <button class="flex-c flex-jc-c flex-a-c" click.delegate="unselect(option)">
             <svg-icon icon-id="cross"></svg-icon>
           </button>
         </li>
@@ -24,8 +24,8 @@
     </div>
     <ul class="options ${bottomUp ? 'bottom-up' : ''} ${optionsIsActive ? 'is-active' : ''}">
       <li
-        repeat.for="option of selectableOptions"
-        class="${option.isFocus ? 'is-focus' : ''}"
+        repeat.for="option of options"
+        class="${option.isFocus ? 'is-focus' : ''} ${option.isSelected ? 'is-selected' : ''}"
         click.delegate="select(option)">${option.name}</li>
     </ul>
   </div>
