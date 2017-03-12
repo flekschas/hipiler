@@ -4,11 +4,23 @@
 .grid {
   position: absolute;
   z-index: 1;
-  opacity: 1;
-  transition: opacity $transition-very-fast $ease-in-out-cubic;
+  display: none;
+  opacity: 0;
+  transition: opacity 0 $ease-in-out-cubic;
+
+  &.full-dim {
+    display: block;
+    bottom: 100%;
+  }
 
   &.is-active {
+    display: block;
     opacity: 1;
+    transition: opacity $transition-fast $ease-in-out-cubic;
+
+    &.full-dim {
+      bottom: 0;
+    }
   }
 
   .column {
