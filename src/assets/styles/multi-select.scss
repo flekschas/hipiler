@@ -37,9 +37,10 @@ multi-select {
     left: 0;
     right: 0;
     top: 0;
+    margin: 0;
     height: 0;
     opacity: 0;
-    background: transparentize($white, 0.1);
+    background: $white;
     overflow: hidden;
     box-shadow: 0 0 0 1px transparentize($secondary, 1);
     transition: opacity $transition-very-fast $ease-in-out-cubic,
@@ -56,6 +57,7 @@ multi-select {
     }
 
     > li {
+      line-height: 1.25rem;
       border-top: 1px solid $gray-lightest;
 
       &:first-child {
@@ -79,8 +81,8 @@ multi-select {
   }
 
   .options-selected {
-    margin: 0;
-    line-height: 1.125rem;
+    margin: 0.2rem 0;
+    line-height: 1.5rem;
 
     > li {
       margin-right: 0.25rem;

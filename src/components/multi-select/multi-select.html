@@ -1,7 +1,7 @@
 <template bindable="basePath, iconId">
   <require from="components/svg-icon/svg-icon"></require>
 
-  <div class="${optionsIsActive ? 'is-active' : ''} ${selectedOptions.length ? 'is-in-use' : ''}" ref="baseEl">
+  <div class="rel ${optionsIsActive ? 'is-active' : ''} ${selectedOptions.length ? 'is-in-use' : ''}" ref="baseEl">
     <div class="flex-c">
       <ul class="flex-c options-selected">
         <li
