@@ -3018,9 +3018,7 @@ export class Fragments {
 
     this.calcGrid();
     this.setScrollLimit();
-    this.updateLayout(this.piles, [], true).then(() => {
-      this.render();
-    });
+    this.updateLayout(this.piles, [], true).then(() => { this.render(); });
   }
 
   /**
@@ -3423,7 +3421,7 @@ export class Fragments {
         piles, fgmState.trashIsActive ? [] : measures
       );
 
-      return arranged
+      arranged
         .then(() => {
           if (!noAnimation) {
             return this.movePilesAnimated(
@@ -3438,10 +3436,11 @@ export class Fragments {
             pile.moveTo(pos.x, pos.y);
           });
 
-          return Promise.resolve();
+          resolve();
         })
         .catch((error) => {
           logger.error('Error arranging snippets', error);
+          reject(error);
         });
     });
   }
