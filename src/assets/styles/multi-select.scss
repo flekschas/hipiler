@@ -73,12 +73,14 @@ multi-select {
         cursor: pointer;
       }
 
+      &:hover,
       &.is-focus,
       &.is-selected {
         color: $black;
         border-top-color: $white;
       }
 
+      &:hover,
       &.is-focus,
       &.is-focus.is-selected {
         background: $primary;
