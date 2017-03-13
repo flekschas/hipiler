@@ -16,10 +16,10 @@
   <div class="full-wh flex-c flex-d-c ${fgmState.animation ? 'is-animated' : ''}" ref="baseEl">
     <main class="flex-g-1 rel fragment-plot">
       <div class="full-dim" css.one-way="plotWindowCss">
-        <button class="axis-switch is-icon-only" if.bind="isLayout2d">
+<!--         <button class="axis-switch is-icon-only ${isLayout2d ? 'is-active' : ''}">
           <svg-icon icon-id="flip-xy" click.delegate="flipXY()"></svg-icon>
         </button>
-        <div class="axis axis-x axis-top" if.bind="isLayout2d">
+        <div class="axis axis-x axis-top ${isLayout2d ? 'is-active' : ''}">
           <div class="flex-c flex-jc-sb axis-labels">
             <span class="axis-labels-min">0</span>
             <span class="axis-labels-name">${arrangeMeasuresReadible[0]}</span>
@@ -28,7 +28,7 @@
           <div class="axis-line"></div>
           <div class="axis-arrow"></div>
         </div>
-        <div class="axis axis-y axis-left" if.bind="isLayout2d">
+        <div class="axis axis-y axis-left ${isLayout2d ? 'is-active' : ''}">
           <div class="flex-c flex-jc-sb flex-d-c axis-labels">
             <span class="axis-labels-max">${nicefyMeasure(state.dataMeasuresMax[arrangeMeasures[1]])}</span>
             <span class="axis-labels-name">${arra ngeMeasuresReadible[1]}</span>
@@ -36,9 +36,9 @@
           </div>
           <div class="axis-line"></div>
           <div class="axis-arrow"></div>
-        </div>
+        </div> -->
 
-        <div class="grid full-dim ${showGrid ? 'is-active' : ''}" if.bind="showGrid">
+        <div class="grid full-dim ${showGrid ? 'is-active' : ''}">
           <ol class="columns full-dim flex-c">
             <li class="column flex-g-1" repeat.for="col of showGridCols"></li>
           </ol>
@@ -107,6 +107,7 @@
                 step="1"
                 value.one-way="state.gridSize"
                 mousedown.delegate="gridSizeMousedownHandler($event)"
+                mouseup.delegate="gridSizeMouseupHandler($event)"
                 input.delegate="gridSizeInputHandler($event)"
                 change.delegate="gridSizeChangeHandler($event)">
             </li>
@@ -124,7 +125,7 @@
         </div>
 
         <div class="flex-c settings-row">
-          <h4>Grouping</h4>
+          <h4>Pile</h4>
 
           <ul class="flex-c flex-g-1 settings-list">
             <li>
@@ -155,7 +156,7 @@
         </div>
 
         <div class="flex-c settings-row">
-          <h4>Styling</h4>
+          <h4>Style</h4>
 
           <ul class="flex-c flex-g-1 settings-list">
             <li class="flex-c flex-d-c">
