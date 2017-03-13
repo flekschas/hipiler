@@ -64,7 +64,7 @@
             placeholder="Choose measures…"></multi-select>
 
           <button
-            class="flex-c flex-jc-c flex-a-c rel button is-icon-only ${trashSize > 0 ? 'is-enabled' : 'is-disabled'} ${trashIsActive ? 'is-active' : ''}"
+            class="flex-c flex-jc-c flex-a-c rel button is-icon-only ${trashSize > 0 ? 'is-enabled' : 'is-disabled'} ${state.trashIsActive ? 'is-active' : ''}"
             click.delegate="toggleTrash()"
             disabled.bind="trashSize === 0">
             <svg-icon icon-id="trash"></svg-icon>
@@ -138,17 +138,17 @@
             </li>
             <li>
               <button
-                class="flex-c flex-jc-c flex-a-c rel button ${piles.length > visiblePilesMax ? 'is-enabled' : 'is-disabled'}"
-                click.delegate="disperseAll()"
+                class="flex-c flex-jc-c flex-a-c rel button"
+                click.delegate="clusterTsne()"
                 disabled.bind="piles.length <= visiblePilesMax">
-                Disperse All
+                Cluster with t-SNE
               </button>
             </li>
             <li>
               <button
-                class="flex-c flex-jc-c flex-a-c rel button ${piles.length > visiblePilesMax ? 'is-enabled' : 'is-disabled'}"
-                click.delegate="disperseAll()"
-                disabled.bind="piles.length <= visiblePilesMax">
+                class="flex-c flex-jc-c flex-a-c rel button ${isDispersable && !state.trashIsActive ? 'is-enabled' : 'is-disabled'}"
+                click.delegate="disperseAllPiles()"
+                disabled.bind="!isDispersable && !state.trashIsActive">
                 Disperse All
               </button>
             </li>
