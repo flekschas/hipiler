@@ -3,7 +3,7 @@ import { inject, LogManager } from 'aurelia-framework';
 import { EventAggregator } from 'aurelia-event-aggregator';
 
 // Third party
-import { json } from 'd3';
+import { color as d3Color, json } from 'd3';
 
 // Injectables
 import ChromInfo from 'services/chrom-info';
@@ -26,7 +26,7 @@ import {
   GRAYSCALE_COLORS,
   SELECTION_DOMAIN_DISPATCH_DEBOUNCE
 } from 'components/higlass/higlass-defaults';
-
+import COLORS from 'configs/colors';
 import arraysEqual from 'utils/arrays-equal';
 import deepClone from 'utils/deep-clone';
 
@@ -56,12 +56,12 @@ export class Higlass {
 
     this.event.subscribe(
       'decompose.fgm.pileMouseEnter',
-      this.highlightFgmLoci.bind(this)
+      this.highlightLoci.bind(this)
     );
 
     this.event.subscribe(
       'decompose.fgm.pileMouseLeave',
-      this.dehighlightFgmLoci.bind(this)
+      this.dehighlightLoci.bind(this)
     );
 
     // The following setup allows us to imitate deferred objects. I.e., we can
@@ -136,49 +136,6 @@ export class Higlass {
     return Promise.all(servers.map(server => ping(server)));
   }
 
-  highlightFgmLoci (lociIds) {
-    if (!this.loci) { return; }
-
-    const configTmp = deepClone(this.config);
-    const lociTmp = deepClone(this.loci);
-
-    lociTmp.forEach((locus) => {
-      locus[6] = 'rgba(0, 0, 0, 0.8)';
-      locus[7] = 'rgba(255, 255, 255, 0.8)';
-    });
-
-    lociIds.forEach((id) => {
-      lociTmp[id][6] = 'rgba(255, 85, 0, 0.8)';
-      lociTmp[id][7] = 'rgba(255, 85, 0, 0.8)';
-      lociTmp[id][8] = 7;
-      lociTmp[id][9] = 7;
-      const tmp = lociTmp[id];
-      lociTmp.splice(id, 1);
-      lociTmp.push(tmp);
-    });
-
-    configTmp.views
-      .forEach((view) => {
-        view.tracks.center
-          .filter(center => center.type === '2d-chromosome-annotations')
-          .forEach((center) => {
-            center.options.regions = lociTmp;
-          });
-      });
-
-    this.isFgmHighlight = true;
-
-    this.render(configTmp);
-  }
-
-  dehighlightFgmLoci (loci) {
-    if (!this.isFgmHighlight) { return; }
-
-    this.isFgmHighlight = false;
-
-    this.render(this.config);
-  }
-
   calcGlobalLoci (loci, chromInfo) {
     const globalLoci = loci.map((locus) => {
       const offsetX = chromInfo[locus[0]].offset;
@@ -210,26 +167,93 @@ export class Higlass {
   }
 
   /**
-   * Extract loci in modified BEDPE format for higlass.
+   * Color loci.
    *
-   * @param {object} fgmConfig - Fragment config.
+   * @param {array} loci - List of loci.
+   * @param {object} piles - Pile definitions.
+   * @param {object} pilesColors - Colored piles.
    * @return {array} List of loci.
    */
-  extractLoci (fgmConfig) {
-    const dataIdxChrom1 = fgmConfig.fragmentsHeader.indexOf('chrom1');
-    const dataIdxStart1 = fgmConfig.fragmentsHeader.indexOf('start1');
-    const dataIdxEnd1 = fgmConfig.fragmentsHeader.indexOf('end1');
-    const dataIdxChrom2 = fgmConfig.fragmentsHeader.indexOf('chrom2');
-    const dataIdxStart2 = fgmConfig.fragmentsHeader.indexOf('start2');
-    const dataIdxEnd2 = fgmConfig.fragmentsHeader.indexOf('end2');
+  colorLoci (loci = this.loci, piles, pilesColors) {
+    const isPilesColored = Object.keys(pilesColors).length;
 
-    const loci = fgmConfig.fragments.map(fragment => [
+    if (!isPilesColored) {
+      return;
+    }
+
+    const fragmentColors = {};
+    const convertedColors = {};
+
+    const convertHexToRgba = function (colorName, cache) {
+      const color = d3Color(`#${COLORS[colorName.toUpperCase()].toString(16)}`);
+
+      cache[colorName] = `rgba(${color.r}, ${color.g}, ${color.b}, 0.8)`;
+
+      return cache[colorName];
+    };
+
+    Object.keys(pilesColors).map(
+      pileId => piles[pileId].forEach((fgmId) => {
+        const color = (
+          convertedColors[pilesColors[pileId]] ||
+          convertHexToRgba(pilesColors[pileId], convertedColors)
+        );
+
+        fragmentColors[fgmId] = color;
+      })
+    );
+
+    loci.forEach((locus, index) => {
+      let fill = 'rgba(255, 85, 0, 0.8)';
+      let border = 'rgba(255, 85, 0, 0.8)';
+
+      if (isPilesColored) {
+        if (fragmentColors[index]) {
+          fill = fragmentColors[index];
+          border = fragmentColors[index];
+        } else {
+          fill = 'rgba(0, 0, 0, 0.8)';
+          border = 'rgba(255, 255, 255, 0.8)';
+        }
+      }
+
+      locus[6] = fill;
+      locus[7] = border;
+    });
+  }
+
+  dehighlightLoci (loci) {
+    if (!this.isFgmHighlight) { return; }
+
+    this.isFgmHighlight = false;
+
+    this.render(this.config);
+  }
+
+  /**
+   * Extract loci in modified BEDPE format for higlass.
+   *
+   * @param {object} config - Fragment config.
+   * @param {object} piles - Pile definitions.
+   * @param {object} pilesColors - Colored piles.
+   * @return {array} List of loci.
+   */
+  extractLoci (config, piles, pilesColors) {
+    const dataIdxChrom1 = config.fragmentsHeader.indexOf('chrom1');
+    const dataIdxStart1 = config.fragmentsHeader.indexOf('start1');
+    const dataIdxEnd1 = config.fragmentsHeader.indexOf('end1');
+    const dataIdxChrom2 = config.fragmentsHeader.indexOf('chrom2');
+    const dataIdxStart2 = config.fragmentsHeader.indexOf('start2');
+    const dataIdxEnd2 = config.fragmentsHeader.indexOf('end2');
+
+    const loci = config.fragments.map(fragment => [
       `chr${fragment[dataIdxChrom1]}`,
       fragment[dataIdxStart1],
       fragment[dataIdxEnd1],
       `chr${fragment[dataIdxChrom2]}`,
       fragment[dataIdxStart2],
       fragment[dataIdxEnd2],
+      'rgba(255, 85, 0, 0.8)',
       'rgba(255, 85, 0, 0.8)'
     ]);
 
@@ -264,6 +288,41 @@ export class Higlass {
   hasErrored (errorMsg) {
     this.errorMsg = errorMsg;
     this.isErrored = true;
+  }
+
+  highlightLoci (lociIds) {
+    if (!this.loci) { return; }
+
+    const configTmp = deepClone(this.config);
+    const lociTmp = deepClone(this.loci);
+
+    lociTmp.forEach((locus) => {
+      locus[6] = 'rgba(0, 0, 0, 0.8)';
+      locus[7] = 'rgba(255, 255, 255, 0.8)';
+    });
+
+    lociIds.forEach((id) => {
+      lociTmp[id][6] = 'rgba(255, 85, 0, 0.8)';
+      lociTmp[id][7] = 'rgba(255, 85, 0, 0.8)';
+      lociTmp[id][8] = 7;
+      lociTmp[id][9] = 7;
+      const tmp = lociTmp[id];
+      lociTmp.splice(id, 1);
+      lociTmp.push(tmp);
+    });
+
+    configTmp.views
+      .forEach((view) => {
+        view.tracks.center
+          .filter(center => center.type === '2d-chromosome-annotations')
+          .forEach((center) => {
+            center.options.regions = lociTmp;
+          });
+      });
+
+    this.isFgmHighlight = true;
+
+    this.render(configTmp);
   }
 
   /**
@@ -369,6 +428,11 @@ export class Higlass {
         update,
         update.render
       );
+      this.updateFragmentsHighlightColors(
+        state.fragments,
+        update,
+        update.render
+      );
       this.updateSelectionView(state.higlass.selectionView, update);
 
       if (update.render) {
@@ -470,19 +534,32 @@ export class Higlass {
           chromInfoPath: '//s3.amazonaws.com/pkerp/data/hg19/chromSizes.tsv',
           options: {
             minRectWidth: FGM_LOCATION_HIGHLIGHT_SIZE,
-            minRectHeight: FGM_LOCATION_HIGHLIGHT_SIZE,
-            regions: loci
+            minRectHeight: FGM_LOCATION_HIGHLIGHT_SIZE
           }
         };
       }
 
       this.config.views.forEach((view) => {
-        const _loci = deepClone(this.loci2dTrack);
-        _loci.uid = `${view.uid}.2d`;
+        const loci2dTrack = deepClone(this.loci2dTrack);
+        loci2dTrack.uid = `${view.uid}.2d`;
+        loci2dTrack.options.regions = this.loci;
 
-        view.tracks.center.push(_loci);
+        view.tracks.center.push(loci2dTrack);
       });
     }
+
+    update.render = true;
+  }
+
+  updateFragmentsHighlightColors (fgmState, update, force) {
+    if (
+      (this.fragmentsHighlightColor === fgmState.pilesColors && !force) ||
+      !this.config
+    ) { return; }
+
+    this.fragmentsHighlightColor = fgmState.pilesColors;
+
+    this.colorLoci(this.loci, fgmState.piles, fgmState.pilesColors);
 
     update.render = true;
   }
