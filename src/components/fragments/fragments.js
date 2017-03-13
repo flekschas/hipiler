@@ -793,7 +793,7 @@ export class Fragments {
     // }
 
     if (fgmState.hoveredPile) {
-      this.dispersePileHandler(fgmState.hoveredPile);
+      this.dispersePilesHandler([fgmState.hoveredPile]);
       fgmState.hoveredPile = undefined;
     } else if (this.pileZoomed) {
       this.pileZoomed.setScale().frameCreate().draw();
@@ -824,21 +824,6 @@ export class Fragments {
         this.render();
       }, ZOOM_DELAY_TIME);
     }
-
-    // // test if mouse dwells on a matrix -> open pile
-    // if (
-    //   fgmState.hoveredPile &&
-    //   fgmState.hoveredPile.size > 1 &&
-    //   typeof this.hoveredMatrix === 'undefined'
-    // ) {
-    //   this.mouseIsDownTimer = setInterval(() => {
-    //     this.openedPileRoot = fgmState.hoveredPile;
-    //     this.openedPileMatricesNum = fgmState.hoveredPile
-    //       .pileMatrices.length - 1;
-    //     this.dispersePileHandler(this.openedPileRoot);
-    //     clearInterval(this.mouseIsDownTimer);
-    //   }, 500);
-    // }
   }
 
   /**
@@ -1271,32 +1256,45 @@ export class Fragments {
   }
 
   /**
-   * Depile a pile
-   *
-   * @param {object} pile - Pile to be dispersed.
+   * Disperse all piles.
    */
-  dispersePileHandler (pile) {
-    this.fromDisperse = {
-      sourcePile: pile,
-      targetPilesIds: {}
-    };
+  disperseAllPiles () {
+    this.dispersePilesHandler(this.piles);
+  }
 
-    pile.pileMatrices.slice(1).forEach((pileMatrix) => {
-      this.fromDisperse.targetPilesIds[pileMatrix.id] = true;
+  /**
+   * Disperse piles into their snippets.
+   *
+   * @param {object} piles - A list of piles to be dispersed.
+   */
+  dispersePilesHandler (piles) {
+    this.fromDisperse = {};
+
+    const pilesToBeDispersed = [];
+    let pileColorConfig = {};
+    let withColors = false;
+
+    piles.forEach((pile) => {
+      const isColored = pile.color !== pileColors.gray;
+
+      pile.pileMatrices.slice(1).forEach((pileMatrix) => {
+        this.fromDisperse[pileMatrix.id] = pile;
+
+        if (isColored) {
+          pileColorConfig[pileMatrix.id] = pile.color.name;
+        }
+      });
+
+      pilesToBeDispersed.push(pile.id);
     });
 
-    if (pile.color !== pileColors.gray) {
-      const pileColorConfig = { ...this.fromDisperse.targetPilesIds };
-
-      Object.keys(pileColorConfig).forEach((pileId) => {
-        pileColorConfig[pileId] = pile.color.name;
-      });
+    if (withColors) {
       this.store.dispatch(dispersePilesWithColors({
-        piles: [pile.id],
+        piles: pilesToBeDispersed,
         colors: pileColorConfig
       }));
     } else {
-      this.store.dispatch(dispersePiles([pile.id]));
+      this.store.dispatch(dispersePiles(pilesToBeDispersed));
     }
   }
 
@@ -3531,6 +3529,7 @@ export class Fragments {
     }
 
     this.pileConfigs = pileConfigs;
+    this.isDispersable = false;
 
     // console.log('updatePiles updatePiles', fgmState.matrices);
 
@@ -3554,6 +3553,16 @@ export class Fragments {
               .filter(matrix => matrix.visible)
           );
 
+          if (!this.isDispersable) {
+            this.isDispersable = (
+              pile.pileMatrices.length > 1 &&
+              (
+                (fgmState.trashIsActive && pile.isTrashed) ||
+                (!fgmState.trashIsActive && !pile.isTrashed)
+              )
+            );
+          }
+
           if (pile.pileMatrices.length === 0) {
             pile.hide();
           }
@@ -3573,12 +3582,16 @@ export class Fragments {
           } else if (!pile.isDrawn) {
             if (
               this.fromDisperse &&
-              this.fromDisperse.targetPilesIds[pile.id]
+              this.fromDisperse[pile.id]
             ) {
               // To make it look like a real disperse
-              pile.moveTo(
-                this.fromDisperse.sourcePile.x,
-                this.fromDisperse.sourcePile.y,
+              console.log(
+                'move to snippet #' + this.fromDisperse[pile.id].id +
+                ' at' + this.fromDisperse[pile.id].x + ' and ' + this.fromDisperse[pile.id].y
+              );
+              pile.draw().moveTo(
+                this.fromDisperse[pile.id].x,
+                this.fromDisperse[pile.id].y,
                 true
               );
             }
