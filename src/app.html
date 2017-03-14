@@ -21,7 +21,8 @@
     <header id="topbar" class="flex-c flex-jc-sb">
       <div class="flex-c">
         <h1 class="${currentRoute === 'home' ? 'is-active' : ''}">
-          <a route-href="route: home">
+          <a class="flex-c" route-href="route: home">
+            <svg-icon class="icon-inline" icon-id="logo"></svg-icon>
             ${currentRoute === 'decompose' || currentRoute === 'matrix' ? appNameShort : appName}
           </a>
         </h1>
