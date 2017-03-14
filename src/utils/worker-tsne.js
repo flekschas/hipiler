@@ -8,8 +8,8 @@ self.onmessage = function (e) {
     dim: msg.dim || 2,
     perplexity: msg.perplexity || 25.0,
     earlyExaggeration: msg.earlyExaggeration || 4.0,
-    learningRate: msg.learningRate || 10.0,
-    nIter: msg.nIter || 500,
+    learningRate: msg.learningRate || 25.0,
+    nIter: msg.nIter || 1000,
     metric: msg.metric || 'euclidean'
   });
 
@@ -31,11 +31,11 @@ self.onmessage = function (e) {
     });
   });
 
-  let run = model.run();
+  let [error, iter] = model.run();
 
   self.postMessage({
-    err: run[0],
-    iterations: run[1],
+    err: error,
+    iterations: iter,
     stop: true
   });
 };
