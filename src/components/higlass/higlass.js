@@ -170,14 +170,13 @@ export class Higlass {
    * Color loci.
    *
    * @param {array} loci - List of loci.
-   * @param {object} piles - Pile definitions.
-   * @param {object} pilesColors - Colored piles.
+   * @param {object} matricesColors - Colored matrices.
    * @return {array} List of loci.
    */
-  colorLoci (loci = this.loci, piles, pilesColors) {
-    const isPilesColored = Object.keys(pilesColors).length;
+  colorLoci (loci = this.loci, matricesColors) {
+    const isMatricesColored = Object.keys(matricesColors).length;
 
-    if (!isPilesColored) {
+    if (!isMatricesColored) {
       return;
     }
 
@@ -192,22 +191,20 @@ export class Higlass {
       return cache[colorName];
     };
 
-    Object.keys(pilesColors).map(
-      pileId => piles[pileId].forEach((fgmId) => {
-        const color = (
-          convertedColors[pilesColors[pileId]] ||
-          convertHexToRgba(pilesColors[pileId], convertedColors)
-        );
+    Object.keys(matricesColors).forEach((matrixId) => {
+      const color = (
+        convertedColors[matricesColors[matrixId]] ||
+        convertHexToRgba(matricesColors[matrixId], convertedColors)
+      );
 
-        fragmentColors[fgmId] = color;
-      })
-    );
+      fragmentColors[matrixId] = color;
+    });
 
     loci.forEach((locus, index) => {
       let fill = 'rgba(255, 85, 0, 0.8)';
       let border = 'rgba(255, 85, 0, 0.8)';
 
-      if (isPilesColored) {
+      if (isMatricesColored) {
         if (fragmentColors[index]) {
           fill = fragmentColors[index];
           border = fragmentColors[index];
@@ -429,7 +426,7 @@ export class Higlass {
         update.render
       );
       this.updateFragmentsHighlightColors(
-        state.fragments,
+        state.fragments.matricesColors,
         update,
         update.render
       );
@@ -551,15 +548,15 @@ export class Higlass {
     update.render = true;
   }
 
-  updateFragmentsHighlightColors (fgmState, update, force) {
+  updateFragmentsHighlightColors (matricesColors, update, force) {
     if (
-      (this.fragmentsHighlightColor === fgmState.pilesColors && !force) ||
+      (this.fragmentsHighlightColor === matricesColors && !force) ||
       !this.config
     ) { return; }
 
-    this.fragmentsHighlightColor = fgmState.pilesColors;
+    this.fragmentsHighlightColor = matricesColors;
 
-    this.colorLoci(this.loci, fgmState.piles, fgmState.pilesColors);
+    this.colorLoci(this.loci, matricesColors);
 
     update.render = true;
   }
