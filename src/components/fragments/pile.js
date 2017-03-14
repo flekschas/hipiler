@@ -31,6 +31,7 @@ import {
 import pileColors from 'components/fragments/pile-colors';
 
 import {
+  COLOR_INDICATOR_HEIGHT,
   LABEL_MIN_CELL_SIZE,
   MENU_LABEL_SPACING,
   MENU_PADDING,
@@ -70,6 +71,7 @@ export default class Pile {
     );
     this.color = pileColors.gray;
     this.colored = false;
+    this.colorIndicator = {};
     this.coverMatrix = [];
     this.coverMatrixMode = MODE_MEAN;
     this.dims = dims;
@@ -503,9 +505,45 @@ export default class Pile {
       this.drawStrandArrows(isHovering);
     }
 
+    this.drawColorIndicator();
+
     this.isDrawn = true;
 
     return this;
+  }
+
+  /**
+   * Draw color indicator bars.
+   */
+  drawColorIndicator () {
+    const colorsUsed = this.pileMatrices.reduce((colors, matrix) => {
+      if (matrix.color) {
+        colors[matrix.color] = true;
+      }
+
+      return colors;
+    }, {});
+    const numColors = Object.keys(colorsUsed).length;
+
+    if (!numColors) {
+      return;
+    }
+
+    const width = this.matrixWidth / numColors;
+
+    Object.keys(colorsUsed).forEach((color, index) => {
+      this.colorIndicator[color] = createRect(
+        width, COLOR_INDICATOR_HEIGHT, COLORS[color.toUpperCase()]
+      );
+
+      this.colorIndicator[color].position.set(
+        (index * width) - ((numColors - 1) * width / 2),
+        -this.matrixWidthHalf - 6,
+        5
+      );
+
+      this.mesh.add(this.colorIndicator[color]);
+    });
   }
 
   /**
@@ -827,13 +865,15 @@ export default class Pile {
       }
     }
 
+    const extraOffset = this.isColored ? COLOR_INDICATOR_HEIGHT : 0;
+
     if (this.labelText !== labelText) {
       this.labelText = labelText;
 
       this.label = createText(
         this.labelText,
         -this.matrixWidthHalf - 2,
-        -this.matrixWidthHalf - 13,
+        -this.matrixWidthHalf - 13 - extraOffset,
         0,
         8,
         isHovering ? COLORS.GRAY_DARK : COLORS.GRAY_LIGHT
@@ -844,7 +884,7 @@ export default class Pile {
       );
       this.label.position.set(
         -this.matrixWidthHalf - 2,
-        -this.matrixWidthHalf - 13,
+        -this.matrixWidthHalf - 13 - extraOffset,
         0
       );
     }
@@ -954,12 +994,13 @@ export default class Pile {
   drawStrandArrows (isHovering) {
     const offsetX = this.pileMatrices[0].orientationX === -1 ? 10 : 0;
     const offsetY = this.pileMatrices[0].orientationY === -1 ? 10 : 0;
+    const extraOffset = this.isColored ? COLOR_INDICATOR_HEIGHT : 0;
 
     this.strandArrowX = new ArrowHelper(
       new Vector3(this.pileMatrices[0].orientationX * 1, 0, 0),
       new Vector3(
         this.matrixWidthHalf - 13 + offsetX,
-        -this.matrixWidthHalf - 9,
+        -this.matrixWidthHalf - 9 - extraOffset,
         0
       ),
       STRAND_ARROW_LENGTH,
@@ -972,7 +1013,7 @@ export default class Pile {
       new Vector3(0, this.pileMatrices[0].orientationY * -1, 0),
       new Vector3(
         this.matrixWidthHalf - 20,
-        -this.matrixWidthHalf - 4 - offsetY,
+        -this.matrixWidthHalf - 4 - offsetY - extraOffset,
         0
       ),
       STRAND_ARROW_LENGTH,
@@ -1000,7 +1041,7 @@ export default class Pile {
     this.strandArrowRectX = createRect(10, 10, COLORS.WHITE);
     this.strandArrowRectX.position.set(
       this.matrixWidthHalf - 7,
-      -this.matrixWidthHalf - 9,
+      -this.matrixWidthHalf - 9 - extraOffset,
       -1
     );
     this.strandArrowRectX.userData.pile = this;
@@ -1009,7 +1050,7 @@ export default class Pile {
     this.strandArrowRectY = createRect(10, 10, COLORS.WHITE);
     this.strandArrowRectY.position.set(
       this.matrixWidthHalf - 20,
-      -this.matrixWidthHalf - 9,
+      -this.matrixWidthHalf - 9 - extraOffset,
       -1
     );
     this.strandArrowRectY.userData.pile = this;
@@ -1177,7 +1218,7 @@ export default class Pile {
   }
 
   /**
-   * Get gray tone color from value
+   * Get gray tone color from value.
    *
    * @param {number} value - Valuer of the cell.
    * @param {boolean} showSpecialCells - If `true` return white for special
@@ -1194,7 +1235,7 @@ export default class Pile {
         return [1, 1, 1];
 
       default:
-        return this.color(1 - value);
+        return pileColors.gray(1 - value);
     }
   }
 
@@ -1390,11 +1431,11 @@ export default class Pile {
    * @return {object} Self.
    */
   setColor (color) {
-    if (!color || !pileColors[color]) {
-      this.color = pileColors.gray;
-    } else {
-      this.color = pileColors[color];
-    }
+    this.pileMatrices.forEach((matrix) => {
+      matrix.color = color || 'gray';
+    });
+
+    this.isColored = !!color;
 
     return this;
   }

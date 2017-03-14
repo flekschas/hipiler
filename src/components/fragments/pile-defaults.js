@@ -1,3 +1,5 @@
+export const COLOR_INDICATOR_HEIGHT = 4;
+
 export const LABEL_MIN_CELL_SIZE = 2;
 
 export const MENU_LABEL_SPACING = 6;
