@@ -41,6 +41,7 @@ import {
   setGridCellSizeLock,
   setGridCellSizeLockAndGridSize,
   setGridSize,
+  setHilbertCurve,
   setHiglassSubSelection,
   setLassoIsRound,
   setMatrixFrameEncoding,
@@ -109,6 +110,7 @@ import COLORS from 'configs/colors';
 
 import arraysEqual from 'utils/arrays-equal';
 import debounce from 'utils/debounce';
+import hilbertCurve from 'utils/hilbert-curve';
 
 const logger = LogManager.getLogger('fragments');
 
@@ -649,10 +651,42 @@ export class Fragments {
       this.gridCellWidth
     ), 1);
 
-    this.gridNumRows = Math.max(Math.floor(
-      (this.plotElDim.height - MARGIN_TOP - MARGIN_BOTTOM) /
-      this.gridCellHeight
-    ), 1);
+    // Get closest Hilbert curve level
+    this.hilbertCurveLevel = 1;
+    if (fgmState.isHilbertCurve) {
+      const piles = this.store.getState().present.decompose.fragments.piles;
+      const numPiles = Object.keys(piles)
+        .filter(pileId => piles[pileId].length)
+        .filter(pileId => pileId[0] !== '_').length;
+
+      this.gridNumCols = Math.ceil(Math.sqrt(numPiles));
+
+      this.hilbertCurveLevel = Math.ceil(
+        Math.log(this.gridNumCols) / Math.log(2)
+      );
+
+      this.gridNumCols = 2 ** this.hilbertCurveLevel;
+      this.gridNumRows = this.gridNumCols;
+
+      this.gridCellHeight -= PILE_LABEL_HEIGHT - MATRIX_GAP_VERTICAL;
+
+      // Adjust pile scaling to white space mose efficiently
+      const cellWidth = (
+        this.plotElDim.width - MARGIN_LEFT - MARGIN_RIGHT
+      ) / this.gridNumCols;
+      const cellWidthExtra = cellWidth - this.gridCellHeight;
+
+      if (cellWidthExtra > 0) {
+        fgmState.scale = 1 + (cellWidthExtra / this.gridCellHeight);
+      } else {
+        fgmState.scale = 1 + (cellWidthExtra / this.gridCellHeight);
+      }
+    } else {
+      this.gridNumRows = Math.max(Math.floor(
+        (this.plotElDim.height - MARGIN_TOP - MARGIN_BOTTOM) /
+        this.gridCellHeight
+      ), 1);
+    }
 
     this.visiblePilesMax = this.gridNumCols * this.gridNumRows;
 
@@ -1803,14 +1837,15 @@ export class Fragments {
    * @return {object} Object with x and y coordinates
    */
   getLayoutPosition1D (pileSortIndex, abs) {
-    let x = (
-      fgmState.gridCellWidthInclSpacing * (pileSortIndex % this.gridNumCols)
-    ) || MARGIN_LEFT;
+    let i = (pileSortIndex % this.gridNumCols);
+    let j = Math.trunc(pileSortIndex / this.gridNumCols);
 
-    let y = (
-      Math.trunc(pileSortIndex / this.gridNumCols) *
-      fgmState.gridCellHeightInclSpacing
-    ) || MARGIN_TOP;
+    if (fgmState.isHilbertCurve) {
+      [i, j] = hilbertCurve(this.hilbertCurveLevel, pileSortIndex);
+    }
+
+    let x = (fgmState.gridCellWidthInclSpacing * i) || MARGIN_LEFT;
+    let y = (j * fgmState.gridCellHeightInclSpacing) || MARGIN_TOP;
 
     if (abs) {
       x += fgmState.gridCellWidthInclSpacingHalf;
@@ -2067,12 +2102,12 @@ export class Fragments {
   }
 
   /**
-   * [hidedistance description]
-   *
-   * @return {[type]} [description]
+   * Handle and disptach Hilber curve changes.
    */
-  hidedistance () {
-    fgmState.matrices.forEach(matrix => matrix.g_course.style('opacity', '1'));
+  hilbertCurveChangeHandler () {
+    this.store.dispatch(setHilbertCurve(!fgmState.isHilbertCurve));
+
+    return true;
   }
 
   /**
@@ -3225,6 +3260,8 @@ export class Fragments {
 
       const update = {};
 
+      fgmState.scale = 1;
+
       this.updatePlotSize(state.columns, update);
       this.updateHglSelectionView(stateHgl.config);
       this.updateHglSelectionViewDomains(state.higlass.selectionView, update);
@@ -3236,6 +3273,7 @@ export class Fragments {
       this.updateConfig(stateFgm.config);
       this.updateGridSize(stateFgm.gridSize, update);
       this.updateGridCellSizeLock(stateFgm.gridCellSizeLock, update);
+      this.updateHilbertCurve(stateFgm.hilbertCurve, update);
       this.updateHglSubSelection(stateFgm.higlassSubSelection, update);
       this.updateLassoIsRound(stateFgm.lassoIsRound);
       this.updateMatrixFrameEncoding(stateFgm.matrixFrameEncoding, update);
@@ -3350,7 +3388,6 @@ export class Fragments {
       } else {
         fgmState.isLayout2d = false;
         fgmState.isLayoutMd = false;
-        fgmState.scale = 1;
       }
     }
 
@@ -3415,7 +3452,7 @@ export class Fragments {
    * Update the grid cell size.
    *
    * @param {number} newSize - New grid size.
-   * @param {object} update - Update object to bve updated in-place.
+   * @param {object} update - Update object to be updated in-place.
    */
   updateGridSize (size, update) {
     if (fgmState.gridSize === size) { return; }
@@ -3435,6 +3472,22 @@ export class Fragments {
    */
   updateGridCellSizeLock (gridCellSizeLock, update) {
     this.gridCellSizeLock = gridCellSizeLock;
+  }
+
+  /**
+   * Update hilbert curve status.
+   *
+   * @param {boolean} isHilbertCurve - If `true` order in 1D by Hilbert curve.
+   * @param {object} update - Update object to be updated in-place.
+   */
+  updateHilbertCurve (isHilbertCurve, update) {
+    if (fgmState.isHilbertCurve === isHilbertCurve) { return; }
+
+    fgmState.isHilbertCurve = isHilbertCurve;
+
+    update.grid = true;
+    update.layout = true;
+    update.pileFramesRecreate = true;
   }
 
   /**
@@ -3685,10 +3738,6 @@ export class Fragments {
               this.fromDisperse[pile.id]
             ) {
               // To make it look like a real disperse
-              console.log(
-                'move to snippet #' + this.fromDisperse[pile.id].id +
-                ' at' + this.fromDisperse[pile.id].x + ' and ' + this.fromDisperse[pile.id].y
-              );
               pile.draw().moveTo(
                 this.fromDisperse[pile.id].x,
                 this.fromDisperse[pile.id].y,
