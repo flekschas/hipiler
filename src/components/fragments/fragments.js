@@ -1234,46 +1234,23 @@ export class Fragments {
   }
 
   /**
-   * Disperse all piles.
+   * Decolor all matrices
    */
-  disperseAllPiles () {
-    this.dispersePilesHandler(this.piles);
-  }
+  decolorAll () {
+    const colorSettings = {};
 
-  /**
-   * Disperse piles into their snippets.
-   *
-   * @param {object} piles - A list of piles to be dispersed.
-   */
-  dispersePilesHandler (piles) {
-    this.fromDisperse = {};
-
-    const pilesToBeDispersed = [];
-    let pileColorConfig = {};
-    let withColors = false;
-
-    piles.forEach((pile) => {
-      const isColored = pile.color !== pileColors.gray;
-
-      pile.pileMatrices.slice(1).forEach((pileMatrix) => {
-        this.fromDisperse[pileMatrix.id] = pile;
-
-        if (isColored) {
-          pileColorConfig[pileMatrix.id] = pile.color.name;
-        }
+    Object.keys(this.colorsMatrixIdx)
+      .map(color => this.colorsMatrixIdx[color])
+      .reduce((allMatrices, matrices) => allMatrices.concat(matrices), [])
+      .forEach((matrix) => {
+        colorSettings[matrix.id] = -1;
       });
 
-      pilesToBeDispersed.push(pile.id);
-    });
+    this.colorsMatrixIdx = {};
 
-    if (withColors) {
-      this.store.dispatch(dispersePilesWithColors({
-        piles: pilesToBeDispersed,
-        colors: pileColorConfig
-      }));
-    } else {
-      this.store.dispatch(dispersePiles(pilesToBeDispersed));
-    }
+    console.log('asssss', colorSettings);
+
+    this.store.dispatch(setMatricesColors(colorSettings));
   }
 
   /**
@@ -1358,6 +1335,49 @@ export class Fragments {
         matrix.visible = true;
       }
     });
+  }
+
+  /**
+   * Disperse all piles.
+   */
+  disperseAllPiles () {
+    this.dispersePilesHandler(this.piles);
+  }
+
+  /**
+   * Disperse piles into their snippets.
+   *
+   * @param {object} piles - A list of piles to be dispersed.
+   */
+  dispersePilesHandler (piles) {
+    this.fromDisperse = {};
+
+    const pilesToBeDispersed = [];
+    let pileColorConfig = {};
+    let withColors = false;
+
+    piles.forEach((pile) => {
+      const isColored = pile.color !== pileColors.gray;
+
+      pile.pileMatrices.slice(1).forEach((pileMatrix) => {
+        this.fromDisperse[pileMatrix.id] = pile;
+
+        if (isColored) {
+          pileColorConfig[pileMatrix.id] = pile.color.name;
+        }
+      });
+
+      pilesToBeDispersed.push(pile.id);
+    });
+
+    if (withColors) {
+      this.store.dispatch(dispersePilesWithColors({
+        piles: pilesToBeDispersed,
+        colors: pileColorConfig
+      }));
+    } else {
+      this.store.dispatch(dispersePiles(pilesToBeDispersed));
+    }
   }
 
   /**
