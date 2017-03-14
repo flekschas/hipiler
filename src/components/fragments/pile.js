@@ -437,6 +437,8 @@ export default class Pile {
     const colors = [];
     const isHovering = this === fgmState.hoveredPile;
 
+    this.isColored = this.pileMatrices.some(matrix => matrix.color);
+
     // UPDATE COVER MATRIX CELLS + PILE PREVIEWS
     if (this.mesh) {
       this.pileMeshes.splice(this.pileMeshes.indexOf(this.mesh), 1);
@@ -538,8 +540,8 @@ export default class Pile {
 
       this.colorIndicator[color].position.set(
         (index * width) - ((numColors - 1) * width / 2),
-        -this.matrixWidthHalf - 6,
-        5
+        -this.matrixWidthHalf - 7,
+        1
       );
 
       this.mesh.add(this.colorIndicator[color]);
@@ -865,7 +867,7 @@ export default class Pile {
       }
     }
 
-    const extraOffset = this.isColored ? COLOR_INDICATOR_HEIGHT : 0;
+    const extraOffset = this.isColored ? COLOR_INDICATOR_HEIGHT + 2 : 0;
 
     if (this.labelText !== labelText) {
       this.labelText = labelText;
@@ -994,7 +996,7 @@ export default class Pile {
   drawStrandArrows (isHovering) {
     const offsetX = this.pileMatrices[0].orientationX === -1 ? 10 : 0;
     const offsetY = this.pileMatrices[0].orientationY === -1 ? 10 : 0;
-    const extraOffset = this.isColored ? COLOR_INDICATOR_HEIGHT : 0;
+    const extraOffset = this.isColored ? COLOR_INDICATOR_HEIGHT + 2 : 0;
 
     this.strandArrowX = new ArrowHelper(
       new Vector3(this.pileMatrices[0].orientationX * 1, 0, 0),
