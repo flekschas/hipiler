@@ -3347,8 +3347,6 @@ export class Fragments {
 
       const update = {};
 
-      fgmState.scale = 1;
-
       this.updatePlotSize(state.columns, update);
       this.updateHglSelectionView(stateHgl.config);
       this.updateHglSelectionViewDomains(state.higlass.selectionView, update);
@@ -3571,6 +3569,8 @@ export class Fragments {
     if (fgmState.isHilbertCurve === isHilbertCurve) { return; }
 
     fgmState.isHilbertCurve = isHilbertCurve;
+
+    if (!isHilbertCurve) { fgmState.scale = 1; }
 
     update.grid = true;
     update.layout = true;
