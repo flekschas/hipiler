@@ -18,6 +18,8 @@ export const CELL_THRESHOLD = 0.0;  // only cells above are shown
 
 export const CLICK_DELAY_TIME = 300;
 
+export const CLUSTER_TSNE = '_cluster_tsne';
+
 export const DBL_CLICK_DELAY_TIME = 250;
 
 /**

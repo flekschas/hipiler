@@ -54,6 +54,7 @@ import {
 import {
   ARRANGE_MEASURES,
   CLICK_DELAY_TIME,
+  CLUSTER_TSNE,
   DBL_CLICK_DELAY_TIME,
   DURATION,
   FONT_URL,
@@ -361,6 +362,12 @@ export class Fragments {
     return gridSize * (fgmState.trashIsActive ? 1 : fgmState.scale);
   }
 
+  get isDataClustered () {
+    return (
+      this.arrangeMeasures.length && this.arrangeMeasures[0][0] === '_'
+    ) || fgmState.trashIsActive;
+  }
+
   get isErrored () {
     return this._isErrored;
   }
@@ -481,35 +488,47 @@ export class Fragments {
   arrange (piles, measures) {
     const numMeasures = measures.length;
 
+    console.log('AAAAY', measures);
+
     return new Promise((resolve, reject) => {
+      let arranged = false;
+
       if (!measures || !numMeasures) {
         this.rank(piles);
+        arranged = true;
       }
 
-      if (numMeasures === 1) {
+      if (numMeasures === 1 && measures[0][0] !== '_') {
         this.rank(piles, measures[0]);
+        arranged = true;
       }
 
-      if (numMeasures <= 2) {
+      if (arranged) {
         // Resolve now for 0, 1, and 2D
         resolve();
+        return;
       }
 
-      if (numMeasures > 2 && !fgmState.trashIsActive) {
+      console.log('GURLYY', measures);
+
+      if (numMeasures === 1) {
+        // Intrinsic measure starting with `_`, e.g., `_cluster_tsne`
+        this.clusterLayout = this.calcLayoutPositionsTsne(piles);
+      } else {
         this.clusterLayout = this.calcLayoutPositionsMD(piles, measures);
-
-        this.clusterLayout
-          .then((pos) => {
-            piles.forEach((pile, index) => {
-              this.clusterPos[pile.idNumeric] = {
-                x: pos[index][0],
-                y: pos[index][1]
-              };
-            });
-
-            resolve();
-          });
       }
+
+      this.clusterLayout
+        .then((pos) => {
+          piles.forEach((pile, index) => {
+            this.clusterPos[pile.idNumeric] = {
+              x: pos[index][0],
+              y: pos[index][1]
+            };
+          });
+
+          resolve();
+        });
     });
   }
 
@@ -666,6 +685,13 @@ export class Fragments {
     this.showGridRows = new Array(this.gridNumRows).fill(0);
   }
 
+  /**
+   * Calculate multi-dimensional layout with t-SNE based on measures.
+   *
+   * @param {array} piles - Array of piles to be arranged.
+   * @param {array} measures - Array of measures used for arranging.
+   * @return {object} Promise resolving to the snippet positions.
+   */
   calcLayoutPositionsMD (piles = this.piles, measures = this.arrangeMeasures) {
     this.isLoading = true;
 
@@ -710,6 +736,60 @@ export class Fragments {
             // learningRate: 100.0,
             // metric: 'euclidean',
             data: pileMeasures
+          });
+        })
+        .catch((error) => {
+          logger.error('Couldn\'t create t-SNE worker', error);
+        });
+    });
+  }
+
+  /**
+   * Calculate multi-dimensional layout with t-SNE based on the matrices.
+   *
+   * @param {array} piles - Array of piles to be arranged.
+   * @return {object} Promise resolving to the snippet positions.
+   */
+  calcLayoutPositionsTsne (piles = this.piles) {
+    this.isLoading = true;
+
+    if (!this.tsneWorker) {
+      this.tSneWorker = this.createTsneWorker();
+    }
+
+    return new Promise((resolve, reject) => {
+      this.tSneWorker
+        .then((worker) => {
+          const costs = [];
+          let pos;
+
+          worker.onmessage = (event) => {
+            if (event.data.pos) {
+              pos = event.data.pos;
+            }
+
+            if (event.data.iterations) {
+              costs[event.data.iterations] = event.data.cost;
+            }
+
+            if (event.data.stop) {
+              logger.debug('t-SNE stopped', event.data);
+              worker.terminate();
+              this.isLoading = false;
+              resolve(pos);
+            }
+          };
+
+          worker.postMessage({
+            nIter: 500,
+            dim: 2,
+            perplexity: 20.0,
+            // earlyExaggeration: 4.0,
+            // learningRate: 100.0,
+            metric: 'euclidean',
+            data: this.piles.map(
+              pile => pile.avgMatrix
+            )
           });
         })
         .catch((error) => {
@@ -843,6 +923,17 @@ export class Fragments {
     return matrices.length === Object.keys(pileConfig)
       .map(pileId => pileConfig[pileId].length)
       .reduce((a, b) => a + b, 0);
+  }
+
+  /**
+   * Cluster snippets with t-SNE.
+   */
+  clusterTsne () {
+    if (this.isDataClustered) {
+      this.store.dispatch(setArrangeMeasures([]));
+    } else {
+      this.store.dispatch(setArrangeMeasures([CLUSTER_TSNE]));
+    }
   }
 
   /**
@@ -1134,7 +1225,7 @@ export class Fragments {
       // place pile on top of previous pile
       if (!fgmState.hoveredPile) {
         // Move pile back to original position
-        let pos = this.getLayoutPosition(this.dragPile);
+        let pos = this.getLayoutPosition(this.dragPile, this.arrangeMeasures);
         this.dragPile.moveTo(pos.x, pos.y);
         this.dragPile.elevateTo(Z_BASE);
       } else {
@@ -1676,23 +1767,27 @@ export class Fragments {
    * Get position for a pile.
    *
    * @param {number} pileSortIndex - Pile sort index.
+   * @param {string} pileSortIndex - Pile sort index.
    * @param {boolean} abs - If `true` the position needs to be adjusted to the
    *   WebGL coordinates.
    * @return {object} Object with x and y coordinates
    */
-  getLayoutPosition (pile, abs) {
-    const numArrMeasures = this.arrangeMeasures.length;
+  getLayoutPosition (pile, measures, abs) {
+    const numArrMeasures = measures.length;
 
     if (numArrMeasures === 2 && !fgmState.trashIsActive) {
       return this.getLayoutPosition2D(
         pile,
-        this.arrangeMeasures[0],
-        this.arrangeMeasures[1],
+        measures[0],
+        measures[1],
         abs
       );
     }
 
-    if (numArrMeasures > 2 && !fgmState.trashIsActive) {
+    if (
+      (numArrMeasures > 2 && !fgmState.trashIsActive) ||
+      (numArrMeasures === 1 && measures[0] === CLUSTER_TSNE)
+    ) {
       return this.getLayoutPositionMD(pile, abs);
     }
 
@@ -3236,20 +3331,29 @@ export class Fragments {
 
     this.arrangeMeasures = _arrangeMeasures;
 
-    this.arrangeMeasuresReadible = this.arrangeMeasures.map(
-      measure => this.wurstCaseToNice(measure)
-    );
-
-    this.selectMeasure(this.arrangeMeasures, fgmState.measures);
-
-    if (this.arrangeMeasures.length > 1) {
-      fgmState.isLayout2d = this.arrangeMeasures.length === 2;
-      fgmState.isLayoutMd = !fgmState.isLayout2d;
+    if (
+      this.arrangeMeasures.length === 1 &&
+      this.arrangeMeasures[0] === CLUSTER_TSNE
+    ) {
+      fgmState.isLayout2d = false;
+      fgmState.isLayoutMd = true;
       fgmState.scale = 0.25;
     } else {
-      fgmState.isLayout2d = false;
-      fgmState.isLayoutMd = false;
-      fgmState.scale = 1;
+      this.arrangeMeasuresReadible = this.arrangeMeasures.map(
+        measure => this.wurstCaseToNice(measure)
+      );
+
+      this.selectMeasure(this.arrangeMeasures, fgmState.measures);
+
+      if (this.arrangeMeasures.length > 1) {
+        fgmState.isLayout2d = this.arrangeMeasures.length === 2;
+        fgmState.isLayoutMd = !fgmState.isLayout2d;
+        fgmState.scale = 0.25;
+      } else {
+        fgmState.isLayout2d = false;
+        fgmState.isLayoutMd = false;
+        fgmState.scale = 1;
+      }
     }
 
     update.grid = true;
@@ -3316,7 +3420,6 @@ export class Fragments {
    * @param {object} update - Update object to bve updated in-place.
    */
   updateGridSize (size, update) {
-    console.log('update to', size, fgmState.gridSize);
     if (fgmState.gridSize === size) { return; }
 
     fgmState.gridSize = size;
@@ -3406,12 +3509,15 @@ export class Fragments {
    *
    * @param {array} piles - Piles to be re-arranged.
    * @param {array} measures - Measures used for arraning.
+   * @param {boolean} isDataClustering - If `true` the piles will be arranged
+   *   according to the clustered raw matrices and measures are ignored.
    * @param {boolean} noAnimation - If `true` the piles are not animated.
    * @return {object} Promise resolving when to layout if fully updated.
    */
   updateLayout (
     piles = this.piles,
     measures = this.arrangeMeasures,
+    isDataClustering = false,
     noAnimation = false
   ) {
     return new Promise((resolve, reject) => {
@@ -3424,13 +3530,13 @@ export class Fragments {
           if (!noAnimation) {
             return this.movePilesAnimated(
               piles,
-              piles.map(pile => this.getLayoutPosition(pile, true))
+              piles.map(pile => this.getLayoutPosition(pile, measures, true))
             );
           }
 
           // Don't animate
           piles.forEach((pile) => {
-            const pos = this.getLayoutPosition(pile);
+            const pos = this.getLayoutPosition(pile, measures);
             pile.moveTo(pos.x, pos.y);
           });
 

@@ -63,13 +63,25 @@
             state-query.bind="arrangeMeasuresAccessPath"
             placeholder="Choose measures…"></multi-select>
 
-          <button
-            class="flex-c flex-jc-c flex-a-c rel button is-icon-only ${trashSize > 0 ? 'is-enabled' : 'is-disabled'} ${state.trashIsActive ? 'is-active' : ''}"
-            click.delegate="toggleTrash()"
-            disabled.bind="trashSize === 0">
-            <svg-icon icon-id="trash"></svg-icon>
-            <span class="icon-number">${trashSize}</span>
-          </button>
+          <ul class="flex-c settings-list settings-list-buttons-only">
+            <li>
+              <button
+                class="flex-c flex-jc-c flex-a-c rel button ${isDataClustered ? 'is-active' : ''}"
+                click.delegate="clusterTsne()"
+                disabled.bind="isDataClustered">
+                Cluster${isDataClustered ? 'ed' : ''}
+              </button>
+            </li>
+            <li>
+              <button
+                class="flex-c flex-jc-c flex-a-c rel button is-icon-only ${trashSize > 0 ? 'is-enabled' : 'is-disabled'} ${state.trashIsActive ? 'is-active' : ''}"
+                click.delegate="toggleTrash()"
+                disabled.bind="trashSize === 0">
+                <svg-icon icon-id="trash"></svg-icon>
+                <span class="icon-number">${trashSize}</span>
+              </button>
+            </li>
+          </ul>
         </div>
 
         <div class="flex-c settings-row">
@@ -138,17 +150,9 @@
             </li>
             <li>
               <button
-                class="flex-c flex-jc-c flex-a-c rel button"
-                click.delegate="clusterTsne()"
-                disabled.bind="piles.length <= visiblePilesMax">
-                Cluster with t-SNE
-              </button>
-            </li>
-            <li>
-              <button
                 class="flex-c flex-jc-c flex-a-c rel button ${isDispersable && !state.trashIsActive ? 'is-enabled' : 'is-disabled'}"
                 click.delegate="disperseAllPiles()"
-                disabled.bind="!isDispersable && !state.trashIsActive">
+                disabled.bind="!isDispersable || state.trashIsActive">
                 Disperse All
               </button>
             </li>
