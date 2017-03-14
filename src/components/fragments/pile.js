@@ -64,7 +64,7 @@ const logger = LogManager.getLogger('pile');
 
 export default class Pile {
   constructor (id, scene, scale, dims) {
-    this.avgMatrix = [];
+    this.avgMatrix = new Float32Array(dims ** 2);
     this.cellFrame = createRectFrame(
       this.cellSize, this.cellSize, 0xff0000, 1
     );
@@ -213,13 +213,7 @@ export default class Pile {
   calculateAvgMatrix () {
     const numMatrices = this.pileMatrices.length;
 
-    this.avgMatrix = new Array(this.dims).fill(undefined);
-
     if (numMatrices > 1) {
-      // Create empty this.dims x this.dims matrix
-      this.avgMatrix = this.avgMatrix
-        .map(row => new Float32Array(this.dims));
-
       for (let i = 0; i < this.dims; i++) {
         for (let j = 0; j < this.dims; j++) {
           this.calculateCellMean(
@@ -227,14 +221,15 @@ export default class Pile {
             this.pileMatrices,
             i,
             j,
-            numMatrices
+            numMatrices,
+            true
           );
         }
       }
     } else {
       // Copy first pile matrix
-      this.pileMatrices[0].matrix.forEach((row, index) => {
-        this.avgMatrix[index] = [...row];
+      Matrix.flatten(this.pileMatrices[0].matrix).forEach((cell, index) => {
+        this.avgMatrix[index] = cell;
       });
     }
 
@@ -262,26 +257,31 @@ export default class Pile {
   /**
    * Calculate cell mean.
    *
-   * @param {array} targetMatrix - Target matrix.
+   * @param {array} targetMatrix - Flat Target matrix.
    * @param {array} sourceMatrices - Source matrices used for calclation.
    * @param {array} i - Index i.
    * @param {array} j - Index j.
+   * @param {boolean} flat - If `true` the target matrix is flat.
    */
-  calculateCellMean (targetMatrix, sourceMatrices, i, j, numMatrices) {
+  calculateCellMean (targetMatrix, sourceMatrices, i, j, numMatrices, flat) {
     let lowQualCounter = 0;
 
-    targetMatrix[i][j] = sourceMatrices
+    let avg = (sourceMatrices
       .map(matrix => matrix.matrix[i][j])
       .reduce((acc, value) => {
         if (value < 0) { lowQualCounter += 1; }
         return acc + value;
-      }, 0);
+      }, 0) + lowQualCounter) / numMatrices;
 
     if (lowQualCounter === numMatrices) {
       // We keep the low quality info in case all cells are of low quality
-      targetMatrix[i][j] = -1;
+      avg = -1;
+    }
+
+    if (flat) {
+      targetMatrix[(i * this.dims) + j] = avg;
     } else {
-      targetMatrix[i][j] = (targetMatrix[i][j] + lowQualCounter) / numMatrices;
+      targetMatrix[i][j] = avg;
     }
   }
 
@@ -353,9 +353,14 @@ export default class Pile {
         }
       } else {
         // Copy the average matrix from `this.avgMatrix`
-        this.avgMatrix.forEach((row, index) => {
-          this.coverMatrix[index] = row.slice();
-        });
+        // this.avgMatrix.forEach((row, index) => {
+        //   this.coverMatrix[index] = row.slice();
+        // });
+        for (let i = 0; i < this.dims; i++) {
+          this.coverMatrix[i] = this.avgMatrix.slice(
+            i * this.dims, (i + 1) * this.dims
+          );
+        }
       }
     } else {
       // Copy first pile matrix
