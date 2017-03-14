@@ -190,6 +190,14 @@ svg-icon {
   overflow: hidden;
 }
 
+.spinner-bg {
+  padding: 1rem;
+  border-radius: 0.5rem;
+  background: $white;
+  box-shadow: 0 1px 3px 0 transparentize($black, 0.9),
+              0 2px 6px 0 transparentize($black, 0.9);
+}
+
 body.dragging,
 .draggable:active {
   cursor: move !important;

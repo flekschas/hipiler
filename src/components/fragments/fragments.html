@@ -10,7 +10,9 @@
     </div>
   </div>
   <div class="flex-c flex-a-c flex-jc-c full-dim loading-indicator ${isLoading ? 'is-active' : ''}">
-    <spinner if.bind="isLoading"></spinner>
+    <div class="flex-c flex-a-c flex-jc-c spinner-bg">
+      <spinner if.bind="isLoading"></spinner>
+    </div>
   </div>
 
   <div class="full-wh flex-c flex-d-c ${fgmState.animation ? 'is-animated' : ''}" ref="baseEl">
@@ -217,9 +219,8 @@
             </li>
             <li>
               <button
-                class="flex-c flex-jc-c flex-a-c rel button ${isDispersable && !state.trashIsActive ? 'is-enabled' : 'is-disabled'}"
-                click.delegate="disperseAllPiles()"
-                disabled.bind="!isDispersable || state.trashIsActive">
+                class="flex-c flex-jc-c flex-a-c rel button ${!state.trashIsActive ? 'is-enabled' : 'is-disabled'}"
+                click.delegate="decolorAll()">
                 Decolor All
               </button>
             </li>
