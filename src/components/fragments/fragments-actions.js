@@ -85,6 +85,13 @@ export const setGridSize = gridSize => ({
   payload: { gridSize }
 });
 
+export const SET_HILBERT_CURVE = 'SET_HILBERT_CURVE';
+
+export const setHilbertCurve = hilbertCurve => ({
+  type: SET_HILBERT_CURVE,
+  payload: { hilbertCurve }
+});
+
 export const SET_HIGLASS_SUB_SELECTION = 'SET_HIGLASS_SUB_SELECTION';
 
 export const setHiglassSubSelection = higlassSubSelection => ({

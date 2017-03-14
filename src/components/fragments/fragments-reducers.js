@@ -12,6 +12,7 @@ import {
   SET_COVER_DISP_MODE,
   SET_GRID_CELL_SIZE_LOCK,
   SET_GRID_SIZE,
+  SET_HILBERT_CURVE,
   SET_HIGLASS_SUB_SELECTION,
   SET_LASSO_IS_ROUND,
   SET_MATRIX_FRAME_ENCODING,
@@ -30,6 +31,7 @@ import {
   CONFIG,
   GRID_CELL_SIZE_LOCK,
   GRID_SIZE,
+  HILBERT_CURVE,
   HIGLASS_SUB_SELECTION,
   LASSO_IS_ROUND,
   MATRIX_FRAME_ENCODING,
@@ -233,6 +235,16 @@ export function gridSize (state = GRID_SIZE, action) {
   }
 }
 
+export function hilbertCurve (state = HILBERT_CURVE, action) {
+  switch (action.type) {
+    case SET_HILBERT_CURVE:
+      return action.payload.hilbertCurve;
+
+    default:
+      return state;
+  }
+}
+
 export function higlassSubSelection (state = HIGLASS_SUB_SELECTION, action) {
   switch (action.type) {
     case SET_HIGLASS_SUB_SELECTION:
@@ -315,6 +327,7 @@ export default combineReducers({
   coverDispMode,
   gridCellSizeLock,
   gridSize,
+  hilbertCurve,
   higlassSubSelection,
   lassoIsRound,
   matrixFrameEncoding,

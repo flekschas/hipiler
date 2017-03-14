@@ -30,6 +30,7 @@ const State = {
   gridCellHeightInclSpacingHalf: 0,
   gridCellWidthInclSpacing: 0,
   gridCellWidthInclSpacingHalf: 0,
+  isHilbertCurve: false,
   hoveredCell: undefined,
   hoveredGapPile: undefined,
   hoveredMatrix: undefined,
