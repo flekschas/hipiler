@@ -99,6 +99,18 @@ html {
       }
     }
 
+    &.settings-list-buttons-only > li {
+      margin-left: 0.5rem;
+
+      &:first-child {
+        margin-left: 0.5rem;
+      }
+
+      &:last-child {
+        margin-right: 0.5rem;
+      }
+    }
+
     label {
       font-size: 0.7rem;
       text-transform: uppercase;
@@ -152,7 +164,7 @@ html {
       }
     }
 
-    &.is-enabled.is-active {
+    &.is-active {
       color: $primary;
       background: lighten($primary, 40%);
       box-shadow: inset 0 0 0 1px lighten($primary, 40%);
