@@ -631,8 +631,10 @@ export class Fragments {
 
   /**
    * Set grid properties.
+   *
+   * @param {boolean} temporary - If `true` is only calculated temporarily.
    */
-  calcGrid () {
+  calcGrid (temporary) {
     this.getPlotElDim();
 
     // Raw cell height and width
@@ -688,7 +690,9 @@ export class Fragments {
       ), 1);
     }
 
-    this.visiblePilesMax = this.gridNumCols * this.gridNumRows;
+    if (!temporary) {
+      this.visiblePilesMax = this.gridNumCols * this.gridNumRows;
+    }
 
     // Extra spacing
     this.gridCellSpacingHorizontal = (
@@ -1990,7 +1994,7 @@ export class Fragments {
    */
   gridSizeInputHandler (event) {
     this.gridSizeTmp = event.target.value;
-    this.calcGrid(event.target.value);
+    this.calcGrid(true);
   }
 
   /**
