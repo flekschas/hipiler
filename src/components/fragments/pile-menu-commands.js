@@ -36,7 +36,6 @@ export const BW = {
 };
 
 export const COLOR = {
-  isBWOnly: true,
   buttons: [
     {
       name: 'G',
