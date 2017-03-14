@@ -6,9 +6,9 @@ self.onmessage = function (e) {
 
   let model = new TSNE({
     dim: msg.dim || 2,
-    perplexity: msg.perplexity || 100.0,
+    perplexity: msg.perplexity || 25.0,
     earlyExaggeration: msg.earlyExaggeration || 4.0,
-    learningRate: msg.learningRate || 100.0,
+    learningRate: msg.learningRate || 10.0,
     nIter: msg.nIter || 500,
     metric: msg.metric || 'euclidean'
   });
