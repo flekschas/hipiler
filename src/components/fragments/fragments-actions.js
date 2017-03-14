@@ -106,6 +106,13 @@ export const setLassoIsRound = lassoIsRound => ({
   payload: { lassoIsRound }
 });
 
+export const SET_MATRICES_COLORS = 'SET_MATRICES_COLORS';
+
+export const setMatricesColors = matricesColors => ({
+  type: SET_MATRICES_COLORS,
+  payload: { matricesColors }
+});
+
 export const SET_MATRIX_ORIENTATION = 'SET_MATRIX_ORIENTATION';
 
 export const setMatrixOrientation = orientation => ({
@@ -132,13 +139,6 @@ export const SET_PILES = 'SET_PILES';
 export const setPiles = piles => ({
   type: SET_PILES,
   payload: { piles }
-});
-
-export const SET_PILES_COLORS = 'SET_PILES_COLORS';
-
-export const setPilesColors = pilesColors => ({
-  type: SET_PILES_COLORS,
-  payload: { pilesColors }
 });
 
 export const SET_SHOW_SPECIAL_CELLS = 'SET_SHOW_SPECIAL_CELLS';

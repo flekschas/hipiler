@@ -88,6 +88,8 @@ export const MARGIN_RIGHT = 2;
 
 export const MARGIN_TOP = 2;
 
+export const MATRICES_COLORS = {};
+
 export const MATRIX_FRAME_ENCODING = null;
 
 export const MATRIX_FRAME_THICKNESS = 2;
@@ -138,8 +140,6 @@ export const PILE_LABEL_HEIGHT = 10;
 export const PILE_MENU_CLOSING_DELAY = 200;
 
 export const PILES = {};
-
-export const PILES_COLORS = {};
 
 export const PILE_COLORS_CATEGORICAL = pileColors.categorical.length;
 

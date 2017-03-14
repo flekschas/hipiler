@@ -15,10 +15,10 @@ import {
   SET_HILBERT_CURVE,
   SET_HIGLASS_SUB_SELECTION,
   SET_LASSO_IS_ROUND,
+  SET_MATRICES_COLORS,
   SET_MATRIX_FRAME_ENCODING,
   SET_MATRIX_ORIENTATION,
   SET_PILES,
-  SET_PILES_COLORS,
   SET_SHOW_SPECIAL_CELLS,
   TRASH_PILES,
   UPDATE_FGM_CONFIG
@@ -34,11 +34,11 @@ import {
   HILBERT_CURVE,
   HIGLASS_SUB_SELECTION,
   LASSO_IS_ROUND,
+  MATRICES_COLORS,
   MATRIX_FRAME_ENCODING,
   MATRIX_ORIENTATION_INITIAL,
   MODE_MEAN,
   PILES,
-  PILES_COLORS,
   SHOW_SPECIAL_CELLS
 } from 'components/fragments/fragments-defaults';
 
@@ -265,6 +265,30 @@ export function lassoIsRound (state = LASSO_IS_ROUND, action) {
   }
 }
 
+export function matricesColors (state = MATRICES_COLORS, action) {
+  switch (action.type) {
+    case SET_MATRICES_COLORS: {
+      const newState = { ...state };
+
+      Object.keys(action.payload.matricesColors).forEach((pileId) => {
+        const colorId = action.payload.matricesColors[pileId];
+
+        if (colorId === -1) {
+          newState[pileId] = undefined;
+          delete newState[pileId];
+        } else {
+          newState[pileId] = colorId;
+        }
+      });
+
+      return newState;
+    }
+
+    default:
+      return state;
+  }
+}
+
 export function matrixFrameEncoding (state = MATRIX_FRAME_ENCODING, action) {
   switch (action.type) {
     case SET_MATRIX_FRAME_ENCODING:
@@ -279,30 +303,6 @@ export function matrixOrientation (state = MATRIX_ORIENTATION_INITIAL, action) {
   switch (action.type) {
     case SET_MATRIX_ORIENTATION:
       return action.payload.orientation;
-
-    default:
-      return state;
-  }
-}
-
-export function pilesColors (state = PILES_COLORS, action) {
-  switch (action.type) {
-    case SET_PILES_COLORS: {
-      const newState = { ...state };
-
-      Object.keys(action.payload.pilesColors).forEach((pileId) => {
-        const colorId = action.payload.pilesColors[pileId];
-
-        if (colorId === -1) {
-          newState[pileId] = undefined;
-          delete newState[pileId];
-        } else {
-          newState[pileId] = colorId;
-        }
-      });
-
-      return newState;
-    }
 
     default:
       return state;
@@ -330,9 +330,9 @@ export default combineReducers({
   hilbertCurve,
   higlassSubSelection,
   lassoIsRound,
+  matricesColors,
   matrixFrameEncoding,
   matrixOrientation,
   piles,
-  pilesColors,
   showSpecialCells
 });

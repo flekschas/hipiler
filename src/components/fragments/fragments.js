@@ -44,10 +44,10 @@ import {
   setHilbertCurve,
   setHiglassSubSelection,
   setLassoIsRound,
+  setMatricesColors,
   setMatrixFrameEncoding,
   setMatrixOrientation,
   setPiles,
-  setPilesColors,
   setShowSpecialCells,
   stackPiles
 } from 'components/fragments/fragments-actions';
@@ -161,7 +161,7 @@ export class Fragments {
     this.store.subscribe(this.update.bind(this));
 
     this.clusterPos = {};
-    this.colorsPilesIdx = {};
+    this.colorsMatrixIdx = {};
     this.maxDistance = 0;
     this.pilingMethod = 'clustered';
     this.matrixStrings = '';
@@ -1009,153 +1009,6 @@ export class Fragments {
   }
 
   /**
-   * Assign random colors
-   *
-   * @param {object} event - Event object.
-   * @return {object} Self.
-   */
-  pileAssignBW (event) {
-    this.removeFromColorPilesIdx(event.pile);
-
-    this.store.dispatch(setPilesColors({ [event.pile.id]: -1 }));
-  }
-
-  /**
-   * Assign random colors
-   *
-   * @param {object} event - Event object.
-   * @return {object} Self.
-   */
-  pileAssignColor (event) {
-    this.removeFromColorPilesIdx(event.pile);
-
-    this.store.dispatch(setPilesColors({ [event.pile.id]: event.color }));
-  }
-
-  /**
-   * Create a new instance
-   *
-   * @param {number} pileId - Pile ID.
-   * @return {object} New or retrieved pile
-   */
-  pileCreate (pileId) {
-    if (!fgmState.pilesIdx[pileId]) {
-      const pile = new Pile(
-        pileId,
-        fgmState.scene,
-        fgmState.scale,
-        this.fragDims
-      );
-
-      fgmState.pilesIdx[pileId] = pile;
-      fgmState.piles.push(pile);
-    }
-
-    return fgmState.pilesIdx[pileId];
-  }
-
-  /**
-   * Handle mouse over pile
-   *
-   * @param {object} pileMesh - Pile mesh being moused over.
-   */
-  mouseOverPileHandler (pileMesh) {
-    let x = pileMesh.position.x;
-    let y = pileMesh.position.y;
-
-    if (fgmState.menuPile && fgmState.menuPile !== pileMesh.pile) {
-      this.closePileMenu();
-    }
-
-    fgmState.hoveredPile = pileMesh.pile;
-
-    if (!this.lassoIsActive) {
-      this.highlightPile(fgmState.hoveredPile);
-    }
-
-    // Preview single matrices of piles with multiple matrices
-    if (fgmState.hoveredPile.pileMatrices.length > 1) {
-      const absY = this.relToAbsPositionY(this.mouse.y);
-
-      if (absY > y + fgmState.hoveredPile.matrixWidthHalf) {
-        let d = absY - (y + fgmState.hoveredPile.matrixWidthHalf);
-        let i = Math.floor(d / fgmState.hoveredPile.previewSize);
-
-        fgmState.hoveredPile.showSingle(
-          fgmState.hoveredPile.getMatrix(i)
-        );
-        this.hoveredMatrix = fgmState.hoveredPile.getMatrix(i);
-      } else {
-        fgmState.hoveredPile.showSingle();
-        // this.resetHighlightedPile();
-      }
-    }
-
-    // Check if we're hovering a gap
-    // if (this.relToAbsPositionX(this.mouse.x) > x + this.matrixWidthHalf) {
-    //   fgmState.hoveredGapPile = fgmState.hoveredPile;
-    // } else if (fgmState.hoveredGapPile) {
-    //   fgmState.hoveredGapPile.draw();
-    //   fgmState.hoveredGapPile = undefined;
-    // }
-
-    this.hoveredCell = undefined;
-
-    if (event.shiftKey) {
-      // test which cell is hovered.
-      let col = Math.floor((this.mouse.x - (x - this.matrixWidthHalf)) / this.cellSize);
-      let row = Math.floor(-(this.mouse.y - (y + this.matrixWidthHalf)) / this.cellSize);
-      if (
-        row >= 0 ||
-        row < fgmState.focusNodes.length ||
-        col >= 0 ||
-        col < fgmState.focusNodes.length
-      ) {
-        fgmState.hoveredPile.updateLabels();
-        this.hoveredCell = { row, col };
-      }
-    }
-
-    for (let i = 0; i < this.piles.length; i++) {
-      this.piles[i].updateHoveredCell();
-    }
-
-    fgmState.hoveredPile.updateLabels();
-
-    fgmState.previousHoveredPile = fgmState.hoveredPile;
-
-    this.render();
-  }
-
-  /**
-   * Handle pile mouse out events.
-   */
-  mouseOutPileHandler () {
-    fgmState.hoveredPile = undefined;
-
-    this.highlightPile();
-
-    if (fgmState.hoveredGapPile) {
-      const pile = fgmState.hoveredGapPile;
-      fgmState.hoveredGapPile = undefined;
-      pile.draw();
-    }
-
-    if (fgmState.previousHoveredPile) {
-      this.event.publish(
-        'decompose.fgm.pileMouseLeave',
-        fgmState.previousHoveredPile.pileMatrices.map(matrix => matrix.id)
-      );
-
-      fgmState.previousHoveredPile.showSingle(undefined);
-      fgmState.previousHoveredPile.setCoverMatrixMode(this.coverDispMode);
-      this.highlightFrame.visible = false;
-      fgmState.previousHoveredPile.draw(false, true);
-      fgmState.previousHoveredPile = undefined;
-    }
-  }
-
-  /**
    * General mouse move handler.
    *
    * @param {object} event - Mouse move event.
@@ -1483,6 +1336,28 @@ export class Fragments {
     if (fgmState.hoveredGapPile === pile) {
       fgmState.hoveredGapPile = undefined;
     }
+  }
+
+  /**
+   * Determine if a matrix is visible.
+   */
+  determinMatrixVisibility () {
+    if (!this.hglSelectionViewDomains) {
+      return;
+    }
+
+    fgmState.matrices.forEach((matrix) => {
+      matrix.visible = false;
+
+      if (
+        matrix.locus.globalStart1 >= this.hglSelectionViewDomains[0] &&
+        matrix.locus.globalEnd1 <= this.hglSelectionViewDomains[1] &&
+        matrix.locus.globalStart2 >= this.hglSelectionViewDomains[2] &&
+        matrix.locus.globalEnd2 <= this.hglSelectionViewDomains[3]
+      ) {
+        matrix.visible = true;
+      }
+    });
   }
 
   /**
@@ -2140,7 +2015,7 @@ export class Fragments {
   init () {
     this.getPlotElDim();
 
-    this.initPlotWindow()
+    this.initPlotWindow();
     this.initShader();
     this.initWebGl();
     this.initEventListeners();
@@ -2564,6 +2439,60 @@ export class Fragments {
   }
 
   /**
+   * Calculate global position???
+   */
+  matricesCalcGlobalPos () {
+    fgmState.matrices.forEach((matrix) => {
+      let offset = this.chromInfoData[`chr${matrix.locus.chrom1}`].offset;
+
+      matrix.locus.globalStart1 = offset + matrix.locus.start1;
+      matrix.locus.globalEnd1 = offset + matrix.locus.end1;
+
+      offset = this.chromInfoData[`chr${matrix.locus.chrom2}`].offset;
+
+      matrix.locus.globalStart2 = offset + matrix.locus.start2;
+      matrix.locus.globalEnd2 = offset + matrix.locus.end2;
+    });
+
+    this.matricesGlobalPosCalced = true;
+  }
+
+  /**
+   * Matrix frame encoding change handler.
+   *
+   * @param {object} event - Event object.
+   */
+  matrixFrameEncodingChangeHandler (event) {
+    try {
+      let val = event.target.selectedOptions[0].value;
+      if (!event.target.selectedOptions[0].value.length) {
+        val = MATRIX_FRAME_ENCODING;
+      }
+
+      this.store.dispatch(setMatrixFrameEncoding(val));
+    } catch (error) {
+      logger.error('Matrix frame encoding could not be set.', error);
+    }
+  }
+
+  /**
+   * Matrix orientation change handler.
+   *
+   * @param {object} event - Event object.
+   */
+  matrixOrientationChangeHandler (event) {
+    try {
+      this.store.dispatch(
+        setMatrixOrientation(
+          parseInt(event.target.selectedOptions[0].value, 10)
+        )
+      );
+    } catch (error) {
+      logger.error('Matrix orientation could not be set.', error);
+    }
+  }
+
+  /**
    * Handle general mouse moves
    */
   mouseMoveGeneralHandler () {
@@ -2620,65 +2549,103 @@ export class Fragments {
   }
 
   /**
-   * Piles all matrices prior to the selected one, including the selected one.
+   * Handle mouse over pile
    *
-   * @param {object} pile - Pile
+   * @param {object} pileMesh - Pile mesh being moused over.
    */
-  pileBackwards (pile) {
-    let pileIndex = this.piles.indexOf(pile);
-    let piles = [];
+  mouseOverPileHandler (pileMesh) {
+    let x = pileMesh.position.x;
+    let y = pileMesh.position.y;
 
-    if (pile.size === 1) {
-      for (let j = pileIndex; j >= 0; j--) {
-        if (j === 0 || this.piles[j - 1].size() > 1) {
-          this.pileUp(piles, this.piles[j]);
-          return;
-        }
-
-        piles.push(...this.piles[j]);
-      }
-    } else if (this.piles.indexOf(pile) > 0) {
-      this.pileUp(
-        pile,
-        this.piles[this.piles.indexOf(pile) - 1]
-      );
+    if (fgmState.menuPile && fgmState.menuPile !== pileMesh.pile) {
+      this.closePileMenu();
     }
 
-    this.startAnimations();
+    fgmState.hoveredPile = pileMesh.pile;
+
+    if (!this.lassoIsActive) {
+      this.highlightPile(fgmState.hoveredPile);
+    }
+
+    // Preview single matrices of piles with multiple matrices
+    if (fgmState.hoveredPile.pileMatrices.length > 1) {
+      const absY = this.relToAbsPositionY(this.mouse.y);
+
+      if (absY > y + fgmState.hoveredPile.matrixWidthHalf) {
+        let d = absY - (y + fgmState.hoveredPile.matrixWidthHalf);
+        let i = Math.floor(d / fgmState.hoveredPile.previewSize);
+
+        fgmState.hoveredPile.showSingle(
+          fgmState.hoveredPile.getMatrix(i)
+        );
+        this.hoveredMatrix = fgmState.hoveredPile.getMatrix(i);
+      } else {
+        fgmState.hoveredPile.showSingle();
+        // this.resetHighlightedPile();
+      }
+    }
+
+    // Check if we're hovering a gap
+    // if (this.relToAbsPositionX(this.mouse.x) > x + this.matrixWidthHalf) {
+    //   fgmState.hoveredGapPile = fgmState.hoveredPile;
+    // } else if (fgmState.hoveredGapPile) {
+    //   fgmState.hoveredGapPile.draw();
+    //   fgmState.hoveredGapPile = undefined;
+    // }
+
+    this.hoveredCell = undefined;
+
+    if (event.shiftKey) {
+      // test which cell is hovered.
+      let col = Math.floor((this.mouse.x - (x - this.matrixWidthHalf)) / this.cellSize);
+      let row = Math.floor(-(this.mouse.y - (y + this.matrixWidthHalf)) / this.cellSize);
+      if (
+        row >= 0 ||
+        row < fgmState.focusNodes.length ||
+        col >= 0 ||
+        col < fgmState.focusNodes.length
+      ) {
+        fgmState.hoveredPile.updateLabels();
+        this.hoveredCell = { row, col };
+      }
+    }
+
+    for (let i = 0; i < this.piles.length; i++) {
+      this.piles[i].updateHoveredCell();
+    }
+
+    fgmState.hoveredPile.updateLabels();
+
+    fgmState.previousHoveredPile = fgmState.hoveredPile;
+
+    this.render();
   }
 
   /**
-   * Matrix frame encoding change handler.
-   *
-   * @param {object} event - Event object.
+   * Handle pile mouse out events.
    */
-  matrixFrameEncodingChangeHandler (event) {
-    try {
-      let val = event.target.selectedOptions[0].value;
-      if (!event.target.selectedOptions[0].value.length) {
-        val = MATRIX_FRAME_ENCODING;
-      }
+  mouseOutPileHandler () {
+    fgmState.hoveredPile = undefined;
 
-      this.store.dispatch(setMatrixFrameEncoding(val));
-    } catch (error) {
-      logger.error('Matrix frame encoding could not be set.', error);
+    this.highlightPile();
+
+    if (fgmState.hoveredGapPile) {
+      const pile = fgmState.hoveredGapPile;
+      fgmState.hoveredGapPile = undefined;
+      pile.draw();
     }
-  }
 
-  /**
-   * Matrix orientation change handler.
-   *
-   * @param {object} event - Event object.
-   */
-  matrixOrientationChangeHandler (event) {
-    try {
-      this.store.dispatch(
-        setMatrixOrientation(
-          parseInt(event.target.selectedOptions[0].value, 10)
-        )
+    if (fgmState.previousHoveredPile) {
+      this.event.publish(
+        'decompose.fgm.pileMouseLeave',
+        fgmState.previousHoveredPile.pileMatrices.map(matrix => matrix.id)
       );
-    } catch (error) {
-      logger.error('Matrix orientation could not be set.', error);
+
+      fgmState.previousHoveredPile.showSingle(undefined);
+      fgmState.previousHoveredPile.setCoverMatrixMode(this.coverDispMode);
+      this.highlightFrame.visible = false;
+      fgmState.previousHoveredPile.draw(false, true);
+      fgmState.previousHoveredPile = undefined;
     }
   }
 
@@ -2750,6 +2717,64 @@ export class Fragments {
 
       window.requestAnimationFrame(animate);
     });
+  }
+
+  /**
+   * Assign random colors
+   *
+   * @param {object} event - Event object.
+   * @return {object} Self.
+   */
+  pileAssignBW (event) {
+    this.removeFromColorMatrixIdx(event.pile.pileMatrices);
+
+    const colorSettings = {};
+
+    event.pile.pileMatrices.forEach((matrix) => {
+      colorSettings[matrix.id] = -1;
+    });
+
+    this.store.dispatch(setMatricesColors(colorSettings));
+  }
+
+  /**
+   * Assign random colors
+   *
+   * @param {object} event - Event object.
+   * @return {object} Self.
+   */
+  pileAssignColor (event) {
+    this.removeFromColorMatrixIdx(event.pile.pileMatrices);
+
+    const colorSettings = {};
+
+    event.pile.pileMatrices.forEach((matrix) => {
+      colorSettings[matrix.id] = event.color;
+    });
+
+    this.store.dispatch(setMatricesColors(colorSettings));
+  }
+
+  /**
+   * Create a new instance
+   *
+   * @param {number} pileId - Pile ID.
+   * @return {object} New or retrieved pile
+   */
+  pileCreate (pileId) {
+    if (!fgmState.pilesIdx[pileId]) {
+      const pile = new Pile(
+        pileId,
+        fgmState.scene,
+        fgmState.scale,
+        this.fragDims
+      );
+
+      fgmState.pilesIdx[pileId] = pile;
+      fgmState.piles.push(pile);
+    }
+
+    return fgmState.pilesIdx[pileId];
   }
 
   /**
@@ -2914,22 +2939,29 @@ export class Fragments {
     return ((y - 1) / 2 * (this.plotElDim.height - this.matrixWidth)) - this.matrixWidthHalf;
   }
 
-  removeFromColorPilesIdx (pile) {
-    if (pile.color !== pileColors.gray) {
-      try {
-        // Try to remove pile from index
-        const prevColor = this.store.getState()
-          .present.decompose.fragments.pilesColors[pile.id];
+  /**
+   * Remove pile matrices from color matrix index.
+   *
+   * @param {array} matrices - List of matrices to be removed from the index.
+   */
+  removeFromColorMatrixIdx (matrices) {
+    matrices.forEach((matrix) => {
+      if (typeof matrix.color !== 'undefined') {
+        try {
+          // Try to remove pile from index
+          const prevColor = this.store.getState()
+            .present.decompose.fragments.matricesColors[matrix.id];
 
-        const pos = this.colorsPilesIdx[prevColor].indexOf(pile.id);
+          const pos = this.colorsMatrixIdx[prevColor].indexOf(matrix.id);
 
-        if (pos >= 0) {
-          this.colorsPilesIdx[prevColor].splice(pos, 1);
+          if (pos >= 0) {
+            this.colorsMatrixIdx[prevColor].splice(pos, 1);
+          }
+        } catch (e) {
+          logger.error('State corrupted');
         }
-      } catch (e) {
-        logger.error('State corrupted');
       }
-    }
+    });
   }
 
   /**
@@ -3276,10 +3308,10 @@ export class Fragments {
       this.updateHilbertCurve(stateFgm.hilbertCurve, update);
       this.updateHglSubSelection(stateFgm.higlassSubSelection, update);
       this.updateLassoIsRound(stateFgm.lassoIsRound);
+      this.updateMatrixColors(stateFgm.matricesColors, update);
       this.updateMatrixFrameEncoding(stateFgm.matrixFrameEncoding, update);
       this.updateMatrixOrientation(stateFgm.matrixOrientation, update);
       this.updatePiles(stateFgm.piles, update);
-      this.updatePileColors(stateFgm.pilesColors, update);
       this.updateShowSpecialCells(stateFgm.showSpecialCells, update);
 
       this.updateRendering(update);
@@ -3601,6 +3633,43 @@ export class Fragments {
   }
 
   /**
+   * Update matrices colors.
+   *
+   * @param {object} matricesColors - Matrix color configurations.
+   * @param {object} update - Update object to bve updated in-place.
+   * @param {boolean} forced - If `true` force update
+   */
+  updateMatrixColors (matricesColors, update, forced) {
+    if (
+      (this.matricesColors === matricesColors || !this.isInitialized) &&
+      !forced
+    ) {
+      return;
+    }
+
+    this.matricesColors = matricesColors;
+
+    fgmState.matrices.forEach((matrix) => {
+      if (typeof this.matricesColors[matrix.id] !== 'undefined') {
+        const color = this.matricesColors[matrix.id];
+
+        matrix.color = color;
+
+        if (this.colorsMatrixIdx[color]) {
+          this.colorsMatrixIdx[color].push(matrix);
+        } else {
+          this.colorsMatrixIdx[color] = [matrix];
+        }
+      } else if (typeof matrix.color !== 'undefined') {
+        // Unset previously colored matrix
+        matrix.color = undefined;
+      }
+    });
+
+    update.piles = true;
+  }
+
+  /**
    * Update the matrix frame encoding of all matrices.
    *
    * @param {string} encoding - Matrix measure.
@@ -3630,41 +3699,6 @@ export class Fragments {
     fgmState.matrixOrientation = orientation;
 
     update.piles = true;
-  }
-
-  matricesCalcGlobalPos () {
-    fgmState.matrices.forEach((matrix) => {
-      let offset = this.chromInfoData[`chr${matrix.locus.chrom1}`].offset;
-
-      matrix.locus.globalStart1 = offset + matrix.locus.start1;
-      matrix.locus.globalEnd1 = offset + matrix.locus.end1;
-
-      offset = this.chromInfoData[`chr${matrix.locus.chrom2}`].offset;
-
-      matrix.locus.globalStart2 = offset + matrix.locus.start2;
-      matrix.locus.globalEnd2 = offset + matrix.locus.end2;
-    });
-
-    this.matricesGlobalPosCalced = true;
-  }
-
-  determinMatrixVisibility () {
-    if (!this.hglSelectionViewDomains) {
-      return;
-    }
-
-    fgmState.matrices.forEach((matrix) => {
-      matrix.visible = false;
-
-      if (
-        matrix.locus.globalStart1 >= this.hglSelectionViewDomains[0] &&
-        matrix.locus.globalEnd1 <= this.hglSelectionViewDomains[1] &&
-        matrix.locus.globalStart2 >= this.hglSelectionViewDomains[2] &&
-        matrix.locus.globalEnd2 <= this.hglSelectionViewDomains[3]
-      ) {
-        matrix.visible = true;
-      }
-    });
   }
 
   /**
@@ -3758,70 +3792,6 @@ export class Fragments {
     update.layout = true;
     update.scrollLimit = true;
     update.drawPilesAfter = true;
-  }
-
-  /**
-   * Update pile color.
-   *
-   * @param {object} pileColorConfig - Pile color configuration.
-   * @param {object} update - Update object to bve updated in-place.
-   * @param {boolean} forced - If `true` force update
-   */
-  updatePileColors (pileColorConfig, update, forced) {
-    if (
-      (this.pileColorConfig === pileColorConfig || !this.isInitialized) &&
-      !forced
-    ) {
-      return;
-    }
-
-    this.pileColorConfig = pileColorConfig;
-
-    this.piles.forEach((pile) => {
-      if (typeof this.pileColorConfig[pile.id] !== 'undefined') {
-        const color = this.pileColorConfig[pile.id];
-
-        pile.setColor(color);
-
-        if (this.colorsPilesIdx[color]) {
-          this.colorsPilesIdx[color].push(pile);
-        } else {
-          this.colorsPilesIdx[color] = [pile];
-        }
-      } else if (pile.color !== pileColors.gray) {
-        // Unset previously colored pile
-        pile.setColor();
-      }
-    });
-
-    // const usedColors = Object.keys(this.pileColorConfig).map(
-    //   index => parseInt(index, 16)
-    // ).filter(index => !isNaN(index));
-
-    // fgmState.colorsAvailable = pileColors.categorical.map(
-    //   (color, index) => index
-    // ).filter(
-    //   index => usedColors.indexOf(index) === -1
-    // );
-
-    // const coloredPiles = [];
-    // usedColors.forEach((colorId) => {
-    //   coloredPiles.push(this.pileColorConfig[colorId]);
-    //   fgmState.pilesIdx[this.pileColorConfig[colorId]].setColor(
-    //     pileColors.categorical[colorId]
-    //   );
-    // });
-
-    // this.colorsPilesIdx = {};
-
-    // this.piles
-    //   .filter(pile => pile.color !== pileColors.gray)
-    //   .filter(pile => coloredPiles.indexOf(pile.id) === -1)
-    //   .forEach((pile) => {
-    //     pile.setColor();
-    //   });
-
-    update.piles = true;
   }
 
   /**
