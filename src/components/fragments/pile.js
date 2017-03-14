@@ -1540,20 +1540,6 @@ export default class Pile {
     return this;
   }
 
-  unsetHoverState () {
-    if (fgmState.hoveredPile === this) {
-      fgmState.hoveredPile = undefined;
-    }
-
-    if (fgmState.previousHoveredPile === this) {
-      fgmState.previousHoveredPile = undefined;
-    }
-
-    if (fgmState.hoveredGapPile === this) {
-      fgmState.hoveredGapPile = undefined;
-    }
-  }
-
   /**
    * Trash this instance.
    *
@@ -1599,6 +1585,20 @@ export default class Pile {
     }
 
     this.isTrashed = true;
+  }
+
+  unsetHoverState () {
+    if (fgmState.hoveredPile === this) {
+      fgmState.hoveredPile = undefined;
+    }
+
+    if (fgmState.previousHoveredPile === this) {
+      fgmState.previousHoveredPile = undefined;
+    }
+
+    if (fgmState.hoveredGapPile === this) {
+      fgmState.hoveredGapPile = undefined;
+    }
   }
 
   /**
