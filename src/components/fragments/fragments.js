@@ -1248,8 +1248,6 @@ export class Fragments {
 
     this.colorsMatrixIdx = {};
 
-    console.log('asssss', colorSettings);
-
     this.store.dispatch(setMatricesColors(colorSettings));
   }
 
