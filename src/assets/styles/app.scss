@@ -116,6 +116,16 @@ html {
       text-transform: uppercase;
       margin-bottom: 0.125rem;
       white-space: nowrap;
+
+      .value {
+        &.new em {
+          color: $primary;
+        }
+
+        em {
+          font-style: normal;
+        }
+      }
     }
   }
 

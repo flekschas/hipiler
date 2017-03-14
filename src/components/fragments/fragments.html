@@ -90,7 +90,10 @@
 
           <ul class="flex-c flex-g-1 settings-list">
             <li class="flex-c flex-d-c">
-              <label for="settings-fgm-size">Snippet Size</label>
+              <label for="settings-fgm-size">
+                Snippet Size
+                <span class="value ${cellSizeTmp ? 'is-active' : ''} ${cellSizeTmp !== state.cellSize ? 'new' : ''}">: <em>${cellSizeTmp}</em></span>
+              </label>
               <input
                 id="settings-fgm-size"
                 type="range"
@@ -98,7 +101,10 @@
                 max="10"
                 step="1"
                 value.one-way="state.cellSize"
-                change.delegate="cellSizeChangedHandler($event)">
+                mousedown.delegate="cellSizeMousedownHandler($event)"
+                mouseup.delegate="cellSizeMouseupHandler($event)"
+                input.delegate="cellSizeInputHandler($event)"
+                change.delegate="cellSizeChangeHandler($event)">
             </li>
             <li class="flex-c flex-d-c">
               <label
@@ -111,13 +117,16 @@
                 click.delegate="gridCellSizeLockChangeHandler()">
             </li>
             <li class="flex-c flex-d-c ${gridCellSizeLock ? 'is-disabled' : 'is-enabled'}">
-              <label for="settings-fgm-size">Grid Size</label>
+              <label for="settings-fgm-size">
+                Grid Size
+                <span class="value ${gridSizeTmp ? 'is-active' : ''} ${gridSizeTmp != state.gridSize ? 'new' : ''}">: <em>${gridSizeTmp}</em></span>
+              </label>
               <input
                 id="settings-fgm-size"
                 type="range"
-                min="1"
+                min="0.25"
                 max="10"
-                step="1"
+                step="0.25"
                 value.one-way="state.gridSize"
                 mousedown.delegate="gridSizeMousedownHandler($event)"
                 mouseup.delegate="gridSizeMouseupHandler($event)"
@@ -140,6 +149,14 @@
           <h4>Pile</h4>
 
           <ul class="flex-c flex-g-1 settings-list">
+            <li>
+              <button
+                class="flex-c flex-jc-c flex-a-c rel button ${piles.length > visiblePilesMax ? 'is-enabled' : 'is-disabled'}"
+                click.delegate="groupPiles()"
+                disabled.bind="piles.length <= visiblePilesMax">
+                By Grid
+              </button>
+            </li>
             <li>
               <button
                 class="flex-c flex-jc-c flex-a-c rel button ${piles.length > visiblePilesMax ? 'is-enabled' : 'is-disabled'}"

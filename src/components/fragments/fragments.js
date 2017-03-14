@@ -1171,7 +1171,7 @@ export class Fragments {
    *
    * @param {object} event - Chaneg event object.
    */
-  cellSizeChangedHandler (event) {
+  cellSizeChangeHandler (event) {
     let cellSize;
     try {
       cellSize = parseInt(event.target.value, 10);
@@ -1189,6 +1189,37 @@ export class Fragments {
     } catch (e) {
       logger.error('Dispatching the changed cell size failed', e);
     }
+  }
+
+  /**
+   * Cell size input handler.
+   *
+   * @param {object} event - Chaneg event object.
+   */
+  cellSizeInputHandler (event) {
+    this.cellSizeTmp = parseInt(event.target.value, 10);
+  }
+
+  /**
+   * Cell size mouse down handler.
+   *
+   * @param {object} event - Mouse down event object.
+   */
+  cellSizeMousedownHandler (event) {
+    this.cellSizeTmp = parseInt(event.target.value, 10);
+
+    return true;
+  }
+
+  /**
+   * Cell size mouse up handler.
+   *
+   * @param {object} event - Mouse up event object.
+   */
+  cellSizeMouseupHandler (event) {
+    this.cellSizeTmp = undefined;
+
+    return true;
   }
 
   /**
@@ -1930,7 +1961,7 @@ export class Fragments {
   }
 
   /**
-   * Cell size changed handler.
+   * Cell size change handler.
    *
    * @param {object} event - Chaneg event object.
    */
@@ -1946,40 +1977,42 @@ export class Fragments {
     }
 
     try {
-      this.store.dispatch(setGridSize(parseInt(event.target.value, 10)));
+      this.store.dispatch(setGridSize(event.target.value));
     } catch (e) {
       logger.error('Dispatching the changed grid size failed', e);
     }
   }
 
   /**
-   * Cell size changed handler.
+   * Gridf size input handler.
    *
    * @param {object} event - Chaneg event object.
    */
   gridSizeInputHandler (event) {
-    this.gridSizeTmp = parseInt(event.target.value, 10);
-    this.calcGrid(parseInt(event.target.value, 10));
+    this.gridSizeTmp = event.target.value;
+    this.calcGrid(event.target.value);
   }
 
   /**
-   * Cell size mouse down handler.
+   * Gridf size mouse down handler.
    *
    * @param {object} event - Mouse down event object.
    */
   gridSizeMousedownHandler (event) {
     this.showGrid = true;
+    this.gridSizeTmp = event.target.value;
 
     return true;
   }
 
   /**
-   * Cell size mouse up handler.
+   * Grid size mouse up handler.
    *
    * @param {object} event - Mouse up event object.
    */
   gridSizeMouseupHandler (event) {
     this.showGrid = false;
+    this.gridSizeTmp = undefined;
 
     return true;
   }
