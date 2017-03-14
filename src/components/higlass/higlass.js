@@ -176,10 +176,6 @@ export class Higlass {
   colorLoci (loci = this.loci, matricesColors) {
     const isMatricesColored = Object.keys(matricesColors).length;
 
-    if (!isMatricesColored) {
-      return;
-    }
-
     const fragmentColors = {};
     const convertedColors = {};
 

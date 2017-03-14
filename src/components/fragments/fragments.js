@@ -3661,9 +3661,7 @@ export class Fragments {
     if (
       (this.matricesColors === matricesColors || !this.isInitialized) &&
       !forced
-    ) {
-      return;
-    }
+    ) { return; }
 
     this.matricesColors = matricesColors;
 
