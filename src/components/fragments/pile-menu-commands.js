@@ -112,9 +112,7 @@ export const INSPECT = {
     color: COLORS.WHITE,
     background: COLORS.BLACK,
     trigger (pile) {
-      event.publish(
-        'decompose.fgm.inspectPile', { pile: this.pile }
-      );
+      event.publish('decompose.fgm.inspectPile', { pile: this.pile });
     }
   }],
   stackedPileOnly: true
@@ -126,7 +124,7 @@ export const DISPERSE = {
     color: COLORS.WHITE,
     background: COLORS.BLACK,
     trigger (pile) {
-      store.dispatch(dispersePiles([this.pile.id]));
+      event.publish('decompose.fgm.dispersePiles', [this.pile]);
     }
   }],
   stackedPileOnly: true

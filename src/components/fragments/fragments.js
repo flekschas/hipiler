@@ -256,6 +256,11 @@ export class Fragments {
     );
 
     this.event.subscribe(
+      'decompose.fgm.dispersePiles',
+      this.dispersePilesHandler.bind(this)
+    );
+
+    this.event.subscribe(
       'decompose.fgm.pileAssignColor',
       this.pileAssignColor.bind(this)
     );
@@ -488,8 +493,6 @@ export class Fragments {
   arrange (piles, measures) {
     const numMeasures = measures.length;
 
-    console.log('AAAAY', measures);
-
     return new Promise((resolve, reject) => {
       let arranged = false;
 
@@ -503,13 +506,11 @@ export class Fragments {
         arranged = true;
       }
 
-      if (arranged) {
+      if (arranged || numMeasures === 2) {
         // Resolve now for 0, 1, and 2D
         resolve();
         return;
       }
-
-      console.log('GURLYY', measures);
 
       if (numMeasures === 1) {
         // Intrinsic measure starting with `_`, e.g., `_cluster_tsne`
@@ -787,9 +788,8 @@ export class Fragments {
             // earlyExaggeration: 4.0,
             // learningRate: 100.0,
             metric: 'euclidean',
-            data: this.piles.map(
-              pile => pile.avgMatrix
-            )
+            // The t-SNE implementation doesn't understand typed arrays...
+            data: this.piles.map(pile => Array.from(pile.avgMatrix))
           });
         })
         .catch((error) => {
@@ -3244,8 +3244,6 @@ export class Fragments {
       this.updatePileColors(stateFgm.pilesColors, update);
       this.updateShowSpecialCells(stateFgm.showSpecialCells, update);
 
-      // console.log('ASS', this.gridSize, this.gridCellSizeLock);
-
       this.updateRendering(update);
     } catch (e) {
       logger.error('State is invalid', e);
@@ -3624,8 +3622,6 @@ export class Fragments {
    * @param {boolean} forced - If `true` force update
    */
   updatePiles (pileConfigs, update, forced) {
-    // console.log('updatePiles ', !forced, !update.pilesForce);
-
     if (
       (this.pileConfigs === pileConfigs || !this.isInitialized) &&
       !forced &&
@@ -3636,8 +3632,6 @@ export class Fragments {
 
     this.pileConfigs = pileConfigs;
     this.isDispersable = false;
-
-    // console.log('updatePiles updatePiles', fgmState.matrices);
 
     Object.keys(pileConfigs)
       .map(pileId => ({
