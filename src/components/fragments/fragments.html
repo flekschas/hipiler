@@ -67,8 +67,7 @@
             <li>
               <button
                 class="flex-c flex-jc-c flex-a-c rel button ${isDataClustered ? 'is-active' : ''}"
-                click.delegate="clusterTsne()"
-                disabled.bind="isDataClustered">
+                click.delegate="clusterTsne()">
                 Cluster${isDataClustered ? 'ed' : ''}
               </button>
             </li>
@@ -149,6 +148,23 @@
               </button>
             </li>
             <li>
+              <label for="settings-fgm-cover">Category</label>
+              <select
+                id="settings-fgm-cover"
+                change.delegate="coverDispModeChangeHandler($event)">
+                <option
+                  repeat.for="option of coverDispModes"
+                  value.one-way="option.id"
+                  selected.bind="option.id === coverDispMode">${option.name}</option>
+              </select>
+              <button
+                class="flex-c flex-jc-c flex-a-c rel button ${piles.length > visiblePilesMax ? 'is-enabled' : 'is-disabled'}"
+                click.delegate="groupPiles()"
+                disabled.bind="piles.length <= visiblePilesMax">
+                Group
+              </button>
+            </li>
+            <li>
               <button
                 class="flex-c flex-jc-c flex-a-c rel button ${isDispersable && !state.trashIsActive ? 'is-enabled' : 'is-disabled'}"
                 click.delegate="disperseAllPiles()"
@@ -199,6 +215,14 @@
                   value.one-way="option.id"
                   selected.bind="option.id === state.matrixFrameEncoding">${option.name}</option>
               </select>
+            </li>
+            <li>
+              <button
+                class="flex-c flex-jc-c flex-a-c rel button ${isDispersable && !state.trashIsActive ? 'is-enabled' : 'is-disabled'}"
+                click.delegate="disperseAllPiles()"
+                disabled.bind="!isDispersable || state.trashIsActive">
+                Decolor All
+              </button>
             </li>
           </ul>
         </div>
