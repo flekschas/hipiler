@@ -160,6 +160,7 @@ export class Fragments {
     this.store = states.store;
     this.store.subscribe(this.update.bind(this));
 
+    this.arrangeMeasures = [];
     this.clusterPos = {};
     this.colorsMatrixIdx = {};
     this.maxDistance = 0;
@@ -186,9 +187,9 @@ export class Fragments {
     this._isLoadedSession = false;
     this._isSavedSession = false;
 
-    this.showGrid = false;
-    this.showGridCols = [];
-    this.showGridRows = [];
+    this.isGridShown = false;
+    this.isGridShownCols = [];
+    this.isGridShownRows = [];
 
     this.pileIDCount = 0;
     this.startPile = 0;
@@ -336,6 +337,8 @@ export class Fragments {
       .catch((error) => {
         logger.error('Failed to calculate global matrix positions', error);
       });
+
+    this.checkBaseElIsInit();
   }
 
   attached () {
@@ -343,9 +346,7 @@ export class Fragments {
   }
 
   baseElIsInitChanged () {
-    if (this.baseElIsInit) {
-      this.resolve.isBaseElInit();
-    }
+    this.checkBaseElIsInit();
   }
 
 
@@ -648,46 +649,58 @@ export class Fragments {
     this.gridCellWidth = this.matrixGridWidth + MATRIX_GAP_HORIZONTAL;
 
     // Columns and rows
-    this.gridNumCols = Math.max(Math.floor(
-      (this.plotElDim.width - MARGIN_LEFT - MARGIN_RIGHT) /
-      this.gridCellWidth
-    ), 1);
+    if (this.isLayout2d || this.isLayoutMd) {
+      this.gridNumCols = Math.max(Math.floor(
+        (this.plotElDim.width - MARGIN_LEFT - MARGIN_RIGHT) /
+        this.matrixGridWidth
+      ), 1);
 
-    // Get closest Hilbert curve level
-    this.hilbertCurveLevel = 1;
-    if (fgmState.isHilbertCurve) {
-      const piles = this.store.getState().present.decompose.fragments.piles;
-      const numPiles = Object.keys(piles)
-        .filter(pileId => piles[pileId].length)
-        .filter(pileId => pileId[0] !== '_').length;
-
-      this.gridNumCols = Math.ceil(Math.sqrt(numPiles));
-
-      this.hilbertCurveLevel = Math.ceil(
-        Math.log(this.gridNumCols) / Math.log(2)
-      );
-
-      this.gridNumCols = 2 ** this.hilbertCurveLevel;
-      this.gridNumRows = this.gridNumCols;
-
-      this.gridCellHeight -= PILE_LABEL_HEIGHT - MATRIX_GAP_VERTICAL;
-
-      // Adjust pile scaling to white space mose efficiently
-      const cellWidth = (
-        this.plotElDim.width - MARGIN_LEFT - MARGIN_RIGHT
-      ) / this.gridNumCols;
-      const cellWidthExtra = cellWidth - this.gridCellHeight;
-
-      if (cellWidthExtra > 0) {
-        fgmState.scale = 1 + (cellWidthExtra / this.gridCellHeight);
-      } else {
-        fgmState.scale = 1 + (cellWidthExtra / this.gridCellHeight);
-      }
-    } else {
       this.gridNumRows = Math.max(Math.floor(
         (this.plotElDim.height - MARGIN_TOP - MARGIN_BOTTOM) /
-        this.gridCellHeight
+        this.matrixGridWidth
       ), 1);
+    } else {
+      this.gridNumCols = Math.max(Math.floor(
+        (this.plotElDim.width - MARGIN_LEFT - MARGIN_RIGHT) /
+        this.gridCellWidth
+      ), 1);
+
+      // Get closest Hilbert curve level
+      this.hilbertCurveLevel = 1;
+      if (fgmState.isHilbertCurve) {
+        const piles = this.store.getState().present.decompose.fragments.piles;
+        const numPiles = Object.keys(piles)
+          .filter(pileId => piles[pileId].length)
+          .filter(pileId => pileId[0] !== '_').length;
+
+        this.gridNumCols = Math.ceil(Math.sqrt(numPiles));
+
+        this.hilbertCurveLevel = Math.ceil(
+          Math.log(this.gridNumCols) / Math.log(2)
+        );
+
+        this.gridNumCols = 2 ** this.hilbertCurveLevel;
+        this.gridNumRows = this.gridNumCols;
+
+        this.gridCellHeight -= PILE_LABEL_HEIGHT - MATRIX_GAP_VERTICAL;
+
+        // Adjust pile scaling to white space mose efficiently
+        const cellWidth = (
+          this.plotElDim.width - MARGIN_LEFT - MARGIN_RIGHT
+        ) / this.gridNumCols;
+        const cellWidthExtra = cellWidth - this.gridCellHeight;
+
+        if (cellWidthExtra > 0) {
+          fgmState.scale = 1 + (cellWidthExtra / this.gridCellHeight);
+        } else {
+          fgmState.scale = 1 + (cellWidthExtra / this.gridCellHeight);
+        }
+      } else {
+        this.gridNumRows = Math.max(Math.floor(
+          (this.plotElDim.height - MARGIN_TOP - MARGIN_BOTTOM) /
+          this.gridCellHeight
+        ), 1);
+      }
     }
 
     if (!temporary) {
@@ -938,9 +951,20 @@ export class Fragments {
 
     if (fgmState.hoveredPile) {
       this.mouseDownDwelling = setTimeout(() => {
-        fgmState.hoveredPile.frameSetTemp(COLORS.GREEN, 2, true).draw(true);
+        if (fgmState.hoveredPile) {
+          fgmState.hoveredPile.frameSetTemp(COLORS.GREEN, 2, true).draw(true);
+        }
         this.render();
       }, ZOOM_DELAY_TIME);
+    }
+  }
+
+  /**
+   * Check if base element is initialized.
+   */
+  checkBaseElIsInit () {
+    if (this.baseElIsInit) {
+      this.resolve.isBaseElInit();
     }
   }
 
@@ -1873,13 +1897,48 @@ export class Fragments {
   }
 
   /**
+   * Group snippets and piles by grid.
+   *
+   * @description
+   * Everything in a grid cell will be piled up.
+   */
+  groupByGrid () {
+    const gridPiles = [];
+
+    // Add every pile to the grid it is located in
+    this.piles.forEach((pile) => {
+      const column = Math.floor(pile.x / fgmState.gridCellWidthInclSpacing);
+      const row = Math.floor(-pile.y / fgmState.gridCellHeightInclSpacing);
+      const index = ((row - 1) * this.gridNumCols) + column;
+
+      if (gridPiles[index]) {
+        gridPiles[index].push(pile);
+      } else {
+        gridPiles[index] = [pile];
+      }
+    });
+
+    const batchPileStacking = {};
+
+    gridPiles
+      .filter(gridPile => gridPile.length > 1)
+      .forEach((gridPile) => {
+        batchPileStacking[gridPile[0].id] = gridPile.slice(1).map(
+          pile => pile.id
+        );
+      });
+
+    this.store.dispatch(stackPiles(batchPileStacking));
+  }
+
+  /**
    * Automatically groups piles such that the user doesn't have to scroll
    * anymore.
    *
    * @description
    * This function stacks up snippets by pairwise similarity.
    */
-  groupPiles () {
+  groupBySimilarity () {
     const toBePiled = this.piles.length - this.visiblePilesMax;
 
     if (toBePiled <= 0) {
@@ -1970,7 +2029,7 @@ export class Fragments {
    * @param {object} event - Chaneg event object.
    */
   gridSizeChangeHandler (event) {
-    this.showGrid = false;
+    this.isGridShown = false;
     this.gridSizeTmp = undefined;
 
     if (this.gridCellSizeLock) {
@@ -2003,8 +2062,8 @@ export class Fragments {
    * @param {object} event - Mouse down event object.
    */
   gridSizeMousedownHandler (event) {
-    this.showGrid = true;
     this.gridSizeTmp = event.target.value;
+    this.showGrid();
 
     return true;
   }
@@ -2015,8 +2074,8 @@ export class Fragments {
    * @param {object} event - Mouse up event object.
    */
   gridSizeMouseupHandler (event) {
-    this.showGrid = false;
     this.gridSizeTmp = undefined;
+    this.hideGrid();
 
     return true;
   }
@@ -2247,7 +2306,7 @@ export class Fragments {
    */
   initPiles (matrices, pileConfig = {}) {
     if (this.checkPileConfig(matrices, pileConfig)) {
-      this.update();
+      this.update(true);
     } else {
       const pilesNew = {};
 
@@ -3163,6 +3222,13 @@ export class Fragments {
   }
 
   /**
+   * Show grid temporarily
+   */
+  showGrid () {
+    this.isGridShown = true;
+  }
+
+  /**
    * [showMatrixSimilarity description]
    *
    * @description
@@ -3192,6 +3258,13 @@ export class Fragments {
     this.store.dispatch(setShowSpecialCells(!fgmState.showSpecialCells));
 
     return true;
+  }
+
+  /**
+   * Hide grid.
+   */
+  hideGrid () {
+    this.isGridShown = false;
   }
 
   /**
@@ -3338,8 +3411,10 @@ export class Fragments {
 
   /**
    * Root state update handler
+   *
+   * @param {boolean} init - If `true` it's part of the init cycle.
    */
-  update () {
+  update (init) {
     try {
       const state = this.store.getState().present.decompose;
       const stateFgm = state.fragments;
@@ -3362,7 +3437,7 @@ export class Fragments {
       this.updateHglSubSelection(stateFgm.higlassSubSelection, update);
       this.updateLassoIsRound(stateFgm.lassoIsRound);
       this.updateMatrixColors(stateFgm.matricesColors, update);
-      this.updateMatrixFrameEncoding(stateFgm.matrixFrameEncoding, update);
+      this.updateMatrixFrameEncoding(stateFgm.matrixFrameEncoding, update, init);
       this.updateMatrixOrientation(stateFgm.matrixOrientation, update);
       this.updatePiles(stateFgm.piles, update);
       this.updateShowSpecialCells(stateFgm.showSpecialCells, update);
@@ -3692,12 +3767,12 @@ export class Fragments {
    *
    * @param {object} matricesColors - Matrix color configurations.
    * @param {object} update - Update object to bve updated in-place.
-   * @param {boolean} forced - If `true` force update
+   * @param {boolean} force - If `true` force update.
    */
-  updateMatrixColors (matricesColors, update, forced) {
+  updateMatrixColors (matricesColors, update, force) {
     if (
       (this.matricesColors === matricesColors || !this.isInitialized) &&
-      !forced
+      !force
     ) { return; }
 
     this.matricesColors = matricesColors;
@@ -3727,11 +3802,13 @@ export class Fragments {
    *
    * @param {string} encoding - Matrix measure.
    * @param {object} update - Update object to bve updated in-place.
+   * @param {boolean} force - If `true` force update.
    */
-  updateMatrixFrameEncoding (encoding, update) {
-    if (fgmState.matrixFrameEncoding === encoding || !this.isInitialized) {
-      return;
-    }
+  updateMatrixFrameEncoding (encoding, update, force) {
+    if (
+      (fgmState.matrixFrameEncoding === encoding || !this.isInitialized) &&
+      !force
+    ) { return; }
 
     fgmState.matrixFrameEncoding = encoding;
 
