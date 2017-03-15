@@ -22,7 +22,7 @@ import {
 
 
 // Third party
-import { json, queue, text } from 'd3';
+import { json, queue, scaleLinear, text } from 'd3';
 
 // Injectables
 import ChromInfo from 'services/chrom-info';
@@ -510,7 +510,23 @@ export class Fragments {
         arranged = true;
       }
 
-      if (arranged || numMeasures === 2) {
+      if (numMeasures === 2) {
+        this.scale2dX = scaleLinear()
+          .domain([
+            fgmState.dataMeasuresMin[measures[0]],
+            fgmState.dataMeasuresMax[measures[0]]
+          ]).range([0, 1]);
+
+        this.scale2dY = scaleLinear()
+          .domain([
+            fgmState.dataMeasuresMin[measures[1]],
+            fgmState.dataMeasuresMax[measures[1]]
+          ]).range([0, 1]);
+
+        arranged = true;
+      }
+
+      if (arranged) {
         // Resolve now for 0, 1, and 2D
         resolve();
         return;
@@ -1826,8 +1842,11 @@ export class Fragments {
    * @return {object} Object with x and y coordinates.
    */
   getLayoutPosition2D (pile, measureX, measureY, abs) {
-    let relX = pile.measures[measureX] / fgmState.dataMeasuresMax[measureX];
-    let relY = pile.measures[measureY] / fgmState.dataMeasuresMax[measureY];
+    // let relX = pile.measures[measureX] / fgmState.dataMeasuresMax[measureX];
+    // let relY = pile.measures[measureY] / fgmState.dataMeasuresMax[measureY];
+
+    let relX = this.scale2dX(pile.measures[measureX]);
+    let relY = this.scale2dY(pile.measures[measureY]);
 
     let x = 16 + (relX * (
       this.plotElDim.width -
