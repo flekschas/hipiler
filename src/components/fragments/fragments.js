@@ -174,6 +174,7 @@ export class Fragments {
     this.openedPileRoot = undefined;
     this.openedPileMatrices = [];
     this.plotWindowCss = {};
+    this.scrollTop = 0;
     this.shiftDown = false;
     this.allPileOrdering = [];
      // Array containing the orderings for all piles, when not all nodes are
@@ -1181,15 +1182,21 @@ export class Fragments {
   canvasMouseWheelHandler (event) {
     event.preventDefault();
 
+    let cameraPosY = this.camera.position.y;
+
     if (event.wheelDelta > 0) {
-      this.camera.position.setY(Math.min(
-        this.camera.position.y + event.wheelDelta, this.scrollLimitTop
-      ));
+      cameraPosY = Math.min(
+        cameraPosY + event.wheelDelta, this.scrollLimitTop
+      );
     } else {
-      this.camera.position.setY(Math.max(
-        this.camera.position.y + event.wheelDelta, this.scrollLimitBottom
-      ));
+      cameraPosY = Math.max(
+        cameraPosY + event.wheelDelta, this.scrollLimitBottom
+      );
     }
+
+    this.scrollTop = cameraPosY - this.scrollLimitTop;
+
+    this.camera.position.setY(cameraPosY);
 
     this.render();
   }
@@ -1546,7 +1553,8 @@ export class Fragments {
     fgmState.scene.remove(this.lassoObject);
     this.lassoObject = createRectFrame(width, height, COLORS.PRIMARY, 1);
     this.lassoObject.position.set(
-      ...this.relToAbsPosition(x1 + ((x2 - x1) / 2), y1 + ((y2 - y1) / 2)),
+      this.relToAbsPositionX(x1 + ((x2 - x1) / 2)),
+      this.relToAbsPositionY(y1 + ((y2 - y1) / 2)) + this.scrollTop,
       Z_LASSO
     );
     fgmState.scene.add(this.lassoObject);
@@ -1565,7 +1573,7 @@ export class Fragments {
 
     this.lassoRoundCoords.push([
       this.relToAbsPositionX(currentX),
-      this.relToAbsPositionY(currentY)
+      this.relToAbsPositionY(currentY) + this.scrollTop
     ]);
 
     if (!this.lassoRoundMinMove && dist > LASSO_MIN_MOVE * this.cellSize) {
@@ -2657,7 +2665,10 @@ export class Fragments {
       }
 
       this.drawLasso(
-        this.dragStartPos.x, this.mouse.x, this.dragStartPos.y, this.mouse.y
+        this.dragStartPos.x,
+        this.mouse.x,
+        this.dragStartPos.y,
+        this.mouse.y
       );
     }
   }
