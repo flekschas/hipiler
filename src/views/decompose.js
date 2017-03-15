@@ -41,6 +41,9 @@ export class Decompose {
   attached () {
     this.$baseEl = new $(this.baseEl);
     this.isInitReady = true;
+    requestNextAnimationFrame(() => {
+      this.init = true;
+    });
   }
 
   columnDragStartHandler (event, target) {
