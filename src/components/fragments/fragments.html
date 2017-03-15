@@ -40,7 +40,7 @@
           <div class="axis-arrow"></div>
         </div> -->
 
-        <div class="grid full-dim ${showGrid ? 'is-active' : ''}">
+        <div class="grid full-dim ${isGridShown ? 'is-active' : ''}">
           <ol class="columns full-dim flex-c">
             <li class="column flex-g-1" repeat.for="col of showGridCols"></li>
           </ol>
@@ -79,7 +79,7 @@
                 click.delegate="toggleTrash()"
                 disabled.bind="trashSize === 0">
                 <svg-icon icon-id="trash"></svg-icon>
-                <span class="icon-number">${trashSize}</span>
+                <span class="button-info">${trashSize}</span>
               </button>
             </li>
           </ul>
@@ -152,17 +152,22 @@
             <li>
               <button
                 class="flex-c flex-jc-c flex-a-c rel button ${piles.length > visiblePilesMax ? 'is-enabled' : 'is-disabled'}"
-                click.delegate="groupPiles()"
+                click.delegate="groupBySimilarity()"
                 disabled.bind="piles.length <= visiblePilesMax">
-                By Grid
+                By Similarity
+                <span class="button-info button-info-padded">1D</span>
               </button>
             </li>
             <li>
               <button
-                class="flex-c flex-jc-c flex-a-c rel button ${piles.length > visiblePilesMax ? 'is-enabled' : 'is-disabled'}"
-                click.delegate="groupPiles()"
-                disabled.bind="piles.length <= visiblePilesMax">
-                Group
+                class="flex-c flex-jc-c flex-a-c rel button ${isLayout1d ? 'is-disabled' : 'is-enabled'}"
+                click.delegate="groupByGrid()"
+                mouseup.delegate="hideGrid()"
+                mouseenter.trigger="showGrid()"
+                mouseleave.trigger="hideGrid()"
+                disabled.bind="isLayout1d">
+                By Grid
+                <span class="button-info button-info-padded">2D</span>
               </button>
             </li>
             <li>
