@@ -142,6 +142,11 @@ html {
       color: $primary;
       box-shadow: inset 0 0 0 1px lighten($primary, 40%);
 
+      &.is-filled {
+        box-shadow: none;
+        background: lighten($primary, 40%);
+      }
+
       .button-info,
       &.is-enabled .button-info {
         background: $primary;
@@ -183,6 +188,11 @@ html {
         background: $primary;
         box-shadow: -1px 1px 0 0 $white;
       }
+    }
+
+    &.is-filled {
+      background: $gray-lightest;
+      box-shadow: none;
     }
 
     svg-icon {
@@ -233,6 +243,28 @@ html {
     color: $gray;
     text-transform: uppercase;
     background: $gray-lightest;
+  }
+
+  .select-with-button {
+    padding: 1px 0.2rem;
+    font-size: 0.65rem;
+    border-radius: 0.25rem;
+    box-shadow: inset 0 0 0 1px $gray-lightest;
+
+    label {
+      margin-bottom: 0;
+    }
+
+    button {
+      margin: 0.2rem 0 0 0.2rem;
+      height: 1.5rem;
+      line-height: 1.5rem;
+    }
+
+    svg-icon {
+      width: 0.75rem;
+      height: 1.5rem;
+    }
   }
 
   .logo {

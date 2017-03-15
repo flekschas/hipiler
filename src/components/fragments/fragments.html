@@ -171,21 +171,25 @@
               </button>
             </li>
             <li>
-              <label for="settings-fgm-cover">Category</label>
-              <select
-                id="settings-fgm-cover"
-                change.delegate="coverDispModeChangeHandler($event)">
-                <option
-                  repeat.for="option of coverDispModes"
-                  value.one-way="option.id"
-                  selected.bind="option.id === coverDispMode">${option.name}</option>
-              </select>
-              <button
-                class="flex-c flex-jc-c flex-a-c rel button ${piles.length > visiblePilesMax ? 'is-enabled' : 'is-disabled'}"
-                click.delegate="groupPiles()"
-                disabled.bind="piles.length <= visiblePilesMax">
-                Group
-              </button>
+              <div class="flex-c select-with-button">
+                <div class="flex-c flex-d-c">
+                  <label for="settings-fgm-cover">By Category</label>
+                  <select
+                    id="settings-fgm-cover"
+                    change.delegate="coverDispModeChangeHandler($event)">
+                    <option
+                      repeat.for="option of coverDispModes"
+                      value.one-way="option.id"
+                      selected.bind="option.id === coverDispMode">${option.name}</option>
+                  </select>
+                </div>
+                <button
+                  class="flex-c flex-jc-c flex-a-c rel button is-filled"
+                  click.delegate="groupByCategory(groupCategory)"
+                  disabled.bind="!groupCategory">
+                  <svg-icon icon-id="play"></svg-icon>
+                </button>
+              </div>
             </li>
             <li>
               <button
