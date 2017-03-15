@@ -4,6 +4,7 @@
 .grid {
   position: absolute;
   z-index: 1;
+  overflow: hidden;
   display: none;
   opacity: 0;
   transition: opacity 0 $ease-in-out-cubic;
