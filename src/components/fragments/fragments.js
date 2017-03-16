@@ -2294,6 +2294,10 @@ export class Fragments {
     );
 
     this.canvas.addEventListener(
+      'mouseleave', this.canvasMouseUpHandler.bind(this), false
+    );
+
+    this.canvas.addEventListener(
       'mousemove', this.canvasMouseMoveHandler.bind(this), false
     );
 
