@@ -173,14 +173,26 @@
             <li>
               <div class="flex-c select-with-button">
                 <div class="flex-c flex-d-c">
-                  <label for="settings-fgm-cover">By Category</label>
+                  <label for="settings-fgm-group-by-category">By Category</label>
                   <select
-                    id="settings-fgm-cover"
-                    change.delegate="coverDispModeChangeHandler($event)">
+                    id="settings-fgm-group-by-category"
+                    change.delegate="groupByCategorySelectChangeHandler($event)">
                     <option
-                      repeat.for="option of coverDispModes"
+                      selected.bind="!categoryForGrouping">Choose…</option>
+                    <option
+                      repeat.for="option of attrsCatReq"
                       value.one-way="option.id"
-                      selected.bind="option.id === coverDispMode">${option.name}</option>
+                      selected.bind="option.id === categoryForGrouping">${option.name}</option>
+                    <option disabled if.bind="colorsUsed.length">──────────</option>
+                    <option
+                      repeat.for="option of colorsUsed"
+                      value.one-way="option.id"
+                      selected.bind="option.id === categoryForGrouping">${option.name}</option>
+                    <option disabled if.bind="attrsCatOther.length">──────────</option>
+                    <option
+                      repeat.for="option of attrsCatOther"
+                      value.one-way="option.id"
+                      selected.bind="option.id === categoryForGrouping">${option.name}</option>
                   </select>
                 </div>
                 <button
