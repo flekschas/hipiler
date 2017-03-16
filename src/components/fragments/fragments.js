@@ -1860,27 +1860,16 @@ export class Fragments {
    * @return {object} Object with x and y coordinates.
    */
   getLayoutPosition2D (pile, measureX, measureY, abs) {
-    // let relX = pile.measures[measureX] / fgmState.dataMeasuresMax[measureX];
-    // let relY = pile.measures[measureY] / fgmState.dataMeasuresMax[measureY];
-
     let relX = this.scale2dX(pile.measures[measureX]);
     let relY = this.scale2dY(pile.measures[measureY]);
 
-    let x = 16 + (relX * (
-      this.plotElDim.width -
-      fgmState.gridCellWidthInclSpacing -
-      (1.5 * 16)
-    ));
+    let x = 2 + (relX * (this.plotElDim.width - this.matrixWidth - 4));
 
-    let y = 16 + ((1 - relY) * (
-      this.plotElDim.height -
-      (1.5 * fgmState.gridCellWidthInclSpacing) -
-      (1.5 * 16)
-    ));
+    let y = ((1 - relY) * (this.plotElDim.height - this.matrixWidth - 4));
 
     if (abs) {
-      x += fgmState.gridCellWidthInclSpacingHalf;
-      y = -y - fgmState.gridCellHeightInclSpacingHalf;
+      x += this.matrixWidthHalf;
+      y = -y - this.matrixWidthHalf;
     }
 
     return { x, y };
