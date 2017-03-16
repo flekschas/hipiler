@@ -10,6 +10,8 @@ import {
   MeshBasicMaterial,
   PlaneBufferGeometry,
   ShaderMaterial,
+  Shape,
+  ShapeGeometry,
   TextGeometry,
   Vector3
 } from 'three';
@@ -181,6 +183,38 @@ export function createLineFrame (width, height, color, lineWidth) {
   }));
 
   return new Mesh(geometry, material);
+}
+
+export function createChMap (
+  points, convexHull, polygonMaterial, pointsMaterial, lineMaterial
+) {
+  // Create the bg for the convexHull
+  const chMesh = createPolygon(convexHull, polygonMaterial, lineMaterial);
+
+  return chMesh;
+}
+
+export function createPolygon (points, polygonMaterial, lineMaterial) {
+  const polygon = new Shape();
+
+  polygon.autoClose = true;
+
+  polygon.moveTo(points[0][0], points[0][1]);
+
+  points.slice(1).forEach((point, index) => {
+    polygon.lineTo(point[0], point[1]);
+  });
+
+  let polygonGeom = new ShapeGeometry(polygon);
+
+  const mesh = new Mesh(polygonGeom, polygonMaterial);
+
+  if (lineMaterial) {
+    const ass = LINE(points, { closed: true });
+    mesh.add(new Mesh(ass, lineMaterial));
+  }
+
+  return mesh;
 }
 
 export function createRectFrame (w, h, color, lineWidth) {

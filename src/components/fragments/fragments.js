@@ -7,6 +7,8 @@ import {
 
 import { EventAggregator } from 'aurelia-event-aggregator';
 
+import hull from 'hull';
+
 import {
   DoubleSide,
   FontLoader,
@@ -79,6 +81,9 @@ import {
   MODE_MAD,
   MODE_MEAN,
   MODE_STD,
+  PILE_AREA_BORDER,
+  PILE_AREA_BG,
+  PILE_AREA_POINTS,
   PILE_LABEL_HEIGHT,
   PILE_MENU_CLOSING_DELAY,
   PREVIEW_MAX,
@@ -86,6 +91,8 @@ import {
   WEB_GL_CONFIG,
   Z_BASE,
   Z_DRAG,
+  Z_HIGHLIGHT,
+  Z_HIGHLIGHT_AREA,
   Z_LASSO,
   Z_STACK_PILE_TARGET,
   ZOOM_DELAY_TIME
@@ -102,6 +109,7 @@ import Matrix from 'components/fragments/matrix';
 import {
   calculateClusterPiling,
   calculateDistances,
+  createChMap,
   createRectFrame
 } from 'components/fragments/fragments-utils';
 
@@ -213,8 +221,8 @@ export class Fragments {
 
     this.mouseIsDown = false;
     this.lassoIsActive = false;
-    this.lassoRectIsActive = false;
-    this.lassoRoundIsActive = false;
+    this.isLassoRectActive = false;
+    this.isLassoRoundActive = false;
     this.mouseWentDown = false;
     fgmState.showSpecialCells = false;
 
@@ -411,6 +419,10 @@ export class Fragments {
     }
 
     this._isInitialized = !!value;
+  }
+
+  get isLassoActive () {
+    return this.isLassoRectActive && this.isLassoRoundActive;
   }
 
   get isLayout2d () {
@@ -1157,8 +1169,9 @@ export class Fragments {
    * Handle mouse up events on the canvas.
    *
    * @param {object} event - Mouse up event.
+   * @param {boolean} mouseLeft - If `true` mouse has left the canvas.
    */
-  canvasMouseUpHandler (event) {
+  canvasMouseUpHandler (event, mouseLeft) {
     event.preventDefault();
 
     fgmState.scene.updateMatrixWorld();
@@ -1192,13 +1205,13 @@ export class Fragments {
       }
 
       this.dragPile = undefined;
-    } else if (this.lassoRectIsActive) {
+    } else if (this.isLassoRectActive) {
       pilesSelected = this.getLassoRectSelection(
         this.dragStartPos.x, this.mouse.x, this.dragStartPos.y, this.mouse.y
       );
-    } else if (this.lassoRoundIsActive && this.lassoRoundMinMove) {
+    } else if (this.isLassoRoundActive && this.lassoRoundMinMove) {
       pilesSelected = this.getLassoRoundSelection();
-    } else {
+    } else if (!mouseLeft) {
       this.canvasMouseClickHandler(event);
     }
 
@@ -1212,8 +1225,8 @@ export class Fragments {
     this.mouseWentDown = false;
 
     this.lassoIsActive = false;
-    this.lassoRectIsActive = false;
-    this.lassoRoundIsActive = false;
+    this.isLassoRectActive = false;
+    this.isLassoRoundActive = false;
 
     this.render();
   }
@@ -1562,13 +1575,13 @@ export class Fragments {
    */
   drawLasso (startX, currentX, startY, currentY) {
     if (this.keyAltIsDown || this.lassoIsRound) {
-      if (!this.lassoRoundIsActive) {
-        this.lassoRoundIsActive = true;
+      if (!this.isLassoRoundActive) {
+        this.isLassoRoundActive = true;
       }
       this.drawLassoRound(startX, currentX, startY, currentY);
     } else {
-      if (!this.lassoRectIsActive) {
-        this.lassoRectIsActive = true;
+      if (!this.isLassoRectActive) {
+        this.isLassoRectActive = true;
       }
       this.drawLassoRect(startX, currentX, startY, currentY);
     }
@@ -1863,13 +1876,14 @@ export class Fragments {
    * Get pile position for 2 dimenions
    *
    * @param {object} pile - Pile to be poisioned.
-   * @param {[type]} measureX - Measure for X axis.
-   * @param {[type]} measureY - Measure for Y axis.
+   * @param {string} measureX - Measure ID for X axis.
+   * @param {string} measureY - Measure ID for Y axis.
    * @param {boolean} abs - If `true` the position needs to be adjusted to the
    *   WebGL coordinates.
+   * @param {boolean} asArray - If `true` return an array instead of an object.
    * @return {object} Object with x and y coordinates.
    */
-  getLayoutPosition2D (pile, measureX, measureY, abs) {
+  getLayoutPosition2D (pile, measureX, measureY, abs, asArray) {
     let relX = this.scale2dX(pile.measures[measureX]);
     let relY = this.scale2dY(pile.measures[measureY]);
 
@@ -1880,6 +1894,10 @@ export class Fragments {
     if (abs) {
       x += this.matrixWidthHalf;
       y = -y - this.matrixWidthHalf;
+    }
+
+    if (asArray) {
+      return [x, y];
     }
 
     return { x, y };
@@ -2297,7 +2315,9 @@ export class Fragments {
     );
 
     this.canvas.addEventListener(
-      'mouseleave', this.canvasMouseUpHandler.bind(this), false
+      'mouseleave', (event) => {
+        this.canvasMouseUpHandler(event, true);
+      }, false
     );
 
     this.canvas.addEventListener(
@@ -2808,9 +2828,55 @@ export class Fragments {
 
     fgmState.hoveredPile.updateLabels();
 
+    if (
+      fgmState.previousHoveredPile !== fgmState.hoveredPile &&
+      !this.isLassoActive
+    ) {
+      fgmState.hoveredPile.elevateTo(Z_HIGHLIGHT);
+      this.drawPilesArea([fgmState.hoveredPile]);
+    }
+
     fgmState.previousHoveredPile = fgmState.hoveredPile;
 
     this.render();
+  }
+
+  /**
+   * When in 2D, draw area of the pile by indicating the pile matrix locations.
+   */
+  drawPilesArea (piles) {
+    piles.forEach((pile) => {
+      if (pile.pileMatrices.length > 1) {
+        const coords = [];
+
+        pile.pileMatrices.forEach((matrix) => {
+          coords.push(this.getLayoutPosition2D(
+            matrix,
+            this.arrangeMeasures[0],
+            this.arrangeMeasures[1],
+            true,
+            true
+          ));
+        });
+
+        if (pile.pileMatrices.length > 2) {
+          const convexHull = hull(coords);
+          this.matrixArea = createChMap(
+            coords,
+            convexHull,
+            PILE_AREA_BG,
+            PILE_AREA_POINTS,
+            PILE_AREA_BORDER
+          );
+        } else {
+          this.matrixArea = createLine(coords, COLORS.ORANGE, 1);
+        }
+
+        this.matrixArea.position.set(0, 0, Z_HIGHLIGHT_AREA);
+
+        fgmState.scene.add(this.matrixArea);
+      }
+    });
   }
 
   /**
@@ -2833,11 +2899,17 @@ export class Fragments {
         fgmState.previousHoveredPile.pileMatrices.map(matrix => matrix.id)
       );
 
+      fgmState.previousHoveredPile.elevateTo(Z_BASE);
       fgmState.previousHoveredPile.showSingle(undefined);
       fgmState.previousHoveredPile.setCoverMatrixMode(this.coverDispMode);
       this.highlightFrame.visible = false;
       fgmState.previousHoveredPile.draw(false, true);
       fgmState.previousHoveredPile = undefined;
+    }
+
+    if (this.matrixArea) {
+      fgmState.scene.remove(this.matrixArea);
+      this.matrixArea = undefined;
     }
   }
 
@@ -3851,7 +3923,7 @@ export class Fragments {
 
           // Don't animate
           piles.forEach((pile) => {
-            const pos = this.getLayoutPosition(pile, measures);
+            const pos = this.getLayoutPosition(pile, measures, true);
             pile.moveTo(pos.x, pos.y);
           });
 
