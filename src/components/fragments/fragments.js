@@ -61,7 +61,6 @@ import {
   DBL_CLICK_DELAY_TIME,
   DURATION,
   FONT_URL,
-  FPS,
   HIGHLIGHT_FRAME_LINE_WIDTH,
   LINE,
   LASSO_MATERIAL,
@@ -113,6 +112,7 @@ import COLORS from 'configs/colors';
 import arraysEqual from 'utils/arrays-equal';
 import debounce from 'utils/debounce';
 import hilbertCurve from 'utils/hilbert-curve';
+import { requestNextAnimationFrame } from 'utils/request-animation-frame';
 
 const logger = LogManager.getLogger('fragments');
 
@@ -927,15 +927,19 @@ export class Fragments {
     if (fgmState.hoveredPile) {
       // Re-draw hovered pile to show menu.
       fgmState.hoveredPile.draw();
-
-      // Show pile location
-      this.event.publish(
-        'decompose.fgm.pileMouseEnter',
-        fgmState.hoveredPile.pileMatrices.map(matrix => matrix.id)
-      );
     }
 
     this.render();
+
+    if (fgmState.hoveredPile) {
+      requestNextAnimationFrame(() => {
+        // Show pile location
+        this.event.publish(
+          'decompose.fgm.pileMouseEnter',
+          fgmState.hoveredPile.pileMatrices.map(matrix => matrix.id)
+        );
+      });
+    }
   }
 
   /**
@@ -2843,7 +2847,7 @@ export class Fragments {
    */
   movePilesAnimated (piles, locations) {
     // Duration in seconds
-    const durationSec = DURATION * 5 * 0.001;
+    const durationSec = DURATION * 0.001;
 
     // Convert to seconds
     let timeLeft = durationSec;
