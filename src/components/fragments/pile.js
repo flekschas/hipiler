@@ -1359,8 +1359,6 @@ export default class Pile {
       }
     }
 
-    console.log('mt', this.x, this.y, this.mesh.position.z);
-
     this.mesh.position.set(this.x, this.y, this.mesh.position.z);
 
     return this;
