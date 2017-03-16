@@ -1,6 +1,8 @@
 import { scaleLinear } from 'd3';
 
 import {
+  BufferAttribute,
+  BufferGeometry,
   DoubleSide,
   Geometry,
   Line,
@@ -18,7 +20,8 @@ import {
 
 import {
   LINE,
-  LINE_SHADER
+  LINE_SHADER,
+  SHADER_ATTRIBUTES
 } from 'components/fragments/fragments-defaults';
 
 import fgmState from './fragments-state';
@@ -188,10 +191,51 @@ export function createLineFrame (width, height, color, lineWidth) {
 export function createChMap (
   points, convexHull, polygonMaterial, pointsMaterial, lineMaterial
 ) {
-  // Create the bg for the convexHull
-  const chMesh = createPolygon(convexHull, polygonMaterial, lineMaterial);
+  // Draw locations of all piled up snippets
+  const positions = new Float32Array(points.length * 18);
+  const widthHalf = 2;
+  const heightHalf = widthHalf;
 
-  return chMesh;
+  points.forEach((point, index) => {
+    positions[(index * 18) + 0] = point[0] - widthHalf;
+    positions[(index * 18) + 1] = point[1] - heightHalf;
+    positions[(index * 18) + 2] = 0;
+    positions[(index * 18) + 3] = point[0] + widthHalf;
+    positions[(index * 18) + 4] = point[1] - widthHalf;
+    positions[(index * 18) + 5] = 0;
+    positions[(index * 18) + 6] = point[0] + widthHalf;
+    positions[(index * 18) + 7] = point[1] + widthHalf;
+    positions[(index * 18) + 8] = 0;
+    positions[(index * 18) + 9] = point[0] + widthHalf;
+    positions[(index * 18) + 10] = point[1] + widthHalf;
+    positions[(index * 18) + 11] = 0;
+    positions[(index * 18) + 12] = point[0] - widthHalf;
+    positions[(index * 18) + 13] = point[1] + widthHalf;
+    positions[(index * 18) + 14] = 0;
+    positions[(index * 18) + 15] = point[0] - widthHalf;
+    positions[(index * 18) + 16] = point[1] - widthHalf;
+    positions[(index * 18) + 17] = 0;
+  });
+
+  const pointsGeometry = new BufferGeometry({
+    attributes: SHADER_ATTRIBUTES
+  });
+
+  pointsGeometry.addAttribute(
+    'position',
+    new BufferAttribute(positions, 3)
+  );
+
+  const mesh = new Mesh(pointsGeometry, pointsMaterial);
+
+  if (points.length > 2) {
+    // Create the bg for the convexHull
+    mesh.add(createPolygon(convexHull, polygonMaterial, lineMaterial));
+  } else {
+    mesh.add(new Mesh(LINE(points), lineMaterial));
+  }
+
+  return mesh;
 }
 
 export function createPolygon (points, polygonMaterial, lineMaterial) {
@@ -210,8 +254,7 @@ export function createPolygon (points, polygonMaterial, lineMaterial) {
   const mesh = new Mesh(polygonGeom, polygonMaterial);
 
   if (lineMaterial) {
-    const ass = LINE(points, { closed: true });
-    mesh.add(new Mesh(ass, lineMaterial));
+    mesh.add(new Mesh(LINE(points, { closed: true }), lineMaterial));
   }
 
   return mesh;
