@@ -32,7 +32,6 @@ import States from 'services/states';
 
 // Utils etc.
 import {
-  // addPiles,
   dispersePiles,
   dispersePilesWithColors,
   setAnimation,
@@ -109,6 +108,7 @@ import Matrix from 'components/fragments/matrix';
 import {
   calculateClusterPiling,
   calculateDistances,
+  createChLine,
   createChMap,
   createRectFrame
 } from 'components/fragments/fragments-utils';
@@ -2859,7 +2859,7 @@ export class Fragments {
           ));
         });
 
-        if (pile.pileMatrices.length > 2) {
+        if (pile.pileMatrices.length > 1) {
           const convexHull = hull(coords);
           this.matrixArea = createChMap(
             coords,
@@ -2868,8 +2868,6 @@ export class Fragments {
             PILE_AREA_POINTS,
             PILE_AREA_BORDER
           );
-        } else {
-          this.matrixArea = createLine(coords, COLORS.ORANGE, 1);
         }
 
         this.matrixArea.position.set(0, 0, Z_HIGHLIGHT_AREA);
