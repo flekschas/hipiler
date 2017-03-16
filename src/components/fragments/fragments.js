@@ -1174,7 +1174,7 @@ export class Fragments {
         this.dragPile.elevateTo(Z_BASE);
       } else {
         // Pile up the two piles
-        this.pileUp([this.dragPile], fgmState.hoveredPile);
+        this.pileUp({ [fgmState.hoveredPile.id]: [this.dragPile.id] });
       }
 
       this.dragPile = undefined;
@@ -1189,7 +1189,9 @@ export class Fragments {
     }
 
     if (pilesSelected.length > 1) {
-      this.pileUp(pilesSelected.slice(1), pilesSelected[0]);
+      this.pileUp({
+        [pilesSelected[0].id]: pilesSelected.slice(1).map(pile => pile.id)
+      });
     }
 
     this.dragStartPos = undefined;
@@ -1296,25 +1298,25 @@ export class Fragments {
     this.render();
   }
 
-  /**
-   * Close inspected pile
-   *
-   * @param {object} openedPile - Opened inspeced pile.
-   */
-  closeOpenedPile (openedPile) {
-    let piles = [];
-    let openedPileIndex = this.piles.indexOf(this.openedPileRoot);
+  // /**
+  //  * Close inspected pile
+  //  *
+  //  * @param {object} openedPile - Opened inspeced pile.
+  //  */
+  // closeOpenedPile (openedPile) {
+  //   let piles = [];
+  //   let openedPileIndex = this.piles.indexOf(this.openedPileRoot);
 
-    for (let i = 0; i <= this.openedPileMatricesNum; i++) {
-      piles.push(this.piles[openedPileIndex + i]);
-    }
+  //   for (let i = 0; i <= this.openedPileMatricesNum; i++) {
+  //     piles.push(this.piles[openedPileIndex + i]);
+  //   }
 
-    this.pileUp(piles, this.piles[openedPileIndex]);
+  //   this.pileUp(piles, this.piles[openedPileIndex]);
 
-    this.startAnimations();
-    this.openedPileRoot = undefined;
-    this.openedPileMatricesNum = 0;
-  }
+  //   this.startAnimations();
+  //   this.openedPileRoot = undefined;
+  //   this.openedPileMatricesNum = 0;
+  // }
 
   /**
    * Close pile menu.
@@ -1937,11 +1939,29 @@ export class Fragments {
 
   groupByCategorySelectChangeHandler (event) {
     this.categoryForGrouping = event.target.value;
-    console.log(this.categoryForGrouping);
+  }
+
+  getPilesFromMatrices (matrices) {
+    return matrices.reduce((piles, matrix) => {
+      piles[matrix.pile.id] = true;
+
+      return piles;
+    }, {});
   }
 
   groupByCategory (category = this.categoryForGrouping) {
-    console.log(category);
+    if (this.colorsUsed.some(cat => cat.id === category)) {
+      // Group by color
+
+      const piles = this.getPilesFromMatrices(this.colorsMatrixIdx[category]);
+      const batchPileStacking = {
+        [Object.keys(piles)[0]]: Object.keys(piles).slice(1)
+      };
+
+      this.pileUp(batchPileStacking);
+    } else {
+      // Group by predefined category
+    }
   }
 
   /**
@@ -1976,7 +1996,7 @@ export class Fragments {
         );
       });
 
-    this.store.dispatch(stackPiles(batchPileStacking));
+    this.pileUp(batchPileStacking);
   }
 
   /**
@@ -2823,7 +2843,7 @@ export class Fragments {
    */
   movePilesAnimated (piles, locations) {
     // Duration in seconds
-    const durationSec = DURATION * 0.001;
+    const durationSec = DURATION * 5 * 0.001;
 
     // Convert to seconds
     let timeLeft = durationSec;
@@ -2946,32 +2966,56 @@ export class Fragments {
    * Piles a set of matrices onto a target pile removes it from source pile, and
    * updates the layout.
    *
-   * @param {array} matrices - Number of matrices to be piled up
-   * @param {object} targetPile - Target pile instance
+   * @param {object} config - Pile up config object.
    * @param {boolean} noAnimation - If `true` animation is skipped.
    */
-  pileUp (piles, targetPile, noAnimation) {
+  pileUp (config, noAnimation) {
     let animation;
 
-    targetPile.elevateTo(Z_STACK_PILE_TARGET);
+    const targetPiles = [];
+    const piles = [];
+    const pilesDestination = [];
+
+    Object.keys(config).forEach((targetPileId) => {
+      const targetPile = fgmState.pilesIdx[targetPileId];
+      const sourcePiles = config[targetPileId];
+
+      const centerX = (
+        targetPile.x +
+        sourcePiles.reduce(
+          (sum, pileId) => sum + fgmState.pilesIdx[pileId].x, 0
+        )
+      ) / (sourcePiles.length + 1);
+
+      const centerY = (
+        targetPile.y +
+        sourcePiles.reduce(
+          (sum, pileId) => sum + fgmState.pilesIdx[pileId].y, 0
+        )
+      ) / (sourcePiles.length + 1);
+
+      piles.push(targetPile);
+      piles.push(...sourcePiles.map(pileId => fgmState.pilesIdx[pileId]));
+
+      pilesDestination.push(...new Array(sourcePiles.length + 1).fill(
+        { x: centerX, y: centerY }
+      ));
+
+      targetPile.elevateTo(Z_STACK_PILE_TARGET);
+
+      targetPiles.push(targetPile);
+    });
 
     if (fgmState.animation && !noAnimation) {
-      animation = this.movePilesAnimated(
-        piles,
-        new Array(piles.length).fill(
-          { x: targetPile.x, y: targetPile.y }
-        )
-      );
+      animation = this.movePilesAnimated(piles, pilesDestination);
     } else {
       animation = Promise.resolve();
     }
 
     animation.finally(() => {
-      targetPile.elevateTo(Z_BASE);
+      targetPiles.forEach((pile) => { pile.elevateTo(Z_BASE); });
 
-      this.store.dispatch(stackPiles({
-        [targetPile.id]: piles.map(pile => pile.id)
-      }));
+      this.store.dispatch(stackPiles(config));
     });
   }
 
@@ -3370,73 +3414,73 @@ export class Fragments {
     pile.pileMatrices.sort(this.matrixTimeComparator);
   }
 
-  /**
-   * Splits a pile at the position of the passed matrix. The passed matrix
-   * becomes the base for the new pile.
-   *
-   * @param {array} matrix - Matrix
-   * @param {boolean} noAnimation - If `true` force no animation.
-   */
-  splitPile (matrix, noAnimation) {
-    if (noAnimation) {
-      let pileSrc = matrix.pile;
-      let pileNew = new Pile(
-        this.piles.length,
-        fgmState.scene,
-        fgmState.scale,
-        this.fragDims
-      );
+  // /**
+  //  * Splits a pile at the position of the passed matrix. The passed matrix
+  //  * becomes the base for the new pile.
+  //  *
+  //  * @param {array} matrix - Matrix
+  //  * @param {boolean} noAnimation - If `true` force no animation.
+  //  */
+  // splitPile (matrix, noAnimation) {
+  //   if (noAnimation) {
+  //     let pileSrc = matrix.pile;
+  //     let pileNew = new Pile(
+  //       this.piles.length,
+  //       fgmState.scene,
+  //       fgmState.scale,
+  //       this.fragDims
+  //     );
 
-      pileNew.colored = pileSrc.colored;
-      this.piles.splice(this.piles.indexOf(pileSrc) + 1, 0, pileNew);
+  //     pileNew.colored = pileSrc.colored;
+  //     this.piles.splice(this.piles.indexOf(pileSrc) + 1, 0, pileNew);
 
-      let m = [];
-      for (let i = pileSrc.getMatrixPosition(matrix); i < pileSrc.size(); i++) {
-        // Needs refactoring
-        m.push(pileSrc.getMatrix(i));
-      }
+  //     let m = [];
+  //     for (let i = pileSrc.getMatrixPosition(matrix); i < pileSrc.size(); i++) {
+  //       // Needs refactoring
+  //       m.push(pileSrc.getMatrix(i));
+  //     }
 
-      this.pileUp(m, pileNew);
+  //     this.pileUp(m, pileNew);
 
-      pileNew.draw();
-      pileSrc.draw();
+  //     pileNew.draw();
+  //     pileSrc.draw();
 
-      this.updateLayout().then(() => {
-        this.render();
-      });
-    } else {
-      // Needs refactoring
-      // this.pilingAnimations.push(SplitAnimation(matrix));
-      // this.startAnimations();
-    }
-  }
+  //     this.updateLayout().then(() => {
+  //       this.render();
+  //     });
+  //   } else {
+  //     // Needs refactoring
+  //     // this.pilingAnimations.push(SplitAnimation(matrix));
+  //     // this.startAnimations();
+  //   }
+  // }
 
-  /**
-   * Starts all animations in pilingAnimations array.
-   */
-  startAnimations () {
-    clearInterval(this.interval);
+  // /**
+  //  * Starts all animations in pilingAnimations array.
+  //  */
+  // startAnimations () {
+  //   clearInterval(this.interval);
 
-    this.interval = setInterval(() => {
-      this.pilingAnimations.forEach((pileAnimation, index) => {
-        pileAnimation.step();
-        if (pileAnimation.done) {
-          this.pilingAnimations.splice(index, 1);
-        }
-      });
+  //   this.interval = setInterval(() => {
+  //     this.pilingAnimations.forEach((pileAnimation, index) => {
+  //       pileAnimation.step();
+  //       if (pileAnimation.done) {
+  //         this.pilingAnimations.splice(index, 1);
+  //       }
+  //     });
 
-      if (this.pilingAnimations.length === 0) {
-        clearInterval(this.interval);
-        this.interval = undefined;
-        this.pilingAnimations = [];
-        this.updateLayout().then(() => {
-          this.render();
-        });
-      }
+  //     if (this.pilingAnimations.length === 0) {
+  //       clearInterval(this.interval);
+  //       this.interval = undefined;
+  //       this.pilingAnimations = [];
+  //       this.updateLayout().then(() => {
+  //         this.render();
+  //       });
+  //     }
 
-      this.render();
-    }, 500 / FPS);
-  }
+  //     this.render();
+  //   }, 500 / FPS);
+  // }
 
   /**
    * Toggle trash.
@@ -3850,7 +3894,7 @@ export class Fragments {
     });
 
     this.colorsUsed = Object.keys(colorsUsedTmp)
-      .map(color => ({ id: color, name: color }));
+      .map(color => ({ id: color, name: this.wurstCaseToNice(color) }));
 
     update.piles = true;
   }
