@@ -97,14 +97,15 @@ export const MATRICES_COLORS = {};
 export const PILE_AREA_BG = new THREE.MeshBasicMaterial({
   color: COLORS.PRIMARY,
   transparent: true,
-  opacity: 0.2
+  opacity: 0.15
 });
 
 export const PILE_AREA_BORDER = new THREE.ShaderMaterial(LINE_SHADER({
   side: THREE.DoubleSide,
   diffuse: COLORS.PRIMARY,
   thickness: 1,
-  opacity: 0.5
+  transparent: true,
+  opacity: 0.3
 }));
 
 export const PILE_AREA_POINTS = new THREE.MeshBasicMaterial({
