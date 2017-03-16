@@ -1350,9 +1350,16 @@ export default class Pile {
     this.y = y;
 
     if (!abs) {
-      this.x += fgmState.gridCellWidthInclSpacingHalf;
-      this.y = -this.y - fgmState.gridCellHeightInclSpacingHalf;
+      if (fgmState.isLayout1d) {
+        this.x += fgmState.gridCellWidthInclSpacingHalf;
+        this.y = -this.y - fgmState.gridCellHeightInclSpacingHalf;
+      } else {
+        this.x += this.matrixWidthHalf;
+        this.y = -this.y - this.matrixWidthHalf;
+      }
     }
+
+    console.log('mt', this.x, this.y, this.mesh.position.z);
 
     this.mesh.position.set(this.x, this.y, this.mesh.position.z);
 
