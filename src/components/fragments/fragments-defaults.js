@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import threeLine2d from 'three-line-2d';
 import threeLine2dShader from 'three-line-2d-shader';
 
-import COLOR from 'configs/colors';
+import COLORS from 'configs/colors';
 import pileColors from 'components/fragments/pile-colors';
 
 
@@ -76,7 +76,7 @@ export const LASSO_MIN_MOVE = 0.033;
 
 export const LASSO_SHADER = threeLine2dShader(THREE)({
   side: THREE.DoubleSide,
-  diffuse: COLOR.PRIMARY,
+  diffuse: COLORS.PRIMARY,
   thickness: LASSO_LINE_WIDTH
 });
 
@@ -93,6 +93,25 @@ export const MARGIN_RIGHT = 2;
 export const MARGIN_TOP = 2;
 
 export const MATRICES_COLORS = {};
+
+export const PILE_AREA_BG = new THREE.MeshBasicMaterial({
+  color: COLORS.PRIMARY,
+  transparent: true,
+  opacity: 0.2
+});
+
+export const PILE_AREA_BORDER = new THREE.ShaderMaterial(LINE_SHADER({
+  side: THREE.DoubleSide,
+  diffuse: COLORS.PRIMARY,
+  thickness: 1,
+  opacity: 0.5
+}));
+
+export const PILE_AREA_POINTS = new THREE.MeshBasicMaterial({
+  color: COLORS.PRIMARY,
+  transparent: true,
+  opacity: 1
+});
 
 export const MATRIX_FRAME_ENCODING = null;
 
@@ -177,11 +196,13 @@ export const Z_BASE = 1;
 
 export const Z_DRAG = 2;
 
-export const Z_HIGHLIGHT = 1.5;
+export const Z_HIGHLIGHT = 3;
 
-export const Z_LASSO = 2;
+export const Z_HIGHLIGHT_AREA = 2.5;
 
-export const Z_MENU = 4;
+export const Z_LASSO = 9;
+
+export const Z_MENU = 9;
 
 export const Z_STACK_PILE_TARGET = 2;
 
