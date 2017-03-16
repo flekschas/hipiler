@@ -1145,7 +1145,10 @@ export class Fragments {
       this.mouseClickCounter = 0;
 
       if (this.isLayout2d && this.mouseDownTimeDelta > ZOOM_DELAY_TIME) {
-        this.pileZoomed = fgmState.hoveredPile.scaleTo(6).frameCreate().draw();
+        if (fgmState.hoveredPile) {
+          this.pileZoomed = fgmState.hoveredPile.scaleTo(6).frameCreate().draw();
+        }
+        this.mouseDownTimeDelta = 0;
       }
     }
   }
