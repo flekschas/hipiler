@@ -3852,8 +3852,6 @@ export class Fragments {
     this.colorsUsed = Object.keys(colorsUsedTmp)
       .map(color => ({ id: color, name: color }));
 
-    console.log(this.colorsUsed, colorsUsedTmp);
-
     update.piles = true;
   }
 
