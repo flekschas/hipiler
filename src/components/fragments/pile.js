@@ -108,6 +108,10 @@ export default class Pile {
     );
   }
 
+  get isLayout1d () {
+    return !fgmState.isLayout2d && !fgmState.isLayoutMd;
+  }
+
   get matrixWidth () {
     return this.dims * this.cellSize;
   }
@@ -533,14 +537,16 @@ export default class Pile {
 
     const width = this.matrixWidth / numColors;
 
+    const height = COLOR_INDICATOR_HEIGHT * (this.isLayout1d ? 1 : 0.5);
+
     Object.keys(colorsUsed).forEach((color, index) => {
       this.colorIndicator[color] = createRect(
-        width, COLOR_INDICATOR_HEIGHT, COLORS[color.toUpperCase()]
+        width, height, COLORS[color.toUpperCase()]
       );
 
       this.colorIndicator[color].position.set(
         (index * width) - ((numColors - 1) * width / 2),
-        -this.matrixWidthHalf - 7,
+        -this.matrixWidthHalf - 1 - this.matrixFrameThickness,
         1
       );
 
