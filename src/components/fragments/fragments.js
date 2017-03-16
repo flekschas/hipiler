@@ -1174,7 +1174,14 @@ export class Fragments {
       if (!fgmState.hoveredPile) {
         // Move pile back to original position
         let pos = this.getLayoutPosition(this.dragPile, this.arrangeMeasures);
-        this.dragPile.moveTo(pos.x, pos.y);
+        this.movePilesAnimated(
+          [this.dragPile],
+          [{
+            x: pos.x + this.matrixWidthHalf,
+            y: -pos.y - this.matrixWidthHalf
+          }]
+        );
+
         this.dragPile.elevateTo(Z_BASE);
       } else {
         // Pile up the two piles
