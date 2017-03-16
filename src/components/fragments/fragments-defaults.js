@@ -10,6 +10,10 @@ export const ANIMATION = true;
 
 export const ARRANGE_MEASURES = [];
 
+export const CAT_DATASET = 'dataset';
+
+export const CAT_ZOOMOUT_LEVEL = 'zoomout-level';
+
 export const CELL_SIZE = 6;
 
 export const CELL_SIZE_HALF = CELL_SIZE / 2;

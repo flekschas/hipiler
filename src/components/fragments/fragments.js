@@ -54,6 +54,8 @@ import {
 
 import {
   ARRANGE_MEASURES,
+  CAT_DATASET,
+  CAT_ZOOMOUT_LEVEL,
   CLICK_DELAY_TIME,
   CLUSTER_TSNE,
   DBL_CLICK_DELAY_TIME,
@@ -161,8 +163,10 @@ export class Fragments {
     this.store.subscribe(this.update.bind(this));
 
     this.arrangeMeasures = [];
+    this.attrsCatOther = [];
     this.clusterPos = {};
     this.colorsMatrixIdx = {};
+    this.colorsUsed = [];
     this.maxDistance = 0;
     this.pilingMethod = 'clustered';
     this.matrixStrings = '';
@@ -226,6 +230,14 @@ export class Fragments {
     this.arrangeMeasuresAccessPath = [
       'decompose', 'fragments', 'arrangeMeasures'
     ];
+
+    this.attrsCatReq = [{
+      id: CAT_DATASET,
+      name: 'Dataset'
+    }, {
+      id: CAT_ZOOMOUT_LEVEL,
+      name: 'Zoomout Level'
+    }];
 
     this.coverDispModes = [{
       id: MODE_MEAN,
@@ -1921,6 +1933,15 @@ export class Fragments {
     fgmState.plotElDim = this.plotEl.getBoundingClientRect();
 
     return this.plotElDim;
+  }
+
+  groupByCategorySelectChangeHandler (event) {
+    this.categoryForGrouping = event.target.value;
+    console.log(this.categoryForGrouping);
+  }
+
+  groupByCategory (category = this.categoryForGrouping) {
+    console.log(category);
   }
 
   /**
@@ -3807,11 +3828,15 @@ export class Fragments {
 
     this.matricesColors = matricesColors;
 
+    const colorsUsedTmp = {};
+
     fgmState.matrices.forEach((matrix) => {
       if (typeof this.matricesColors[matrix.id] !== 'undefined') {
         const color = this.matricesColors[matrix.id];
 
         matrix.color = color;
+
+        colorsUsedTmp[color] = true;
 
         if (this.colorsMatrixIdx[color]) {
           this.colorsMatrixIdx[color].push(matrix);
@@ -3823,6 +3848,11 @@ export class Fragments {
         matrix.color = undefined;
       }
     });
+
+    this.colorsUsed = Object.keys(colorsUsedTmp)
+      .map(color => ({ id: color, name: color }));
+
+    console.log(this.colorsUsed, colorsUsedTmp);
 
     update.piles = true;
   }
