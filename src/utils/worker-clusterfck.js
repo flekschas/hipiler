@@ -2,7 +2,7 @@
 
 self.onmessage = function (event) {
   let error;
-  let clusters;
+  let clusters = [];
 
   const kmeans = new clusterfck.Kmeans(event.data.centroids || []);
 
@@ -11,6 +11,8 @@ self.onmessage = function (event) {
   } catch (e) {
     error = e.message;
   }
+
+  clusters = clusters.map(cluster => cluster.map(entry => entry.id));
 
   self.postMessage({
     clusters,
