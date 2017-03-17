@@ -1946,15 +1946,25 @@ export class Fragments {
 
     const padding = MATRIX_FRAME_THICKNESS_MAX / 2;
 
-    let x = padding + (
-      relX * (
-        this.plotElDim.width - this.matrixWidth - MATRIX_FRAME_THICKNESS_MAX
+    // Note: the oddness of adding and substraction a multiple of 16 stems from
+    // the display of the two axis (1rem == 16px)
+    let x = 16 + padding + (
+      relX *
+      (
+        this.plotElDim.width -
+        this.matrixWidth -
+        MATRIX_FRAME_THICKNESS_MAX -
+        (1.5 * 16)
       )
     );
 
-    let y = padding + (
-      (1 - relY) * (
-        this.plotElDim.height - this.matrixWidth - MATRIX_FRAME_THICKNESS_MAX
+    let y = 16 + padding + (
+      (1 - relY) *
+      (
+        this.plotElDim.height -
+        this.matrixWidth -
+        MATRIX_FRAME_THICKNESS_MAX -
+        (1.5 * 16)
       )
     );
 
