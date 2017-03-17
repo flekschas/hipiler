@@ -1,4 +1,4 @@
-<template>
+`<template>
   <require from="components/multi-select/multi-select"></require>
   <require from="components/svg-icon/svg-icon"></require>
   <require from="components/spinner.html"></require>
@@ -18,27 +18,39 @@
   <div class="full-wh flex-c flex-d-c ${fgmState.animation ? 'is-animated' : ''}" ref="baseEl">
     <main class="flex-g-1 rel fragment-plot">
       <div class="full-dim" css.one-way="plotWindowCss">
-<!--         <button class="axis-switch is-icon-only ${isLayout2d ? 'is-active' : ''}">
+        <button class="axis-switch is-icon-only ${isLayout2d ? 'is-active' : ''}">
           <svg-icon icon-id="flip-xy" click.delegate="flipXY()"></svg-icon>
         </button>
         <div class="axis axis-x axis-top ${isLayout2d ? 'is-active' : ''}">
           <div class="flex-c flex-jc-sb axis-labels">
-            <span class="axis-labels-min">0</span>
-            <span class="axis-labels-name">${arrangeMeasuresReadible[0]}</span>
-            <span class="axis-labels-max">${nicefyMeasure(state.dataMeasuresMax[arrangeMeasures[0]])}</span>
+            <div class="axis-label axis-label-min">
+              ${nicefyMeasure(state.dataMeasuresMin[arrangeMeasures[0]])}
+            </div>
+            <div class="axis-label axis-label-name">
+              ${arrangeMeasuresReadible[0]}
+            </div>
+            <div class="axis-label axis-label-max">
+              ${nicefyMeasure(state.dataMeasuresMax[arrangeMeasures[0]])}
+            </div>
           </div>
           <div class="axis-line"></div>
           <div class="axis-arrow"></div>
         </div>
         <div class="axis axis-y axis-left ${isLayout2d ? 'is-active' : ''}">
           <div class="flex-c flex-jc-sb flex-d-c axis-labels">
-            <span class="axis-labels-max">${nicefyMeasure(state.dataMeasuresMax[arrangeMeasures[1]])}</span>
-            <span class="axis-labels-name">${arra ngeMeasuresReadible[1]}</span>
-            <span class="axis-labels-min">0</span>
+            <div class="axis-label axis-label-max">
+              <span>${nicefyMeasure(state.dataMeasuresMin[arrangeMeasures[1]])}</span>
+            </div>
+            <div class="axis-label axis-label-name">
+              ${arrangeMeasuresReadible[1]}
+            </div>
+            <div class="axis-label axis-label-min">
+              <span>${nicefyMeasure(state.dataMeasuresMax[arrangeMeasures[1]])}</span>
+            </div>
           </div>
           <div class="axis-line"></div>
           <div class="axis-arrow"></div>
-        </div> -->
+        </div>
 
         <div class="grid full-dim ${isGridShown ? 'is-active' : ''}">
           <ol class="columns full-dim flex-c">

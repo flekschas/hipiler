@@ -18,11 +18,11 @@
       height: 1px;
     }
 
-    .axis-labels-min {
+    .axis-label-min {
       margin-left: 0.25rem;
     }
 
-    .axis-labels-max {
+    .axis-label-max {
       margin-right: 0.25rem;
     }
   }
@@ -37,14 +37,6 @@
       top: 0;
       width: 1px;
       height: 100%;
-    }
-
-    .axis-labels-min {
-      margin-bottom: 0.5rem;
-    }
-
-    .axis-labels-max {
-      margin-top: 0.5rem;
     }
   }
 
@@ -74,7 +66,25 @@
     .axis-labels {
       height: 100%;
 
-      > span {
+      .axis-label span {
+        position: absolute;
+      }
+
+      .axis-label-min span {
+        bottom: -0.5rem;
+        transform: rotate(-90deg);
+        transform-origin: left top;
+      }
+
+      .axis-label-max span {
+        top: 0.25rem;
+        right: 1rem;
+        transform: rotate(-90deg);
+        transform-origin: right top;
+      }
+
+      .axis-label-name {
+        margin-left: -1px;  // To make the text crisp
         transform: rotate(-90deg);
       }
     }
@@ -88,9 +98,9 @@
     }
   }
 
-  .axis-labels-min,
-  .axis-labels-max,
-  .axis-labels-name {
+  .axis-label-min,
+  .axis-label-max,
+  .axis-label-name {
     white-space: nowrap;
   }
 
