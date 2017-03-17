@@ -92,6 +92,7 @@ export default class Pile {
     this.showNodeLabels = false;
     this.x = 0;
     this.y = 0;
+    this.z = Z_BASE;
 
     fgmState.pilesIdx[this.id] = this;
 
@@ -501,7 +502,7 @@ export default class Pile {
 
     this.mesh.pile = this;
     this.pileMeshes.push(this.mesh);
-    this.mesh.position.set(this.x, this.y, Z_BASE);
+    this.mesh.position.set(this.x, this.y, this.z);
     fgmState.scene.add(this.mesh);
 
     if (
@@ -546,7 +547,7 @@ export default class Pile {
 
       this.colorIndicator[color].position.set(
         (index * width) - ((numColors - 1) * width / 2),
-        -this.matrixWidthHalf - 1 - this.matrixFrameThickness,
+        -this.matrixWidthHalf - 2 - (this.matrixFrameThickness / 2),
         1
       );
 
@@ -839,7 +840,7 @@ export default class Pile {
         button.rect.position.set(x, y, Z_MENU);
 
         button.label.position.set(
-          -(button.width / 2) + 2, -4, 1
+          -(button.width / 2) + 2, -4, 0
         );
 
         fgmState.visiblePileTools.push(button.rect);
@@ -1081,7 +1082,13 @@ export default class Pile {
    * @return {object} Self.
    */
   elevateTo (z) {
-    this.mesh.position.set(this.x, this.y, z);
+    if (typeof z === 'undefined') {
+      this.z = Z_BASE;
+    } else {
+      this.z = z;
+    }
+
+    this.mesh.position.set(this.x, this.y, this.z);
 
     return this;
   }
