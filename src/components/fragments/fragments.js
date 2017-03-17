@@ -293,6 +293,11 @@ export class Fragments {
       this.pileAssignBW.bind(this)
     );
 
+    this.event.subscribe(
+      'app.keyUpD',
+      this.toggleCoverDispMode.bind(this)
+    );
+
     // The following setup allows us to imitate deferred objects. I.e., we can
     // resolve promises outside their scope.
     this.resolve = {};
@@ -3346,15 +3351,15 @@ export class Fragments {
     this.camera.position.setY(cameraPosY);
   }
 
-  // /**
-  //  * [setPileMode description]
-  //  *
-  //  * @param {[type]} mode  - [description]
-  //  * @param {[type]} piles - [description]
-  //  */
-  // setPileMode (mode, piles) {
-  //   piles.forEach((pile) => { pile.setCoverMatrixMode(mode); });
-  // }
+  /**
+   * Set pile cover mode.
+   *
+   * @param {number} mode - Number defines the cover matrix mode.
+   * @param {array} piles - Piles for which to set the cover matrix mode.
+   */
+  setPileCoverMode (mode, piles) {
+    piles.forEach((pile) => { pile.setCoverMatrixMode(mode); });
+  }
 
   // /**
   //  * [setSimilarityPiling description]
@@ -3637,6 +3642,17 @@ export class Fragments {
   // }
 
   /**
+   * Handle all piles display mode changes
+   *
+   * @param {object} event - Change event object.
+   */
+  toggleCoverDispMode () {
+    this.store.dispatch(
+      setCoverDispMode(this.coverDispMode !== MODE_MEAN ? MODE_MEAN : MODE_STD)
+    );
+  }
+
+  /**
    * Toggle trash.
    */
   toggleTrash () {
@@ -3828,7 +3844,7 @@ export class Fragments {
     update.piles = true;
 
     if (this.isInitialized) {
-      this.setPileMode(this.coverDispMode, this.piles);
+      this.setPileCoverMode(this.coverDispMode, this.piles);
     }
 
     return Promise.resolve();

@@ -107,11 +107,13 @@ export default class App {
   }
 
   keyDownHandler (event) {
+    // 90 === Z
     if (event.keyCode === 90 && (event.ctrlKey || event.metaKey)) {
       event.preventDefault();
       this.undo();
     }
 
+    // 90 === Y
     if (event.keyCode === 89 && (event.ctrlKey || event.metaKey)) {
       event.preventDefault();
       this.redo();
@@ -123,6 +125,11 @@ export default class App {
   }
 
   keyUpHandler (event) {
+    // 68 === D
+    if (event.keyCode === 68) {
+      this.event.publish('app.keyUpD', event);
+    }
+
     this.event.publish('app.keyUp', event);
   }
 
