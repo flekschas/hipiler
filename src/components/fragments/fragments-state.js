@@ -39,6 +39,7 @@ const State = {
   isLayout2d: false,
   lassoObject: undefined,
   matrices: [],
+  matricesIdx: {},
   matricesPileIndex: [],
   matrixFrameEncoding: undefined,
   matrixGapMouseover: false,
