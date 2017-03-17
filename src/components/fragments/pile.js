@@ -906,6 +906,20 @@ export default class Pile {
    * @param {array} colors - Colors array to be changed in-place.
    */
   drawPreviews (positions, colors) {
+    const totalHeight = this.previewSize * (this.pileMatrices.length + 1);
+
+    // Background
+    addBufferedRect(
+      positions,
+      0,
+      this.matrixWidthHalf + (totalHeight / 2) + 1,
+      0.5,
+      this.matrixWidth,
+      totalHeight + 2,
+      colors,
+      pileColors.gray(0.749019608)  // Gray light
+    );
+
     this.pileMatrices.forEach((pileMatrix, index) => {
       let y = this.matrixWidthHalf + (this.previewSize * (index + 1));
 
@@ -928,24 +942,12 @@ export default class Pile {
           (this.cellSize / 2)
         );
 
-        // White border, i.e., spacing
-        addBufferedRect(
-          positions,
-          x,
-          y,
-          0.5,
-          this.cellSize,
-          this.previewSize,
-          colors,
-          [1, 1, 1]
-        );
-
         // The actual preview
         addBufferedRect(
           positions,
           x,
           y,
-          0.5,
+          1,
           this.cellSize,
           this.previewSize - this.previewSpacing,
           colors,
