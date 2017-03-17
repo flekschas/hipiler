@@ -203,7 +203,7 @@ export const Z_HIGHLIGHT_AREA = 2.5;
 
 export const Z_LASSO = 9;
 
-export const Z_MENU = 9;
+export const Z_MENU = 8;
 
 export const Z_STACK_PILE_TARGET = 2;
 
