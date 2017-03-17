@@ -7,8 +7,9 @@ import {
 
 import { EventAggregator } from 'aurelia-event-aggregator';
 
+// Third party
+import { json, queue, scaleLinear, text } from 'd3';
 import hull from 'hull';
-
 import {
   DoubleSide,
   FontLoader,
@@ -21,10 +22,6 @@ import {
   Vector3,
   WebGLRenderer
 } from 'three';
-
-
-// Third party
-import { json, queue, scaleLinear, text } from 'd3';
 
 // Injectables
 import ChromInfo from 'services/chrom-info';
@@ -229,6 +226,8 @@ export class Fragments {
     this.isLoading = true;
 
     this.mouseClickCounter = 0;
+
+    fgmState.workerClusterfck = this.createWorkerClusterfck();
 
     this.closePileMenuDb = debounce(
       this.closePileMenu.bind(this),
@@ -789,7 +788,7 @@ export class Fragments {
     this.isLoading = true;
 
     if (!this.tsneWorker) {
-      this.tSneWorker = this.createTsneWorker();
+      this.tSneWorker = this.createWorkerTsne();
     }
 
     return new Promise((resolve, reject) => {
@@ -847,7 +846,7 @@ export class Fragments {
     this.isLoading = true;
 
     if (!this.tsneWorker) {
-      this.tSneWorker = this.createTsneWorker();
+      this.tSneWorker = this.createWorkerTsne();
     }
 
     return new Promise((resolve, reject) => {
@@ -1008,83 +1007,6 @@ export class Fragments {
         this.render();
       }, ZOOM_DELAY_TIME);
     }
-  }
-
-  /**
-   * Check if base element is initialized.
-   */
-  checkBaseElIsInit () {
-    if (this.baseElIsInit) {
-      this.resolve.isBaseElInit();
-    }
-  }
-
-  /**
-   * Check if the number of matrices is equal to the number of piles in the
-   * pile config.
-   *
-   * @description
-   * During the lifetime of the app, none of the matrices will every be deleted.
-   * Therefore, the number of matrices / piles in the pileConfig need to equal
-   * the number of loaded matrices otherwise something is broken.
-   *
-   * @param {array} matrices - List of matrices.
-   * @param {object} pileConfig - Pile configuration object.
-   * @return {boolean} If `true` pileConfig is valid.
-   */
-  checkPileConfig (matrices, pileConfig) {
-    return matrices.length === Object.keys(pileConfig)
-      .map(pileId => pileConfig[pileId].length)
-      .reduce((a, b) => a + b, 0);
-  }
-
-  /**
-   * Cluster snippets with t-SNE.
-   */
-  clusterTsne () {
-    if (this.isDataClustered) {
-      this.store.dispatch(setArrangeMeasures([]));
-    } else {
-      this.store.dispatch(setArrangeMeasures([CLUSTER_TSNE]));
-    }
-  }
-
-  /**
-   * Handle all piles display mode changes
-   *
-   * @param {object} event - Change event object.
-   */
-  coverDispModeChangeHandler (event) {
-    try {
-      this.store.dispatch(
-        setCoverDispMode(
-          parseInt(event.target.selectedOptions[0].value, 10)
-        )
-      );
-    } catch (error) {
-      logger.error('Display mode could not be set.', error);
-    }
-  }
-
-  /**
-   * Load and create t-SNE worker.
-   */
-  createTsneWorker () {
-    return new Promise((resolve, reject) => {
-      queue()
-        .defer(text, 'dist/tsne-worker.js')
-        .await((error, tSneWorker) => {
-          if (error) { logger.error(error); reject(Error(error)); }
-
-          const worker = new Worker(
-            window.URL.createObjectURL(
-              new Blob([tSneWorker], { type: 'text/javascript' })
-            )
-          );
-
-          resolve(worker);
-        });
-    });
   }
 
   /**
@@ -1255,46 +1177,101 @@ export class Fragments {
   }
 
   /**
-   * Scale pile.
-   *
-   * @param {number} wheelDelta - Wheel movement.
+   * Check if base element is initialized.
    */
-  scalePile (pile, wheelDelta) {
-    const force = Math.log(Math.abs(wheelDelta));
-    const momentum = wheelDelta > 0 ? force : -force;
-
-    const newScale = Math.min(
-      Math.max(
-        pile.scaleMouseEntered,
-        pile.scale * (1 + (0.1 * momentum))
-      ),
-      pile.scaleMouseEntered * 5
-    );
-
-    pile.setScale(newScale).frameCreate().draw(true);
+  checkBaseElIsInit () {
+    if (this.baseElIsInit) {
+      this.resolve.isBaseElInit();
+    }
   }
 
   /**
-   * Scroll the snippets plot.
+   * Check if the number of matrices is equal to the number of piles in the
+   * pile config.
    *
-   * @param {number} wheelDelta - Wheel movement.
+   * @description
+   * During the lifetime of the app, none of the matrices will every be deleted.
+   * Therefore, the number of matrices / piles in the pileConfig need to equal
+   * the number of loaded matrices otherwise something is broken.
+   *
+   * @param {array} matrices - List of matrices.
+   * @param {object} pileConfig - Pile configuration object.
+   * @return {boolean} If `true` pileConfig is valid.
    */
-  scrollView (wheelDelta) {
-    let cameraPosY = this.camera.position.y;
+  checkPileConfig (matrices, pileConfig) {
+    return matrices.length === Object.keys(pileConfig)
+      .map(pileId => pileConfig[pileId].length)
+      .reduce((a, b) => a + b, 0);
+  }
 
-    if (wheelDelta > 0) {
-      cameraPosY = Math.min(
-        cameraPosY + wheelDelta, this.scrollLimitTop
-      );
+  /**
+   * Cluster snippets with t-SNE.
+   */
+  clusterTsne () {
+    if (this.isDataClustered) {
+      this.store.dispatch(setArrangeMeasures([]));
     } else {
-      cameraPosY = Math.max(
-        cameraPosY + wheelDelta, this.scrollLimitBottom
-      );
+      this.store.dispatch(setArrangeMeasures([CLUSTER_TSNE]));
     }
+  }
 
-    this.scrollTop = cameraPosY - this.scrollLimitTop;
+  /**
+   * Handle all piles display mode changes
+   *
+   * @param {object} event - Change event object.
+   */
+  coverDispModeChangeHandler (event) {
+    try {
+      this.store.dispatch(
+        setCoverDispMode(
+          parseInt(event.target.selectedOptions[0].value, 10)
+        )
+      );
+    } catch (error) {
+      logger.error('Display mode could not be set.', error);
+    }
+  }
 
-    this.camera.position.setY(cameraPosY);
+  /**
+   * Load and create clusterfck worker.
+   */
+  createWorkerClusterfck () {
+    return new Promise((resolve, reject) => {
+      queue()
+        .defer(text, 'dist/clusterfck-worker.js')
+        .await((error, clusterfckWorker) => {
+          if (error) { logger.error(error); reject(Error(error)); }
+
+          const worker = new Worker(
+            window.URL.createObjectURL(
+              new Blob([clusterfckWorker], { type: 'text/javascript' })
+            )
+          );
+
+          resolve(worker);
+        });
+    });
+  }
+
+  /**
+   * Load and create t-SNE worker.
+   */
+  createWorkerTsne () {
+    return new Promise((resolve, reject) => {
+      queue()
+        .defer(text, 'dist/tsne-worker.js')
+        .await((error, tSneWorker) => {
+          if (error) { logger.error(error); reject(Error(error)); }
+
+          const worker = new Worker(
+            window.URL.createObjectURL(
+              new Blob([tSneWorker], { type: 'text/javascript' })
+            )
+          );
+
+          resolve(worker);
+        });
+    });
   }
 
   /**
@@ -2300,7 +2277,7 @@ export class Fragments {
     this.initWebGl();
     this.initEventListeners();
 
-    this.tSneWorker = this.createTsneWorker();
+    this.tSneWorker = this.createWorkerTsne();
 
     this.plotEl.appendChild(this.canvas);
 
@@ -3323,6 +3300,49 @@ export class Fragments {
    */
   render () {
     this.renderer.render(fgmState.scene, this.camera);
+  }
+
+  /**
+   * Scale pile.
+   *
+   * @param {number} wheelDelta - Wheel movement.
+   */
+  scalePile (pile, wheelDelta) {
+    const force = Math.log(Math.abs(wheelDelta));
+    const momentum = wheelDelta > 0 ? force : -force;
+
+    const newScale = Math.min(
+      Math.max(
+        pile.scaleMouseEntered,
+        pile.scale * (1 + (0.1 * momentum))
+      ),
+      pile.scaleMouseEntered * 5
+    );
+
+    pile.setScale(newScale).frameCreate().draw(true);
+  }
+
+  /**
+   * Scroll the snippets plot.
+   *
+   * @param {number} wheelDelta - Wheel movement.
+   */
+  scrollView (wheelDelta) {
+    let cameraPosY = this.camera.position.y;
+
+    if (wheelDelta > 0) {
+      cameraPosY = Math.min(
+        cameraPosY + wheelDelta, this.scrollLimitTop
+      );
+    } else {
+      cameraPosY = Math.max(
+        cameraPosY + wheelDelta, this.scrollLimitBottom
+      );
+    }
+
+    this.scrollTop = cameraPosY - this.scrollLimitTop;
+
+    this.camera.position.setY(cameraPosY);
   }
 
   /**

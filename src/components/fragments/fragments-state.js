@@ -66,7 +66,8 @@ const State = {
   strandArrowRects: [],
   strandArrowRectsTrash: [],
   trashIsActive: false,
-  visiblePileTools: []
+  visiblePileTools: [],
+  workerClusterfck: undefined
 };
 
 const state = Object.create(State);
