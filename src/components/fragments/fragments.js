@@ -154,7 +154,6 @@ const sortAsc = (a, b) => {
   return 1;
 };
 
-
 @inject(ChromInfo, EventAggregator, States)
 export class Fragments {
   @bindable baseElIsInit = false;
@@ -360,6 +359,8 @@ export class Fragments {
       });
 
     this.checkBaseElIsInit();
+
+    fgmState.render = this.render;
   }
 
   attached () {
@@ -890,17 +891,17 @@ export class Fragments {
     });
   }
 
-  /**
-   * [calculatePiles description]
-   *
-   * @param {[type]} value - [description]
-   * @return {[type]} [description]
-   */
-  calculatePiles (value) {
-    this.isLoading = true;
+  // /**
+  //  * [calculatePiles description]
+  //  *
+  //  * @param {[type]} value - [description]
+  //  * @return {[type]} [description]
+  //  */
+  // calculatePiles (value) {
+  //   this.isLoading = true;
 
-    this.setPiling(calculateClusterPiling(value, fgmState.matrices, this.dMat));
-  }
+  //   this.setPiling(calculateClusterPiling(value, fgmState.matrices, this.dMat));
+  // }
 
   /**
    * Handle click events
@@ -927,9 +928,6 @@ export class Fragments {
     } else if (fgmState.hoveredGapPile) {
       this.pileBackwards(fgmState.hoveredGapPile);
       fgmState.hoveredGapPile = undefined;
-    } else if (this.hoveredMatrix) {
-      this.splitPile(this.hoveredMatrix);
-      this.hoveredMatrix = undefined;
     } else if (this.hoveredStrandArrow) {
       this.hoveredStrandArrow.userData.pile.flipMatrix(
         this.hoveredStrandArrow.userData.axis
@@ -1019,7 +1017,6 @@ export class Fragments {
     event.preventDefault();
 
     this.hoveredTool = undefined;
-    this.hoveredMatrix = undefined;
     this.hoveredStrandArrow = undefined;
 
     fgmState.scene.updateMatrixWorld();
@@ -2438,7 +2435,7 @@ export class Fragments {
         measures[measure] = fragment[this.dataMeasures[measure]];
       });
 
-      fgmState.matrices.push(new Matrix(
+      const matrix = new Matrix(
         index,
         fragment[this.dataIdxMatrix],
         {
@@ -2454,7 +2451,10 @@ export class Fragments {
           strand2: fragment[this.dataIdxStrand2]
         },
         measures
-      ));
+      );
+
+      fgmState.matrices.push(matrix);
+      fgmState.matricesIdx[matrix.id] = matrix;
     });
   }
 
@@ -2851,26 +2851,16 @@ export class Fragments {
       const absY = this.relToAbsPositionY(this.mouse.y);
 
       if (absY > y + fgmState.hoveredPile.matrixWidthHalf) {
-        let d = absY - (y + fgmState.hoveredPile.matrixWidthHalf);
-        let i = Math.floor(d / fgmState.hoveredPile.previewSize);
+        const deltaY = absY - (y + fgmState.hoveredPile.matrixWidthHalf);
+        const index = Math.floor(deltaY / fgmState.hoveredPile.previewSize);
 
         fgmState.hoveredPile.showSingle(
-          fgmState.hoveredPile.getMatrix(i)
+          fgmState.hoveredPile.getMatrixPreview(index)
         );
-        this.hoveredMatrix = fgmState.hoveredPile.getMatrix(i);
       } else {
         fgmState.hoveredPile.showSingle();
-        // this.resetHighlightedPile();
       }
     }
-
-    // Check if we're hovering a gap
-    // if (this.relToAbsPositionX(this.mouse.x) > x + this.matrixWidthHalf) {
-    //   fgmState.hoveredGapPile = fgmState.hoveredPile;
-    // } else if (fgmState.hoveredGapPile) {
-    //   fgmState.hoveredGapPile.draw();
-    //   fgmState.hoveredGapPile = undefined;
-    // }
 
     this.hoveredCell = undefined;
 
@@ -3356,24 +3346,24 @@ export class Fragments {
     this.camera.position.setY(cameraPosY);
   }
 
-  /**
-   * [setPileMode description]
-   *
-   * @param {[type]} mode  - [description]
-   * @param {[type]} piles - [description]
-   */
-  setPileMode (mode, piles) {
-    piles.forEach((pile) => { pile.setCoverMatrixMode(mode); });
-  }
+  // /**
+  //  * [setPileMode description]
+  //  *
+  //  * @param {[type]} mode  - [description]
+  //  * @param {[type]} piles - [description]
+  //  */
+  // setPileMode (mode, piles) {
+  //   piles.forEach((pile) => { pile.setCoverMatrixMode(mode); });
+  // }
 
-  /**
-   * [setSimilarityPiling description]
-   *
-   * @param {[type]} value - [description]
-   */
-  setSimilarityPiling (value) {
-    this.calculatePiles(value);
-  }
+  // /**
+  //  * [setSimilarityPiling description]
+  //  *
+  //  * @param {[type]} value - [description]
+  //  */
+  // setSimilarityPiling (value) {
+  //   this.calculatePiles(value);
+  // }
 
   /**
    * Helper method for selecting selected measures
@@ -3389,57 +3379,57 @@ export class Fragments {
     });
   }
 
-  /**
-   * [setPiling description]
-   *
-   * @param {[type]} newPiling - [description]
-   */
-  setPiling (newPiling) {
-    this.piles.forEach(pile => this.destroyPile(pile));
+  // /**
+  //  * [setPiling description]
+  //  *
+  //  * @param {[type]} newPiling - [description]
+  //  */
+  // setPiling (newPiling) {
+  //   this.piles.forEach(pile => this.destroyPile(pile));
 
-    this.piles = [];
+  //   this.piles = [];
 
-    let matrices = [];
-    let l = 0;
+  //   let matrices = [];
+  //   let l = 0;
 
-    for (let i = 1; i <= newPiling.length; i++) {
-      matrices = [];
+  //   for (let i = 1; i <= newPiling.length; i++) {
+  //     matrices = [];
 
-      if (i < newPiling.length) {
-        for (let j = l; j < newPiling[i]; j++) {
-          matrices.push(matrices[j]);
-        }
-      } else if (l < matrices.length) {
-        for (let j = l; j < matrices.length; j++) {
-          matrices.push(matrices[j]);
-        }
-      } else {
-        break;
-      }
+  //     if (i < newPiling.length) {
+  //       for (let j = l; j < newPiling[i]; j++) {
+  //         matrices.push(matrices[j]);
+  //       }
+  //     } else if (l < matrices.length) {
+  //       for (let j = l; j < matrices.length; j++) {
+  //         matrices.push(matrices[j]);
+  //       }
+  //     } else {
+  //       break;
+  //     }
 
-      const newPile = new Pile(
-        this.piles.length,
-        fgmState.scene,
-        fgmState.scale,
-        this.fragDims
-      );
+  //     const newPile = new Pile(
+  //       this.piles.length,
+  //       fgmState.scene,
+  //       fgmState.scale,
+  //       this.fragDims
+  //     );
 
-      this.piles.push(newPile);
-      newPile.addMatrices(matrices);
+  //     this.piles.push(newPile);
+  //     newPile.addMatrices(matrices);
 
-      this.sortByOriginalOrder(newPile);
-      newPile.setCoverMatrixMode(this.coverDispMode);
-      newPile.draw();
+  //     this.sortByOriginalOrder(newPile);
+  //     newPile.setCoverMatrixMode(this.coverDispMode);
+  //     newPile.draw();
 
-      l = newPiling[i];
-    }
+  //     l = newPiling[i];
+  //   }
 
-    this.isLoading = true;
+  //   this.isLoading = true;
 
-    this.updateLayout().then(() => {
-      this.render();
-    });
-  }
+  //   this.updateLayout().then(() => {
+  //     this.render();
+  //   });
+  // }
 
   /**
    * [setNodeOrder description]
@@ -3680,28 +3670,31 @@ export class Fragments {
       const stateHgl = state.higlass;
 
       const update = {};
+      const ready = [];
 
-      this.updatePlotSize(state.columns, update);
-      this.updateHglSelectionView(stateHgl.config);
-      this.updateHglSelectionViewDomains(state.higlass.selectionView, update);
+      ready.push(this.updatePlotSize(state.columns, update));
+      ready.push(this.updateHglSelectionView(stateHgl.config));
+      ready.push(this.updateHglSelectionViewDomains(state.higlass.selectionView, update));
 
-      this.updateAnimation(stateFgm.animation);
-      this.updateArrangeMeasures(stateFgm.arrangeMeasures, update);
-      this.updateCoverDispMode(stateFgm.coverDispMode, update);
-      this.updateCellSize(stateFgm.cellSize, update);
-      this.updateConfig(stateFgm.config);
-      this.updateGridSize(stateFgm.gridSize, update);
-      this.updateGridCellSizeLock(stateFgm.gridCellSizeLock, update);
-      this.updateHilbertCurve(stateFgm.hilbertCurve, update);
-      this.updateHglSubSelection(stateFgm.higlassSubSelection, update);
-      this.updateLassoIsRound(stateFgm.lassoIsRound);
-      this.updateMatrixColors(stateFgm.matricesColors, update);
-      this.updateMatrixFrameEncoding(stateFgm.matrixFrameEncoding, update, init);
-      this.updateMatrixOrientation(stateFgm.matrixOrientation, update);
-      this.updatePiles(stateFgm.piles, update);
-      this.updateShowSpecialCells(stateFgm.showSpecialCells, update);
+      ready.push(this.updateAnimation(stateFgm.animation));
+      ready.push(this.updateArrangeMeasures(stateFgm.arrangeMeasures, update));
+      ready.push(this.updateCoverDispMode(stateFgm.coverDispMode, update));
+      ready.push(this.updateCellSize(stateFgm.cellSize, update));
+      ready.push(this.updateConfig(stateFgm.config));
+      ready.push(this.updateGridSize(stateFgm.gridSize, update));
+      ready.push(this.updateGridCellSizeLock(stateFgm.gridCellSizeLock, update));
+      ready.push(this.updateHilbertCurve(stateFgm.hilbertCurve, update));
+      ready.push(this.updateHglSubSelection(stateFgm.higlassSubSelection, update));
+      ready.push(this.updateLassoIsRound(stateFgm.lassoIsRound));
+      ready.push(this.updateMatrixColors(stateFgm.matricesColors, update));
+      ready.push(this.updateMatrixFrameEncoding(stateFgm.matrixFrameEncoding, update, init));
+      ready.push(this.updateMatrixOrientation(stateFgm.matrixOrientation, update));
+      ready.push(this.updatePiles(stateFgm.piles, update));
+      ready.push(this.updateShowSpecialCells(stateFgm.showSpecialCells, update));
 
-      this.updateRendering(update);
+      Promise.all(ready).finally(() => {
+        this.updateRendering(update);
+      });
     } catch (e) {
       logger.error('State is invalid', e);
     }
@@ -3768,7 +3761,7 @@ export class Fragments {
   updateAnimation (animation) {
     fgmState.animation = animation;
 
-    return 0;
+    return Promise.resolve();
   }
 
   /**
@@ -3814,6 +3807,8 @@ export class Fragments {
     update.piles = true;
     update.pileFramesRecreate = true;
     update.layout = true;
+
+    return Promise.resolve();
   }
 
   /**
@@ -3835,6 +3830,8 @@ export class Fragments {
     if (this.isInitialized) {
       this.setPileMode(this.coverDispMode, this.piles);
     }
+
+    return Promise.resolve();
   }
 
   /**
@@ -3865,6 +3862,8 @@ export class Fragments {
       this.config = newConfig;
       this.loadData(this.config);
     }
+
+    return Promise.resolve();
   }
 
   /**
@@ -3881,6 +3880,8 @@ export class Fragments {
     update.grid = true;
     update.layout = true;
     update.scrollLimit = true;
+
+    return Promise.resolve();
   }
 
   /**
@@ -3891,6 +3892,8 @@ export class Fragments {
    */
   updateGridCellSizeLock (gridCellSizeLock, update) {
     this.gridCellSizeLock = gridCellSizeLock;
+
+    return Promise.resolve();
   }
 
   /**
@@ -3909,6 +3912,8 @@ export class Fragments {
     update.grid = true;
     update.layout = true;
     update.pileFramesRecreate = true;
+
+    return Promise.resolve();
   }
 
   /**
@@ -3922,6 +3927,8 @@ export class Fragments {
     } catch (e) {
       this.hglSelectionView = false;
     }
+
+    return Promise.resolve();
   }
 
   /**
@@ -3946,6 +3953,8 @@ export class Fragments {
     // update.pileFrames = true;
     // update.layout = true;
     // update.scrollLimit = true;
+
+    return Promise.resolve();
   }
 
   /**
@@ -3965,6 +3974,8 @@ export class Fragments {
     update.pileFrames = true;
     update.layout = true;
     update.scrollLimit = true;
+
+    return Promise.resolve();
   }
 
   /**
@@ -3974,6 +3985,8 @@ export class Fragments {
    */
   updateLassoIsRound (lassoIsRound) {
     this.lassoIsRound = lassoIsRound;
+
+    return Promise.resolve();
   }
 
   /**
@@ -4061,6 +4074,8 @@ export class Fragments {
       .map(color => ({ id: color, name: this.wurstCaseToNice(color) }));
 
     update.piles = true;
+
+    return Promise.resolve();
   }
 
   /**
@@ -4079,6 +4094,8 @@ export class Fragments {
     fgmState.matrixFrameEncoding = encoding;
 
     update.pileFrames = true;
+
+    return Promise.resolve();
   }
 
   /**
@@ -4095,6 +4112,8 @@ export class Fragments {
     fgmState.matrixOrientation = orientation;
 
     update.piles = true;
+
+    return Promise.resolve();
   }
 
   /**
@@ -4116,6 +4135,8 @@ export class Fragments {
     this.pileConfigs = pileConfigs;
     this.isDispersable = false;
 
+    const ready = [];
+
     Object.keys(pileConfigs)
       .map(pileId => ({
         id: pileId,
@@ -4130,11 +4151,11 @@ export class Fragments {
             this.destroyAltPile(pileConfig.id);
           }
 
-          pile.setMatrices(
+          ready.push(pile.setMatrices(
             pileConfig.matrixIds
               .map(matrixId => fgmState.matrices[matrixId])
               .filter(matrix => matrix.visible)
-          );
+          ));
 
           if (!this.isDispersable) {
             this.isDispersable = (
@@ -4188,6 +4209,8 @@ export class Fragments {
     update.layout = true;
     update.scrollLimit = true;
     update.drawPilesAfter = true;
+
+    return Promise.all(ready);
   }
 
   /**
@@ -4205,6 +4228,8 @@ export class Fragments {
 
     update.grid = true;
     update.webgl = true;
+
+    return Promise.resolve();
   }
 
   /**
@@ -4221,6 +4246,8 @@ export class Fragments {
     fgmState.showSpecialCells = showSpecialCells;
 
     update.piles = true;
+
+    return Promise.resolve();
   }
 
   /**
@@ -4243,6 +4270,8 @@ export class Fragments {
 
       this.renderer.setSize(this.plotElDim.width, this.plotElDim.height);
     }
+
+    return Promise.resolve();
   }
 
   /**

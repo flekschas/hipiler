@@ -8,6 +8,8 @@ export const MENU_PADDING = 3;
 
 export const PREVIEW_LOW_QUAL_THRESHOLD = 0.5;
 
+export const PREVIEW_NUM_CLUSTERS = 8;
+
 export const STRAND_ARROW_LENGTH = 10;
 
 export const STRAND_ARROW_HEAD_LENGTH = 5;

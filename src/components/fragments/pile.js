@@ -1,6 +1,7 @@
 // Aurelia
 import { LogManager } from 'aurelia-framework';
 
+// Third party
 import {
   ArrowHelper,
   Box3,
@@ -36,6 +37,7 @@ import {
   MENU_LABEL_SPACING,
   MENU_PADDING,
   PREVIEW_LOW_QUAL_THRESHOLD,
+  PREVIEW_NUM_CLUSTERS,
   STRAND_ARROW_LENGTH,
   STRAND_ARROW_HEAD_LENGTH,
   STRAND_ARROW_HEAD_WIDTH
@@ -69,6 +71,7 @@ export default class Pile {
     this.cellFrame = createRectFrame(
       this.cellSize, this.cellSize, 0xff0000, 1
     );
+    this.clustersAvgMatrices = [];
     this.color = pileColors.gray;
     this.colored = false;
     this.colorIndicator = {};
@@ -206,26 +209,49 @@ export default class Pile {
 
     this.assessMeasures();
     this.frameUpdate(fgmState.matrixFrameEncoding);
-    this.calculateAvgMatrix();
+    this.calculateAvgMatrix(this.pileMatrices, this.avgMatrix);
     this.calculateCoverMatrix();
+    this.matrixClusters = this.calculateKMeansCluster();
 
-    return this;
+    return this.matrixClusters;
+  }
+
+  /**
+   * Assess the average measure.
+   */
+  assessMeasures () {
+    const numMatrices = this.pileMatrices.length;
+
+    fgmState.measures.map(measure => measure.id).forEach((measureId) => {
+      try {
+        this.measures[measureId] = this.pileMatrices
+          .map(matrix => matrix.measures[measureId])
+          .reduce((acc, value) => acc + value, 0) / numMatrices;
+      } catch (e) {
+        logger.error(`Measure (${measureId}) is unknown`);
+      }
+    });
   }
 
   /**
    * Calculate a-per pile average matrix.
-
-   * @return {object} Self.
+   *
+   * @param {array} matrices - Matrices to be flattened.
+   * @return {array} Flat Float32 average matrix.
    */
-  calculateAvgMatrix () {
-    const numMatrices = this.pileMatrices.length;
+  calculateAvgMatrix (matrices = this.pileMatrices, avgMatrix) {
+    if (!avgMatrix) {
+      avgMatrix = new Float32Array(this.dims ** 2);
+    }
+
+    const numMatrices = matrices.length;
 
     if (numMatrices > 1) {
       for (let i = 0; i < this.dims; i++) {
         for (let j = 0; j < this.dims; j++) {
           this.calculateCellMean(
-            this.avgMatrix,
-            this.pileMatrices,
+            avgMatrix,
+            matrices,
             i,
             j,
             numMatrices,
@@ -235,12 +261,12 @@ export default class Pile {
       }
     } else {
       // Copy first pile matrix
-      Matrix.flatten(this.pileMatrices[0].matrix).forEach((cell, index) => {
-        this.avgMatrix[index] = cell;
+      Matrix.flatten(matrices[0].matrix).forEach((cell, index) => {
+        avgMatrix[index] = cell;
       });
     }
 
-    return this;
+    return avgMatrix;
   }
 
   /**
@@ -359,10 +385,7 @@ export default class Pile {
           }
         }
       } else {
-        // Copy the average matrix from `this.avgMatrix`
-        // this.avgMatrix.forEach((row, index) => {
-        //   this.coverMatrix[index] = row.slice();
-        // });
+        // Copy the average matrix from `this.avgMatrix`.
         for (let i = 0; i < this.dims; i++) {
           this.coverMatrix[i] = this.avgMatrix.slice(
             i * this.dims, (i + 1) * this.dims
@@ -379,20 +402,73 @@ export default class Pile {
     return this;
   }
 
-  /**
-   * Assess the average measure.
-   */
-  assessMeasures () {
-    const numMatrices = this.pileMatrices.length;
+  convertPileMatrixToMatrix (pileMatrix) {
+    const matrix = Matrix.flatten(pileMatrix.matrix);
+    matrix.id = pileMatrix.id;
 
-    fgmState.measures.map(measure => measure.id).forEach((measureId) => {
-      try {
-        this.measures[measureId] = this.pileMatrices
-          .map(matrix => matrix.measures[measureId])
-          .reduce((acc, value) => acc + value, 0) / numMatrices;
-      } catch (e) {
-        logger.error(`Measure (${measureId}) is unknown`);
+    return matrix;
+  }
+
+  /**
+   * Calculate K-means of matrices on the piles.
+   *
+   * @description
+   * The clusters are non-deterministic and depend on a random start point.
+   * This can optimized in the future by calculating the centroids in a
+   * deterministic fashion.
+   */
+  calculateKMeansCluster () {
+    return new Promise((resolve, reject) => {
+      if (this.pileMatrices.length <= PREVIEW_NUM_CLUSTERS) {
+        this.isMatricesClustered = false;
+        this.clustersAvgMatrices = this.pileMatrices.map(
+          pileMatrix => Matrix.flatten(pileMatrix.matrix)
+        );
+        return resolve();
       }
+
+      const pileMatrices = this.pileMatrices.map(
+        pileMatrix => this.convertPileMatrixToMatrix(pileMatrix)
+      );
+
+      fgmState.workerClusterfck
+        .then((worker) => {
+          worker.onmessage = (event) => {
+            if (event.data.error) {
+              logger.error('K-means clustering failed');
+              return reject(Error(event.data.error));
+            }
+
+            this.clusters = event.data.clusters;
+
+            this.clustersAvgMatrices = this.clusters.map(
+              cluster => this.calculateAvgMatrix(
+                cluster.map(
+                  matrixId => fgmState.matricesIdx[matrixId]
+                )
+              )
+            );
+
+            this.isMatricesClustered = true;
+            resolve(this.clustersAvgMatrices);
+
+            // Make sure the worker really stops
+            worker.terminate();
+          };
+
+          worker.postMessage({
+            numClusters: PREVIEW_NUM_CLUSTERS,
+            data: pileMatrices
+          });
+        })
+        .catch((error) => {
+          this.isMatricesClustered = false;
+          logger.error('K-means clustering failed', error);
+          this.clustersAvgMatrices = this.pileMatrices.map(
+            pileMatrix => Matrix.flatten(pileMatrix.matrix)
+          );
+          return resolve();
+        });
     });
   }
 
@@ -467,8 +543,6 @@ export default class Pile {
     if (this.pileMatrices.length > 1) {
       this.drawPreviews(positions, colors);
     }
-
-    // this.drawGap(positions, colors);
 
     // CREATE + ADD MESH
     this.geometry.addAttribute(
@@ -865,10 +939,6 @@ export default class Pile {
       labelText = idReadible;
     } else {
       labelText = `${idReadible} (${numPiles})`;
-
-      if (this.singleMatrix) {
-        labelText += `: ${this.singleMatrix.id + 1}`;
-      }
     }
 
     const extraOffset = this.isColored ? COLOR_INDICATOR_HEIGHT + 2 : 0;
@@ -906,28 +976,30 @@ export default class Pile {
    * @param {array} colors - Colors array to be changed in-place.
    */
   drawPreviews (positions, colors) {
-    const totalHeight = this.previewSize * (this.pileMatrices.length + 1);
+    const numPrevies = Math.min(PREVIEW_NUM_CLUSTERS, this.pileMatrices.length);
+
+    let totalHeight = this.previewSize * numPrevies;
 
     // Background
     addBufferedRect(
       positions,
       0,
-      this.matrixWidthHalf + (totalHeight / 2) + 1,
+      this.matrixWidthHalf + (totalHeight / 2),
       0.5,
       this.matrixWidth,
-      totalHeight + 2,
+      totalHeight,
       colors,
-      pileColors.gray(0.749019608)  // Gray light
+      [1, 1, 1]
     );
 
-    this.pileMatrices.forEach((pileMatrix, index) => {
-      let y = this.matrixWidthHalf + (this.previewSize * (index + 1));
+    this.clustersAvgMatrices.forEach((matrix, index) => {
+      let y = this.matrixWidthHalf + (this.previewSize * (index + 0.75));
 
       for (let i = 0; i < this.dims; i++) {
         let value = 0;
 
         for (let j = 0; j < this.dims; j++) {
-          value += pileMatrix.matrix[j][i];
+          value += matrix[(j * this.dims) + i];
         }
 
         if (value < -this.dims * PREVIEW_LOW_QUAL_THRESHOLD) {
@@ -947,9 +1019,9 @@ export default class Pile {
           positions,
           x,
           y,
-          1,
-          this.cellSize,
-          this.previewSize - this.previewSpacing,
+          1, // z
+          this.cellSize,  // width
+          this.previewSize - this.previewSpacing,  // height
           colors,
           this.getColor(value, fgmState.showSpecialCells)
         );
@@ -1291,6 +1363,33 @@ export default class Pile {
   }
 
   /**
+   * Get a preview matrix.
+   *
+   * @param {number} index - Index.
+   * @return {array} Matrix
+   */
+  getMatrixPreview (index) {
+    if (this.isMatricesClustered) {
+      if (index < PREVIEW_NUM_CLUSTERS) {
+        const matrix = [];
+        for (let i = 0; i < this.dims; i++) {
+          matrix.push(this.clustersAvgMatrices[index].slice(
+            i * this.dims, (i + 1) * this.dims
+          ));
+        }
+
+        return {
+          id: '__cluster__',
+          matrix
+        };
+      }
+      return;
+    }
+
+    return this.pileMatrices[index];
+  }
+
+  /**
    * Get the position of a matrix in the pile.
    *
    * @param {number} matrix - Matrix.
@@ -1412,7 +1511,7 @@ export default class Pile {
    * pile visible. redraw the remaining labels at the correct positions.
    *
    * @param {array} matrices - Array of matrices.
-   * @return {object} Self.
+   * @return {object} Promise resolving to true when computation is done.
    */
   removeMatrices (matrices) {
     matrices.forEach((matrix) => {
@@ -1425,10 +1524,11 @@ export default class Pile {
 
     this.assessMeasures();
     this.frameUpdate(fgmState.matrixFrameEncoding);
-    this.calculateAvgMatrix();
+    this.calculateAvgMatrix(this.pileMatrices, this.avgMatrix);
     this.calculateCoverMatrix();
+    this.matrixClusters = this.calculateKMeansCluster();
 
-    return this;
+    return this.matrixClusters;
   }
 
   /**
@@ -1487,10 +1587,11 @@ export default class Pile {
 
     this.assessMeasures();
     this.frameUpdate(fgmState.matrixFrameEncoding);
-    this.calculateAvgMatrix();
+    this.calculateAvgMatrix(this.pileMatrices, this.avgMatrix);
     this.calculateCoverMatrix();
+    this.matrixClusters = this.calculateKMeansCluster();
 
-    return this;
+    return this.matrixClusters;
   }
 
   /**
