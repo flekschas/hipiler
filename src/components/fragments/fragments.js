@@ -108,7 +108,6 @@ import Matrix from 'components/fragments/matrix';
 import {
   calculateClusterPiling,
   calculateDistances,
-  createChLine,
   createChMap,
   createRectFrame
 } from 'components/fragments/fragments-utils';
@@ -185,6 +184,7 @@ export class Fragments {
     this.dragActive = false;
     this.openedPileRoot = undefined;
     this.openedPileMatrices = [];
+    this.pilesZoomed = {};
     this.plotWindowCss = {};
     this.scrollTop = 0;
     this.shiftDown = false;
@@ -939,6 +939,10 @@ export class Fragments {
     if (fgmState.hoveredPile) {
       // Re-draw hovered pile to show menu.
       fgmState.hoveredPile.draw();
+
+      if (fgmState.hoveredPile.scale > 1) {
+        this.pilesZoomed[fgmState.hoveredPile.id] = true;
+      }
     }
 
     this.render();
@@ -971,9 +975,11 @@ export class Fragments {
     if (fgmState.hoveredPile) {
       this.dispersePilesHandler([fgmState.hoveredPile]);
       fgmState.hoveredPile = undefined;
-    } else if (this.pileZoomed) {
-      this.pileZoomed.setScale().frameCreate().draw();
-      this.pileZoomed = undefined;
+    } else {
+      Object.keys(this.pilesZoomed).forEach((pileId) => {
+        fgmState.pilesIdx[pileId].setScale().frameCreate().draw();
+      });
+      this.pilesZoomed = {};
     }
   }
 
@@ -1239,23 +1245,56 @@ export class Fragments {
   canvasMouseWheelHandler (event) {
     event.preventDefault();
 
+    if (!this.isLayout1d && fgmState.hoveredPile) {
+      this.scalePile(fgmState.hoveredPile, event.wheelDelta);
+    } else {
+      this.scrollView(event.wheelDelta);
+    }
+
+    this.render();
+  }
+
+  /**
+   * Scale pile.
+   *
+   * @param {number} wheelDelta - Wheel movement.
+   */
+  scalePile (pile, wheelDelta) {
+    const force = Math.log(Math.abs(wheelDelta));
+    const momentum = wheelDelta > 0 ? force : -force;
+
+    const newScale = Math.min(
+      Math.max(
+        pile.scaleMouseEntered,
+        pile.scale * (1 + (0.1 * momentum))
+      ),
+      pile.scaleMouseEntered * 5
+    );
+
+    pile.setScale(newScale).frameCreate().draw(true);
+  }
+
+  /**
+   * Scroll the snippets plot.
+   *
+   * @param {number} wheelDelta - Wheel movement.
+   */
+  scrollView (wheelDelta) {
     let cameraPosY = this.camera.position.y;
 
-    if (event.wheelDelta > 0) {
+    if (wheelDelta > 0) {
       cameraPosY = Math.min(
-        cameraPosY + event.wheelDelta, this.scrollLimitTop
+        cameraPosY + wheelDelta, this.scrollLimitTop
       );
     } else {
       cameraPosY = Math.max(
-        cameraPosY + event.wheelDelta, this.scrollLimitBottom
+        cameraPosY + wheelDelta, this.scrollLimitBottom
       );
     }
 
     this.scrollTop = cameraPosY - this.scrollLimitTop;
 
     this.camera.position.setY(cameraPosY);
-
-    this.render();
   }
 
   /**
@@ -1655,6 +1694,44 @@ export class Fragments {
     );
 
     fgmState.scene.add(this.lassoObject);
+  }
+
+  /**
+   * When in 2D, draw area of the pile by indicating the pile matrix locations.
+   *
+   * @param {number} piles - Piles for which the area should be drawn.
+   */
+  drawPilesArea (piles) {
+    piles.forEach((pile) => {
+      if (pile.pileMatrices.length > 1) {
+        const coords = [];
+
+        pile.pileMatrices.forEach((matrix) => {
+          coords.push(this.getLayoutPosition2D(
+            matrix,
+            this.arrangeMeasures[0],
+            this.arrangeMeasures[1],
+            true,
+            true
+          ));
+        });
+
+        if (pile.pileMatrices.length > 1) {
+          const convexHull = hull(coords, 100);
+          this.pileArea = createChMap(
+            coords,
+            convexHull,
+            PILE_AREA_BG,
+            PILE_AREA_POINTS,
+            PILE_AREA_BORDER
+          );
+        }
+
+        this.pileArea.position.set(0, 0, Z_HIGHLIGHT_AREA);
+
+        fgmState.scene.add(this.pileArea);
+      }
+    });
   }
 
   /**
@@ -2775,6 +2852,8 @@ export class Fragments {
 
     fgmState.hoveredPile = pileMesh.pile;
 
+    fgmState.hoveredPile.elevateTo(Z_HIGHLIGHT);
+
     if (!this.lassoIsActive) {
       this.highlightPile(fgmState.hoveredPile);
     }
@@ -2832,49 +2911,22 @@ export class Fragments {
       fgmState.previousHoveredPile !== fgmState.hoveredPile &&
       !this.isLassoActive
     ) {
-      fgmState.hoveredPile.elevateTo(Z_HIGHLIGHT);
+      if (this.pileArea) { fgmState.scene.remove(this.pileArea); }
+
       this.drawPilesArea([fgmState.hoveredPile]);
+      fgmState.hoveredPile.scaleMouseEntered = fgmState.hoveredPile.scale;
+    }
+
+    if (
+      (!fgmState.hoveredPile && fgmState.previousHoveredPile) &&
+      !this.pilesZoomed[fgmState.previousHoveredPile.id]
+    ) {
+      fgmState.previousHoveredPile.setScale().frameCreate().draw(true);
     }
 
     fgmState.previousHoveredPile = fgmState.hoveredPile;
 
     this.render();
-  }
-
-  /**
-   * When in 2D, draw area of the pile by indicating the pile matrix locations.
-   */
-  drawPilesArea (piles) {
-    piles.forEach((pile) => {
-      if (pile.pileMatrices.length > 1) {
-        const coords = [];
-
-        pile.pileMatrices.forEach((matrix) => {
-          coords.push(this.getLayoutPosition2D(
-            matrix,
-            this.arrangeMeasures[0],
-            this.arrangeMeasures[1],
-            true,
-            true
-          ));
-        });
-
-        if (pile.pileMatrices.length > 1) {
-          const convexHull = hull(coords);
-          this.matrixArea = createChMap(
-            coords,
-            convexHull,
-            PILE_AREA_BG,
-            PILE_AREA_POINTS,
-            PILE_AREA_BORDER
-          );
-        }
-
-        this.matrixArea.position.set(0, 0, Z_HIGHLIGHT_AREA);
-
-        fgmState.scene.add(this.matrixArea);
-      }
-    });
   }
 
   /**
@@ -2897,6 +2949,10 @@ export class Fragments {
         fgmState.previousHoveredPile.pileMatrices.map(matrix => matrix.id)
       );
 
+      if (!this.pilesZoomed[fgmState.previousHoveredPile.id]) {
+        fgmState.previousHoveredPile.setScale().frameCreate().draw(true);
+      }
+
       fgmState.previousHoveredPile.elevateTo(Z_BASE);
       fgmState.previousHoveredPile.showSingle(undefined);
       fgmState.previousHoveredPile.setCoverMatrixMode(this.coverDispMode);
@@ -2905,9 +2961,9 @@ export class Fragments {
       fgmState.previousHoveredPile = undefined;
     }
 
-    if (this.matrixArea) {
-      fgmState.scene.remove(this.matrixArea);
-      this.matrixArea = undefined;
+    if (this.pileArea) {
+      fgmState.scene.remove(this.pileArea);
+      this.pileArea = undefined;
     }
   }
 

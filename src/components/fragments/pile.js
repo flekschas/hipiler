@@ -838,10 +838,7 @@ export default class Pile {
         }
 
         button.rect.position.set(x, y, Z_MENU);
-
-        button.label.position.set(
-          -(button.width / 2) + 2, -4, 0
-        );
+        button.label.position.set(-(button.width / 2) + 2, -4, 0);
 
         fgmState.visiblePileTools.push(button.rect);
         fgmState.scene.add(button.rect);
