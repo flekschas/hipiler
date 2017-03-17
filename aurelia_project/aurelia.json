@@ -94,6 +94,14 @@
         }
       },
       {
+        "name": "clusterfck-worker.js",
+        "prepend": [
+          "node_modules/tayden-clusterfck/dist/clusterfck.js",
+          "src/utils/worker-clusterfck.js"
+        ],
+        "source": []
+      },
+      {
         "name": "tsne-worker.js",
         "prepend": [
           "node_modules/tsne-js/build/tsne.min.js",
