@@ -68,6 +68,7 @@ import {
   MARGIN_RIGHT,
   MARGIN_TOP,
   MATRIX_FRAME_ENCODING,
+  MATRIX_FRAME_THICKNESS_MAX,
   MATRIX_GAP_HORIZONTAL,
   MATRIX_GAP_VERTICAL,
   MATRIX_ORIENTATION_3_TO_5,
@@ -1927,7 +1928,7 @@ export class Fragments {
   }
 
   /**
-   * Get pile position for 2 dimenions
+   * Get pile position for 2 dimenions.
    *
    * @param {object} pile - Pile to be poisioned.
    * @param {string} measureX - Measure ID for X axis.
@@ -1941,9 +1942,19 @@ export class Fragments {
     let relX = this.scale2dX(pile.measures[measureX]);
     let relY = this.scale2dY(pile.measures[measureY]);
 
-    let x = 2 + (relX * (this.plotElDim.width - this.matrixWidth - 4));
+    const padding = MATRIX_FRAME_THICKNESS_MAX / 2;
 
-    let y = ((1 - relY) * (this.plotElDim.height - this.matrixWidth - 4));
+    let x = padding + (
+      relX * (
+        this.plotElDim.width - this.matrixWidth - MATRIX_FRAME_THICKNESS_MAX
+      )
+    );
+
+    let y = padding + (
+      (1 - relY) * (
+        this.plotElDim.height - this.matrixWidth - MATRIX_FRAME_THICKNESS_MAX
+      )
+    );
 
     if (abs) {
       x += this.matrixWidthHalf;
