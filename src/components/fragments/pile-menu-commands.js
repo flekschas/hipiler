@@ -22,7 +22,7 @@ export const BW = {
       name: 'Black & White',
       trigger (pile) {
         event.publish(
-          'decompose.fgm.pileAssignBW', { pile: pile }
+          'decompose.fgm.pileAssignBW', { pile }
         );
       }
     }
@@ -118,7 +118,8 @@ export const INSPECT = {
     name: 'Inspect',
     trigger (pile) {
       event.publish('decompose.fgm.inspectPile', pile);
-    }
+    },
+    closeOnClick: true
   }],
   stackedPileOnly: true
 };
@@ -128,7 +129,8 @@ export const DISPERSE = {
     name: 'Disperse',
     trigger (pile) {
       event.publish('decompose.fgm.dispersePiles', [pile]);
-    }
+    },
+    closeOnClick: true
   }],
   stackedPileOnly: true
 };
@@ -164,7 +166,7 @@ export const RECOVER = {
     trigger (pile) {
       store.dispatch(recoverPiles([pile.id]));
     },
-    closeOnClick: true,
+    closeOnClick: true
   }],
   trashedOnly: true
 };
@@ -185,7 +187,7 @@ export const STD = {
     name: 'Standard Dev.',
     trigger (pile) {
       event.publish(
-        'decompose.fgm.coverDispMode', { mode: MODE_STD, pile: pile }
+        'decompose.fgm.coverDispMode', { mode: MODE_STD, pile }
       );
     }
   }],
