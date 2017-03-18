@@ -3794,7 +3794,10 @@ export class Fragments {
 
       if (update.layout) {
         window.requestAnimationFrame(() => {
-          this.updateLayout().then(() => {
+          this.updateLayout(
+            this.piles,
+            fgmState.trashIsActive ? [] : this.arrangeMeasures
+          ).then(() => {
             this.render();
           });
         });
@@ -4254,7 +4257,9 @@ export class Fragments {
 
     this.fromDisperse = undefined;
 
-    this.assessMeasuresMax();
+    if (!fgmState.trashIsActive) {
+      this.assessMeasuresMax();
+    }
 
     update.layout = true;
     update.scrollLimit = true;
