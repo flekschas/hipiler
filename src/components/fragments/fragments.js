@@ -404,7 +404,7 @@ export class Fragments {
   get isDataClustered () {
     return (
       this.arrangeMeasures.length && this.arrangeMeasures[0][0] === '_'
-    ) || fgmState.trashIsActive;
+    ) && !fgmState.trashIsActive;
   }
 
   get isErrored () {
@@ -436,7 +436,7 @@ export class Fragments {
   }
 
   get isLayout2d () {
-    return fgmState.isLayout2d;
+    return fgmState.isLayout2d && !fgmState.trashIsActive;
   }
 
   get isLayout1d () {
@@ -1820,35 +1820,35 @@ export class Fragments {
     this.store.dispatch(setArrangeMeasures(arrangeMeasures.reverse()));
   }
 
-  /**
-   * [focusOn description]
-   *
-   * @param {[type]} nodes - [description]
-   * @return {[type]} [description]
-   */
-  focusOn (nodes) {
-    fgmState.focusNodes = nodes;
+  // /**
+  //  * [focusOn description]
+  //  *
+  //  * @param {[type]} nodes - [description]
+  //  * @return {[type]} [description]
+  //  */
+  // focusOn (nodes) {
+  //   fgmState.focusNodes = nodes;
 
-    // update sizes
-    this.matrixWidth = this.cellSize * fgmState.focusNodes.length;
-    this.matrixWidthHalf = this.matrixWidth / 2;
+  //   // update sizes
+  //   this.matrixWidth = this.cellSize * fgmState.focusNodes.length;
+  //   this.matrixWidthHalf = this.matrixWidth / 2;
 
-    fgmState.calculateDistanceMatrix();
+  //   fgmState.calculateDistanceMatrix();
 
-    // update highlight frame
-    fgmState.scene.remove(this.highlightFrame);
-    this.highlightFrame = createRectFrame(
-      this.matrixWidth, this.matrixWidth, 0x000000, HIGHLIGHT_FRAME_LINE_WIDTH
-    );
-    fgmState.scene.add(this.highlightFrame);
+  //   // update highlight frame
+  //   fgmState.scene.remove(this.highlightFrame);
+  //   this.highlightFrame = createRectFrame(
+  //     this.matrixWidth, this.matrixWidth, 0x000000, HIGHLIGHT_FRAME_LINE_WIDTH
+  //   );
+  //   fgmState.scene.add(this.highlightFrame);
 
-    // redraw
-    this.piles.forEach(pile => pile.frameUpdate());
-    this.redrawPiles();
-    this.updateLayout().then(() => {
-      this.render();
-    });
-  }
+  //   // redraw
+  //   this.piles.forEach(pile => pile.frameUpdate());
+  //   this.redrawPiles();
+  //   this.updateLayout().then(() => {
+  //     this.render();
+  //   });
+  // }
 
   /**
    * Toggle footer
@@ -3628,8 +3628,7 @@ export class Fragments {
     });
 
     fgmState.pilesTrash.forEach((pile) => {
-      pile.frameCreate();
-      pile.draw();
+      pile.frameUpdate().frameCreate().draw();
     });
 
     this.calcGrid();
