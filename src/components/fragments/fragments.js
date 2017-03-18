@@ -3979,6 +3979,7 @@ export class Fragments {
     update.grid = true;
     update.layout = true;
     update.pileFramesRecreate = true;
+    update.scrollLimit = true;
 
     return Promise.resolve();
   }
