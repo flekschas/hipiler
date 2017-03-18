@@ -943,8 +943,7 @@ export class Fragments {
     }
 
     if (fgmState.hoveredPile) {
-      // Re-draw hovered pile to show menu.
-      // fgmState.hoveredPile.draw();
+      this.highlightPile(fgmState.hoveredPile);
 
       if (fgmState.hoveredPile.scale > 1) {
         this.pilesZoomed[fgmState.hoveredPile.id] = true;
@@ -1110,18 +1109,26 @@ export class Fragments {
     event.preventDefault();
 
     if (fgmState.hoveredPile) {
-      console.log(
-        event,
-        fgmState.hoveredPile.x,
-        fgmState.hoveredPile.y
-      );
-      this.isPileMenuShow = true;
-      this.pileMenuPosition = {
-        top: event.clientY,
+      this.highlightPile(fgmState.hoveredPile);
+
+      this.pileMenuPile = fgmState.hoveredPile;
+      this.isPileMenuBottomUp = false;
+      const position = {
         right: document.body.clientWidth - event.clientX + this.matrixWidthHalf
       };
+
+      if (document.body.clientHeight - event.clientY < 100) {
+        position.bottom = document.body.clientHeight - event.clientY;
+        this.isPileMenuBottomUp = true;
+      } else {
+        position.top = event.clientY;
+      }
+
+      this.pileMenuPosition = position;
+      this.isPileMenuShow = true;
     } else {
       this.isPileMenuShow = false;
+      this.pileMenuPile = undefined;
     }
   }
 
@@ -2884,10 +2891,6 @@ export class Fragments {
 
     fgmState.hoveredPile.elevateTo(Z_HIGHLIGHT);
 
-    if (!this.lassoIsActive) {
-      this.highlightPile(fgmState.hoveredPile);
-    }
-
     // Preview single matrices of piles with multiple matrices
     if (fgmState.hoveredPile.pileMatrices.length > 1) {
       const absY = this.relToAbsPositionY(this.mouse.y);
@@ -2931,6 +2934,8 @@ export class Fragments {
       fgmState.previousHoveredPile !== fgmState.hoveredPile &&
       !this.isLassoActive
     ) {
+      this.highlightPile();
+
       if (this.pileArea) { fgmState.scene.remove(this.pileArea); }
 
       this.drawPilesArea([fgmState.hoveredPile]);

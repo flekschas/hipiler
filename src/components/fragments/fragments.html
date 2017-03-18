@@ -17,9 +17,11 @@
   </div>
 
   <pile-menu
-    is-active.bind="isPileMenuShow"
+    pile.bind="pileMenuPile"
     position.bind="pileMenuPosition"
-    align-left.bind="pileMenuAlignLeft"></pile-menu>
+    is-active.bind="isPileMenuShow"
+    is-align-left.bind="isPileMenuAlignLeft"
+    is-bottom-up.bind="isPileMenuBottomUp"></pile-menu>
 
   <div class="full-wh flex-c flex-d-c ${fgmState.animation ? 'is-animated' : ''}" ref="baseEl">
     <main class="flex-g-1 rel fragment-plot">
