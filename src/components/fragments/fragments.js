@@ -101,7 +101,6 @@ import Pile from 'components/fragments/pile';
 import Matrix from 'components/fragments/matrix';
 
 import {
-  calculateClusterPiling,
   calculateDistances,
   createChMap,
   createRectFrame
