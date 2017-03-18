@@ -219,6 +219,7 @@ export class Fragments {
     this.isPileInspection = false;
     this.mouseWentDown = false;
     fgmState.showSpecialCells = false;
+    this.pileMenuPosition = {};
 
     this.isLoading = true;
 
@@ -913,7 +914,7 @@ export class Fragments {
   /**
    * Handle click events
    */
-  canvasClickHandler () {
+  canvasClickHandler (event) {
     if (this.mouseIsDown) {
       return;
     }
@@ -943,11 +944,13 @@ export class Fragments {
 
     if (fgmState.hoveredPile) {
       // Re-draw hovered pile to show menu.
-      fgmState.hoveredPile.draw();
+      // fgmState.hoveredPile.draw();
 
       if (fgmState.hoveredPile.scale > 1) {
         this.pilesZoomed[fgmState.hoveredPile.id] = true;
       }
+    } else {
+      this.isPileMenuShow = false;
     }
 
     this.render();
@@ -1060,13 +1063,13 @@ export class Fragments {
   }
 
   /**
-   * Handle mouse clicks manually
+   * Handle left mouse clicks manually.
    *
    * @description
    * Single and double mouse clicks interfere with mouse up events when
    * listeneing to them separately.
    */
-  canvasMouseClickHandler () {
+  canvasMouseClickHandler (event) {
     this.mouseDownTimeDelta = Date.now() - this.mouseDownTime;
 
     if (this.mouseDownTimeDelta < CLICK_DELAY_TIME) {
@@ -1080,7 +1083,7 @@ export class Fragments {
           break;
 
         default:
-          this.canvasClickHandler();
+          this.canvasClickHandler(event);
           this.mouseClickTimeout = setTimeout(() => {
             this.mouseClickCounter = 0;
           }, DBL_CLICK_DELAY_TIME);
@@ -1095,6 +1098,30 @@ export class Fragments {
         }
         this.mouseDownTimeDelta = 0;
       }
+    }
+  }
+
+  /**
+   * Handle right mouse clicks.
+   *
+   * @param {object} event - Mouse click event.
+   */
+  canvasContentMenuHandler (event) {
+    event.preventDefault();
+
+    if (fgmState.hoveredPile) {
+      console.log(
+        event,
+        fgmState.hoveredPile.x,
+        fgmState.hoveredPile.y
+      );
+      this.isPileMenuShow = true;
+      this.pileMenuPosition = {
+        top: event.clientY,
+        right: document.body.clientWidth - event.clientX + this.matrixWidthHalf
+      };
+    } else {
+      this.isPileMenuShow = false;
     }
   }
 
@@ -2371,6 +2398,10 @@ export class Fragments {
     );
 
     this.canvas.addEventListener(
+      'contextmenu', this.canvasContentMenuHandler.bind(this), false
+    );
+
+    this.canvas.addEventListener(
       'dblclick', event => event.preventDefault(), false
     );
 
@@ -2854,7 +2885,7 @@ export class Fragments {
     fgmState.hoveredPile.elevateTo(Z_HIGHLIGHT);
 
     if (!this.lassoIsActive) {
-      // this.highlightPile(fgmState.hoveredPile);
+      this.highlightPile(fgmState.hoveredPile);
     }
 
     // Preview single matrices of piles with multiple matrices

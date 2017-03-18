@@ -1,4 +1,5 @@
 `<template>
+  <require from="components/fragments/pile-menu"></require>
   <require from="components/multi-select/multi-select"></require>
   <require from="components/svg-icon/svg-icon"></require>
   <require from="components/spinner.html"></require>
@@ -14,6 +15,11 @@
       <spinner if.bind="isLoading"></spinner>
     </div>
   </div>
+
+  <pile-menu
+    is-active.bind="isPileMenuShow"
+    position.bind="pileMenuPosition"
+    align-left.bind="pileMenuAlignLeft"></pile-menu>
 
   <div class="full-wh flex-c flex-d-c ${fgmState.animation ? 'is-animated' : ''}" ref="baseEl">
     <main class="flex-g-1 rel fragment-plot">
