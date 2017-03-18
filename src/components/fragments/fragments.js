@@ -2863,8 +2863,7 @@ export class Fragments {
    * @param {object} pileMesh - Pile mesh being moused over.
    */
   mouseOverPileHandler (pileMesh) {
-    let x = pileMesh.position.x;
-    let y = pileMesh.position.y;
+    const y = pileMesh.position.y;
 
     fgmState.hoveredPile = pileMesh.pile;
 
@@ -2886,29 +2885,9 @@ export class Fragments {
       }
     }
 
-    this.hoveredCell = undefined;
-
-    if (event.shiftKey) {
-      // test which cell is hovered.
-      let col = Math.floor((this.mouse.x - (x - this.matrixWidthHalf)) / this.cellSize);
-      let row = Math.floor(-(this.mouse.y - (y + this.matrixWidthHalf)) / this.cellSize);
-      if (
-        row >= 0 ||
-        row < fgmState.focusNodes.length ||
-        col >= 0 ||
-        col < fgmState.focusNodes.length
-      ) {
-        fgmState.hoveredPile.updateLabels();
-        this.hoveredCell = { row, col };
-      }
-    }
-
-    for (let i = 0; i < this.piles.length; i++) {
-      this.piles[i].updateHoveredCell();
-    }
-
     fgmState.hoveredPile.updateLabels();
 
+    // Hovering over a new pile
     if (
       fgmState.previousHoveredPile !== fgmState.hoveredPile &&
       !this.isLassoActive
@@ -2919,13 +2898,13 @@ export class Fragments {
 
       this.drawPilesArea([fgmState.hoveredPile]);
       fgmState.hoveredPile.scaleMouseEntered = fgmState.hoveredPile.scale;
-    }
 
-    if (
-      (!fgmState.hoveredPile && fgmState.previousHoveredPile) &&
-      !this.pilesZoomed[fgmState.previousHoveredPile.id]
-    ) {
-      fgmState.previousHoveredPile.setScale().frameCreate().draw();
+      if (
+        fgmState.previousHoveredPile &&
+        !this.pilesZoomed[fgmState.previousHoveredPile.id]
+      ) {
+        fgmState.previousHoveredPile.setScale().frameCreate().draw();
+      }
     }
 
     fgmState.previousHoveredPile = fgmState.hoveredPile;
