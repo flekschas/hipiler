@@ -3855,6 +3855,7 @@ export class Fragments {
       } else {
         fgmState.isLayout2d = false;
         fgmState.isLayoutMd = false;
+        fgmState.scale = 1;
       }
     }
 
