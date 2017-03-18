@@ -295,6 +295,11 @@ export class Fragments {
       this.pileAssignBW.bind(this)
     );
 
+    this.event.subscribe(
+      'decompose.fgm.removePileArea',
+      this.removePileArea.bind(this)
+    );
+
     // The following setup allows us to imitate deferred objects. I.e., we can
     // resolve promises outside their scope.
     this.resolve = {};
@@ -2891,8 +2896,7 @@ export class Fragments {
       !this.isLassoActive
     ) {
       this.highlightPile();
-
-      if (this.pileArea) { fgmState.scene.remove(this.pileArea); }
+      this.removePileArea();
 
       this.drawPilesArea([fgmState.hoveredPile]);
       fgmState.hoveredPile.scaleMouseEntered = fgmState.hoveredPile.scale;
@@ -2942,10 +2946,7 @@ export class Fragments {
       fgmState.previousHoveredPile = undefined;
     }
 
-    if (this.pileArea) {
-      fgmState.scene.remove(this.pileArea);
-      this.pileArea = undefined;
-    }
+    this.removePileArea();
   }
 
   /**
@@ -3295,6 +3296,16 @@ export class Fragments {
    */
   removeFromPile (pile) {
     logger.warning('`removeFromPile()` not implemented yet.');
+  }
+
+  /**
+   * Remove drawn pile area.
+   */
+  removePileArea () {
+    if (!this.pileArea) { return; }
+
+    fgmState.scene.remove(this.pileArea);
+    this.pileArea = undefined;
   }
 
   /**
