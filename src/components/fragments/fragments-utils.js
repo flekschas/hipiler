@@ -166,7 +166,7 @@ export function makeBuffer3f (array) {
   return buffer;
 }
 
-export function createLineFrame (width, height, color, lineWidth) {
+export function createLineFrame (width, height, color, lineWidth, opacity) {
   const wh = width / 2;
   const hh = height / 2;
 
@@ -182,7 +182,9 @@ export function createLineFrame (width, height, color, lineWidth) {
   const material = new ShaderMaterial(LINE_SHADER({
     side: DoubleSide,
     diffuse: color,
-    thickness: lineWidth
+    thickness: lineWidth,
+    transparent: true,
+    opacity: typeof opacity === 'undefined' ? 1 : opacity
   }));
 
   return new Mesh(geometry, material);
