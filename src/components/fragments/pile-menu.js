@@ -13,8 +13,10 @@ const logger = LogManager.getLogger('pile-menu');
 
 export class PileMenu {
   @bindable({ defaultBindingMode: bindingMode.oneWay }) isActive = false;
+  @bindable({ defaultBindingMode: bindingMode.oneWay }) isAlignLeft = false;
+  @bindable({ defaultBindingMode: bindingMode.oneWay }) isBottomUp = false;
+  @bindable({ defaultBindingMode: bindingMode.oneWay }) pile;
   @bindable({ defaultBindingMode: bindingMode.oneWay }) position = {};
-  @bindable({ defaultBindingMode: bindingMode.oneWay }) alignLeft = false;
 
   positionChanged () {
     this.setCss();
@@ -27,8 +29,35 @@ export class PileMenu {
     this.setCss();
   }
 
-  get pile () {
-    return {};
+  pileChanged () {
+    this.commands.forEach((command) => {
+      command.isVisible = this.isVisible(command);
+      command.pile = this.pile;
+    });
+  }
+
+  isVisible (command) {
+    if (!this.pile) {
+      return false;
+    }
+
+    if (command.isColoredOnly && !this.pile.isColored) {
+      return false;
+    }
+
+    if (command.stackedPileOnly && this.pile.pileMatrices.length < 2) {
+      return false;
+    }
+
+    if (command.trashedOnly && !this.pile.isTrashed) {
+      return false;
+    }
+
+    if (command.notInTrash && this.pile.isTrashed) {
+      return false;
+    }
+
+    return true;
   }
 
   setCss () {
@@ -45,6 +74,14 @@ export class PileMenu {
       this.css = { top, right, bottom, left };
     } catch (error) {
       logger.error(error);
+    }
+  }
+
+  trigger (button) {
+    button.trigger(this.pile);
+
+    if (button.closeOnClick) {
+      this.isActive = false;
     }
   }
 }
