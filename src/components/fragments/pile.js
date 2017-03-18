@@ -57,6 +57,8 @@ import {
   makeBuffer3f
 } from 'components/fragments/fragments-utils';
 
+import arraysEqual from 'utils/arrays-equal';
+
 import Matrix from 'components/fragments/matrix';
 
 import COLORS from 'configs/colors';
@@ -451,9 +453,6 @@ export default class Pile {
 
             this.isMatricesClustered = true;
             resolve(this.clustersAvgMatrices);
-
-            // Make sure the worker really stops
-            worker.terminate();
           };
 
           worker.postMessage({
@@ -1581,6 +1580,11 @@ export default class Pile {
    * @return {object} Self.
    */
   setMatrices (matrices) {
+    if (arraysEqual(this.pileMatrices, matrices)) {
+      console.log('Nothing changed', this.id);
+      return Promise.resolve();
+    }
+
     this.pileMatrices = matrices;
 
     matrices.forEach((matrix) => { matrix.pile = this; });
@@ -1705,6 +1709,9 @@ export default class Pile {
     this.isTrashed = true;
   }
 
+  /**
+   * Unset hover state.
+   */
   unsetHoverState () {
     if (fgmState.hoveredPile === this) {
       fgmState.hoveredPile = undefined;
