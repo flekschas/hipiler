@@ -30,7 +30,6 @@ import States from 'services/states';
 // Utils etc.
 import {
   dispersePiles,
-  dispersePilesWithColors,
   setAnimation,
   setArrangeMeasures,
   setCellSize,
@@ -98,8 +97,6 @@ import {
 import fgmState from 'components/fragments/fragments-state';
 
 import Pile from 'components/fragments/pile';
-
-import pileColors from 'components/fragments/pile-colors';
 
 import Matrix from 'components/fragments/matrix';
 
@@ -220,6 +217,7 @@ export class Fragments {
     this.lassoIsActive = false;
     this.isLassoRectActive = false;
     this.isLassoRoundActive = false;
+    this.isPileInspection = false;
     this.mouseWentDown = false;
     fgmState.showSpecialCells = false;
 
@@ -274,6 +272,11 @@ export class Fragments {
     this.arrangeSelectedEventId = 'fgm.arrange';
 
     this.event.subscribe(
+      'app.keyUpD',
+      this.toggleCoverDispMode.bind(this)
+    );
+
+    this.event.subscribe(
       'decompose.fgm.coverDispMode',
       this.changeCoverDispMode.bind(this)
     );
@@ -284,6 +287,11 @@ export class Fragments {
     );
 
     this.event.subscribe(
+      'decompose.fgm.inspectPile',
+      this.inspectPile.bind(this)
+    );
+
+    this.event.subscribe(
       'decompose.fgm.pileAssignColor',
       this.pileAssignColor.bind(this)
     );
@@ -291,11 +299,6 @@ export class Fragments {
     this.event.subscribe(
       'decompose.fgm.pileAssignBW',
       this.pileAssignBW.bind(this)
-    );
-
-    this.event.subscribe(
-      'app.keyUpD',
-      this.toggleCoverDispMode.bind(this)
     );
 
     // The following setup allows us to imitate deferred objects. I.e., we can
@@ -950,15 +953,15 @@ export class Fragments {
 
     this.render();
 
-    if (fgmState.hoveredPile) {
-      requestNextAnimationFrame(() => {
+    requestNextAnimationFrame(() => {
+      if (fgmState.hoveredPile) {
         // Show pile location
         this.event.publish(
           'decompose.fgm.pileMouseEnter',
           fgmState.hoveredPile.pileMatrices.map(matrix => matrix.id)
         );
-      });
-    }
+      }
+    });
   }
 
   /**
@@ -1493,31 +1496,16 @@ export class Fragments {
     this.fromDisperse = {};
 
     const pilesToBeDispersed = [];
-    let pileColorConfig = {};
-    let withColors = false;
 
     piles.forEach((pile) => {
-      const isColored = pile.color !== pileColors.gray;
-
       pile.pileMatrices.slice(1).forEach((pileMatrix) => {
         this.fromDisperse[pileMatrix.id] = pile;
-
-        if (isColored) {
-          pileColorConfig[pileMatrix.id] = pile.color.name;
-        }
       });
 
       pilesToBeDispersed.push(pile.id);
     });
 
-    if (withColors) {
-      this.store.dispatch(dispersePilesWithColors({
-        piles: pilesToBeDispersed,
-        colors: pileColorConfig
-      }));
-    } else {
-      this.store.dispatch(dispersePiles(pilesToBeDispersed));
-    }
+    this.store.dispatch(dispersePiles(pilesToBeDispersed));
   }
 
   /**
@@ -2595,6 +2583,15 @@ export class Fragments {
     this.raycaster = new Raycaster();
 
     fgmState.scene.add(this.camera);
+  }
+
+  /**
+   * Inspect a pile.
+   *
+   * @param {object} pile - Pile to be inspected.
+   */
+  inspectPile (pile) {
+    console.log('Inspect that thing', pile);
   }
 
   /**
