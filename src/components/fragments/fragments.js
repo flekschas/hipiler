@@ -81,7 +81,6 @@ import {
   PILE_AREA_BG,
   PILE_AREA_POINTS,
   PILE_LABEL_HEIGHT,
-  PILE_MENU_CLOSING_DELAY,
   PREVIEW_MAX,
   PREVIEW_SIZE,
   WEB_GL_CONFIG,
@@ -112,7 +111,6 @@ import { EVENT_BASE_NAME } from 'components/multi-select/multi-select-defaults';
 import COLORS from 'configs/colors';
 
 import arraysEqual from 'utils/arrays-equal';
-import debounce from 'utils/debounce';
 import hilbertCurve from 'utils/hilbert-curve';
 import { requestNextAnimationFrame } from 'utils/request-animation-frame';
 
@@ -227,11 +225,6 @@ export class Fragments {
     this.mouseClickCounter = 0;
 
     fgmState.workerClusterfck = this.createWorkerClusterfck();
-
-    this.closePileMenuDb = debounce(
-      this.closePileMenu.bind(this),
-      PILE_MENU_CLOSING_DELAY
-    );
 
     this.arrangeMeasuresAccessPath = [
       'decompose', 'fragments', 'arrangeMeasures'
@@ -923,10 +916,6 @@ export class Fragments {
     if (this.hoveredTool) {
       this.hoveredTool.trigger(this.hoveredTool.pile);
 
-      if (this.hoveredTool.closeOnClick) {
-        this.closePileMenu();
-      }
-
       if (this.hoveredTool.unsetHighlightOnClick) {
         this.highlightPile();
       }
@@ -950,7 +939,7 @@ export class Fragments {
         this.pilesZoomed[fgmState.hoveredPile.id] = true;
       }
     } else {
-      this.isPileMenuShow = false;
+      this.showPileMenu();
     }
 
     this.render();
@@ -1053,11 +1042,6 @@ export class Fragments {
       this.mouseMoveGeneralHandler();
     }
 
-    // Remove menu is no pile is hovered
-    if (!fgmState.hoveredPile) {
-      this.closePileMenuDb();
-    }
-
     this.mouseWentDown = false;
     this.render();
   }
@@ -1109,28 +1093,7 @@ export class Fragments {
   canvasContentMenuHandler (event) {
     event.preventDefault();
 
-    if (fgmState.hoveredPile) {
-      this.highlightPile(fgmState.hoveredPile);
-
-      this.pileMenuPile = fgmState.hoveredPile;
-      this.isPileMenuBottomUp = false;
-      const position = {
-        right: document.body.clientWidth - event.clientX + this.matrixWidthHalf
-      };
-
-      if (document.body.clientHeight - event.clientY < 100) {
-        position.bottom = document.body.clientHeight - event.clientY;
-        this.isPileMenuBottomUp = true;
-      } else {
-        position.top = event.clientY;
-      }
-
-      this.pileMenuPosition = position;
-      this.isPileMenuShow = true;
-    } else {
-      this.isPileMenuShow = false;
-      this.pileMenuPile = undefined;
-    }
+    this.showPileMenu(fgmState.hoveredPile);
   }
 
   /**
@@ -1400,17 +1363,6 @@ export class Fragments {
   //   this.openedPileRoot = undefined;
   //   this.openedPileMatricesNum = 0;
   // }
-
-  /**
-   * Close pile menu.
-   */
-  closePileMenu () {
-    fgmState.visiblePileTools.forEach((visiblePileTool) => {
-      fgmState.scene.remove(visiblePileTool);
-    });
-    fgmState.visiblePileTools = [];
-    fgmState.menuPile = undefined;
-  }
 
   /**
    * Decolor all matrices
@@ -1704,38 +1656,40 @@ export class Fragments {
    * @param {number} piles - Piles for which the area should be drawn.
    */
   drawPilesArea (piles) {
-    piles.forEach((pile) => {
-      if (pile.pileMatrices.length > 1) {
-        const coords = [];
-
-        pile.pileMatrices.forEach((matrix) => {
-          coords.push(this.getLayoutPosition2D(
-            matrix,
-            this.arrangeMeasures[0],
-            this.arrangeMeasures[1],
-            true,
-            true
-          ));
-        });
-
+    if (!this.isLayout1d) {
+      piles.forEach((pile) => {
         if (pile.pileMatrices.length > 1) {
-          const points = is2d(coords) ?
-            hull(coords, 100) : this.extractBoundariesOfLine(coords);
+          const coords = [];
 
-          this.pileArea = createChMap(
-            coords,
-            points,
-            PILE_AREA_BG,
-            PILE_AREA_POINTS,
-            PILE_AREA_BORDER
-          );
+          pile.pileMatrices.forEach((matrix) => {
+            coords.push(this.getLayoutPosition2D(
+              matrix,
+              this.arrangeMeasures[0],
+              this.arrangeMeasures[1],
+              true,
+              true
+            ));
+          });
+
+          if (pile.pileMatrices.length > 1) {
+            const points = is2d(coords) ?
+              hull(coords, 100) : this.extractBoundariesOfLine(coords);
+
+            this.pileArea = createChMap(
+              coords,
+              points,
+              PILE_AREA_BG,
+              PILE_AREA_POINTS,
+              PILE_AREA_BORDER
+            );
+          }
+
+          this.pileArea.position.set(0, 0, Z_HIGHLIGHT_AREA);
+
+          fgmState.scene.add(this.pileArea);
         }
-
-        this.pileArea.position.set(0, 0, Z_HIGHLIGHT_AREA);
-
-        fgmState.scene.add(this.pileArea);
-      }
-    });
+      });
+    }
   }
 
   /**
@@ -2853,20 +2807,6 @@ export class Fragments {
   mouseMoveGeneralHandler () {
     this.raycaster.setFromCamera(this.mouse, this.camera);
 
-    // Check if the user mouses over the pile menu
-    if (fgmState.visiblePileTools.length > 0) {
-      let intersects = this.raycaster
-        .intersectObjects(fgmState.visiblePileTools);
-      if (intersects.length > 0) {
-        this.hoveredTool = intersects[0].object.pileTool;
-
-        if (this.hoveredTool.triggerEvent === 'hover') {
-          this.hoveredTool.trigger(fgmState.hoveredPile);
-        }
-        return;
-      }
-    }
-
     // Check if the user mouses over a strand arrow
     this.intersects = this.raycaster.intersectObjects(this.strandArrowRects);
 
@@ -2914,10 +2854,6 @@ export class Fragments {
   mouseOverPileHandler (pileMesh) {
     let x = pileMesh.position.x;
     let y = pileMesh.position.y;
-
-    if (fgmState.menuPile && fgmState.menuPile !== pileMesh.pile) {
-      this.closePileMenu();
-    }
 
     fgmState.hoveredPile = pileMesh.pile;
 
@@ -3575,6 +3511,36 @@ export class Fragments {
         this.pileDistanceColor(this.pdMat[pileIndex][index])
       );
     });
+  }
+
+  /**
+   * Show pile menu.
+   *
+   * @param {object} pile - Associated pile.
+   */
+  showPileMenu (pile) {
+    if (pile) {
+      this.highlightPile(pile);
+
+      this.pileMenuPile = pile;
+      this.isPileMenuBottomUp = false;
+      const position = {
+        right: document.body.clientWidth - event.clientX + 16  // 16px == 1rem
+      };
+
+      if (document.body.clientHeight - event.clientY < 100) {
+        position.bottom = document.body.clientHeight - event.clientY;
+        this.isPileMenuBottomUp = true;
+      } else {
+        position.top = event.clientY;
+      }
+
+      this.pileMenuPosition = position;
+      this.isPileMenuShow = true;
+    } else {
+      this.isPileMenuShow = false;
+      this.pileMenuPile = undefined;
+    }
   }
 
   /**

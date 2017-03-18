@@ -67,7 +67,6 @@ const State = {
   strandArrowRects: [],
   strandArrowRectsTrash: [],
   trashIsActive: false,
-  visiblePileTools: [],
   workerClusterfck: undefined
 };
 
