@@ -572,6 +572,8 @@ export default class Pile {
     // Add frame
     this.mesh.add(this.matrixFrame);
     this.matrixFrame.position.set(0, 0, 0);
+    this.mesh.add(this.matrixFrameHighlight);
+    this.matrixFrameHighlight.position.set(0, 0, -0.1);
 
     this.mesh.pile = this;
     this.pileMeshes.push(this.mesh);
@@ -1211,6 +1213,14 @@ export default class Pile {
       this.matrixFrameThickness
     );
 
+    this.matrixFrameHighlight = createLineFrame(
+      this.matrixWidth,
+      this.matrixWidth,
+      COLORS.ORANGE,
+      this.matrixFrameThickness + 2,
+      0
+    );
+
     return this;
   }
 
@@ -1220,7 +1230,7 @@ export default class Pile {
    * @return {object} Self.
    */
   frameHighlight () {
-    this.matrixFrame.material.uniforms.diffuse.value = new Color(COLORS.ORANGE);
+    this.matrixFrameHighlight.material.uniforms.opacity.value = 1;
 
     return this;
   }
@@ -1236,6 +1246,8 @@ export default class Pile {
     this.matrixFrame.material.uniforms.diffuse.value = new Color(
       this.matrixFrameColor
     );
+
+    this.matrixFrameHighlight.material.uniforms.opacity.value = 0;
 
     return this;
   }
@@ -1298,6 +1310,11 @@ export default class Pile {
     this.matrixFrame.material.uniforms.diffuse.value = new Color(
       this.matrixFrameColor
     );
+
+    this.matrixFrameHighlight.material.uniforms.thickness.value =
+      this.matrixFrameThickness + 2;
+
+    this.matrixFrameHighlight.material.uniforms.opacity.value = 0;
 
     return this;
   }
