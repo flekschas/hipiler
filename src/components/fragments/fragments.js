@@ -1631,7 +1631,9 @@ export class Fragments {
     }
 
     if (this.intersects.length) {
-      this.lassoRoundSelection[this.intersects[0].object.pile.id] = true;
+      this.intersects.forEach((intersection) => {
+        this.lassoRoundSelection[intersection.object.pile.id] = true;
+      });
     }
 
     // Create geometry
@@ -1873,8 +1875,8 @@ export class Fragments {
    * @return {array} Slected piles.
    */
   getLassoRoundSelection () {
-    return Object.keys(
-      this.lassoRoundSelection).map(pileId => fgmState.pilesIdx[pileId]
+    return Object.keys(this.lassoRoundSelection).map(
+      pileId => fgmState.pilesIdx[pileId]
     );
   }
 
@@ -2840,13 +2842,9 @@ export class Fragments {
     // Draw rectangular lasso
     if (
       this.lassoIsActive ||
-      (
-        this.mouseWentDown && !fgmState.hoveredPile
-      )
+      (this.mouseWentDown && !fgmState.hoveredPile)
     ) {
-      if (!this.lassoIsActive) {
-        this.initLasso();
-      }
+      if (!this.lassoIsActive) { this.initLasso(); }
 
       this.drawLasso(
         this.dragStartPos.x,
