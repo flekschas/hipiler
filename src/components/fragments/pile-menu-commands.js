@@ -5,7 +5,6 @@ import { EventAggregator } from 'aurelia-event-aggregator';
 import States from 'services/states';
 
 import {
-  dispersePiles,
   recoverPiles,
   trashPiles
 } from 'components/fragments/fragments-actions';
@@ -111,8 +110,8 @@ export const INSPECT = {
     name: 'Inspect',
     color: COLORS.WHITE,
     background: COLORS.BLACK,
-    trigger (pile) {
-      event.publish('decompose.fgm.inspectPile', { pile: this.pile });
+    trigger () {
+      event.publish('decompose.fgm.inspectPile', this.pile);
     }
   }],
   stackedPileOnly: true
@@ -123,7 +122,7 @@ export const DISPERSE = {
     name: 'Disperse',
     color: COLORS.WHITE,
     background: COLORS.BLACK,
-    trigger (pile) {
+    trigger () {
       event.publish('decompose.fgm.dispersePiles', [this.pile]);
     }
   }],
@@ -136,7 +135,7 @@ export const MAD = {
     color: COLORS.WHITE,
     background: 0x666666,
     row: 0,
-    trigger (pile) {
+    trigger () {
       event.publish(
         'decompose.fgm.coverDispMode', { mode: MODE_MAD, pile: this.pile }
       );
@@ -151,7 +150,7 @@ export const MEAN = {
     name: 'Mean',
     color: COLORS.WHITE,
     background: 0x666666,
-    trigger (pile) {
+    trigger () {
       event.publish(
         'decompose.fgm.coverDispMode', { mode: MODE_MEAN, pile: this.pile }
       );
@@ -166,7 +165,7 @@ export const RECOVER = {
     name: 'Recover',
     color: COLORS.WHITE,
     background: COLORS.BLACK,
-    trigger (pile) {
+    trigger () {
       store.dispatch(recoverPiles([this.pile.id]));
     },
     closeOnClick: true,
@@ -180,7 +179,7 @@ export const TRASH = {
     name: 'Trash',
     color: COLORS.WHITE,
     background: COLORS.BLACK,
-    trigger (pile) {
+    trigger () {
       store.dispatch(trashPiles([this.pile.id]));
     },
     closeOnClick: true
@@ -193,7 +192,7 @@ export const STD = {
     name: 'Standard Dev.',
     color: COLORS.WHITE,
     background: 0x666666,
-    trigger (pile) {
+    trigger () {
       event.publish(
         'decompose.fgm.coverDispMode', { mode: MODE_STD, pile: this.pile }
       );
