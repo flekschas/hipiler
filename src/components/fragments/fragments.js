@@ -3564,41 +3564,41 @@ export class Fragments {
    * Hide trashed piles
    */
   hideTrash () {
-    fgmState.trashIsActive = false;
-
-    fgmState.pilesTrash.forEach((pile) => {
+    this.piles.forEach((pile) => {
       pile.hide();
     });
 
-    fgmState.piles.forEach((pile) => {
-      pile.frameCreate();
-      pile.draw();
+    fgmState.trashIsActive = false;
+
+    this.piles.forEach((pile) => {
+      pile.frameUpdate().frameCreate().draw();
     });
 
+    this.assessMeasuresMax();
     this.calcGrid();
     this.setScrollLimit();
-    this.updateLayout(this.piles, this.arrangeMeasures, true).then(() => {
-      this.render();
-    });
+    this.updateLayout(this.piles, this.arrangeMeasures, true)
+      .then(() => { this.render(); });
   }
 
   /**
    * Show trashed piles
    */
   showTrash () {
-    fgmState.trashIsActive = true;
-
-    fgmState.piles.forEach((pile) => {
+    this.piles.forEach((pile) => {
       pile.hide();
     });
 
-    fgmState.pilesTrash.forEach((pile) => {
+    fgmState.trashIsActive = true;
+
+    this.piles.forEach((pile) => {
       pile.frameUpdate().frameCreate().draw();
     });
 
     this.calcGrid();
     this.setScrollLimit();
-    this.updateLayout(this.piles, [], true).then(() => { this.render(); });
+    this.updateLayout(this.piles, [], true)
+      .then(() => { this.render(); });
   }
 
   /**
@@ -4050,21 +4050,16 @@ export class Fragments {
    *
    * @param {array} piles - Piles to be re-arranged.
    * @param {array} measures - Measures used for arraning.
-   * @param {boolean} isDataClustering - If `true` the piles will be arranged
-   *   according to the clustered raw matrices and measures are ignored.
    * @param {boolean} noAnimation - If `true` the piles are not animated.
    * @return {object} Promise resolving when to layout if fully updated.
    */
   updateLayout (
     piles = this.piles,
     measures = this.arrangeMeasures,
-    isDataClustering = false,
     noAnimation = false
   ) {
     return new Promise((resolve, reject) => {
-      const arranged = this.arrange(
-        piles, fgmState.trashIsActive ? [] : measures
-      );
+      const arranged = this.arrange(piles, measures);
 
       arranged
         .then(() => {
@@ -4078,7 +4073,7 @@ export class Fragments {
           // Don't animate
           piles.forEach((pile) => {
             const pos = this.getLayoutPosition(pile, measures, true);
-            pile.moveTo(pos.x, pos.y);
+            pile.moveTo(pos.x, pos.y, true);
           });
 
           resolve();
@@ -4259,7 +4254,6 @@ export class Fragments {
 
     this.fromDisperse = undefined;
 
-    // this.calculateDistanceMatrix();
     this.assessMeasuresMax();
 
     update.layout = true;
