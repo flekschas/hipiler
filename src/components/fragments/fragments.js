@@ -103,7 +103,8 @@ import Matrix from 'components/fragments/matrix';
 import {
   calculateDistances,
   createChMap,
-  createRectFrame
+  createRectFrame,
+  is2d
 } from 'components/fragments/fragments-utils';
 
 import { EVENT_BASE_NAME } from 'components/multi-select/multi-select-defaults';
@@ -1718,10 +1719,12 @@ export class Fragments {
         });
 
         if (pile.pileMatrices.length > 1) {
-          const convexHull = hull(coords, 100);
+          const points = is2d(coords) ?
+            hull(coords, 100) : this.extractBoundariesOfLine(coords);
+
           this.pileArea = createChMap(
             coords,
-            convexHull,
+            points,
             PILE_AREA_BG,
             PILE_AREA_POINTS,
             PILE_AREA_BORDER
@@ -1733,6 +1736,35 @@ export class Fragments {
         fgmState.scene.add(this.pileArea);
       }
     });
+  }
+
+  /**
+   * Extract the min and max points of a set of points on a line.
+   *
+   * @param {array} points - Array of points on a line.
+   * @return {array} Two boundary points.
+   */
+  extractBoundariesOfLine (points) {
+    let minPoint = points[0];
+    let maxPoint = points[0];
+
+    points.forEach((coord) => {
+      if (
+        coord[0] < minPoint[0] ||
+        coord[1] < minPoint[1]
+      ) {
+        minPoint = coord;
+      }
+
+      if (
+        coord[0] > maxPoint[0] ||
+        coord[1] > maxPoint[1]
+      ) {
+        maxPoint = coord;
+      }
+    });
+
+    return [minPoint, maxPoint];
   }
 
   /**

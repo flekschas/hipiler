@@ -230,14 +230,28 @@ export function createChMap (
 
   const mesh = new Mesh(pointsGeometry, pointsMaterial);
 
-  if (points.length > 2) {
+  if (convexHull.length > 2 && is2d(convexHull)) {
     // Create the bg for the convexHull
     mesh.add(createPolygon(convexHull, polygonMaterial, lineMaterial));
   } else {
-    mesh.add(new Mesh(LINE(points), lineMaterial));
+    mesh.add(new Mesh(LINE(convexHull), lineMaterial));
   }
 
   return mesh;
+}
+
+/**
+ * Check whether the points define a plan or just a line
+ *
+ * @param {array} points - Array of 2D points
+ * @return {boolean} If `true` the points span a plane.
+ */
+export function is2d (points) {
+  return points.some(  // X
+    (point, index) => (index > 0 ? points[index - 1][0] !== point[0] : false)
+  ) && points.some(  // Y
+    (point, index) => (index > 0 ? points[index - 1][1] !== point[1] : false)
+  );
 }
 
 export function createPolygon (points, polygonMaterial, lineMaterial) {
