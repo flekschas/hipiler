@@ -4,17 +4,12 @@ import { LogManager } from 'aurelia-framework';
 // Third party
 import {
   ArrowHelper,
-  Box3,
   BufferAttribute,
   BufferGeometry,
   Color,
   Mesh,
-  MeshBasicMaterial,
-  TextGeometry,
   Vector3
 } from 'three';
-
-import menuCommands from 'components/fragments/pile-menu-commands';
 
 import {
   MATRIX_FRAME_THICKNESS,
@@ -25,8 +20,7 @@ import {
   MODE_STD,
   PREVIEW_SIZE,
   SHADER_ATTRIBUTES,
-  Z_BASE,
-  Z_MENU
+  Z_BASE
 } from 'components/fragments/fragments-defaults';
 
 import pileColors from 'components/fragments/pile-colors';
@@ -34,8 +28,6 @@ import pileColors from 'components/fragments/pile-colors';
 import {
   COLOR_INDICATOR_HEIGHT,
   LABEL_MIN_CELL_SIZE,
-  MENU_LABEL_SPACING,
-  MENU_PADDING,
   PREVIEW_LOW_QUAL_THRESHOLD,
   PREVIEW_NUM_CLUSTERS,
   STRAND_ARROW_LENGTH,
@@ -512,7 +504,7 @@ export default class Pile {
    *
    * @return {object} Self.
    */
-  draw (noMenu) {
+  draw () {
     const positions = [];
     const colors = [];
     const isHovering = this === fgmState.hoveredPile;
@@ -555,11 +547,6 @@ export default class Pile {
     );
 
     this.mesh = new Mesh(this.geometry, fgmState.shaderMaterial);
-    // this.mesh.scale.set(this.scale, this.scale, this.scale);
-
-    if (isHovering && !noMenu) {
-      this.drawMenu();
-    }
 
     if (
       !(fgmState.isHilbertCurve) &&
@@ -756,173 +743,6 @@ export default class Pile {
         }
       }
     }
-  }
-
-  /**
-   * Draw pile menu
-   */
-  drawMenu () {
-    let maxWidth = 0;
-    let maxHeight = 0;
-    let labels = [];
-
-    this.menuIsActive = true;
-
-    fgmState.menuPile = this;
-
-    // Frist create labels
-    menuCommands
-      .filter(command =>
-        (!command.stackedPileOnly || this.pileMatrices.length > 1) &&
-        (!command.isColoredOnly || this.isColored) &&
-        (!command.isBWOnly || this.color === pileColors.gray) &&
-        (
-          (!command.trashedOnly && !this.isTrashed) ||
-          (command.trashedOnly && this.isTrashed)
-        )
-      )
-      .forEach((command) => {
-        const buttons = [];
-
-        let widthTotal = 0;
-
-        command.buttons.forEach((buttonConfig) => {
-          const button = {};
-
-          // Assign this pile to the menu button config
-          buttonConfig.pile = this;
-
-          // Create label
-          button.label = new Mesh(
-            new TextGeometry(
-              buttonConfig.name.toUpperCase(),
-              {
-                size: 8,
-                height: 1,
-                curveSegments: 5,
-                font: fgmState.font,
-                weight: 'bold',
-                bevelEnabled: false
-              }
-            ),
-            new MeshBasicMaterial({ color: buttonConfig.color })
-          );
-
-          // Get label width
-          const labelBBox = new Box3().setFromObject(button.label).getSize();
-
-          button.height = Math.ceil(
-            labelBBox.y + MENU_LABEL_SPACING
-          );
-
-          maxHeight = Math.max(maxHeight, button.height);
-
-          const width = Math.ceil(
-            labelBBox.x + MENU_LABEL_SPACING
-          );
-
-          button.width = buttonConfig.minWidth === 1 ?
-            Math.min(width, button.height) : width;
-
-          widthTotal += button.width;
-
-          button.rect = createRect(
-            button.width, button.height, buttonConfig.background
-          );
-
-          button.frame = createRectFrame(
-            button.width, button.height, COLORS.BLACK, 5
-          );
-
-          button.rect.add(button.frame);
-          button.rect.add(button.label);
-          button.rect.pileTool = buttonConfig;
-
-          buttons.push(button);
-        });
-
-        maxWidth = Math.max(maxWidth, widthTotal);
-
-        labels.push({
-          width: widthTotal,
-          height: maxHeight,
-          marginTop: command.marginTop,
-          buttons
-        });
-      });
-
-    let marginTop = 0;
-    const isRight = (
-      this.x + MENU_PADDING - this.matrixWidthHalf - (maxWidth / 2)
-    ) < 5;
-
-    let isBottomTop = (
-      this.y -
-      MENU_PADDING +
-      this.matrixWidthHalf -
-      (maxHeight / 2) -
-      (labels.length * (maxHeight + 1)) -
-      marginTop
-    ) < -fgmState.plotElDim.height;
-
-    // Next create the rectangle and position the buttons
-    labels.forEach((label, index) => {
-      let rowWidth = 0;
-      let x;
-      let y;
-
-      label.buttons.forEach((button) => {
-        if (isRight) {
-          x = (
-            this.x +
-            this.matrixWidthHalf -
-            MENU_PADDING +
-            (button.width / 2) +
-            rowWidth
-        );
-        } else {
-          x = (
-            this.x -
-            this.matrixWidthHalf +
-            MENU_PADDING -
-            (button.width / 2) -
-            rowWidth
-          );
-        }
-
-        rowWidth += button.width;
-
-        if (isBottomTop) {
-          y = (
-            this.y +
-            MENU_PADDING -
-            this.matrixWidthHalf +
-            (button.height / 2) +
-            (index * (button.height + 1)) +
-            marginTop
-          );
-        } else {
-          y = (
-            this.y -
-            MENU_PADDING +
-            this.matrixWidthHalf -
-            (button.height / 2) -
-            (index * (button.height + 1)) -
-            marginTop
-          );
-        }
-
-        button.rect.position.set(x, y, Z_MENU);
-        button.label.position.set(-(button.width / 2) + 2, -4, 0);
-
-        fgmState.visiblePileTools.push(button.rect);
-        fgmState.scene.add(button.rect);
-      });
-
-      if (typeof label.marginTop !== 'undefined') {
-        marginTop += label.marginTop;
-      }
-    });
   }
 
   /**

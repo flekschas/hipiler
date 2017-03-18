@@ -179,8 +179,6 @@ export const SHOW_MATRICES = 1000;
 
 export const SHOW_SPECIAL_CELLS = false;
 
-export const SVG_MENU_HEIGHT = 30;
-
 export const TIMELINE_HEIGHT = 130;
 
 /**
@@ -202,8 +200,6 @@ export const Z_HIGHLIGHT = 3;
 export const Z_HIGHLIGHT_AREA = 2.5;
 
 export const Z_LASSO = 9;
-
-export const Z_MENU = 8;
 
 export const Z_STACK_PILE_TARGET = 2;
 

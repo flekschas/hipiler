@@ -1010,7 +1010,7 @@ export class Fragments {
     if (fgmState.hoveredPile) {
       this.mouseDownDwelling = setTimeout(() => {
         if (fgmState.hoveredPile) {
-          fgmState.hoveredPile.frameSetTemp(COLORS.GREEN, 2, true).draw(true);
+          fgmState.hoveredPile.frameSetTemp(COLORS.GREEN, 2, true).draw();
         }
         this.render();
       }, ZOOM_DELAY_TIME);
@@ -2946,7 +2946,7 @@ export class Fragments {
       (!fgmState.hoveredPile && fgmState.previousHoveredPile) &&
       !this.pilesZoomed[fgmState.previousHoveredPile.id]
     ) {
-      fgmState.previousHoveredPile.setScale().frameCreate().draw(true);
+      fgmState.previousHoveredPile.setScale().frameCreate().draw();
     }
 
     fgmState.previousHoveredPile = fgmState.hoveredPile;
@@ -2975,7 +2975,7 @@ export class Fragments {
       );
 
       if (!this.pilesZoomed[fgmState.previousHoveredPile.id]) {
-        fgmState.previousHoveredPile.setScale().frameCreate().draw(true);
+        fgmState.previousHoveredPile.setScale().frameCreate().draw();
       }
 
       fgmState.previousHoveredPile.elevateTo(Z_BASE);
@@ -3367,7 +3367,7 @@ export class Fragments {
       pile.scaleMouseEntered * 5
     );
 
-    pile.setScale(newScale).frameCreate().draw(true);
+    pile.setScale(newScale).frameCreate().draw();
   }
 
   /**
