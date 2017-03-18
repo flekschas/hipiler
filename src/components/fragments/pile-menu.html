@@ -1,0 +1,16 @@
+<template>
+  <require from="components/svg-icon/svg-icon"></require>
+
+  <nav
+    id="pile-menu"
+    class="pile-context-menu ${isActive ? 'is-active' : ''} ${alignLeft ? 'is-align-left' : ''}"
+    css.bind="css">
+    <ul class="no-list-style rel flex-c flex-d-c">
+      <li class="flex-c ${command.buttons.length ? 'is-multiple' : ''}" repeat.for="command of commands">
+        <button class="flex-g-1" repeat.for="button of command.buttons">
+          ${button.name}
+        </button>
+      </li>
+    </ul>
+  </nav>
+</template>

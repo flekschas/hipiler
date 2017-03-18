@@ -1,0 +1,49 @@
+@import 'colors';
+@import 'transitions';
+
+.pile-context-menu {
+  position: fixed;
+  z-index: 99;
+  opacity: 0.5;
+  transform: scale(0);
+  transform-origin: center top;
+  transition: opacity $transition-very-fast $ease-in-out-cubic,
+              transform $transition-very-fast $ease-in-out-cubic;
+
+  &.is-active {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  &.is-align-left button {
+    text-align: left;
+  }
+
+  .is-multiple {
+    text-align: center;
+  }
+
+  ul {
+    padding: 0.125rem;
+    background: transparentize($white, 0.05);
+    border-radius: 0.25rem;
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.1),
+                0 1px 3px 0 rgba(0, 0, 0, 0.05),
+                0 2px 6px 0 rgba(0, 0, 0, 0.05);
+    transform: translateY(-50%);
+  }
+
+  button {
+    padding: 0.125rem 0.25rem;
+    text-align: right;
+    background: transparent;
+
+    &:hover {
+      background: $gray-lightest;
+    }
+
+    &:active {
+      background: $primary;
+    }
+  }
+}
