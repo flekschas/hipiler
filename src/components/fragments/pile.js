@@ -772,7 +772,7 @@ export default class Pile {
     menuCommands
       .filter(command =>
         (!command.stackedPileOnly || this.pileMatrices.length > 1) &&
-        (!command.isColoredOnly || this.color !== pileColors.gray) &&
+        (!command.isColoredOnly || this.isColored) &&
         (!command.isBWOnly || this.color === pileColors.gray) &&
         (
           (!command.trashedOnly && !this.isTrashed) ||
