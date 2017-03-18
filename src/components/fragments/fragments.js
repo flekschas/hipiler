@@ -2359,18 +2359,7 @@ export class Fragments {
     }
 
     // Extract measures
-    this.dataMeasures = [];
-    fgmState.measures = [];
-    header.forEach((headerField, index) => {
-      if (!(index in usedIdx)) {
-        this.dataMeasures[headerField] = index;
-        fgmState.measures.push({
-          id: headerField,
-          name: this.wurstCaseToNice(headerField)
-        });
-        fgmState.dataMeasuresMax[headerField] = 0;
-      }
-    });
+    this.initMeasures(header, usedIdx);
 
     this.selectMeasure(this.arrangeMeasures, fgmState.measures);
 
@@ -2481,6 +2470,28 @@ export class Fragments {
 
       fgmState.matrices.push(matrix);
       fgmState.matricesIdx[matrix.id] = matrix;
+    });
+  }
+
+  /**
+   * Initialize measures from data.
+   *
+   * @param {array} header - Data header that contains the measures.
+   * @param {array} usedIdx - List of used indices of the header.
+   */
+  initMeasures (header, usedIdx) {
+    this.dataMeasures = [];
+    fgmState.measures = [];
+
+    header.forEach((field, index) => {
+      if (!(index in usedIdx) && field[0] !== '_') {
+        this.dataMeasures[field] = index;
+        fgmState.measures.push({
+          id: field,
+          name: this.wurstCaseToNice(field)
+        });
+        fgmState.dataMeasuresMax[field] = 0;
+      }
     });
   }
 
