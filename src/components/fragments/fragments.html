@@ -26,10 +26,14 @@
   <div class="full-wh flex-c flex-d-c ${fgmState.animation ? 'is-animated' : ''}" ref="baseEl">
     <main class="flex-g-1 rel fragment-plot">
       <div class="full-dim" css.one-way="plotWindowCss">
-        <button class="axis-switch is-icon-only ${isLayout2d ? 'is-active' : ''}">
+        <button
+          class="axis-switch is-icon-only ${isLayout2d ? 'is-active' : ''}"
+          if.bind="!state.trashIsActive">
           <svg-icon icon-id="flip-xy" click.delegate="flipXY()"></svg-icon>
         </button>
-        <div class="axis axis-x axis-top ${isLayout2d ? 'is-active' : ''}">
+        <div
+          class="axis axis-x axis-top ${isLayout2d ? 'is-active' : ''}"
+          if.bind="!state.trashIsActive">
           <div class="flex-c flex-jc-sb axis-labels">
             <div class="axis-label axis-label-min">
               ${nicefyMeasure(state.dataMeasuresMin[arrangeMeasures[0]])}
@@ -44,7 +48,9 @@
           <div class="axis-line"></div>
           <div class="axis-arrow"></div>
         </div>
-        <div class="axis axis-y axis-left ${isLayout2d ? 'is-active' : ''}">
+        <div
+          class="axis axis-y axis-left ${isLayout2d ? 'is-active' : ''}"
+          if.bind="!state.trashIsActive">
           <div class="flex-c flex-jc-sb flex-d-c axis-labels">
             <div class="axis-label axis-label-min">
               <span>${nicefyMeasure(state.dataMeasuresMin[arrangeMeasures[1]])}</span>
