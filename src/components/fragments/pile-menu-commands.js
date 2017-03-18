@@ -165,6 +165,7 @@ export const RECOVER = {
     name: 'Recover',
     trigger (pile) {
       store.dispatch(recoverPiles([pile.id]));
+      event.publish('decompose.fgm.pileMouseLeave');
     },
     closeOnClick: true
   }],
@@ -176,6 +177,7 @@ export const TRASH = {
     name: 'Trash',
     trigger (pile) {
       store.dispatch(trashPiles([pile.id]));
+      event.publish('decompose.fgm.pileMouseLeave');
     },
     closeOnClick: true
   }],
