@@ -1110,7 +1110,7 @@ export default class Pile {
     } else {
       const relVal = (
         this.measures[encoding] /
-        fgmState.dataMeasuresMax[encoding]
+        (fgmState.dataMeasuresMax[encoding] || 1)
       );
 
       this.matrixFrameThickness = Math.max(
