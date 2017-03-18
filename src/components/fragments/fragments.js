@@ -2854,7 +2854,7 @@ export class Fragments {
     fgmState.hoveredPile.elevateTo(Z_HIGHLIGHT);
 
     if (!this.lassoIsActive) {
-      this.highlightPile(fgmState.hoveredPile);
+      // this.highlightPile(fgmState.hoveredPile);
     }
 
     // Preview single matrices of piles with multiple matrices
