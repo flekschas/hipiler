@@ -1506,10 +1506,20 @@ export class Fragments {
   dispersePilesHandler (piles) {
     this.setFromDisperse(piles);
 
+    const pilesToBeDispersed = [];
+
+    piles.forEach((pile) => {
+      pile.pileMatrices.slice(1).forEach((pileMatrix) => {
+        this.fromDisperse[pileMatrix.id] = pile;
+      });
+
+      pilesToBeDispersed.push(pile.id);
+    });
+
     if (fgmState.isPilesInspection) {
-      this.store.dispatch(dispersePilesInspection(piles));
+      this.store.dispatch(dispersePilesInspection(pilesToBeDispersed));
     } else {
-      this.store.dispatch(dispersePiles(piles));
+      this.store.dispatch(dispersePiles(pilesToBeDispersed));
     }
   }
 
