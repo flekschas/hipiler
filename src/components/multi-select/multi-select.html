@@ -1,7 +1,7 @@
-<template bindable="basePath, iconId">
+<template>
   <require from="components/svg-icon/svg-icon"></require>
 
-  <div class="rel ${optionsIsActive ? 'is-active' : ''} ${selectedOptions.length ? 'is-in-use' : ''}" ref="baseEl">
+  <div class="rel ${disabled ? 'is-disabled' : ''} ${optionsIsActive ? 'is-active' : ''} ${selectedOptions.length ? 'is-in-use' : ''}" ref="baseEl">
     <div class="flex-c">
       <ul class="flex-c options-selected">
         <li
@@ -20,6 +20,7 @@
         enter.delegate="select($event)"
         focus.trigger="activateOptions()"
         keydown.delegate="keyDownHandler($event)"
+        disabled.bind="disabled"
         ref="inputEl"/>
     </div>
     <ul class="options ${bottomUp ? 'bottom-up' : ''} ${optionsIsActive ? 'is-active' : ''}">

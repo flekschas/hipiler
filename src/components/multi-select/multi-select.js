@@ -24,6 +24,7 @@ export class MultiSelect {
   @bindable options = [];
   @bindable({ defaultBindingMode: bindingMode.oneWay }) placeholder;
   @bindable({ defaultBindingMode: bindingMode.oneWay }) stateQuery;
+  @bindable({ defaultBindingMode: bindingMode.oneWay }) disabled = false;
 
   constructor (eventAggregator, states) {
     this.event = eventAggregator;
@@ -63,6 +64,7 @@ export class MultiSelect {
   }
 
   activateOptions () {
+    if (this.disabled) { return; }
     this.focusedOptionId = -1;
     this.optionsIsActive = true;
   }
@@ -136,6 +138,8 @@ export class MultiSelect {
   }
 
   publish () {
+    if (this.disabled) { return; }
+
     if (this.eventId) {
       this.event.publish(
         `${EVENT_BASE_NAME}.${this.eventId}`,
@@ -157,6 +161,8 @@ export class MultiSelect {
   }
 
   select (option) {
+    if (this.disabled) { return; }
+
     if (!option.isSelected) {
       this.selectedOptions.push(option);
       this.focusedOptionId = -1;
@@ -183,9 +189,7 @@ export class MultiSelect {
   }
 
   unselect (optionRemove) {
-    if (!optionRemove.isSelected) {
-      return;
-    }
+    if (this.disabled || !optionRemove.isSelected) { return; }
 
     this.options
       .filter(option => option.id === optionRemove.id)
