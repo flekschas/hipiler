@@ -58,6 +58,8 @@ const State = {
   pileMeshesTrash: [],
   piles: [],
   pilesIdx: {},
+  pilesInspection: [],
+  pilesIdxInspection: {},
   pilesTrash: [],
   pilingMethod: 'clustered',
   previousHoveredPile: undefined,

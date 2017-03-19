@@ -91,7 +91,7 @@ export default class Pile {
     this.y = 0;
     this.z = Z_BASE;
 
-    fgmState.pilesIdx[this.id] = this;
+    this.pilesIdxState[this.id] = this;
 
     this.frameCreate();
   }
@@ -119,7 +119,23 @@ export default class Pile {
   }
 
   get piles () {
-    return this.isTrashed ? fgmState.pilesTrash : fgmState.piles;
+    return this.isTrashed ? fgmState.pilesTrash : this.pilesState;
+  }
+
+  get pilesState () {
+    if (fgmState.isPilesInspection) {
+      return fgmState.pilesInspection;
+    }
+
+    return fgmState.piles;
+  }
+
+  get pilesIdxState () {
+    if (fgmState.isPilesInspection) {
+      return fgmState.pilesIdxInspection;
+    }
+
+    return fgmState.pilesIdx;
   }
 
   get pileMeshes () {
@@ -447,13 +463,6 @@ export default class Pile {
               )
             );
 
-            console.log(
-              'calced clusters for',
-              this.id,
-              this.pileMatrices.length,
-              this.clusters
-            );
-
             this.isMatricesClustered = true;
             resolve(this.clustersAvgMatrices);
           };
@@ -507,7 +516,7 @@ export default class Pile {
       this.piles.splice(this.piles.indexOf(this), 1);
     }
 
-    fgmState.pilesIdx[this.id] = undefined;
+    this.pilesIdxState[this.id] = undefined;
   }
 
   /**
@@ -1343,7 +1352,7 @@ export default class Pile {
       fgmState.pilesTrash.splice(pileIndex, 1);
     }
 
-    fgmState.pilesIdx[this.idNumeric] = this;
+    this.pilesIdxState[this.idNumeric] = this;
 
     this.isTrashed = false;
 
@@ -1532,17 +1541,17 @@ export default class Pile {
       fgmState.pileMeshes.splice(fgmState.pileMeshes.indexOf(this.mesh), 1);
     }
 
-    const pileIndex = fgmState.piles.indexOf(this);
+    const pileIndex = this.pilesState.indexOf(this);
 
     if (pileIndex >= 0) {
-      fgmState.piles.splice(fgmState.piles.indexOf(this), 1);
+      this.pilesState.splice(this.pilesState.indexOf(this), 1);
     }
 
-    fgmState.pilesIdx[this.idNumeric] = undefined;
-    delete fgmState.pilesIdx[this.idNumeric];
+    this.pilesIdxState[this.idNumeric] = undefined;
+    delete this.pilesIdxState[this.idNumeric];
 
-    if (!fgmState.pilesIdx[this.id]) {
-      fgmState.pilesIdx[this.id] = this;
+    if (!this.pilesIdxState[this.id]) {
+      this.pilesIdxState[this.id] = this;
     }
 
     if (!this.isTrashed) {

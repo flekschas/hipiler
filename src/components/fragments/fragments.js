@@ -30,6 +30,8 @@ import States from 'services/states';
 // Utils etc.
 import {
   dispersePiles,
+  dispersePilesInspection,
+  inspectPiles,
   setAnimation,
   setArrangeMeasures,
   setCellSize,
@@ -46,7 +48,8 @@ import {
   setMatrixOrientation,
   setPiles,
   setShowSpecialCells,
-  stackPiles
+  stackPiles,
+  stackPilesInspection
 } from 'components/fragments/fragments-actions';
 
 import {
@@ -215,9 +218,7 @@ export class Fragments {
     this.lassoIsActive = false;
     this.isLassoRectActive = false;
     this.isLassoRoundActive = false;
-    this.isPileInspection = false;
     this.mouseWentDown = false;
-    fgmState.showSpecialCells = false;
     this.pileMenuPosition = {};
 
     this.isLoading = true;
@@ -281,8 +282,8 @@ export class Fragments {
     );
 
     this.event.subscribe(
-      'decompose.fgm.inspectPile',
-      this.inspectPile.bind(this)
+      'decompose.fgm.inspectPiles',
+      this.inspectPilesHandler.bind(this)
     );
 
     this.event.subscribe(
@@ -467,10 +468,26 @@ export class Fragments {
     }
 
     if (this.subSelectingPiles) {
-      return fgmState.piles;
+      return this.pilesState;
+    }
+
+    return this.pilesState;
+  }
+
+  get pilesState () {
+    if (fgmState.isPilesInspection) {
+      return fgmState.pilesInspection;
     }
 
     return fgmState.piles;
+  }
+
+  get pilesIdxState () {
+    if (fgmState.isPilesInspection) {
+      return fgmState.pilesIdxInspection;
+    }
+
+    return fgmState.pilesIdx;
   }
 
   get pileMeshes () {
@@ -975,7 +992,7 @@ export class Fragments {
       fgmState.hoveredPile = undefined;
     } else {
       Object.keys(this.pilesZoomed).forEach((pileId) => {
-        fgmState.pilesIdx[pileId].setScale().frameCreate().draw();
+        this.pilesIdxState[pileId].setScale().frameCreate().draw();
       });
       this.pilesZoomed = {};
     }
@@ -1414,7 +1431,7 @@ export class Fragments {
       // Nothing
     }
 
-    const altPile = fgmState.pilesIdx[altId];
+    const altPile = this.pilesIdxState[altId];
 
     if (altPile) {
       this.destroyPile(altPile);
@@ -1492,7 +1509,11 @@ export class Fragments {
       pilesToBeDispersed.push(pile.id);
     });
 
-    this.store.dispatch(dispersePiles(pilesToBeDispersed));
+    if (fgmState.isPilesInspection) {
+      this.store.dispatch(dispersePilesInspection(pilesToBeDispersed));
+    } else {
+      this.store.dispatch(dispersePiles(pilesToBeDispersed));
+    }
   }
 
   /**
@@ -1877,7 +1898,7 @@ export class Fragments {
    */
   getLassoRoundSelection () {
     return Object.keys(this.lassoRoundSelection).map(
-      pileId => fgmState.pilesIdx[pileId]
+      pileId => this.pilesIdxState[pileId]
     );
   }
 
@@ -2180,7 +2201,11 @@ export class Fragments {
         batchPileStacking[pile.pile.id] = pile.pileStack;
       });
 
-    this.store.dispatch(stackPiles(batchPileStacking));
+    if (fgmState.isPilesInspection) {
+      this.store.dispatch(stackPilesInspection(batchPileStacking));
+    } else {
+      this.store.dispatch(stackPiles(batchPileStacking));
+    }
   }
 
   /**
@@ -2623,41 +2648,47 @@ export class Fragments {
   }
 
   /**
-   * Inspect a pile.
+   * Inspect piles.
    *
-   * @param {object} pile - Pile to be inspected.
+   * @param {object} piles - Piles to be inspected.
    */
-  inspectPile (pile) {
-    console.log('Inspect that thing', pile);
+  inspectPilesHandler (piles) {
+    const pilesConfig = {};
+
+    piles.forEach((pile) => {
+      pilesConfig[pile.id] = pile.pileMatrices.map(pileMatrix => pileMatrix.id);
+    });
+
+    this.store.dispatch(inspectPiles(pilesConfig));
   }
 
-  /**
-   * [isSameOrdering description]
-   *
-   * @param {[type]} o1 - [description]
-   * @param {[type]} o2 - [description]
-   * @return  {Boolean}          - [description]
-   */
-  isSameOrdering (o1, o2) {
-    if (!o1 || !o2) {
-      return false;
-    }
+  // /**
+  //  * [isSameOrdering description]
+  //  *
+  //  * @param {[type]} o1 - [description]
+  //  * @param {[type]} o2 - [description]
+  //  * @return  {Boolean}          - [description]
+  //  */
+  // isSameOrdering (o1, o2) {
+  //   if (!o1 || !o2) {
+  //     return false;
+  //   }
 
-    if (o1.length !== o2.length) {
-      return false;
-    }
+  //   if (o1.length !== o2.length) {
+  //     return false;
+  //   }
 
-    let same = true;
+  //   let same = true;
 
-    for (let i = 0; i < o1.length; i++) {
-      if (o1[i] !== o2[i]) {
-        same = false;
-        break;
-      }
-    }
+  //   for (let i = 0; i < o1.length; i++) {
+  //     if (o1[i] !== o2[i]) {
+  //       same = false;
+  //       break;
+  //     }
+  //   }
 
-    return same;
-  }
+  //   return same;
+  // }
 
   /**
    * Handle ALT key-down  events.
@@ -3040,13 +3071,13 @@ export class Fragments {
   }
 
   /**
-   * Create a new instance
+   * Create a new pile instance
    *
    * @param {number} pileId - Pile ID.
    * @return {object} New or retrieved pile
    */
   pileCreate (pileId) {
-    if (!fgmState.pilesIdx[pileId]) {
+    if (!this.pilesIdxState[pileId]) {
       const pile = new Pile(
         pileId,
         fgmState.scene,
@@ -3054,11 +3085,11 @@ export class Fragments {
         this.fragDims
       );
 
-      fgmState.pilesIdx[pileId] = pile;
-      fgmState.piles.push(pile);
+      this.pilesIdxState[pileId] = pile;
+      this.pilesState.push(pile);
     }
 
-    return fgmState.pilesIdx[pileId];
+    return this.pilesIdxState[pileId];
   }
 
   /**
@@ -3076,25 +3107,25 @@ export class Fragments {
     const pilesDestination = [];
 
     Object.keys(config).forEach((targetPileId) => {
-      const targetPile = fgmState.pilesIdx[targetPileId];
+      const targetPile = this.pilesIdxState[targetPileId];
       const sourcePiles = config[targetPileId];
 
       const centerX = (
         targetPile.x +
         sourcePiles.reduce(
-          (sum, pileId) => sum + fgmState.pilesIdx[pileId].x, 0
+          (sum, pileId) => sum + this.pilesIdxState[pileId].x, 0
         )
       ) / (sourcePiles.length + 1);
 
       const centerY = (
         targetPile.y +
         sourcePiles.reduce(
-          (sum, pileId) => sum + fgmState.pilesIdx[pileId].y, 0
+          (sum, pileId) => sum + this.pilesIdxState[pileId].y, 0
         )
       ) / (sourcePiles.length + 1);
 
       piles.push(targetPile);
-      piles.push(...sourcePiles.map(pileId => fgmState.pilesIdx[pileId]));
+      piles.push(...sourcePiles.map(pileId => this.pilesIdxState[pileId]));
 
       pilesDestination.push(...new Array(sourcePiles.length + 1).fill(
         { x: centerX, y: centerY }
@@ -3114,7 +3145,11 @@ export class Fragments {
     animation.finally(() => {
       targetPiles.forEach((pile) => { pile.elevateTo(Z_BASE); });
 
-      this.store.dispatch(stackPiles(config));
+      if (fgmState.isPilesInspection) {
+        this.store.dispatch(stackPilesInspection(config));
+      } else {
+        this.store.dispatch(stackPiles(config));
+      }
     });
   }
 
@@ -3171,7 +3206,7 @@ export class Fragments {
 
     // Finally, assign rank
     pilesSortHelper.forEach((pileSortHelper, index) => {
-      fgmState.pilesIdx[pileSortHelper.id].rank = index;
+      this.pilesIdxState[pileSortHelper.id].rank = index;
     });
   }
 
@@ -3439,13 +3474,89 @@ export class Fragments {
   }
 
   /**
+   * Setup piles from pile config
+   *
+   * @param {object} pilesConfig - Piles config.
+   * @return {array} List of promises.
+   */
+  setPilesFromConfig (pilesConfig) {
+    const ready = [];
+
+    Object.keys(pilesConfig).forEach((pileId) => {
+      const matrixIds = pilesConfig[pileId];
+
+      let pile = this.pilesIdxState[pileId];
+
+      if (matrixIds.length) {
+        // Gte or create pile
+        if (!pile) {
+          pile = this.pileCreate(pileId);
+          this.destroyAltPile(pileId);
+        }
+
+        // Add matrices onto pile
+        ready.push(pile.setMatrices(
+          matrixIds
+            .map(matrixId => fgmState.matrices[matrixId])
+            .filter(matrix => matrix.visible)
+        ));
+
+        // Check if there is a pile that is dispersable
+        if (!this.isDispersable) {
+          this.isDispersable = (
+            pile.pileMatrices.length > 1 &&
+            (
+              (fgmState.trashIsActive && pile.isTrashed) ||
+              (!fgmState.trashIsActive && !pile.isTrashed)
+            )
+          );
+        }
+
+        if (!pile.pileMatrices.length) {
+          pile.hide();
+        }
+
+        if (fgmState.trashIsActive) {
+          if (pile.isTrashed && pile.isDrawn) {
+            pile.hide();
+          }
+
+          if (!this.trashSize) {
+            this.hideTrash();
+          }
+        } else if (pileId[0] === '_') {
+          pile.trash();
+        } else if (pile.isTrashed) {
+          pile.recover();
+        } else if (!pile.isDrawn) {
+          if (
+            this.fromDisperse &&
+            this.fromDisperse[pile.id]
+          ) {
+            // To make it look like a real disperse
+            pile.draw().moveTo(
+              this.fromDisperse[pile.id].x,
+              this.fromDisperse[pile.id].y,
+              true
+            );
+          }
+        }
+      } else if (pile) {
+        pile.destroy();
+      }
+    });
+
+    return ready;
+  }
+
+  /**
    * [setPilingMethod description]
    *
    * @param {[type]} method - [description]
    */
-  setPilingMethod (method) {
-    this.pilingMethod = method;
-  }
+  // setPilingMethod (method) {
+  //   this.pilingMethod = method;
+  // }
 
   /**
    * Set the scroll bottom limiit
@@ -3724,6 +3835,7 @@ export class Fragments {
       ready.push(this.updateMatrixColors(stateFgm.matricesColors, update));
       ready.push(this.updateMatrixFrameEncoding(stateFgm.matrixFrameEncoding, update, init));
       ready.push(this.updateMatrixOrientation(stateFgm.matrixOrientation, update));
+      ready.push(this.updatePilesInspection(stateFgm.pilesInspection, update));
       ready.push(this.updatePiles(stateFgm.piles, update));
       ready.push(this.updateShowSpecialCells(stateFgm.showSpecialCells, update));
 
@@ -3735,6 +3847,10 @@ export class Fragments {
     }
   }
 
+  setInspection () {
+
+  }
+
   /**
    * Handler rendering after updates.
    *
@@ -3744,6 +3860,10 @@ export class Fragments {
     if (this.isInitialized) {
       if (update.webgl) {
         this.updateWebGl();
+      }
+
+      if (update.inspection) {
+        this.setInspection();
       }
 
       if (update.grid) {
@@ -3769,16 +3889,19 @@ export class Fragments {
         this.setScrollLimit();
       }
 
-      if (this.isInitialized) {
-        this.render();
-      }
-
       if (update.layout) {
         window.requestAnimationFrame(() => {
           this.updateLayout(
             this.piles,
             fgmState.trashIsActive ? [] : this.arrangeMeasures
           ).then(() => {
+            if (update.removePileArea) {
+              setTimeout(() => {
+                this.removePileArea();
+                this.render();
+              }, 250);
+            }
+
             this.render();
           });
         });
@@ -3786,8 +3909,9 @@ export class Fragments {
 
       if (update.drawPilesAfter) {
         this.redrawPiles();
-        this.render();
       }
+
+      this.render();
     }
   }
 
@@ -4060,6 +4184,10 @@ export class Fragments {
             pile.moveTo(pos.x, pos.y, true);
           });
 
+          return Promise.resolve();
+        })
+        .then(() => {
+          // Piles have been animated
           resolve();
         })
         .catch((error) => {
@@ -4152,89 +4280,34 @@ export class Fragments {
   }
 
   /**
-   * Update piles
+   * Update piles.
    *
    * @param {object} pileConfigs - Config object
-   * @param {object} update - Update object to bve updated in-place.
-   * @param {boolean} forced - If `true` force update
+   * @param {object} update - Update object to be updated in-place.
+   * @param {boolean} force - If `true` force update
    */
-  updatePiles (pileConfigs, update, forced) {
+  updatePiles (pileConfigs, update, force) {
     if (
       (this.pileConfigs === pileConfigs || !this.isInitialized) &&
-      !forced &&
+      !force &&
       !update.pilesForce
     ) {
       return;
     }
 
     this.pileConfigs = pileConfigs;
+
+    if (fgmState.isPilesInspection) {
+      return Promise.resolve();
+    }
+
     this.isDispersable = false;
 
-    const ready = [];
+    const ready = this.setPilesFromConfig(pileConfigs);
 
-    Object.keys(pileConfigs)
-      .map(pileId => ({
-        id: pileId,
-        matrixIds: pileConfigs[pileId]
-      }))
-      .forEach((pileConfig) => {
-        let pile = fgmState.pilesIdx[pileConfig.id];
-
-        if (pileConfig.matrixIds.length) {
-          if (!pile) {
-            pile = this.pileCreate(pileConfig.id);
-            this.destroyAltPile(pileConfig.id);
-          }
-
-          ready.push(pile.setMatrices(
-            pileConfig.matrixIds
-              .map(matrixId => fgmState.matrices[matrixId])
-              .filter(matrix => matrix.visible)
-          ));
-
-          if (!this.isDispersable) {
-            this.isDispersable = (
-              pile.pileMatrices.length > 1 &&
-              (
-                (fgmState.trashIsActive && pile.isTrashed) ||
-                (!fgmState.trashIsActive && !pile.isTrashed)
-              )
-            );
-          }
-
-          if (pile.pileMatrices.length === 0) {
-            pile.hide();
-          }
-
-          if (fgmState.trashIsActive) {
-            if (pile.isTrashed && pile.isDrawn) {
-              pile.hide();
-            }
-
-            if (!this.trashSize) {
-              this.hideTrash();
-            }
-          } else if (pileConfig.id[0] === '_') {
-            pile.trash();
-          } else if (pile.isTrashed) {
-            pile.recover();
-          } else if (!pile.isDrawn) {
-            if (
-              this.fromDisperse &&
-              this.fromDisperse[pile.id]
-            ) {
-              // To make it look like a real disperse
-              pile.draw().moveTo(
-                this.fromDisperse[pile.id].x,
-                this.fromDisperse[pile.id].y,
-                true
-              );
-            }
-          }
-        } else if (pile) {
-          pile.destroy();
-        }
-      });
+    if (this.fromDisperse) {
+      update.removePileArea = true;
+    }
 
     this.fromDisperse = undefined;
 
@@ -4245,6 +4318,59 @@ export class Fragments {
     update.layout = true;
     update.scrollLimit = true;
     update.drawPilesAfter = true;
+
+    return Promise.all(ready);
+  }
+
+  /**
+   * Update the config of pile inspection.
+   *
+   * @param {object} pilesInspectionConfigs - Piles inspection config object.
+   * @param {object} update - Update object to be updated in-place.
+   * @param {boolean} force - If `true` force update
+   */
+  updatePilesInspection (pilesInspectionConfigs, update, force) {
+    if (
+      (
+        this.pilesInspectionConfigs === pilesInspectionConfigs ||
+        !this.isInitialized
+      ) &&
+      !force &&
+      !update.pilesForce
+    ) {
+      return;
+    }
+
+    this.pilesInspectionConfigs = pilesInspectionConfigs;
+    this.isDispersable = false;
+
+    if (!this.pilesInspectionConfigs.length) {
+      fgmState.isPilesInspection = false;
+      return Promise.resolve();
+    }
+
+    const pilesConfig = this.pilesInspectionConfigs[
+      this.pilesInspectionConfigs.length - 1
+    ];
+
+    fgmState.isPilesInspection = true;
+
+    const ready = this.setPilesFromConfig(pilesConfig);
+
+    if (this.fromDisperse) {
+      update.removePileArea = true;
+    }
+
+    this.fromDisperse = undefined;
+
+    if (!fgmState.trashIsActive) {
+      this.assessMeasuresMax();
+    }
+
+    update.layout = true;
+    update.scrollLimit = true;
+    update.drawPilesAfter = true;
+    update.inspection = true;
 
     return Promise.all(ready);
   }
