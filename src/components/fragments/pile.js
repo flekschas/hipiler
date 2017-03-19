@@ -272,12 +272,13 @@ export default class Pile {
    * @param {array} j - Index j.
    */
   calculateCellMad (targetMatrix, sourceMatrices, i, j, numMatrices) {
+    const flatIdx = (i * this.dims) + j;
     const mean = sourceMatrices
-      .map(matrix => Math.max(matrix.matrix[i][j], 0))
+      .map(matrix => Math.max(matrix[flatIdx], 0))
       .reduce((a, b) => a + b, 0) / sourceMatrices.length;
 
     targetMatrix[i][j] = sourceMatrices
-      .map(matrix => Math.max(matrix.matrix[i][j], 0))
+      .map(matrix => Math.max(matrix[flatIdx], 0))
       .reduce((a, b) => a + Math.abs(b - mean), 0) / sourceMatrices.length;
   }
 
@@ -321,13 +322,16 @@ export default class Pile {
    * @param {array} j - Index j.
    */
   calculateCellStd (targetMatrix, sourceMatrices, i, j) {
+    const flatIdx = (i * this.dims) + j;
     const mean = sourceMatrices
-      .map(matrix => Math.max(matrix.matrix[i][j], 0))
+      .map(matrix => Math.max(matrix[flatIdx], 0))
       .reduce((a, b) => a + b, 0) / sourceMatrices.length;
 
     targetMatrix[i][j] = Math.sqrt(sourceMatrices
-      .map(matrix => Math.max(matrix.matrix[i][j], 0))
-      .reduce((a, b) => a + ((b - mean) ** 2), 0) / (sourceMatrices.length - 1));
+      .map(matrix => Math.max(matrix[flatIdx], 0))
+      .reduce(
+        (a, b) => a + ((b - mean) ** 2), 0) / (sourceMatrices.length - 1)
+      );
   }
 
   /**
@@ -355,7 +359,7 @@ export default class Pile {
               case MODE_MAD:
                 this.calculateCellMad(
                   this.coverMatrix,
-                  this.pileMatrices,
+                  this.clustersAvgMatrices,
                   i,
                   j,
                   numMatrices
@@ -365,7 +369,7 @@ export default class Pile {
               case MODE_STD:
                 this.calculateCellStd(
                   this.coverMatrix,
-                  this.pileMatrices,
+                  this.clustersAvgMatrices,
                   i,
                   j,
                   numMatrices
@@ -441,6 +445,13 @@ export default class Pile {
                   matrixId => fgmState.matricesIdx[matrixId]
                 )
               )
+            );
+
+            console.log(
+              'calced clusters for',
+              this.id,
+              this.pileMatrices.length,
+              this.clusters
             );
 
             this.isMatricesClustered = true;
