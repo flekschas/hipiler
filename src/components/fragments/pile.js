@@ -1499,6 +1499,8 @@ export default class Pile {
     if (meshIndex === -1) {
       fgmState.pileMeshes.push(this.mesh);
     }
+
+    return this;
   }
 
   /**
