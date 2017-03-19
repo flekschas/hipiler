@@ -1523,29 +1523,29 @@ export class Fragments {
     }
   }
 
-  /**
-   * [distance description]
-   *
-   * @param {[type]} m1         - [description]
-   * @param {[type]} m2         - [description]
-   * @param {[type]} focusNodes - [description]
-   * @return {[type]} [description]
-   */
-  distance (m1, m2, focusNodes) {
-    let d = 0;
-    let a;
-    let b;
+  // /**
+  //  * [distance description]
+  //  *
+  //  * @param {[type]} m1         - [description]
+  //  * @param {[type]} m2         - [description]
+  //  * @param {[type]} focusNodes - [description]
+  //  * @return {[type]} [description]
+  //  */
+  // distance (m1, m2, focusNodes) {
+  //   let d = 0;
+  //   let a;
+  //   let b;
 
-    focusNodes.forEach((node, index) => {
-      a = node;
-      for (let j = index; j < focusNodes.length; j++) {
-        b = focusNodes[j];
-        d += (m1.matrix[a][b] - m2.matrix[a][b]) ** 2;
-      }
-    });
+  //   focusNodes.forEach((node, index) => {
+  //     a = node;
+  //     for (let j = index; j < focusNodes.length; j++) {
+  //       b = focusNodes[j];
+  //       d += (m1.matrix[a][b] - m2.matrix[a][b]) ** 2;
+  //     }
+  //   });
 
-    return Math.sqrt(d);
-  }
+  //   return Math.sqrt(d);
+  // }
 
   /**
    * Drag handler
@@ -2661,6 +2661,7 @@ export class Fragments {
    */
   inspectPilesHandler (piles) {
     this.setFromDisperse(piles);
+    this.fromInspection = true;
 
     const pilesConfig = {};
 
@@ -4405,13 +4406,16 @@ export class Fragments {
       return Promise.resolve();
     }
 
+    const newInspection = !fgmState.isPilesInspection || this.fromInspection;
     const pilesConfig = this.pilesInspectionConfigs[
       this.pilesInspectionConfigs.length - 1
     ];
 
     fgmState.isPilesInspection = true;
 
-    this.showInspection();
+    if (newInspection) {
+      this.showInspection();
+    }
 
     const ready = this.setPilesFromConfig(
       pilesConfig,
@@ -4427,6 +4431,8 @@ export class Fragments {
     if (!fgmState.trashIsActive) {
       this.assessMeasuresMax();
     }
+
+    this.fromInspection = false;
 
     update.layout = true;
     update.scrollLimit = true;
