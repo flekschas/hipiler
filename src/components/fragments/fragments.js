@@ -1109,7 +1109,9 @@ export class Fragments {
    * @param {object} event - Mouse click event.
    */
   canvasContentMenuHandler (event) {
-    event.preventDefault();
+    if (fgmState.hoveredPile) {
+      event.preventDefault();
+    }
 
     this.showPileMenu(fgmState.hoveredPile);
   }
