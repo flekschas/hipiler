@@ -2,10 +2,12 @@ import { combineReducers } from 'redux';
 
 import {
   ADD_PILES,
+  CLOSE_PILES_INSPECTION,
   DISPERSE_PILES,
+  DISPERSE_PILES_INSPECTION,
+  INSPECT_PILES,
   RECOVER_PILES,
   REMOVE_PILES,
-  STACK_PILES,
   SET_ANIMATION,
   SET_ARRANGE_MEASURES,
   SET_CELL_SIZE,
@@ -20,6 +22,8 @@ import {
   SET_MATRIX_ORIENTATION,
   SET_PILES,
   SET_SHOW_SPECIAL_CELLS,
+  STACK_PILES,
+  STACK_PILES_INSPECTION,
   TRASH_PILES,
   UPDATE_FGM_CONFIG
 } from 'components/fragments/fragments-actions';
@@ -38,6 +42,7 @@ import {
   MATRIX_FRAME_ENCODING,
   MATRIX_ORIENTATION_INITIAL,
   MODE_MEAN,
+  PILES_INSPECTION,
   PILES,
   SHOW_SPECIAL_CELLS
 } from 'components/fragments/fragments-defaults';
@@ -56,114 +61,46 @@ function copyPilesState (state) {
   return newState;
 }
 
+function disperse (pilesFromAction, pilesConfig) {
+  // Disperse matrices
+  pilesFromAction
+    .map(pileId => pilesConfig[pileId].slice(1))  // Always keep one matrix
+    .reduce((a, b) => a.concat(b), [])
+    .forEach((pileId) => {
+      pilesConfig[pileId] = [pileId];
+    });
 
-export function piles (state = PILES, action) {
-  switch (action.type) {
-    case ADD_PILES: {
-      // Create copy of old state
-      const newState = copyPilesState(state);
+  // Update original pile
+  pilesFromAction
+    .forEach((pileId) => {
+      pilesConfig[pileId] = pilesConfig[pileId].slice(0, 1);
+    });
 
-      Object.keys(action.payload.piles).forEach((pileId) => {
-        newState[pileId] = action.payload.piles[pileId];
-      });
-      return newState;
-    }
-
-    case DISPERSE_PILES: {
-      // Create copy of old state
-      const newState = copyPilesState(state);
-
-      // Disperse matrices
-      action.payload.piles
-        .map(pileId => newState[pileId].slice(1))  // Always keep one matrix
-        .reduce((a, b) => a.concat(b), [])
-        .forEach((pileId) => {
-          newState[pileId] = [pileId];
-        });
-
-      // Update original pile
-      action.payload.piles
-        .forEach((pileId) => {
-          newState[pileId] = newState[pileId].slice(0, 1);
-        });
-
-      return newState;
-    }
-
-    case REMOVE_PILES: {
-      // Create copy of old state
-      const newState = copyPilesState(state);
-
-      action.payload.piles
-        .forEach((pileId) => {
-          newState[`__${pileId}`] = [...newState[pileId]];
-          newState[pileId] = [];
-        });
-
-      return newState;
-    }
-
-    case RECOVER_PILES: {
-      // Create copy of old state
-      const newState = copyPilesState(state);
-
-      action.payload.piles
-        .forEach((pileId) => {
-          newState[pileId.slice(1)] = [...newState[pileId]];
-          newState[pileId] = undefined;
-          delete newState[pileId];
-        });
-
-      return newState;
-    }
-
-    case SET_PILES: {
-      return action.payload.piles;
-    }
-
-    case STACK_PILES: {
-      // Create copy of old state
-      const newState = copyPilesState(state);
-
-      // Adust new state
-      Object.keys(action.payload.pileStacks).forEach((targetPile) => {
-        const sourcePiles = action.payload.pileStacks[targetPile];
-
-        // Add piles of source piles onto the target pile
-        newState[targetPile]
-          .push(
-            ...sourcePiles
-              .map(pileId => newState[pileId])
-              .reduce((a, b) => a.concat(b), [])
-          );
-
-        // Reset the source piles
-        sourcePiles.forEach(
-          (pileId) => { newState[pileId] = []; }
-        );
-      });
-
-      return newState;
-    }
-
-    case TRASH_PILES: {
-      // Create copy of old state
-      const newState = copyPilesState(state);
-
-      action.payload.piles
-        .forEach((pileId) => {
-          newState[`_${pileId}`] = [...newState[pileId]];
-          newState[pileId] = undefined;
-          delete newState[pileId];
-        });
-
-      return newState;
-    }
-
-    default:
-      return state;
-  }
+  return pilesConfig;
 }
+
+function stack (pileStacks, pilesConfig) {
+  // Adust new state
+  Object.keys(pileStacks).forEach((targetPile) => {
+    const sourcePiles = pileStacks[targetPile];
+
+    // Add piles of source piles onto the target pile
+    pilesConfig[targetPile]
+      .push(
+        ...sourcePiles
+          .map(pileId => pilesConfig[pileId])
+          .reduce((a, b) => a.concat(b), [])
+      );
+
+    // Reset the source piles
+    sourcePiles.forEach(
+      (pileId) => { pilesConfig[pileId] = []; }
+    );
+  });
+
+  return pilesConfig;
+}
+
 
 export function animation (state = ANIMATION, action) {
   switch (action.type) {
@@ -309,6 +246,132 @@ export function matrixOrientation (state = MATRIX_ORIENTATION_INITIAL, action) {
   }
 }
 
+export function pilesInspection (state = PILES_INSPECTION, action) {
+  switch (action.type) {
+    case DISPERSE_PILES_INSPECTION: {
+      const newState = [...state];
+      const pilesConfig = copyPilesState(newState[newState.length - 1]);
+
+      // Replace last pile pilesConfig
+      newState.splice(-1, 1, disperse(action.payload.piles, pilesConfig));
+
+      return newState;
+    }
+
+    case CLOSE_PILES_INSPECTION:
+      return state.slice(0, -1);
+
+    case INSPECT_PILES: {
+      const newState = [...state];
+
+      const newPilesConfig = {};
+
+      Object.keys(action.payload.piles)
+        .forEach((pileId) => {
+          if (!newPilesConfig.__source) {
+            newPilesConfig.__source = [];
+          }
+          newPilesConfig.__source.push(pileId);
+        })
+        .map(pileId => action.payload.piles[pileId])
+        .filter(matrices => matrices.length)
+        .reduce((acc, value) => acc.concat(value), [])
+        .forEach((matrixId) => {
+          newPilesConfig[matrixId] = [matrixId];
+        });
+
+      if (Object.keys(newPilesConfig).length < 2) { return state; }
+
+      newState.push(newPilesConfig);
+
+      return newState;
+    }
+
+    case STACK_PILES_INSPECTION: {
+      const newState = [...state];
+      const pilesConfig = copyPilesState(newState[newState.length - 1]);
+
+      // Replace last pile pilesConfig
+      newState.splice(-1, 1, stack(action.payload.pileStacks, pilesConfig));
+
+      console.log(newState);
+
+      return newState;
+    }
+
+    default:
+      return state;
+  }
+}
+
+export function piles (state = PILES, action) {
+  switch (action.type) {
+    case ADD_PILES: {
+      // Create copy of old state
+      const newState = copyPilesState(state);
+
+      Object.keys(action.payload.piles).forEach((pileId) => {
+        newState[pileId] = action.payload.piles[pileId];
+      });
+      return newState;
+    }
+
+    case DISPERSE_PILES:
+      return disperse(action.payload.piles, copyPilesState(state));
+
+    case REMOVE_PILES: {
+      // Create copy of old state
+      const newState = copyPilesState(state);
+
+      action.payload.piles
+        .forEach((pileId) => {
+          newState[`__${pileId}`] = [...newState[pileId]];
+          newState[pileId] = [];
+        });
+
+      return newState;
+    }
+
+    case RECOVER_PILES: {
+      // Create copy of old state
+      const newState = copyPilesState(state);
+
+      action.payload.piles
+        .forEach((pileId) => {
+          newState[pileId.slice(1)] = [...newState[pileId]];
+          newState[pileId] = undefined;
+          delete newState[pileId];
+        });
+
+      return newState;
+    }
+
+    case SET_PILES: {
+      return action.payload.piles;
+    }
+
+    case STACK_PILES:
+      return stack(action.payload.pileStacks, copyPilesState(state));
+
+    case TRASH_PILES: {
+      // Create copy of old state
+      const newState = copyPilesState(state);
+
+      action.payload.piles
+        .forEach((pileId) => {
+          newState[`_${pileId}`] = [...newState[pileId]];
+          newState[pileId] = undefined;
+          delete newState[pileId];
+        });
+
+      return newState;
+    }
+
+    default:
+      return state;
+  }
+}
+
 export function showSpecialCells (state = SHOW_SPECIAL_CELLS, action) {
   switch (action.type) {
     case SET_SHOW_SPECIAL_CELLS:
@@ -334,5 +397,6 @@ export default combineReducers({
   matrixFrameEncoding,
   matrixOrientation,
   piles,
+  pilesInspection,
   showSpecialCells
 });

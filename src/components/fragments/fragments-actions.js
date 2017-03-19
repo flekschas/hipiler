@@ -5,10 +5,30 @@ export const addPiles = piles => ({
   payload: { piles }
 });
 
+export const CLOSE_PILES_INSPECTION = 'CLOSE_PILES_INSPECTION';
+
+export const closePilesInspection = () => ({
+  type: CLOSE_PILES_INSPECTION
+});
+
 export const DISPERSE_PILES = 'DISPERSE_PILES';
 
 export const dispersePiles = piles => ({
   type: DISPERSE_PILES,
+  payload: { piles }
+});
+
+export const DISPERSE_PILES_INSPECTION = 'DISPERSE_PILES_INSPECTION';
+
+export const dispersePilesInspection = piles => ({
+  type: DISPERSE_PILES_INSPECTION,
+  payload: { piles }
+});
+
+export const INSPECT_PILES = 'INSPECT_PILES';
+
+export const inspectPiles = piles => ({
+  type: INSPECT_PILES,
   payload: { piles }
 });
 
@@ -145,6 +165,13 @@ export const STACK_PILES = 'STACK_PILES';
 
 export const stackPiles = pileStacks => ({
   type: STACK_PILES,
+  payload: { pileStacks }
+});
+
+export const STACK_PILES_INSPECTION = 'STACK_PILES_INSPECTION';
+
+export const stackPilesInspection = pileStacks => ({
+  type: STACK_PILES_INSPECTION,
   payload: { pileStacks }
 });
 

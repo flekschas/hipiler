@@ -94,26 +94,6 @@ export const MARGIN_TOP = 2;
 
 export const MATRICES_COLORS = {};
 
-export const PILE_AREA_BG = new THREE.MeshBasicMaterial({
-  color: COLORS.PRIMARY,
-  transparent: true,
-  opacity: 0.15
-});
-
-export const PILE_AREA_BORDER = new THREE.ShaderMaterial(LINE_SHADER({
-  side: THREE.DoubleSide,
-  diffuse: COLORS.PRIMARY,
-  thickness: 1,
-  transparent: true,
-  opacity: 0.3
-}));
-
-export const PILE_AREA_POINTS = new THREE.MeshBasicMaterial({
-  color: COLORS.PRIMARY,
-  transparent: true,
-  opacity: 1
-});
-
 export const MATRIX_FRAME_ENCODING = null;
 
 export const MATRIX_FRAME_THICKNESS = 2;
@@ -158,6 +138,28 @@ export const ORDER_DATA = 0;
 export const ORDER_GLOBAL = 1;
 
 export const ORDER_LOCAL = 2;
+
+export const PILE_AREA_BG = new THREE.MeshBasicMaterial({
+  color: COLORS.PRIMARY,
+  transparent: true,
+  opacity: 0.15
+});
+
+export const PILE_AREA_BORDER = new THREE.ShaderMaterial(LINE_SHADER({
+  side: THREE.DoubleSide,
+  diffuse: COLORS.PRIMARY,
+  thickness: 1,
+  transparent: true,
+  opacity: 0.3
+}));
+
+export const PILE_AREA_POINTS = new THREE.MeshBasicMaterial({
+  color: COLORS.PRIMARY,
+  transparent: true,
+  opacity: 1
+});
+
+export const PILES_INSPECTION = [];
 
 export const PILE_LABEL_HEIGHT = 10;
 
