@@ -23,8 +23,8 @@
     is-align-left.bind="isPileMenuAlignLeft"
     is-bottom-up.bind="isPileMenuBottomUp"></pile-menu>
 
-  <div class="full-wh flex-c flex-d-c ${fgmState.animation ? 'is-animated' : ''}" ref="baseEl">
-    <main class="flex-g-1 rel fragment-plot">
+  <div class="full-wh flex-c flex-d-c ${state.animation ? 'is-animated' : ''}" ref="baseEl">
+    <main class="flex-g-1 rel fragment-plot ${state.isPilesInspection ? 'is-piles-inspection' : ''}">
       <div class="full-dim" css.one-way="plotWindowCss">
         <button
           class="axis-switch is-icon-only"
