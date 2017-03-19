@@ -495,8 +495,11 @@ export default class Pile {
 
   /**
    * Destroy this instance.
+   *
+   * @param {boolean} noSplicing - If `true` pile is not spliced out of the
+   *   piles array. This is useful when batch deleting with `forEach`.
    */
-  destroy () {
+  destroy (noSplicing) {
     this.unsetHoverState();
 
     const meshIndex = this.pileMeshes.indexOf(this.mesh);
@@ -510,13 +513,17 @@ export default class Pile {
     this.isDrawn = false;
     this.pileMatrices = [];
 
-    const pileIndex = this.piles.indexOf(this);
 
-    if (pileIndex >= 0) {
-      this.piles.splice(this.piles.indexOf(this), 1);
+    if (!noSplicing) {
+      const pileIndex = this.piles.indexOf(this);
+
+      if (pileIndex >= 0) {
+        this.piles.splice(this.piles.indexOf(this), 1);
+      }
     }
 
     this.pilesIdxState[this.id] = undefined;
+    delete this.pilesIdxState[this.id];
   }
 
   /**
@@ -1266,13 +1273,23 @@ export default class Pile {
 
   /**
    * Hide this instance.
+   *
+   * @return {object} Self.
    */
   hide () {
     this.unsetHoverState();
     this.geometry.dispose();
     this.isDrawn = false;
 
+    const meshIndex = fgmState.pileMeshes.indexOf(this.mesh);
+
+    if (meshIndex >= 0) {
+      fgmState.pileMeshes.splice(meshIndex, 1);
+    }
+
     fgmState.scene.remove(this.mesh);
+
+    return this;
   }
 
   /**
@@ -1474,6 +1491,17 @@ export default class Pile {
   }
 
   /**
+   * Add pile to mesh again for interaction
+   */
+  show () {
+    const meshIndex = fgmState.pileMeshes.indexOf(this.mesh);
+
+    if (meshIndex === -1) {
+      fgmState.pileMeshes.push(this.mesh);
+    }
+  }
+
+  /**
    * Show or hide node labels.
    *
    * @param {boolean} showLabels - If `true` shows node labels.
@@ -1538,7 +1566,7 @@ export default class Pile {
     const meshIndex = fgmState.pileMeshes.indexOf(this.mesh);
 
     if (meshIndex >= 0) {
-      fgmState.pileMeshes.splice(fgmState.pileMeshes.indexOf(this.mesh), 1);
+      fgmState.pileMeshes.splice(meshIndex, 1);
     }
 
     const pileIndex = this.pilesState.indexOf(this);
