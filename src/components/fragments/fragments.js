@@ -939,10 +939,6 @@ export class Fragments {
 
     if (fgmState.hoveredPile) {
       this.highlightPile(fgmState.hoveredPile);
-
-      if (fgmState.hoveredPile.scale > 1) {
-        this.pilesZoomed[fgmState.hoveredPile.id] = true;
-      }
     } else {
       this.showPileMenu();
     }
@@ -2899,14 +2895,6 @@ export class Fragments {
       this.removePileArea();
 
       this.drawPilesArea([fgmState.hoveredPile]);
-      fgmState.hoveredPile.scaleMouseEntered = fgmState.hoveredPile.scale;
-
-      if (
-        fgmState.previousHoveredPile &&
-        !this.pilesZoomed[fgmState.previousHoveredPile.id]
-      ) {
-        fgmState.previousHoveredPile.setScale().frameCreate().draw();
-      }
     }
 
     fgmState.previousHoveredPile = fgmState.hoveredPile;
@@ -2933,10 +2921,6 @@ export class Fragments {
         'decompose.fgm.pileMouseLeave',
         fgmState.previousHoveredPile.pileMatrices.map(matrix => matrix.id)
       );
-
-      if (!this.pilesZoomed[fgmState.previousHoveredPile.id]) {
-        fgmState.previousHoveredPile.setScale().frameCreate().draw();
-      }
 
       fgmState.previousHoveredPile.elevateTo(Z_BASE);
       fgmState.previousHoveredPile.showSingle(undefined);
@@ -3327,14 +3311,11 @@ export class Fragments {
     const momentum = wheelDelta > 0 ? force : -force;
 
     const newScale = Math.min(
-      Math.max(
-        pile.scaleMouseEntered,
-        pile.scale * (1 + (0.1 * momentum))
-      ),
-      pile.scaleMouseEntered * 5
+      Math.max(1, pile.scale * (1 + (0.1 * momentum))), 5
     );
 
     pile.setScale(newScale).frameCreate().draw();
+    this.pilesZoomed[pile.id] = pile;
   }
 
   /**
