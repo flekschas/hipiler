@@ -89,14 +89,23 @@
             options.bind="state.measures"
             event-id.bind="arrangeSelectedEventId"
             state-query.bind="arrangeMeasuresAccessPath"
+            disabled.bind="state.isPilesInspection"
             placeholder="Choose measures…"></multi-select>
 
           <ul class="flex-c settings-list settings-list-buttons-only">
             <li>
               <button
-                class="flex-c flex-jc-c flex-a-c rel button ${isDataClustered ? 'is-active' : ''}"
-                click.delegate="clusterTsne()">
+                class="flex-c flex-jc-c flex-a-c rel button ${isDataClustered && !state.isPilesInspection ? 'is-active' : 'is-disabled'}"
+                click.delegate="clusterTsne()"
+                disabled.bind="state.isPilesInspection">
                 Cluster${isDataClustered ? 'ed' : ''}
+              </button>
+            </li>
+            <li if.bind="state.isPilesInspection">
+              <button
+                class="flex-c flex-jc-c flex-a-c rel button ${state.isPilesInspection ? 'is-active' : ''}"
+                click.delegate="closePilesInspection()">
+                Close Inspection
               </button>
             </li>
             <li>
