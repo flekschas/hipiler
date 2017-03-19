@@ -108,6 +108,7 @@ export const INSPECT = {
     name: 'Inspect',
     trigger (pile) {
       event.publish('decompose.fgm.inspectPiles', [pile]);
+      event.publish('decompose.fgm.removePileArea');
     },
     closeOnClick: true
   }],
