@@ -267,13 +267,15 @@ export function pilesInspection (state = PILES_INSPECTION, action) {
       const newPilesConfig = {};
 
       Object.keys(action.payload.piles)
-        .forEach((pileId) => {
+        .map((pileId) => {
           if (!newPilesConfig.__source) {
             newPilesConfig.__source = [];
           }
+
           newPilesConfig.__source.push(pileId);
+
+          return action.payload.piles[pileId];
         })
-        .map(pileId => action.payload.piles[pileId])
         .filter(matrices => matrices.length)
         .reduce((acc, value) => acc.concat(value), [])
         .forEach((matrixId) => {
@@ -293,8 +295,6 @@ export function pilesInspection (state = PILES_INSPECTION, action) {
 
       // Replace last pile pilesConfig
       newState.splice(-1, 1, stack(action.payload.pileStacks, pilesConfig));
-
-      console.log(newState);
 
       return newState;
     }
