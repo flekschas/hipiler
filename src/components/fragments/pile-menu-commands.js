@@ -21,9 +21,7 @@ export const BW = {
     {
       name: 'Black & White',
       trigger (pile) {
-        event.publish(
-          'decompose.fgm.pileAssignBW', { pile }
-        );
+        event.publish('decompose.fgm.pileAssignBW', { pile });
       }
     }
   ],
@@ -66,9 +64,7 @@ export const COLOR = {
         background: '#d5fafa'
       },
       trigger (pile) {
-        event.publish(
-          'decompose.fgm.pileAssignColor', { pile, color: 'cyan' }
-        );
+        event.publish('decompose.fgm.pileAssignColor', { pile, color: 'cyan' });
       }
     },
     {
@@ -79,9 +75,7 @@ export const COLOR = {
         background: '#ffd5d9'
       },
       trigger (pile) {
-        event.publish(
-          'decompose.fgm.pileAssignColor', { pile, color: 'red' }
-        );
+        event.publish('decompose.fgm.pileAssignColor', { pile, color: 'red' });
       }
     },
     {
@@ -92,9 +86,7 @@ export const COLOR = {
         background: '#dfd7ff'
       },
       trigger (pile) {
-        event.publish(
-          'decompose.fgm.pileAssignColor', { pile, color: 'blue' }
-        );
+        event.publish('decompose.fgm.pileAssignColor', { pile, color: 'blue' });
       }
     },
     {
@@ -105,9 +97,7 @@ export const COLOR = {
         background: '#ffd5f1'
       },
       trigger (pile) {
-        event.publish(
-          'decompose.fgm.pileAssignColor', { pile, color: 'pink' }
-        );
+        event.publish('decompose.fgm.pileAssignColor', { pile, color: 'pink' });
       }
     }
   ]
@@ -117,7 +107,7 @@ export const INSPECT = {
   buttons: [{
     name: 'Inspect',
     trigger (pile) {
-      event.publish('decompose.fgm.inspectPile', pile);
+      event.publish('decompose.fgm.inspectPiles', [pile]);
     },
     closeOnClick: true
   }],
@@ -140,9 +130,7 @@ export const MAD = {
     name: 'Mean Avg. Dev.',
     row: 0,
     trigger (pile) {
-      event.publish(
-        'decompose.fgm.coverDispMode', { mode: MODE_MAD, pile }
-      );
+      event.publish('decompose.fgm.coverDispMode', { mode: MODE_MAD, pile });
     }
   }],
   stackedPileOnly: true
@@ -152,9 +140,7 @@ export const MEAN = {
   buttons: [{
     name: 'Mean',
     trigger (pile) {
-      event.publish(
-        'decompose.fgm.coverDispMode', { mode: MODE_MEAN, pile }
-      );
+      event.publish('decompose.fgm.coverDispMode', { mode: MODE_MEAN, pile });
     }
   }],
   stackedPileOnly: true
