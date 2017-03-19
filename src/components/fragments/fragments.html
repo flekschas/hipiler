@@ -101,20 +101,20 @@
                 Cluster${isDataClustered ? 'ed' : ''}
               </button>
             </li>
-            <li if.bind="state.isPilesInspection">
-              <button
-                class="flex-c flex-jc-c flex-a-c rel button ${state.isPilesInspection ? 'is-active' : ''}"
-                click.delegate="closePilesInspectionHandler()">
-                Close Inspection
-              </button>
-            </li>
             <li>
               <button
-                class="flex-c flex-jc-c flex-a-c rel button is-icon-only ${trashSize > 0 ? 'is-enabled' : 'is-disabled'} ${state.trashIsActive ? 'is-active' : ''}"
+                class="flex-c flex-jc-c flex-a-c rel button is-icon-only ${trashSize > 0 && !state.isPilesInspection ? 'is-enabled' : 'is-disabled'} ${state.trashIsActive ? 'is-active' : ''}"
                 click.delegate="toggleTrash()"
-                disabled.bind="trashSize === 0">
+                disabled.bind="trashSize === 0 || state.isPilesInspection">
                 <svg-icon icon-id="trash"></svg-icon>
                 <span class="button-info">${trashSize}</span>
+              </button>
+            </li>
+            <li if.bind="state.isPilesInspection">
+              <button
+                class="flex-c flex-jc-c flex-a-c rel button is-active"
+                click.delegate="closePilesInspectionHandler()">
+                Close Inspection
               </button>
             </li>
           </ul>
