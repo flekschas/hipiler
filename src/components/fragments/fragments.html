@@ -93,12 +93,20 @@
             placeholder="Choose measures…"></multi-select>
 
           <ul class="flex-c settings-list settings-list-buttons-only">
-            <li>
+            <li class="flex-c ${isDataClustered ? 'button-group' : ''}">
               <button
                 class="flex-c flex-jc-c flex-a-c rel button ${isDataClustered && !state.isPilesInspection ? 'is-active' : 'is-disabled'}"
                 click.delegate="clusterTsne()"
                 disabled.bind="state.isPilesInspection">
                 Cluster${isDataClustered ? 'ed' : ''}
+              </button>
+              <button
+                class="flex-c flex-jc-c flex-a-c rel button"
+                title="Run t-SNE again"
+                click.delegate="clusterTsne(true)"
+                disabled.bind="state.isPilesInspection"
+                if.bind="isDataClustered">
+                <svg-icon class="icon-inline" icon-id="reset"></svg-icon>
               </button>
             </li>
             <li>
