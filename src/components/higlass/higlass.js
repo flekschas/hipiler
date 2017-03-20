@@ -18,6 +18,7 @@ import { requestNextAnimationFrame } from 'utils/request-animation-frame';
 import {
   setGrayscale,
   setFragmentsHighlight,
+  setFragmentsSelection,
   setInteractions,
   setSelectionView
 } from 'components/higlass/higlass-actions';
@@ -53,6 +54,7 @@ export class Higlass {
     this.locationTracker = {};
 
     this.chromInfo = chromInfo;
+    this.id = Math.random();
 
     this.event.subscribe(
       'decompose.fgm.pileMouseEnter',
@@ -68,6 +70,11 @@ export class Higlass {
     // resolve promises outside their scope.
     this.resolve = {};
     this.reject = {};
+
+    this.isAttached = new Promise((resolve, reject) => {
+      this.resolve.isAttached = resolve;
+      this.reject.isAttached = reject;
+    });
 
     this.isLociExtracted = new Promise((resolve, reject) => {
       this.resolve.isLociExtracted = resolve;
@@ -98,6 +105,13 @@ export class Higlass {
     this.update();
 
     setTimeout(() => { this.isLoading = false; }, 150);
+
+    this.resolve.isAttached();
+    console.log('HiGlass is attached', this.id);
+  }
+
+  deattached () {
+    console.log('HiGlass is deattached', this.id);
   }
 
 
@@ -121,6 +135,50 @@ export class Higlass {
 
 
   /* ---------------------------- Custom Methods ---------------------------- */
+
+  /**
+   * Add selection view to HiGlass's config for selection matrices
+   *
+   * @param {object} hgConfig - HiGlass's config.
+   */
+  addSelectionView (hgConfig) {
+    const originalView = hgConfig.views[0];
+
+    // Adjust height of the original view
+    originalView.uid += '_';  // This is needed to make HiGlass refresh properly. Otherwise an error is thrown
+    originalView.layout.h = 6;
+
+    const selectionView = deepClone(originalView);
+
+    selectionView.uid = `_${selectionView.uid}`;
+    selectionView.zoomFixed = false;
+    selectionView.layout.y = 6;
+    selectionView.layout.i = selectionView.uid;
+
+    // Prefix all `uid`s with an underscore
+    Object.keys(selectionView.tracks).forEach((trackType) => {
+      selectionView.tracks[trackType].forEach((track) => {
+        track.uid = `_${track.uid}`;
+        if (track.contents) {
+          track.contents.forEach((content) => {
+            content.uid = `_${content.uid}`;
+          });
+        }
+      });
+    });
+
+    // Add view projection view
+    originalView.tracks.center.push({
+      uid: 'viewport-projection-center',
+      type: 'viewport-projection-center',
+      fromViewUid: selectionView.uid,
+      options: {},
+      name: 'Viewport Projection'
+    });
+
+    // Add selection view
+    hgConfig.views.push(selectionView);
+  }
 
   checkServersAvailablility (config) {
     let servers;
@@ -215,7 +273,10 @@ export class Higlass {
     });
   }
 
-  dehighlightLoci (loci) {
+  /**
+   * Dehighlight locations.
+   */
+  dehighlightLoci () {
     if (!this.isFgmHighlight) { return; }
 
     this.isFgmHighlight = false;
@@ -260,6 +321,12 @@ export class Higlass {
    */
   fragmentsHighlightChangeHandler () {
     this.store.dispatch(setFragmentsHighlight(!this.fragmentsHighlight));
+
+    return true;
+  }
+
+  fragmentsSelectionChangeHandler () {
+    this.store.dispatch(setFragmentsSelection(!this.fragmentsSelection));
 
     return true;
   }
@@ -365,8 +432,24 @@ export class Higlass {
     });
   }
 
-  updateLociColor () {
+  /**
+   * Remove the selection view from HiGlass's config.
+   *
+   * @param {object} hgConfig - HiGlass's config.
+   */
+  removeSelectionView (hgConfig) {
+    const originalView = hgConfig.views[0];
 
+    // Adjust height of the original view
+    originalView.uid = originalView.uid.slice(0, -1);
+    originalView.layout.h = 12;
+
+    // Remove view projections
+    for (let i = originalView.tracks.center.length; i--;) {
+      if (originalView.tracks.center[i].type === 'viewport-projection-center') {
+        originalView.tracks.center.splice(i, 1);
+      }
+    }
   }
 
   /**
@@ -426,6 +509,12 @@ export class Higlass {
         update,
         update.render
       );
+      this.updateFragmentsSelection(
+        state.higlass.fragmentsSelection,
+        state.fragments.config,
+        update,
+        update.render
+      );
       this.updateSelectionView(state.higlass.selectionView, update);
 
       if (update.render) {
@@ -474,6 +563,10 @@ export class Higlass {
     this.config.views[0].zoomFixed = !this.interactions;
 
     update.render = true;
+  }
+
+  updateLociColor () {
+
   }
 
   updateGrayscale (grayscale, update, force) {
@@ -557,6 +650,25 @@ export class Higlass {
     update.render = true;
   }
 
+  updateFragmentsSelection (fgmSelection, fgmConfig, update, force) {
+    if (
+      (this.fragmentsSelection === fgmSelection && !force) ||
+      !this.config
+    ) { return; }
+
+    this.fragmentsSelection = fgmSelection;
+
+    this.config.views = this.config.views.slice(0, 1);
+
+    if (this.fragmentsSelection) {
+      this.addSelectionView(this.config);
+    } else {
+      this.removeSelectionView(this.config);
+    }
+
+    update.render = true;
+  }
+
   updateSelectionView (selectionViewDomains, update) {
     if (
       (
@@ -580,7 +692,7 @@ export class Higlass {
   }
 
   render (config) {
-    this.isServersAvailable
+    Promise.all([this.isServersAvailable, this.isAttached])
       .then(() => {
         hg(
           this.plotEl,
@@ -593,7 +705,7 @@ export class Higlass {
       })
       .catch((error) => {
         logger.error(error);
-        this.hasErrored('Server not available');
+        this.hasErrored('Ups. This is embarrassing.');
       });
   }
 }
