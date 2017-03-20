@@ -27,16 +27,6 @@
             checked.bind="!!grayscale"
             click.delegate="grayscaleChangeHandler()">
         </li>
-        <li class="flex-c flex-d-c" if.bind="config.views.length === 1">
-          <label
-            for="settings-hg-interactions"
-            title="Highlight Snippets Locations">Interactions</label>
-          <input
-            type="checkbox"
-            id="settings-hg-interactions"
-            checked.bind="interactions"
-            click.delegate="interactionsChangeHandler()">
-        </li>
         <li class="flex-c flex-d-c">
           <label
             for="settings-hg-highlight-fragments"
@@ -54,8 +44,8 @@
           <input
             type="checkbox"
             id="settings-fgm-selection"
-            checked.bind="fgmSelection"
-            click.delegate="fgmSelectionChangeHandler()">
+            checked.bind="fragmentsSelection"
+            click.delegate="fragmentsSelectionChangeHandler()">
         </li>
         <li if.bind="currentRoute !== 'matrix'">
           <a
