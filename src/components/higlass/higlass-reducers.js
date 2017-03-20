@@ -3,6 +3,7 @@ import { combineReducers } from 'redux';
 import {
   SET_GRAYSCALE,
   SET_FRAGMENTS_HIGHLIGHT,
+  SET_FRAGMENTS_SELECTION,
   SET_INTERACTIONS,
   SET_SELECTION_VIEW,
   UPDATE_HGL_CONFIG
@@ -11,6 +12,7 @@ import {
 import {
   CONFIG,
   FRAGMENTS_HIGHLIGHT,
+  FRAGMENTS_SELECTION,
   GRAYSCALE,
   INTERACTIONS,
   SELECTION_VIEW
@@ -32,6 +34,16 @@ function fragmentsHighlight (state = FRAGMENTS_HIGHLIGHT, action) {
   switch (action.type) {
     case SET_FRAGMENTS_HIGHLIGHT:
       return action.payload.highlight;
+
+    default:
+      return state;
+  }
+}
+
+function fragmentsSelection (state = FRAGMENTS_SELECTION, action) {
+  switch (action.type) {
+    case SET_FRAGMENTS_SELECTION:
+      return action.payload.selection;
 
     default:
       return state;
@@ -71,6 +83,7 @@ function selectionView (state = SELECTION_VIEW, action) {
 export default combineReducers({
   config,
   fragmentsHighlight,
+  fragmentsSelection,
   grayscale,
   interactions,
   selectionView

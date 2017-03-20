@@ -12,6 +12,13 @@ export const setFragmentsHighlight = highlight => ({
   payload: { highlight }
 });
 
+export const SET_FRAGMENTS_SELECTION = 'SET_FRAGMENTS_SELECTION';
+
+export const setFragmentsSelection = selection => ({
+  type: SET_FRAGMENTS_SELECTION,
+  payload: { selection }
+});
+
 export const SET_INTERACTIONS = 'SET_INTERACTIONS';
 
 export const setInteractions = interactions => ({

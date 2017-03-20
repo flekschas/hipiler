@@ -2,6 +2,8 @@ export const CONFIG = {};
 
 export const FRAGMENTS_HIGHLIGHT = true;
 
+export const FRAGMENTS_SELECTION = false;
+
 export const FGM_LOCATION_HIGHLIGHT_SIZE = 3;
 
 export const GRAYSCALE = true;
