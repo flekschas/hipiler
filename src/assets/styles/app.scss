@@ -221,19 +221,26 @@ html {
   }
 
   .button-group {
+    .button
+    .button:first-child,
+    .button:last-child {
+      box-shadow: inset 0 0 0 1px $gray-lightest;
+
+      &.is-active {
+        box-shadow: inset 0 0 0 1px $primary;
+      }
+    }
+
     .button {
       border-radius: 0;
-      box-shadow: inset 0 0 0 1px $gray-lightest;
     }
 
     .button:first-child {
       border-radius: 0.25rem 0 0 0.25rem;
-      box-shadow: inset 0 0 0 1px $gray-lightest;
     }
 
     .button:last-child {
       border-radius: 0 0.25rem 0.25rem 0;
-      box-shadow: inset 0 0 0 1px $gray-lightest;
     }
   }
 
