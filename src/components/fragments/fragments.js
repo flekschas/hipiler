@@ -3444,16 +3444,6 @@ export class Fragments {
   }
 
   /**
-   * [removeFromPile description]
-   *
-   * @param {[type]} pile - [description]
-   * @return {[type]} [description]
-   */
-  removeFromPile (pile) {
-    logger.warning('`removeFromPile()` not implemented yet.');
-  }
-
-  /**
    * Remove drawn pile area.
    */
   removePileArea () {
