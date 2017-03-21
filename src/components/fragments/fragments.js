@@ -1297,6 +1297,8 @@ export class Fragments {
       if (again) {
         this.updateLayout(this.piles, this.arrangeMeasures, false, true);
       } else {
+        // Unset cache
+        this.pilesConfigCached = {};
         this.store.dispatch(setArrangeMeasures([]));
       }
     } else {
@@ -1552,29 +1554,51 @@ export class Fragments {
     this.dispersePilesHandler(this.piles);
   }
 
+  checkPiledBeforeCluster (piles) {
+    if (!this.tsneDataPos && !this.tsneAttrsPos) { return; }
+
+    return !piles
+      .map(pile => pile.pileMatrices)
+      .reduce((acc, value) => acc.concat(value), [])
+      .every(pileMatrix => this.pilesConfigCached[pileMatrix.id]);
+  }
+
   /**
    * Disperse piles into their snippets.
    *
    * @param {object} piles - A list of piles to be dispersed.
    */
   dispersePilesHandler (piles) {
-    this.setFromDisperse(piles);
+    if (this.checkPiledBeforeCluster(piles)) {
+      this.dialogPromise = new Promise((resolve, reject) => {
+        this.dialogDeferred = { resolve, reject };
+      });
+      this.dialogIsOpen = true;
+      this.dialogMessage = 'When you disperse this pile we have to re-calculate the clustering.';
+      this.fromDisperseRecluster = true;
+    } else {
+      this.dialogPromise = Promise.resolve();
+    }
 
-    const pilesToBeDispersed = [];
+    this.dialogPromise.then(() => {
+      this.setFromDisperse(piles);
 
-    piles.forEach((pile) => {
-      pile.pileMatrices.slice(1).forEach((pileMatrix) => {
-        this.fromDisperse[pileMatrix.id] = pile;
+      const pilesToBeDispersed = [];
+
+      piles.forEach((pile) => {
+        pile.pileMatrices.slice(1).forEach((pileMatrix) => {
+          this.fromDisperse[pileMatrix.id] = pile;
+        });
+
+        pilesToBeDispersed.push(pile.id);
       });
 
-      pilesToBeDispersed.push(pile.id);
+      if (fgmState.isPilesInspection) {
+        this.store.dispatch(dispersePilesInspection(pilesToBeDispersed));
+      } else {
+        this.store.dispatch(dispersePiles(pilesToBeDispersed));
+      }
     });
-
-    if (fgmState.isPilesInspection) {
-      this.store.dispatch(dispersePilesInspection(pilesToBeDispersed));
-    } else {
-      this.store.dispatch(dispersePiles(pilesToBeDispersed));
-    }
   }
 
   // /**
@@ -4325,7 +4349,11 @@ export class Fragments {
     reArrange = false
   ) {
     return new Promise((resolve, reject) => {
-      const arranged = this.arrange(piles, measures, reArrange);
+      const arranged = this.arrange(
+        piles, measures, reArrange || this.fromDisperseRecluster
+      );
+
+      this.fromDisperseRecluster = false;
 
       arranged
         .then(() => {
