@@ -835,6 +835,19 @@ export default class Pile {
       [1, 1, 1]
     );
 
+    // Create preview
+    // this.previewHeightIndicator = createRect(
+    //   this.matrixWidth,
+    //   this.previewSize * this.pileMatrices.length,
+    //   COLORS.GREEN
+    // );
+
+    // this.previewHeightIndicator.position.set(
+    //   this.x,
+    //   this.y - ((this.previewSize * this.pileMatrices.length) / 2),
+    //   9
+    // );
+
     this.clustersAvgMatrices.forEach((matrix, index) => {
       let y = this.matrixWidthHalf + (this.previewSize * (index + 0.75));
 
@@ -1085,6 +1098,8 @@ export default class Pile {
     this.pileOutline.material.uniforms.thickness.value =
       this.matrixFrameThickness + 4;
 
+    // this.showPreviewHeight();
+
     return this;
   }
 
@@ -1103,6 +1118,8 @@ export default class Pile {
     this.matrixFrameHighlight.material.uniforms.opacity.value = 0;
     this.pileOutline.material.uniforms.thickness.value =
       this.matrixFrameThickness + 2;
+
+    // this.hidePreviewHeight();
 
     return this;
   }
@@ -1309,6 +1326,14 @@ export default class Pile {
     this.hoverGap = hoverGap;
 
     return this;
+  }
+
+  showPreviewHeight () {
+    fgmState.scene.add(this.previewHeightIndicator);
+  }
+
+  hidePreviewHeight () {
+    fgmState.scene.remove(this.previewHeightIndicator);
   }
 
   /**
