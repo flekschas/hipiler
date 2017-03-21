@@ -112,8 +112,8 @@ function calculateDistance (matrix1, matrix2) {
  * @param {array} colors - List of colors that will be added to in-place.
  * @param {array} color - RGB color array.
  */
-export function add2dSqrtBuffRect (positions, x, y, w, colors, color) {
-  addBufferedRect(positions, x, y, 0, w, w, colors, color);
+export function add2dSqrtBuffRect (positions, x, y, z, w, colors, color) {
+  addBufferedRect(positions, x, y, z, w, w, colors, color);
 }
 
 /**

@@ -84,6 +84,7 @@ export default class Pile {
     this.measures = {};
     this.orderedLocally = false;
     this.pileMatrices = [];
+    this.previewsHeight = 0;
     this.rank = this.id;
     this.scale = 1;
     this.scene = scene;
@@ -91,7 +92,13 @@ export default class Pile {
     this.x = 0;
     this.y = 0;
     this.zBase = Z_BASE + ((Z_PILE_MAX - Z_BASE) * this.idNumeric / maxNumPiles);
+    this.availableZHeight = ((Z_PILE_MAX - Z_BASE) * 1 / maxNumPiles);
     this.z = this.zBase;
+
+    // Matrix & Preview, Preview Background, MatrixFrame, MatrixHighlightFrame,
+    // Outline
+    this.layers = 5;
+    this.zLayerHeight = this.availableZHeight / this.layers;
 
     this.pilesIdxState[this.id] = this;
 
@@ -562,6 +569,7 @@ export default class Pile {
 
     if (this.pileMatrices.length > 1) {
       this.drawPreviews(positions, colors);
+      this.updatePileOutline();
     }
 
     // CREATE + ADD MESH
@@ -585,11 +593,19 @@ export default class Pile {
       this.drawPileLabel(isHovering);
     }
 
-    // Add frame
-    this.mesh.add(this.matrixFrame);
-    this.matrixFrame.position.set(0, 0, 0);
+    // Add frames
+    this.mesh.add(this.pileOutline);
+    this.pileOutline.position.set(
+      0, this.previewsHeight / 2, this.zLayerHeight
+    );
     this.mesh.add(this.matrixFrameHighlight);
-    this.matrixFrameHighlight.position.set(0, 0, -0.1);
+    this.matrixFrameHighlight.position.set(
+      0, 0, this.zLayerHeight * 2
+    );
+    this.mesh.add(this.matrixFrame);
+    this.matrixFrame.position.set(
+      0, 0, this.zLayerHeight * 3
+    );
 
     this.mesh.pile = this;
     this.pileMeshes.push(this.mesh);
@@ -660,6 +676,7 @@ export default class Pile {
       positions,
       -y,
       -x,
+      this.zLayerHeight * 4,
       this.cellSize,
       colors,
       pileColors.orange(1 - value)
@@ -680,6 +697,7 @@ export default class Pile {
       positions,
       -y,
       -x,
+      this.zLayerHeight * 4,
       this.cellSize,
       colors,
       this.getColor(
@@ -703,35 +721,10 @@ export default class Pile {
       positions,
       -y,
       -x,
+      this.zLayerHeight * 4,
       this.cellSize,
       colors,
       pileColors.orange(1 - value)
-    );
-  }
-
-  /**
-   * Draw gap between matrices.
-   *
-   * @param {array} positions - Positions array to be changed in-place.
-   * @param {array} colors - Colors array to be changed in-place.
-   */
-  drawGap (positions, colors) {
-    // Needs refactoring
-    let valueInv = [1, 1, 1];
-
-    // if (fgmState.hoveredGapPile && fgmState.hoveredGapPile === this) {
-    //   valueInv = [1, 0.7, 0.7];
-    // }
-
-    addBufferedRect(
-      positions,
-      this.matrixWidthHalf + (MATRIX_GAP_HORIZONTAL / 2),
-      0,
-      -1,
-      MATRIX_GAP_HORIZONTAL,
-      this.matrixWidth,
-      colors,
-      valueInv
     );
   }
 
@@ -828,16 +821,16 @@ export default class Pile {
   drawPreviews (positions, colors) {
     const numPrevies = Math.min(PREVIEW_NUM_CLUSTERS, this.pileMatrices.length);
 
-    let totalHeight = this.previewSize * numPrevies;
+    this.previewsHeight = this.previewSize * numPrevies;
 
     // Background
     addBufferedRect(
       positions,
       0,
-      this.matrixWidthHalf + (totalHeight / 2),
-      0.5,
+      this.matrixWidthHalf + (this.previewsHeight / 2),
+      0,
       this.matrixWidth,
-      totalHeight,
+      this.previewsHeight,
       colors,
       [1, 1, 1]
     );
@@ -869,7 +862,7 @@ export default class Pile {
           positions,
           x,
           y,
-          1, // z
+          this.zLayerHeight, // z
           this.cellSize,  // width
           this.previewSize - this.previewSpacing,  // height
           colors,
@@ -905,6 +898,7 @@ export default class Pile {
           positions,
           -y,
           -x,
+          this.zLayerHeight * 4,
           this.cellSize,
           colors,
           this.getColor(
@@ -1070,6 +1064,14 @@ export default class Pile {
       0
     );
 
+    this.pileOutline = createLineFrame(
+      this.matrixWidth,
+      this.matrixWidth,
+      COLORS.WHITE,
+      this.matrixFrameThickness + 2,
+      1
+    );
+
     return this;
   }
 
@@ -1080,6 +1082,8 @@ export default class Pile {
    */
   frameHighlight () {
     this.matrixFrameHighlight.material.uniforms.opacity.value = 1;
+    this.pileOutline.material.uniforms.thickness.value =
+      this.matrixFrameThickness + 4;
 
     return this;
   }
@@ -1097,6 +1101,8 @@ export default class Pile {
     );
 
     this.matrixFrameHighlight.material.uniforms.opacity.value = 0;
+    this.pileOutline.material.uniforms.thickness.value =
+      this.matrixFrameThickness + 2;
 
     return this;
   }
@@ -1703,5 +1709,20 @@ export default class Pile {
     }
 
     return this;
+  }
+
+  /**
+   * Update the pile outline.
+   *
+   * @param {boolean} pileHighlight - If `true` the pile is highlighted.
+   */
+  updatePileOutline (pileHighlight) {
+    this.pileOutline = createLineFrame(
+      this.matrixWidth,
+      this.matrixWidth + this.previewsHeight,
+      COLORS.WHITE,
+      this.matrixFrameThickness + 2,
+      1
+    );
   }
 }
