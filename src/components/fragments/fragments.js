@@ -543,8 +543,9 @@ export class Fragments {
    *
    * @param {array} piles - All piles.
    * @param {array} measures - Selected measures.
+   * @param {boolean} reArrange - If `true` recalculate arrangement.
    */
-  arrange (piles, measures) {
+  arrange (piles, measures, reArrange) {
     const numMeasures = measures.length;
 
     return new Promise((resolve, reject) => {
@@ -584,9 +585,12 @@ export class Fragments {
 
       if (numMeasures === 1) {
         // Intrinsic measure starting with `_`, e.g., `_cluster_tsne`
-        this.clusterLayout = this.calcLayoutPositionsTsne(piles);
+        // Uses t-SNE with on the matrix snippets
+        this.clusterLayout = this.calcLayoutPositionsTsne(piles, reArrange);
       } else {
-        this.clusterLayout = this.calcLayoutPositionsMD(piles, measures);
+        this.clusterLayout = this.calcLayoutPositionsMD(
+          piles, measures, reArrange
+        );
       }
 
       this.clusterLayout
@@ -811,11 +815,21 @@ export class Fragments {
    * @param {array} measures - Array of measures used for arranging.
    * @return {object} Promise resolving to the snippet positions.
    */
-  calcLayoutPositionsMD (piles = this.piles, measures = this.arrangeMeasures) {
+  calcLayoutPositionsMD (
+    piles = this.piles,
+    measures = this.arrangeMeasures,
+    reCalculate = false
+  ) {
     this.isLoading = true;
 
     if (!this.tsneWorker) {
       this.tSneWorker = this.createWorkerTsne();
+    }
+
+    // Pull cached results
+    if (this.tsneAttrsPos && !reCalculate) {
+      this.isLoading = false;
+      return Promise.resolve(this.tsneAttrsPos);
     }
 
     return new Promise((resolve, reject) => {
@@ -844,6 +858,9 @@ export class Fragments {
               worker.terminate();
               this.isLoading = false;
               resolve(pos);
+
+              // Cache results
+              this.tsneAttrsPos = pos;
             }
           };
 
@@ -867,13 +884,20 @@ export class Fragments {
    * Calculate multi-dimensional layout with t-SNE based on the matrices.
    *
    * @param {array} piles - Array of piles to be arranged.
+   * @param {boolean} reCalculate - If `true` recalculate the layout.
    * @return {object} Promise resolving to the snippet positions.
    */
-  calcLayoutPositionsTsne (piles = this.piles) {
+  calcLayoutPositionsTsne (piles = this.piles, reCalculate = false) {
     this.isLoading = true;
 
     if (!this.tsneWorker) {
       this.tSneWorker = this.createWorkerTsne();
+    }
+
+    // Pull cached results
+    if (this.tsneDataPos && !reCalculate) {
+      this.isLoading = false;
+      return Promise.resolve(this.tsneDataPos);
     }
 
     return new Promise((resolve, reject) => {
@@ -896,6 +920,9 @@ export class Fragments {
               worker.terminate();
               this.isLoading = false;
               resolve(pos);
+
+              // Cache results
+              this.tsneDataPos = pos;
             }
           };
 
@@ -1241,10 +1268,15 @@ export class Fragments {
 
   /**
    * Cluster snippets with t-SNE.
+   *
    */
-  clusterTsne () {
+  clusterTsne (again) {
     if (this.isDataClustered) {
-      this.store.dispatch(setArrangeMeasures([]));
+      if (again) {
+        this.updateLayout(this.piles, this.arrangeMeasures, false, true);
+      } else {
+        this.store.dispatch(setArrangeMeasures([]));
+      }
     } else {
       this.store.dispatch(setArrangeMeasures([CLUSTER_TSNE]));
     }
@@ -3871,11 +3903,11 @@ export class Fragments {
       ready.push(this.updatePiles(stateFgm.piles, update));
       ready.push(this.updateShowSpecialCells(stateFgm.showSpecialCells, update));
 
-      Promise.all(ready).finally(() => {
+      Promise.all([this.isInitFully, ...ready]).finally(() => {
         this.updateRendering(update);
       });
-    } catch (e) {
-      logger.error('State is invalid', e);
+    } catch (error) {
+      logger.error('State is invalid', error);
     }
   }
 
@@ -3914,58 +3946,56 @@ export class Fragments {
    * @param {object} update - Object that states what to update
    */
   updateRendering (update) {
-    if (this.isInitialized) {
-      if (update.webgl) {
-        this.updateWebGl();
-      }
-
-      if (update.grid) {
-        this.calcGrid();
-      }
-
-      if (update.pileFrames) {
-        this.piles.forEach(pile => pile.frameUpdate());
-      }
-
-      if (update.pileFramesRecreate) {
-        this.piles.forEach(pile => pile.frameCreate());
-      }
-
-      if (
-        (update.piles || update.pileFramesRecreate) &&
-        !update.drawPilesAfter
-      ) {
-        this.redrawPiles();
-      }
-
-      if (update.scrollLimit) {
-        this.setScrollLimit();
-      }
-
-      if (update.layout) {
-        window.requestAnimationFrame(() => {
-          this.updateLayout(
-            this.piles,
-            fgmState.trashIsActive ? [] : this.arrangeMeasures
-          ).then(() => {
-            if (update.removePileArea) {
-              setTimeout(() => {
-                this.removePileArea();
-                this.render();
-              }, 250);
-            }
-
-            this.render();
-          });
-        });
-      }
-
-      if (update.drawPilesAfter) {
-        this.redrawPiles();
-      }
-
-      this.render();
+    if (update.webgl) {
+      this.updateWebGl();
     }
+
+    if (update.grid) {
+      this.calcGrid();
+    }
+
+    if (update.pileFrames) {
+      this.piles.forEach(pile => pile.frameUpdate());
+    }
+
+    if (update.pileFramesRecreate) {
+      this.piles.forEach(pile => pile.frameCreate());
+    }
+
+    if (
+      (update.piles || update.pileFramesRecreate) &&
+      !update.drawPilesAfter
+    ) {
+      this.redrawPiles();
+    }
+
+    if (update.scrollLimit) {
+      this.setScrollLimit();
+    }
+
+    if (update.layout) {
+      window.requestAnimationFrame(() => {
+        this.updateLayout(
+          this.piles,
+          fgmState.trashIsActive ? [] : this.arrangeMeasures
+        ).then(() => {
+          if (update.removePileArea) {
+            setTimeout(() => {
+              this.removePileArea();
+              this.render();
+            }, 250);
+          }
+
+          this.render();
+        });
+      });
+    }
+
+    if (update.drawPilesAfter) {
+      this.redrawPiles();
+    }
+
+    this.render();
   }
 
   /**
@@ -4214,15 +4244,17 @@ export class Fragments {
    * @param {array} piles - Piles to be re-arranged.
    * @param {array} measures - Measures used for arraning.
    * @param {boolean} noAnimation - If `true` the piles are not animated.
+   * @param {boolean} reArrange - If `true` recalculate arrangement.
    * @return {object} Promise resolving when to layout if fully updated.
    */
   updateLayout (
     piles = this.piles,
     measures = this.arrangeMeasures,
-    noAnimation = false
+    noAnimation = false,
+    reArrange = false
   ) {
     return new Promise((resolve, reject) => {
-      const arranged = this.arrange(piles, measures);
+      const arranged = this.arrange(piles, measures, reArrange);
 
       arranged
         .then(() => {
