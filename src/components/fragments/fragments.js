@@ -912,10 +912,6 @@ export class Fragments {
       this.tSneWorker = this.createWorkerTsne();
     }
 
-    console.log(
-      'calcLayoutPositionsTsne GET CACHE', this.tsneDataPos && !reCalculate
-    );
-
     // Pull cached results
     if (this.tsneDataPos && !reCalculate) {
       this.isLoading = false;
@@ -1193,12 +1189,15 @@ export class Fragments {
       // place pile on top of previous pile
       if (!fgmState.hoveredPile) {
         // Move pile back to original position
-        let pos = this.getLayoutPosition(this.dragPile, this.arrangeMeasures);
+        const pos = this.getLayoutPosition(
+          this.dragPile, this.arrangeMeasures, true
+        );
+
         this.movePilesAnimated(
           [this.dragPile],
           [{
-            x: pos.x + this.matrixWidthHalf,
-            y: -pos.y - this.matrixWidthHalf
+            x: pos.x,
+            y: pos.y
           }]
         );
 
