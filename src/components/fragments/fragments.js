@@ -3037,6 +3037,11 @@ export class Fragments {
 
     fgmState.hoveredPile = pileMesh.pile;
 
+    if (fgmState.previousHoveredPile) {
+      // Reset elevation
+      fgmState.previousHoveredPile.elevateTo();
+    }
+
     fgmState.hoveredPile.elevateTo(Z_HIGHLIGHT);
 
     // Preview single matrices of piles with multiple matrices
@@ -3093,7 +3098,7 @@ export class Fragments {
         fgmState.previousHoveredPile.pileMatrices.map(matrix => matrix.id)
       );
 
-      fgmState.previousHoveredPile.elevateTo(Z_BASE);
+      fgmState.previousHoveredPile.elevateTo();
       fgmState.previousHoveredPile.showSingle(undefined);
       fgmState.previousHoveredPile.setCoverMatrixMode(this.coverDispMode);
       this.highlightFrame.visible = false;
@@ -3216,13 +3221,14 @@ export class Fragments {
    * @param {number} pileId - Pile ID.
    * @return {object} New or retrieved pile
    */
-  pileCreate (pileId) {
+  pileCreate (pileId, maxNumPiles) {
     if (!this.pilesIdxState[pileId]) {
       const pile = new Pile(
         pileId,
         fgmState.scene,
         fgmState.scale,
-        this.fragDims
+        this.fragDims,
+        maxNumPiles
       );
 
       this.pilesIdxState[pileId] = pile;
@@ -3642,7 +3648,7 @@ export class Fragments {
       if (matrixIds.length) {
         // Gte or create pile
         if (!pile) {
-          pile = this.pileCreate(pileId);
+          pile = this.pileCreate(pileId, fgmState.matrices.length);
           this.destroyAltPile(pileId);
         }
 
