@@ -4053,6 +4053,7 @@ export class Fragments {
     update.piles = true;
     update.pileFramesRecreate = true;
     update.layout = true;
+    update.scrollLimit = true;
 
     return Promise.resolve();
   }
