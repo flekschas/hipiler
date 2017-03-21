@@ -1574,7 +1574,11 @@ export class Fragments {
         this.dialogDeferred = { resolve, reject };
       });
       this.dialogIsOpen = true;
-      this.dialogMessage = 'When you disperse this pile we have to re-calculate the clustering.';
+      this.dialogMessage =
+        'When you disperse this pile we have to re-calculate the clustering ' +
+        'because the pile you\'re about to disperse has been create before  ' +
+        'clustering and the location of the snippets on the cluster are ' +
+        'therefore not known.';
       this.fromDisperseRecluster = true;
     } else {
       this.dialogPromise = Promise.resolve();

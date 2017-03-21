@@ -14,6 +14,7 @@ dialog {
   }
 
   .dialog-window {
+    max-width: 75%;
     height: 0;
     color: $gray-darker;
     padding: 1rem;
