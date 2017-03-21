@@ -441,7 +441,9 @@ export class Higlass {
     const originalView = hgConfig.views[0];
 
     // Adjust height of the original view
-    originalView.uid = originalView.uid.slice(0, -1);
+    if (originalView.uid[originalView.uid.length - 1] === '_') {
+      originalView.uid = originalView.uid.slice(0, -1);
+    }
     originalView.layout.h = 12;
 
     // Remove view projections
