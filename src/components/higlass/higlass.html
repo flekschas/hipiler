@@ -9,7 +9,9 @@
     </div>
   </div>
   <div class="flex-c flex-a-c flex-jc-c full-dim loading-indicator ${isLoading ? 'is-active' : ''}">
-    <spinner if.bind="isLoading"></spinner>
+    <div class="flex-c flex-a-c flex-jc-c spinner-bg">
+      <spinner if.bind="isLoading"></spinner>
+    </div>
   </div>
 
   <div class="full-wh flex-c flex-d-c" ref="baseEl">
