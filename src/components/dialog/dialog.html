@@ -1,0 +1,11 @@
+<template>
+  <div class="dialog-window ${isOpen ? 'is-open' : ''}">
+    <div class="flex-c flex-d-c">
+      <p>${message}</p>
+    </div>
+    <div class="flex-c buttons">
+      <button class="flex-g-1 button" click.delegate="cancel()">Cancel</button>
+      <button class="flex-g-1 button" click.delegate="okay()">Okay</button>
+    </ul>
+  </div>
+</template>
