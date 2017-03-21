@@ -595,12 +595,21 @@ export class Fragments {
 
       this.clusterLayout
         .then((pos) => {
-          piles.forEach((pile, index) => {
-            this.clusterPos[pile.idNumeric] = {
-              x: pos[index][0],
-              y: pos[index][1]
-            };
+          Object.keys(this.pilesConfigCached).forEach((pileId) => {
+            if (this.pilesConfigCached[pileId].length) {
+              this.clusterPos[pileId] = {
+                x: pos[this.pilesConfigCached[pileId].__index__][0],
+                y: pos[this.pilesConfigCached[pileId].__index__][1]
+              };
+            }
           });
+
+          // piles.forEach((pile, index) => {
+          //   this.clusterPos[pile.idNumeric] = {
+          //     x: pos[index][0],
+          //     y: pos[index][1]
+          //   };
+          // });
 
           resolve();
         });
@@ -861,6 +870,7 @@ export class Fragments {
 
               // Cache results
               this.tsneAttrsPos = pos;
+              this.cachePileSetup();
             }
           };
 
@@ -880,6 +890,14 @@ export class Fragments {
     });
   }
 
+  cachePileSetup (pilesConfig = this.pileConfigs, piles = this.piles) {
+    this.pilesConfigCached = pilesConfig;
+
+    this.piles.forEach((pile, index) => {
+      this.pilesConfigCached[pile.id].__index__ = index;
+    });
+  }
+
   /**
    * Calculate multi-dimensional layout with t-SNE based on the matrices.
    *
@@ -893,6 +911,10 @@ export class Fragments {
     if (!this.tsneWorker) {
       this.tSneWorker = this.createWorkerTsne();
     }
+
+    console.log(
+      'calcLayoutPositionsTsne GET CACHE', this.tsneDataPos && !reCalculate
+    );
 
     // Pull cached results
     if (this.tsneDataPos && !reCalculate) {
@@ -923,6 +945,7 @@ export class Fragments {
 
               // Cache results
               this.tsneDataPos = pos;
+              this.cachePileSetup();
             }
           };
 
@@ -1721,9 +1744,11 @@ export class Fragments {
   drawPilesArea (piles) {
     if (!this.isLayout1d) {
       piles.forEach((pile) => {
-        if (pile.pileMatrices.length > 1) {
-          const coords = [];
+        if (pile.pileMatrices.length < 2) { return; }
 
+        const coords = [];
+
+        if (this.arrangeMeasures.length === 2) {
           pile.pileMatrices.forEach((matrix) => {
             coords.push(this.getLayoutPosition2D(
               matrix,
@@ -1733,19 +1758,36 @@ export class Fragments {
               true
             ));
           });
+        }
 
-          if (pile.pileMatrices.length > 1) {
-            const points = is2d(coords) ?
-              hull(coords, 100) : this.extractBoundariesOfLine(coords);
+        if (
+          this.clusterPos[pile.id] &&
+          (
+            this.arrangeMeasures.length > 2 ||
+            (
+              this.arrangeMeasures.length === 1 &&
+              this.arrangeMeasures[0] === CLUSTER_TSNE
+            )
+          )
+        ) {
+          pile.pileMatrices.forEach((matrix) => {
+            if (this.clusterPos[matrix.id]) {
+              coords.push(this.getLayoutPositionMD(matrix, true));
+            }
+          });
+        }
 
-            this.pileArea = createChMap(
-              coords,
-              points,
-              PILE_AREA_BG,
-              PILE_AREA_POINTS,
-              PILE_AREA_BORDER
-            );
-          }
+        if (coords.length > 1) {
+          const points = is2d(coords) ?
+            hull(coords, 100) : this.extractBoundariesOfLine(coords);
+
+          this.pileArea = createChMap(
+            coords,
+            points,
+            PILE_AREA_BG,
+            PILE_AREA_POINTS,
+            PILE_AREA_BORDER
+          );
 
           this.pileArea.position.set(0, 0, Z_HIGHLIGHT_AREA);
 
@@ -1966,7 +2008,7 @@ export class Fragments {
       (numArrMeasures > 2 && !fgmState.trashIsActive) ||
       (numArrMeasures === 1 && measures[0] === CLUSTER_TSNE)
     ) {
-      return this.getLayoutPositionMD(pile, abs);
+      return this.getLayoutPositionMD(pile);
     }
 
     return this.getLayoutPosition1D(pile.rank, abs);
@@ -2054,15 +2096,18 @@ export class Fragments {
    * Get pile position for multi dimensional clustering.
    *
    * @param {object} pile - Pile to be poisioned.
-   * @param {boolean} abs - If `true` the position needs to be adjusted to the
-   *   WebGL coordinates.
+   * @param {boolean} asArray - If `true` return an array instead of an object.
    * @return {object} Object with x and y coordinates.
    */
-  getLayoutPositionMD (pile, abs) {
-    return {
-      x: this.relToAbsPositionXFgm(this.clusterPos[pile.idNumeric].x),
-      y: this.relToAbsPositionYFgm(this.clusterPos[pile.idNumeric].y)
-    };
+  getLayoutPositionMD (pile, asArray) {
+    const x = this.relToAbsPositionXFgm(this.clusterPos[pile.id].x);
+    const y = this.relToAbsPositionYFgm(this.clusterPos[pile.id].y);
+
+    if (asArray) {
+      return [x, y];
+    }
+
+    return { x, y };
   }
 
   /**
