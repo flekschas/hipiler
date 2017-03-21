@@ -2099,8 +2099,34 @@ export class Fragments {
    * @return {object} Object with x and y coordinates.
    */
   getLayoutPositionMD (pile, asArray) {
-    const x = this.relToAbsPositionXFgm(this.clusterPos[pile.id].x);
-    const y = this.relToAbsPositionYFgm(this.clusterPos[pile.id].y);
+    let x;
+    let y;
+
+    if (
+      !asArray &&
+      !arraysEqual(this.pilesConfigCached[pile.id], this.pileConfigs[pile.id])
+    ) {
+      // A pile that has been created after t-SNE ran
+      x = 0;
+      y = 0;
+      let counter = 0;
+
+      this.pileConfigs[pile.id].forEach((pileId) => {
+        if (this.clusterPos[pileId]) {
+          x += this.clusterPos[pileId].x;
+          y += this.clusterPos[pileId].y;
+          counter += 1;
+        }
+      });
+
+      x = this.relToAbsPositionXFgm(x / counter);
+      y = this.relToAbsPositionYFgm(y / counter);
+    } else {
+      // Individual snippet or pile
+      x = this.relToAbsPositionXFgm(this.clusterPos[pile.id].x);
+      y = this.relToAbsPositionYFgm(this.clusterPos[pile.id].y);
+    }
+
 
     if (asArray) {
       return [x, y];
