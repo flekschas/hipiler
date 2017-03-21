@@ -195,7 +195,9 @@ export const WEB_GL_CONFIG = {
 
 export const Z_BASE = 1;
 
-export const Z_DRAG = 2;
+export const Z_PILE_MAX = 2;
+
+export const Z_DRAG = 3;
 
 export const Z_HIGHLIGHT = 3;
 

@@ -20,7 +20,8 @@ import {
   MODE_STD,
   PREVIEW_SIZE,
   SHADER_ATTRIBUTES,
-  Z_BASE
+  Z_BASE,
+  Z_PILE_MAX
 } from 'components/fragments/fragments-defaults';
 
 import pileColors from 'components/fragments/pile-colors';
@@ -60,7 +61,7 @@ const logger = LogManager.getLogger('pile');
 
 
 export default class Pile {
-  constructor (id, scene, scale, dims) {
+  constructor (id, scene, scale, dims, maxNumPiles) {
     this.avgMatrix = new Float32Array(dims ** 2);
     this.cellFrame = createRectFrame(
       this.cellSize, this.cellSize, 0xff0000, 1
@@ -89,7 +90,8 @@ export default class Pile {
     this.showNodeLabels = false;
     this.x = 0;
     this.y = 0;
-    this.z = Z_BASE;
+    this.zBase = Z_BASE + ((Z_PILE_MAX - Z_BASE) * this.idNumeric / maxNumPiles);
+    this.z = this.zBase;
 
     this.pilesIdxState[this.id] = this;
 
@@ -1002,7 +1004,7 @@ export default class Pile {
    */
   elevateTo (z) {
     if (typeof z === 'undefined') {
-      this.z = Z_BASE;
+      this.z = this.zBase;
     } else {
       this.z = z;
     }
