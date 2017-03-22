@@ -619,7 +619,7 @@ export class Higlass {
         this.loci2dTrack = {
           uid: '2d',
           type: '2d-chromosome-annotations',
-          chromInfoPath: '//s3.amazonaws.com/pkerp/data/hg19/chromSizes.tsv',
+          chromInfoPath: this.config.views[0].chromInfoPath,
           options: {
             minRectWidth: FGM_LOCATION_HIGHLIGHT_SIZE,
             minRectHeight: FGM_LOCATION_HIGHLIGHT_SIZE
