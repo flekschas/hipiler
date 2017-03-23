@@ -541,12 +541,11 @@ export default class Pile {
     this.isDrawn = false;
     this.pileMatrices = [];
 
-
     if (!noSplicing) {
       const pileIndex = this.piles.indexOf(this);
 
       if (pileIndex >= 0) {
-        this.piles.splice(this.piles.indexOf(this), 1);
+        this.piles.splice(pileIndex, 1);
       }
     }
 
@@ -1606,6 +1605,8 @@ export default class Pile {
    * @description
    * Trashing an instance means, it will be moved from the array of active piles
    * to a special trash array.
+   *
+   * @return {object} Self.
    */
   trash () {
     if (this.isTrashed) {
@@ -1626,7 +1627,7 @@ export default class Pile {
     const pileIndex = this.pilesState.indexOf(this);
 
     if (pileIndex >= 0) {
-      this.pilesState.splice(this.pilesState.indexOf(this), 1);
+      this.pilesState.splice(pileIndex, 1);
     }
 
     this.pilesIdxState[this.idNumeric] = undefined;
@@ -1645,6 +1646,8 @@ export default class Pile {
     }
 
     this.isTrashed = true;
+
+    return this;
   }
 
   /**
