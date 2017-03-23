@@ -55,6 +55,7 @@ import {
 
 import {
   ARRANGE_MEASURES,
+  CAT_CHROMOSOME,
   CAT_DATASET,
   CAT_ZOOMOUT_LEVEL,
   CLICK_DELAY_TIME,
@@ -233,6 +234,9 @@ export class Fragments {
     ];
 
     this.attrsCatReq = [{
+      id: CAT_CHROMOSOME,
+      name: 'Chromosome'
+    }, {
       id: CAT_DATASET,
       name: 'Dataset'
     }, {
@@ -596,7 +600,7 @@ export class Fragments {
       this.clusterLayout
         .then((pos) => {
           Object.keys(this.pilesConfigCached).forEach((pileId) => {
-            if (this.pilesConfigCached[pileId].length) {
+            if (pileId[0] !== '_' && this.pilesConfigCached[pileId].length) {
               this.clusterPos[pileId] = {
                 x: pos[this.pilesConfigCached[pileId].__index__][0],
                 y: pos[this.pilesConfigCached[pileId].__index__][1]

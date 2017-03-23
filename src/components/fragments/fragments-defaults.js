@@ -10,6 +10,8 @@ export const ANIMATION = true;
 
 export const ARRANGE_MEASURES = [];
 
+export const CAT_CHROMOSOME = 'chrom1';
+
 export const CAT_DATASET = 'dataset';
 
 export const CAT_ZOOMOUT_LEVEL = 'zoomout-level';
