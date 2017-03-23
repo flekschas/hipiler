@@ -88,6 +88,7 @@ import {
   PILE_LABEL_HEIGHT,
   PREVIEW_MAX,
   PREVIEW_SIZE,
+  RESIZE_DELAY,
   WEB_GL_CONFIG,
   Z_BASE,
   Z_DRAG,
@@ -116,6 +117,7 @@ import { EVENT_BASE_NAME } from 'components/multi-select/multi-select-defaults';
 import COLORS from 'configs/colors';
 
 import arraysEqual from 'utils/arrays-equal';
+import debounce from 'utils/debounce';
 import hilbertCurve from 'utils/hilbert-curve';
 import { requestNextAnimationFrame } from 'utils/request-animation-frame';
 
@@ -225,6 +227,10 @@ export class Fragments {
     this.isLoading = true;
 
     this.mouseClickCounter = 0;
+
+    this.resizeHandlerDb = debounce(
+      this.resizeHandler.bind(this), RESIZE_DELAY
+    );
 
     this.arrangeMeasuresAccessPath = [
       'decompose', 'fragments', 'arrangeMeasures'
@@ -374,6 +380,8 @@ export class Fragments {
   }
 
   attached () {
+    window.addResizeListener(this.baseEl, this.resize.bind(this));
+
     this.resolve.isAttached();
   }
 
@@ -3437,6 +3445,13 @@ export class Fragments {
   }
 
   /**
+   * Resize handler when the base element's dimensions change.
+   */
+  resizeHandler () {
+    this.updateWebGl();
+  }
+
+  /**
    * Scale pile.
    *
    * @param {number} wheelDelta - Wheel movement.
@@ -3940,7 +3955,6 @@ export class Fragments {
       const update = {};
       const ready = [];
 
-      ready.push(this.updatePlotSize(state.columns, update));
       ready.push(this.updateHglSelectionView(stateHgl.config));
       ready.push(this.updateHglSelectionViewDomains(state.higlass.selectionView, update));
 
@@ -4004,10 +4018,6 @@ export class Fragments {
    * @param {object} update - Object that states what to update
    */
   updateRendering (update) {
-    if (update.webgl) {
-      this.updateWebGl();
-    }
-
     if (update.grid) {
       this.calcGrid();
     }
@@ -4538,25 +4548,6 @@ export class Fragments {
   }
 
   /**
-   * Handle updating the grid if necessary
-   *
-   * @param {object} columns - Decompose column information.
-   * @param {object} update - Update object to bve updated in-place.
-   */
-  updatePlotSize (columns, update) {
-    if (this.decomposeColums === columns) {
-      return Promise.resolve();
-    }
-
-    this.decomposeColums = columns;
-
-    update.grid = true;
-    update.webgl = true;
-
-    return Promise.resolve();
-  }
-
-  /**
    * Update piles when special cells are shown or hidden
    *
    * @param {boolean} showSpecialCells - If `true` show special cells.
@@ -4593,9 +4584,14 @@ export class Fragments {
       this.camera.updateProjectionMatrix();
 
       this.renderer.setSize(this.plotElDim.width, this.plotElDim.height);
-    }
 
-    return Promise.resolve();
+      // Rerender
+      this.updateRendering({
+        grid: true,
+        layout: true,
+        scrollLimit: true
+      });
+    }
   }
 
   /**
