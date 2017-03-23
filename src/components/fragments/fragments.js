@@ -1052,6 +1052,8 @@ export class Fragments {
    * @param {object} event - Event object
    */
   canvasMouseDownHandler (event) {
+    if (event.which !== 1) { return; }
+
     event.preventDefault();
 
     this.mouseWentDown = true;
@@ -1120,8 +1122,6 @@ export class Fragments {
    * listeneing to them separately.
    */
   canvasMouseClickHandler (event) {
-    if (event.which !== 1) { return; }
-
     this.mouseDownTimeDelta = Date.now() - this.mouseDownTime;
 
     if (this.mouseDownTimeDelta < CLICK_DELAY_TIME) {
@@ -1173,6 +1173,8 @@ export class Fragments {
    * @param {boolean} mouseLeft - If `true` mouse has left the canvas.
    */
   canvasMouseUpHandler (event, mouseLeft) {
+    if (event.which !== 1) { return; }
+
     event.preventDefault();
 
     fgmState.scene.updateMatrixWorld();
