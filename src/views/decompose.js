@@ -20,7 +20,7 @@ const logger = LogManager.getLogger('decompose');
 @inject(EventAggregator, Font, States)
 export class Decompose {
   constructor (eventAggregator, font, states) {
-    this.events = eventAggregator;
+    this.event = eventAggregator;
     this.font = font;
 
     this.css = {};
@@ -43,6 +43,9 @@ export class Decompose {
     this.isInitReady = true;
     requestNextAnimationFrame(() => {
       this.init = true;
+      new $(this.matrixColEl).addClass('is-transitionable');
+      new $(this.fragmentsColEl).addClass('is-transitionable');
+      new $(this.statsColEl).addClass('is-transitionable');
     });
   }
 
@@ -55,10 +58,10 @@ export class Decompose {
     this.$baseEl.addClass(`is-col-drag-${this.dragging.target}`);
     this.$baseEl.addClass(`is-col-drag-${this.dragging.target}-highlight`);
 
-    this.mouseMoveListener = this.events.subscribe(
+    this.mouseMoveListener = this.event.subscribe(
       'app.mouseMove', this.columnDragMoveHandler.bind(this)
     );
-    this.events.subscribeOnce('app.mouseUp', this.columnDragEndHandler.bind(this));
+    this.event.subscribeOnce('app.mouseUp', this.columnDragEndHandler.bind(this));
   }
 
   columnDragMoveHandler (event) {
@@ -131,18 +134,6 @@ export class Decompose {
     }, transition.fast);
 
     this.dragging = undefined;
-  }
-
-  transtionEnd () {
-    if (this.isInitReady && !this.init) {
-      this.init = true;
-
-      requestNextAnimationFrame(() => {
-        new $(this.matrixColEl).addClass('is-transitionable');
-        new $(this.fragmentsColEl).addClass('is-transitionable');
-        new $(this.statsColEl).addClass('is-transitionable');
-      });
-    }
   }
 
   maximizeColumn (column) {
