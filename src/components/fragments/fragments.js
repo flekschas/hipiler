@@ -227,8 +227,6 @@ export class Fragments {
 
     this.mouseClickCounter = 0;
 
-    fgmState.workerClusterfck = this.createWorkerClusterfck();
-
     this.arrangeMeasuresAccessPath = [
       'decompose', 'fragments', 'arrangeMeasures'
     ];
@@ -1325,27 +1323,6 @@ export class Fragments {
     } catch (error) {
       logger.error('Display mode could not be set.', error);
     }
-  }
-
-  /**
-   * Load and create clusterfck worker.
-   */
-  createWorkerClusterfck () {
-    return new Promise((resolve, reject) => {
-      queue()
-        .defer(text, 'dist/clusterfck-worker.js')
-        .await((error, clusterfckWorker) => {
-          if (error) { logger.error(error); reject(Error(error)); }
-
-          const worker = new Worker(
-            window.URL.createObjectURL(
-              new Blob([clusterfckWorker], { type: 'text/javascript' })
-            )
-          );
-
-          resolve(worker);
-        });
-    });
   }
 
   /**

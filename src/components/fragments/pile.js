@@ -1520,8 +1520,6 @@ export default class Pile {
     this.calculateCoverMatrix();
     this.matrixClusters = this.calculateKMeansCluster();
 
-    this.matrixClusters.then(() => { console.log('setmatrix ready', this.id); });
-
     return this.matrixClusters;
   }
 
