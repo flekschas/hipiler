@@ -100,8 +100,6 @@ export default class Pile {
     this.layers = 5;
     this.zLayerHeight = this.availableZHeight / this.layers;
 
-    console.log(this.zLayerHeight);
-
     this.pilesIdxState[this.id] = this;
 
     this.frameCreate();
@@ -697,7 +695,7 @@ export default class Pile {
       positions,
       -y,
       -x,
-      this.zLayerHeight * 4,
+      this.zLayerHeight * 5,
       this.cellSize,
       colors,
       pileColors.orange(1 - value)
@@ -718,7 +716,7 @@ export default class Pile {
       positions,
       -y,
       -x,
-      this.zLayerHeight * 4,
+      this.zLayerHeight * 5,
       this.cellSize,
       colors,
       this.getColor(
@@ -742,7 +740,7 @@ export default class Pile {
       positions,
       -y,
       -x,
-      this.zLayerHeight * 4,
+      this.zLayerHeight * 5,
       this.cellSize,
       colors,
       pileColors.orange(1 - value)
@@ -896,7 +894,7 @@ export default class Pile {
           positions,
           x,
           y,
-          this.zLayerHeight * 4, // z
+          this.zLayerHeight * 5, // z
           this.cellSize,  // width
           this.previewSize - this.previewSpacing,  // height
           colors,
@@ -932,7 +930,7 @@ export default class Pile {
           positions,
           -y,
           -x,
-          this.zLayerHeight * 4,
+          this.zLayerHeight * 5,
           this.cellSize,
           colors,
           this.getColor(
