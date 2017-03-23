@@ -84,6 +84,9 @@ function stack (pileStacks, pilesConfig) {
   Object.keys(pileStacks).forEach((targetPile) => {
     const sourcePiles = pileStacks[targetPile];
 
+    // Do not pile up snippets on themselves
+    if (sourcePiles.indexOf(targetPile) !== -1) { return; }
+
     // Add piles of source piles onto the target pile
     pilesConfig[targetPile]
       .push(

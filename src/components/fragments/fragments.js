@@ -179,7 +179,6 @@ export class Fragments {
     this.matricesPileIndex = []; // contains pile index for each matrix.
     this.selectedMatrices = [];
     this.dragActive = false;
-    this.openedPileRoot = undefined;
     this.openedPileMatrices = [];
     this.pilesZoomed = {};
     this.plotWindowCss = {};
@@ -1185,9 +1184,7 @@ export class Fragments {
 
     let pilesSelected = [];
 
-    if (this.openedPileRoot) {
-      this.closeOpenedPile(this.openedPileRoot);
-    } else if (this.dragPile) {
+    if (this.dragPile) {
       // place pile on top of previous pile
       if (!fgmState.hoveredPile) {
         // Move pile back to original position
@@ -1412,26 +1409,6 @@ export class Fragments {
 
     this.render();
   }
-
-  // /**
-  //  * Close inspected pile
-  //  *
-  //  * @param {object} openedPile - Opened inspeced pile.
-  //  */
-  // closeOpenedPile (openedPile) {
-  //   let piles = [];
-  //   let openedPileIndex = this.piles.indexOf(this.openedPileRoot);
-
-  //   for (let i = 0; i <= this.openedPileMatricesNum; i++) {
-  //     piles.push(this.piles[openedPileIndex + i]);
-  //   }
-
-  //   this.pileUp(piles, this.piles[openedPileIndex]);
-
-  //   this.startAnimations();
-  //   this.openedPileRoot = undefined;
-  //   this.openedPileMatricesNum = 0;
-  // }
 
   /**
    * Decolor all matrices
@@ -3236,6 +3213,9 @@ export class Fragments {
     Object.keys(config).forEach((targetPileId) => {
       const targetPile = this.pilesIdxState[targetPileId];
       const sourcePiles = config[targetPileId];
+
+      // Do not pile up snippets on themselves
+      if (sourcePiles.indexOf(targetPile) !== -1) { return; }
 
       const centerX = (
         targetPile.x +
