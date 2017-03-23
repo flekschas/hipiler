@@ -1053,14 +1053,14 @@ export default class Pile {
       switch (axis) {
         case 'x':
           this.pileMatrices[0].flipX();
-          Matrix.flipX(this.avgMatrix);
-          Matrix.flipX(this.coverMatrix);
+          Matrix.flipX(this.avgMatrix, '1D');
+          Matrix.flipX(this.coverMatrix, '2D');
           break;
 
         case 'y':
           this.pileMatrices[0].flipY();
-          Matrix.flipY(this.avgMatrix);
-          Matrix.flipY(this.coverMatrix);
+          Matrix.flipY(this.avgMatrix, '1D');
+          Matrix.flipY(this.coverMatrix, '2D');
           break;
 
         default:

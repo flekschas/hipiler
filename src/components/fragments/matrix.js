@@ -41,8 +41,75 @@ export default class Matrix {
    * @param {array} matrix - 2D matrix to be flipped.
    * @return {number} Orientation.
    */
-  static flipX (matrix) {
+  static flipX (matrix, dim) {
+    switch (dim) {
+      case '1D':
+        Matrix.flipX1d(matrix);
+        break;
+
+      default:
+        Matrix.flipX2d(matrix);
+        break;
+    }
+  }
+
+  /**
+   * Flip the raw matix's x axis in-place.
+   *
+   * @param {array} matrix - 1D matrix to be flipped.
+   * @return {number} Orientation.
+   */
+  static flipX1d (matrix) {
+    const dims = Math.round(Math.sqrt(matrix.length));
+
+    for (let i = 0; i < dims; i++) {
+      const pos = (i * dims);
+
+      matrix.set(matrix.slice(pos, dims).reverse(), pos);
+    }
+  }
+
+  /**
+   * Flip the raw matix's x axis in-place.
+   *
+   * @param {array} matrix - 2D matrix to be flipped.
+   * @return {number} Orientation.
+   */
+  static flipX2d (matrix) {
     matrix.map(row => row.reverse());
+  }
+
+  /**
+   * Flip the raw matix's y axis in-place.
+   *
+   * @param {array} matrix - Matrix to be flipped.
+   * @return {object} Orientation.
+   */
+  static flipY (matrix, dim) {
+    switch (dim) {
+      case '1D':
+        Matrix.flipY1d(matrix);
+        break;
+
+      default:
+        Matrix.flipY2d(matrix);
+        break;
+    }
+  }
+
+  /**
+   * Flip the raw matix's y axis in-place.
+   *
+   * @param {array} matrix - 1D-array matrix to be flipped.
+   * @return {object} Orientation.
+   */
+  static flipY1d (matrix) {
+    const dims = Math.round(Math.sqrt(matrix.length));
+    const flippedMatrix = new Float32Array(matrix.length);
+
+    for (let i = 0; i < dims; i++) {
+      flippedMatrix.set(matrix.slice((i * dims), dims), (dims - 1 - i) * dims);
+    }
   }
 
   /**
@@ -51,7 +118,7 @@ export default class Matrix {
    * @param {array} matrix - 2D matrix to be flipped.
    * @return {object} Orientation.
    */
-  static flipY (matrix) {
+  static flipY2d (matrix) {
     matrix.reverse();
   }
 
