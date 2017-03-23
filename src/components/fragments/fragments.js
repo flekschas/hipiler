@@ -1474,7 +1474,8 @@ export class Fragments {
    * @param {object} pile - Pile to be destroyed.
    */
   destroyPiles (piles) {
-    const multiple = piles.length;
+    const multiple = piles.length > 1;
+
     piles.forEach((pile) => {
       pile.destroy(multiple);
 
