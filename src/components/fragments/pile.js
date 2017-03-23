@@ -2,6 +2,7 @@
 import { LogManager } from 'aurelia-framework';
 
 // Third party
+import { queue, text } from 'd3';
 import {
   ArrowHelper,
   BufferAttribute,
@@ -14,7 +15,6 @@ import {
 import {
   MATRIX_FRAME_THICKNESS,
   MATRIX_FRAME_THICKNESS_MAX,
-  MATRIX_GAP_HORIZONTAL,
   MODE_MAD,
   MODE_MEAN,
   MODE_STD,
@@ -432,6 +432,24 @@ export default class Pile {
     return matrix;
   }
 
+  createWorkerClusterfck () {
+    return new Promise((resolve, reject) => {
+      queue()
+        .defer(text, 'dist/clusterfck-worker.js')
+        .await((error, clusterfckWorker) => {
+          if (error) { logger.error(error); reject(Error(error)); }
+
+          const worker = new Worker(
+            window.URL.createObjectURL(
+              new Blob([clusterfckWorker], { type: 'text/javascript' })
+            )
+          );
+
+          resolve(worker);
+        });
+    });
+  }
+
   /**
    * Calculate K-means of matrices on the piles.
    *
@@ -447,19 +465,19 @@ export default class Pile {
         this.clustersAvgMatrices = this.pileMatrices.map(
           pileMatrix => Matrix.flatten(pileMatrix.matrix)
         );
-        return resolve();
+        resolve();
       }
 
       const pileMatrices = this.pileMatrices.map(
         pileMatrix => this.convertPileMatrixToMatrix(pileMatrix)
       );
 
-      fgmState.workerClusterfck
+      this.createWorkerClusterfck()
         .then((worker) => {
           worker.onmessage = (event) => {
             if (event.data.error) {
               logger.error('K-means clustering failed');
-              return reject(Error(event.data.error));
+              reject(Error(event.data.error));
             }
 
             this.clusters = event.data.clusters;
@@ -474,6 +492,7 @@ export default class Pile {
 
             this.isMatricesClustered = true;
             resolve(this.clustersAvgMatrices);
+            worker.terminate();
           };
 
           worker.postMessage({
@@ -487,7 +506,7 @@ export default class Pile {
           this.clustersAvgMatrices = this.pileMatrices.map(
             pileMatrix => Matrix.flatten(pileMatrix.matrix)
           );
-          return resolve();
+          resolve();
         });
     });
   }
@@ -1500,6 +1519,8 @@ export default class Pile {
     this.calculateAvgMatrix(this.pileMatrices, this.avgMatrix);
     this.calculateCoverMatrix();
     this.matrixClusters = this.calculateKMeansCluster();
+
+    this.matrixClusters.then(() => { console.log('setmatrix ready', this.id); });
 
     return this.matrixClusters;
   }
