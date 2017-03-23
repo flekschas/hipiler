@@ -100,6 +100,8 @@ export default class Pile {
     this.layers = 5;
     this.zLayerHeight = this.availableZHeight / this.layers;
 
+    console.log(this.zLayerHeight);
+
     this.pilesIdxState[this.id] = this;
 
     this.frameCreate();
@@ -587,6 +589,7 @@ export default class Pile {
 
     if (this.pileMatrices.length > 1) {
       this.drawPreviews(positions, colors);
+      this.updateFrameHighlight();
       this.updatePileOutline();
     }
 
@@ -618,11 +621,11 @@ export default class Pile {
     );
     this.mesh.add(this.matrixFrameHighlight);
     this.matrixFrameHighlight.position.set(
-      0, 0, this.zLayerHeight * 2
+      0, this.previewsHeight / 2, this.zLayerHeight * 2
     );
     this.mesh.add(this.matrixFrame);
     this.matrixFrame.position.set(
-      0, 0, this.zLayerHeight * 3
+      0, 0, this.zLayerHeight * 4
     );
 
     this.mesh.pile = this;
@@ -846,7 +849,7 @@ export default class Pile {
       positions,
       0,
       this.matrixWidthHalf + (this.previewsHeight / 2),
-      0,
+      this.zLayerHeight * 3,
       this.matrixWidth,
       this.previewsHeight,
       colors,
@@ -893,7 +896,7 @@ export default class Pile {
           positions,
           x,
           y,
-          this.zLayerHeight, // z
+          this.zLayerHeight * 4, // z
           this.cellSize,  // width
           this.previewSize - this.previewSpacing,  // height
           colors,
@@ -1760,10 +1763,21 @@ export default class Pile {
 
   /**
    * Update the pile outline.
-   *
-   * @param {boolean} pileHighlight - If `true` the pile is highlighted.
    */
-  updatePileOutline (pileHighlight) {
+  updateFrameHighlight (pileHighlight) {
+    this.matrixFrameHighlight = createLineFrame(
+      this.matrixWidth,
+      this.matrixWidth + this.previewsHeight,
+      COLORS.ORANGE,
+      this.matrixFrameThickness + 2,
+      0
+    );
+  }
+
+  /**
+   * Update the pile outline.
+   */
+  updatePileOutline () {
     this.pileOutline = createLineFrame(
       this.matrixWidth,
       this.matrixWidth + this.previewsHeight,
