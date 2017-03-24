@@ -465,7 +465,7 @@ export default class Pile {
         this.clustersAvgMatrices = this.pileMatrices.map(
           pileMatrix => Matrix.flatten(pileMatrix.matrix)
         );
-        resolve();
+        return resolve();
       }
 
       const pileMatrices = this.pileMatrices.map(
