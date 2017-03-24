@@ -285,6 +285,11 @@ export class Fragments {
     );
 
     this.event.subscribe(
+      'app.keyUpS',
+      this.lassoIsRoundChangeHandler.bind(this)
+    );
+
+    this.event.subscribe(
       'app.keyUpZ',
       this.toggleZoomPan.bind(this)
     );
