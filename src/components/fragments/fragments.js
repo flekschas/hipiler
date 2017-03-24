@@ -499,6 +499,16 @@ export class Fragments {
     return this.pilesState;
   }
 
+  get pilesConfigs () {
+    if (fgmState.isPilesInspection) {
+      return this.pilesInspectionConfigs[
+        this.pilesInspectionConfigs.length - 1
+      ];
+    }
+
+    return this.pilesNormalConfigs;
+  }
+
   get pilesState () {
     if (fgmState.isPilesInspection) {
       return fgmState.pilesInspection;
@@ -628,15 +638,9 @@ export class Fragments {
             }
           });
 
-          // piles.forEach((pile, index) => {
-          //   this.clusterPos[pile.idNumeric] = {
-          //     x: pos[index][0],
-          //     y: pos[index][1]
-          //   };
-          // });
-
           resolve();
-        });
+        })
+        .catch((error) => { reject(Error(error)); });
     });
   }
 
@@ -914,7 +918,7 @@ export class Fragments {
     });
   }
 
-  cachePileSetup (pilesConfig = this.pileConfigs, piles = this.piles) {
+  cachePileSetup (pilesConfig = this.pilesNormalConfigs, piles = this.piles) {
     this.pilesConfigCached = pilesConfig;
 
     this.piles.forEach((pile, index) => {
@@ -1189,12 +1193,12 @@ export class Fragments {
    *
    * @param {object} event - Mouse click event.
    */
-  canvasContentMenuHandler (event) {
+  canvasContextMenuHandler (event) {
     if (fgmState.hoveredPile) {
       event.preventDefault();
     }
 
-    this.showPileMenu(fgmState.hoveredPile);
+    this.showPileMenu(fgmState.hoveredPile, event);
   }
 
   /**
@@ -2167,14 +2171,15 @@ export class Fragments {
 
     if (
       !asArray &&
-      !arraysEqual(this.pilesConfigCached[pile.id], this.pileConfigs[pile.id])
+      this.pilesConfigCached &&
+      !arraysEqual(this.pilesConfigCached[pile.id], this.pilesConfigs[pile.id])
     ) {
       // A pile that has been created after t-SNE ran
       x = 0;
       y = 0;
       let counter = 0;
 
-      this.pileConfigs[pile.id].forEach((pileId) => {
+      this.pilesConfigs[pile.id].forEach((pileId) => {
         if (this.clusterPos[pileId]) {
           x += this.clusterPos[pileId].x;
           y += this.clusterPos[pileId].y;
@@ -2580,7 +2585,7 @@ export class Fragments {
     );
 
     this.canvas.addEventListener(
-      'contextmenu', this.canvasContentMenuHandler.bind(this), false
+      'contextmenu', this.canvasContextMenuHandler.bind(this), false
     );
 
     this.canvas.addEventListener(
@@ -3867,7 +3872,7 @@ export class Fragments {
    *
    * @param {object} pile - Associated pile.
    */
-  showPileMenu (pile) {
+  showPileMenu (pile, event) {
     if (pile) {
       this.highlightPile(pile);
 
@@ -4567,13 +4572,13 @@ export class Fragments {
   /**
    * Update piles.
    *
-   * @param {object} pileConfigs - Config object
+   * @param {object} pilesConfigs - Config object
    * @param {object} update - Update object to be updated in-place.
    * @param {boolean} force - If `true` force update
    */
-  updatePiles (pileConfigs, update, force) {
+  updatePiles (pilesConfigs, update, force) {
     if (
-      (this.pileConfigs === pileConfigs || !this.isInitialized) &&
+      (this.pilesNormalConfigs === pilesConfigs || !this.isInitialized) &&
       !force &&
       !update.pilesForce
     ) {
@@ -4584,11 +4589,11 @@ export class Fragments {
       return Promise.resolve();
     }
 
-    this.pileConfigs = pileConfigs;
+    this.pilesNormalConfigs = pilesConfigs;
 
     this.isDispersable = false;
 
-    const ready = this.setPilesFromConfig(pileConfigs);
+    const ready = this.setPilesFromConfig(pilesConfigs);
 
     if (this.fromDisperse) {
       update.removePileArea = true;
