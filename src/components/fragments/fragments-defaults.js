@@ -175,8 +175,6 @@ export const PREVIEW_SIZE = 2;
 
 export const PREVIEW_MAX = 8;
 
-export const RESIZE_DELAY = 500;
-
 export const SHADER_ATTRIBUTES = {
   customColor: { type: 'c', value: [] }
 };

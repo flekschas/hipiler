@@ -88,7 +88,6 @@ import {
   PILE_LABEL_HEIGHT,
   PREVIEW_MAX,
   PREVIEW_SIZE,
-  RESIZE_DELAY,
   WEB_GL_CONFIG,
   Z_BASE,
   Z_DRAG,
@@ -206,6 +205,7 @@ export class Fragments {
     this.startPile = 0;
     this.maxValue = 0;
     this.fragDims = 0;  // Fragment dimensions
+    this.scale = 1;
 
     // If the user changes the focus nodes, matrix similarity must be recalculated
     // before automatic piling. Distance calculation is performed on the server.
@@ -227,10 +227,6 @@ export class Fragments {
     this.isLoading = true;
 
     this.mouseClickCounter = 0;
-
-    this.resizeHandlerDb = debounce(
-      this.resizeHandler.bind(this), RESIZE_DELAY
-    );
 
     this.arrangeMeasuresAccessPath = [
       'decompose', 'fragments', 'arrangeMeasures'
@@ -273,6 +269,16 @@ export class Fragments {
     }];
 
     this.arrangeSelectedEventId = 'fgm.arrange';
+
+    this.event.subscribe(
+      'app.keyDownAlt',
+      this.enableAlt.bind(this)
+    );
+
+    this.event.subscribe(
+      'app.keyUp',
+      this.disableAlt.bind(this)
+    );
 
     this.event.subscribe(
       'app.keyUpD',
@@ -380,7 +386,7 @@ export class Fragments {
   }
 
   attached () {
-    window.addResizeListener(this.baseEl, this.resize.bind(this));
+    window.addResizeListener(this.baseEl, this.resizeHandler.bind(this));
 
     this.resolve.isAttached();
   }
@@ -1251,8 +1257,14 @@ export class Fragments {
   canvasMouseWheelHandler (event) {
     event.preventDefault();
 
-    if (!this.isLayout1d && fgmState.hoveredPile) {
-      this.scalePile(fgmState.hoveredPile, event.wheelDelta);
+    if (!this.isLayout1d) {
+      if (this.isAltKeyDown) {
+        if (fgmState.hoveredPile) {
+          this.scalePile(fgmState.hoveredPile, event.wheelDelta);
+        }
+      } else {
+        this.scalePlot(event);
+      }
     } else {
       this.scrollView(event.wheelDelta);
     }
@@ -1514,6 +1526,10 @@ export class Fragments {
         matrix.visible = true;
       }
     });
+  }
+
+  disableAlt () {
+    this.isAltKeyDown = false;
   }
 
   /**
@@ -1791,6 +1807,10 @@ export class Fragments {
         }
       });
     }
+  }
+
+  enableAlt () {
+    this.isAltKeyDown = true;
   }
 
   /**
@@ -2735,10 +2755,14 @@ export class Fragments {
       11  // far
     );
 
+    this.cameraPosOrgX = (this.plotElDim.width / 2);
+    this.cameraPosOrgY = MARGIN_TOP - (this.plotElDim.height / 2);
+
+    this.camera.position.x = this.cameraPosOrgX;
+    this.camera.position.y = this.cameraPosOrgY;
     this.camera.position.z = 10;
-    this.camera.position.x = (this.plotElDim.width / 2);
-    this.scrollLimitTop = MARGIN_TOP - (this.plotElDim.height / 2);
-    this.camera.position.y = this.scrollLimitTop;
+
+    this.scrollLimitTop = this.cameraPosOrgY;
 
     this.renderer = new WebGLRenderer(WEB_GL_CONFIG);
     this.renderer.setSize(this.plotElDim.width, this.plotElDim.height);
@@ -3454,6 +3478,7 @@ export class Fragments {
   /**
    * Scale pile.
    *
+   * @param {object} pile - Pile to be scaled.
    * @param {number} wheelDelta - Wheel movement.
    */
   scalePile (pile, wheelDelta) {
@@ -3466,6 +3491,56 @@ export class Fragments {
 
     pile.setScale(newScale).frameCreate().draw();
     this.pilesZoomed[pile.id] = pile;
+  }
+
+  /**
+   * Scale the plot, i.e., zoom into the plot
+   *
+   * @param {object} event - Mousewheel event.
+   */
+  scalePlot (event) {
+    const force = Math.log(Math.abs(event.wheelDelta));
+    const momentum = event.wheelDelta > 0 ? force : -force;
+
+    this.mouse.x = (
+      ((event.clientX - this.plotElDim.left) / this.plotElDim.width) * 2
+    ) - 1;
+
+    this.mouse.y = (
+      -((event.clientY - this.plotElDim.top) / this.plotElDim.height) * 2
+    ) + 1;
+
+    const maxScale = 5;
+    const minScale = 1;
+
+    const scaledX = this.mouse.x / this.scale;
+    const currentRelX = (
+      (this.camera.position.x - this.cameraPosOrgX) / this.cameraPosOrgX
+    );
+    const absRelMouseX = currentRelX + scaledX;
+
+    const scaledY = this.mouse.y / this.scale;
+    const currentRelY = (
+      (this.camera.position.y - this.cameraPosOrgY) / this.cameraPosOrgY
+    );
+    const absRelMouseY = -(currentRelY - scaledY);
+    this.scale = Math.min(
+      Math.max(minScale, this.scale * (1 + (0.05 * momentum))), maxScale
+    );
+
+    const offsetX = (
+      (absRelMouseX * this.cameraPosOrgX) / this.scale * (this.scale - 1)
+    );
+    const offsetY = (
+      (absRelMouseY * this.cameraPosOrgY) / this.scale * (this.scale - 1)
+    );
+
+    this.camera.zoom = this.scale;
+    this.camera.position.setX(this.cameraPosOrgX + offsetX);
+    this.camera.position.setY(this.cameraPosOrgY - offsetY);
+    this.camera.updateProjectionMatrix();
+
+    this.render();
   }
 
   /**
@@ -4577,9 +4652,12 @@ export class Fragments {
       this.camera.top = this.plotElDim.height / 2;
       this.camera.bottom = this.plotElDim.height / -2;
 
-      this.camera.position.x = (this.plotElDim.width / 2);
-      this.scrollLimitTop = MARGIN_TOP - (this.plotElDim.height / 2);
-      this.camera.position.y = this.scrollLimitTop;
+      this.cameraPosOrgX = (this.plotElDim.width / 2);
+      this.cameraPosOrgY = MARGIN_TOP - (this.plotElDim.height / 2);
+
+      this.camera.position.x = this.cameraPosOrgX;
+      this.camera.position.y = this.cameraPosOrgY;
+      this.scrollLimitTop = this.cameraPosOrgY;
 
       this.camera.updateProjectionMatrix();
 
