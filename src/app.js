@@ -130,6 +130,11 @@ export default class App {
       this.event.publish('app.keyUpD', event);
     }
 
+    // 90 === Z
+    if (event.keyCode === 90) {
+      this.event.publish('app.keyUpZ', event);
+    }
+
     this.event.publish('app.keyUp', event);
   }
 

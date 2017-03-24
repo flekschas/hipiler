@@ -116,7 +116,6 @@ import { EVENT_BASE_NAME } from 'components/multi-select/multi-select-defaults';
 import COLORS from 'configs/colors';
 
 import arraysEqual from 'utils/arrays-equal';
-import debounce from 'utils/debounce';
 import hilbertCurve from 'utils/hilbert-curve';
 import { requestNextAnimationFrame } from 'utils/request-animation-frame';
 
@@ -283,6 +282,11 @@ export class Fragments {
     this.event.subscribe(
       'app.keyUpD',
       this.toggleCoverDispMode.bind(this)
+    );
+
+    this.event.subscribe(
+      'app.keyUpZ',
+      this.toggleZoomPan.bind(this)
     );
 
     this.event.subscribe(
@@ -1074,7 +1078,11 @@ export class Fragments {
     this.mouseIsDown = true;
     this.dragStartPos = {
       x: this.mouse.x,
-      y: this.mouse.y
+      y: this.mouse.y,
+      clientX: event.clientX,
+      clientY: event.clientY,
+      cameraX: this.camera.position.x,
+      cameraY: this.camera.position.y
     };
 
     this.mouseDownTime = Date.now();
@@ -1113,6 +1121,10 @@ export class Fragments {
 
     if (this.dragPile) {
       this.dragPileHandler();
+    } else if (
+      this.mouseIsDown && this.isZoomPan
+    ) {
+      this.dragPlotHandler(event);
     } else if (
       this.mouseIsDown &&
       fgmState.hoveredPile &&
@@ -1258,12 +1270,10 @@ export class Fragments {
     event.preventDefault();
 
     if (!this.isLayout1d) {
-      if (this.isAltKeyDown) {
-        if (fgmState.hoveredPile) {
-          this.scalePile(fgmState.hoveredPile, event.wheelDelta);
-        }
-      } else {
+      if (this.isZoomPan) {
         this.scalePlot(event);
+      } else if (fgmState.hoveredPile) {
+        this.scalePile(fgmState.hoveredPile, event.wheelDelta);
       }
     } else {
       this.scrollView(event.wheelDelta);
@@ -1652,6 +1662,37 @@ export class Fragments {
       true
     );
     this.dragPile.elevateTo(Z_DRAG);
+  }
+
+  /**
+   * Drag start handler
+   */
+  dragPlotHandler (event) {
+    // Don't do raycasting. "Freeze" the current state of
+    // highlighte items and move matrix with cursor.
+    this.dragPlot = true;
+
+    this.camera.position.x = Math.max(
+      this.plotElDim.width * 0.25 / this.scale,
+      Math.min(
+        this.plotElDim.width * (1 - (0.25 / this.scale)),
+        this.dragStartPos.cameraX - ((
+          event.clientX - this.dragStartPos.clientX
+        ) / this.scale)
+      )
+    );
+
+    this.camera.position.y = Math.max(
+      this.scrollLimitTop - (this.plotElDim.height * (1 - (0.75 / this.scale))),
+      Math.min(
+        this.scrollLimitTop * 0.75 / this.scale,
+        this.dragStartPos.cameraY + ((
+          event.clientY - this.dragStartPos.clientY
+        ) / this.scale)
+      )
+    );
+
+    this.render();
   }
 
   /**
@@ -4005,6 +4046,10 @@ export class Fragments {
         this.showTrash();
       }
     }
+  }
+
+  toggleZoomPan () {
+    this.isZoomPan = !this.isZoomPan;
   }
 
   /**
