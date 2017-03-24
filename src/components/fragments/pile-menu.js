@@ -30,10 +30,16 @@ export class PileMenu {
   }
 
   pileChanged () {
-    this.commands.forEach((command) => {
-      command.isVisible = this.isVisible(command);
-      command.pile = this.pile;
-    });
+    if (this.pile) {
+      this.commands.forEach((command) => {
+        command.isVisible = this.isVisible(command);
+        command.pile = this.pile;
+      });
+
+      // Somtimes isActive is not properly recognized. This seems to be a bug
+      // in Aurelia
+      this.isActive = true;
+    }
   }
 
   isVisible (command) {
