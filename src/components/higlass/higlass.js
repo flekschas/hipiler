@@ -107,11 +107,11 @@ export class Higlass {
     setTimeout(() => { this.isLoading = false; }, 150);
 
     this.resolve.isAttached();
-    console.log('HiGlass is attached', this.id);
+    logger.debug('HiGlass is attached', this.id);
   }
 
   deattached () {
-    console.log('HiGlass is deattached', this.id);
+    logger.debug('HiGlass is deattached', this.id);
   }
 
 
@@ -154,6 +154,8 @@ export class Higlass {
     selectionView.zoomFixed = false;
     selectionView.layout.y = 6;
     selectionView.layout.i = selectionView.uid;
+    selectionView.genomePositionSearchBoxVisible = true;
+    selectionView.selectionView = true;
 
     // Prefix all `uid`s with an underscore
     Object.keys(selectionView.tracks).forEach((trackType) => {
@@ -255,22 +257,24 @@ export class Higlass {
     });
 
     loci.forEach((locus, index) => {
-      let fill = 'rgba(255, 85, 0, 0.8)';
-      let border = 'rgba(255, 85, 0, 0.8)';
+      let fill = 'rgba(255, 85, 0, 0.66)';
+      let border = 'rgba(255, 85, 0, 0.66)';
 
       if (isMatricesColored) {
         if (fragmentColors[index]) {
           fill = fragmentColors[index];
           border = fragmentColors[index];
         } else {
-          fill = 'rgba(0, 0, 0, 0.8)';
-          border = 'rgba(255, 255, 255, 0.8)';
+          fill = 'rgba(0, 0, 0, 0.33)';
+          border = 'rgba(255, 255, 255, 0.33)';
         }
       }
 
       locus[6] = fill;
       locus[7] = border;
     });
+
+    this.isFgmHighlight = true;
   }
 
   /**
@@ -357,13 +361,13 @@ export class Higlass {
     const lociTmp = deepClone(this.loci);
 
     lociTmp.forEach((locus) => {
-      locus[6] = 'rgba(0, 0, 0, 0.8)';
-      locus[7] = 'rgba(255, 255, 255, 0.8)';
+      locus[6] = 'rgba(0, 0, 0, 0.33)';
+      locus[7] = 'rgba(255, 255, 255, 0.33)';
     });
 
     lociIds.forEach((id) => {
-      lociTmp[id][6] = 'rgba(255, 85, 0, 0.8)';
-      lociTmp[id][7] = 'rgba(255, 85, 0, 0.8)';
+      lociTmp[id][6] = 'rgba(255, 85, 0, 0.66)';
+      lociTmp[id][7] = 'rgba(255, 85, 0, 0.66)';
       lociTmp[id][8] = 7;
       lociTmp[id][9] = 7;
       const tmp = lociTmp[id];
@@ -399,7 +403,7 @@ export class Higlass {
         )
       };
 
-      if (view.trackLocation) {
+      if (view.selectionView) {
         this.api.on(
           'location',
           view.uid,
@@ -545,6 +549,8 @@ export class Higlass {
     }
 
     this.config.views.forEach((view, index) => {
+      view.genomePositionSearchBoxVisible = false;
+
       if (view.selectionView) {
         this.selectionViewId = index;
       }
