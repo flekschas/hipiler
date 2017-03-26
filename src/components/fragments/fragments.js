@@ -3090,7 +3090,7 @@ export class Fragments {
 
     // Preview single matrices of piles with multiple matrices
     if (fgmState.hoveredPile.pileMatrices.length > 1) {
-      const absY = this.relToAbsPositionY(this.mouse.y);
+      const absY = this.relToAbsPositionY(this.mouse.y) + this.scrollTop;
 
       if (absY > y + fgmState.hoveredPile.matrixWidthHalf) {
         const deltaY = absY - (y + fgmState.hoveredPile.matrixWidthHalf);
