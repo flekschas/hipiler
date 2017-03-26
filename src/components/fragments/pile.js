@@ -482,13 +482,12 @@ export default class Pile {
 
             this.clusters = event.data.clusters;
 
-            this.clustersAvgMatrices = this.clusters.map(
-              cluster => this.calculateAvgMatrix(
-                cluster.map(
-                  matrixId => fgmState.matricesIdx[matrixId]
-                )
-              )
-            );
+            this.clustersAvgMatrices = [];
+            this.clusters.forEach((cluster) => {
+              this.clustersAvgMatrices.push(this.calculateAvgMatrix(
+                cluster.map(matrixId => fgmState.matricesIdx[matrixId])
+              ));
+            });
 
             this.isMatricesClustered = true;
             resolve(this.clustersAvgMatrices);
@@ -838,9 +837,7 @@ export default class Pile {
    * @param {array} colors - Colors array to be changed in-place.
    */
   drawPreviews (positions, colors) {
-    const numPrevies = Math.min(PREVIEW_NUM_CLUSTERS, this.pileMatrices.length);
-
-    this.previewsHeight = this.previewSize * numPrevies;
+    this.previewsHeight = this.previewSize * this.clustersAvgMatrices.length;
 
     // Background
     addBufferedRect(
@@ -901,6 +898,8 @@ export default class Pile {
           this.getColor(value, fgmState.showSpecialCells)
         );
       }
+
+      index += 1;
     });
   }
 
