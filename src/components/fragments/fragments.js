@@ -4086,7 +4086,12 @@ export class Fragments {
       const ready = [];
 
       ready.push(this.updateHglSelectionView(stateHgl.config));
-      ready.push(this.updateHglSelectionViewDomains(state.higlass.selectionView, update));
+      ready.push(this.updateHglSelectionViewDomains(
+        state.higlass.selectionView, update)
+      );
+      ready.push(this.updateHglSelectionFadeOut(
+        state.higlass.fragmentsSelectionFadeOut, update)
+      );
 
       ready.push(this.updateAnimation(stateFgm.animation));
       ready.push(this.updateArrangeMeasures(stateFgm.arrangeMeasures, update));
@@ -4399,6 +4404,18 @@ export class Fragments {
     this.hglSelectionViewDomains = domains;
 
     this.determineMatrixVisibility();
+
+    update.pilesOpacity = true;
+
+    return Promise.resolve();
+  }
+
+  updateHglSelectionFadeOut (fadeOut, update) {
+    if (fgmState.hglSelectionFadeOut === fadeOut) {
+      return Promise.resolve();
+    }
+
+    fgmState.hglSelectionFadeOut = fadeOut;
 
     update.pilesOpacity = true;
 

@@ -1794,14 +1794,17 @@ export default class Pile {
       this.matrixWidth + this.previewsHeight,
       COLORS.WHITE,
       this.matrixFrameThickness + 2,
-      1
+      this.alphaSecond
     );
   }
 
   updateAlpha () {
     let update = false;
 
-    if (this.pileMatrices.some(matrix => matrix.isVisibleInSelection)) {
+    if (
+      !fgmState.hglSelectionFadeOut ||
+      this.pileMatrices.some(matrix => matrix.isVisibleInSelection)
+    ) {
       if (this.alpha !== 1.0) {
         this.alpha = 1.0;
         this.alphaSecond = 1.0;
@@ -1825,10 +1828,12 @@ export default class Pile {
       this.matrixFrame.material.uniforms.opacity.value = this.alphaSecond;
 
       // Update the Strand arrows
-      this.strandArrowX.line.material.opacity = this.alphaSecond;
-      this.strandArrowX.cone.material.opacity = this.alphaSecond;
-      this.strandArrowY.line.material.opacity = this.alphaSecond;
-      this.strandArrowY.cone.material.opacity = this.alphaSecond;
+      if (this.strandArrowX) {
+        this.strandArrowX.line.material.opacity = this.alphaSecond;
+        this.strandArrowX.cone.material.opacity = this.alphaSecond;
+        this.strandArrowY.line.material.opacity = this.alphaSecond;
+        this.strandArrowY.cone.material.opacity = this.alphaSecond;
+      }
 
       // Update the label
       if (this.label) {
