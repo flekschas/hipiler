@@ -143,44 +143,63 @@ export class Higlass {
    * @param {object} hgConfig - HiGlass's config.
    */
   addSelectionView (hgConfig) {
-    const originalView = hgConfig.views[0];
+    const locksByViewUid = {};
+    const locksDir = {};
 
-    // Adjust height of the original view
-    originalView.uid += '_';  // This is needed to make HiGlass refresh properly. Otherwise an error is thrown
-    originalView.layout.h = 6;
+    hgConfig.views.forEach((view, index) => {
+      // Adjust height of the original view
+      view.uid += '_';  // This is needed to make HiGlass refresh properly. Otherwise an error is thrown
+      view.layout.h = 6;
 
-    const selectionView = deepClone(originalView);
+      const selectionView = deepClone(view);
 
-    selectionView.uid = `_${selectionView.uid}`;
-    selectionView.zoomFixed = false;
-    selectionView.layout.y = 6;
-    selectionView.layout.i = selectionView.uid;
-    selectionView.genomePositionSearchBoxVisible = true;
-    selectionView.selectionView = true;
+      selectionView.uid = `__${selectionView.uid}`;
+      selectionView.zoomFixed = false;
+      selectionView.layout.y = 6;
+      selectionView.layout.i = selectionView.uid;
+      selectionView.genomePositionSearchBoxVisible = true;
+      selectionView.selectionView = true;
 
-    // Prefix all `uid`s with an underscore
-    Object.keys(selectionView.tracks).forEach((trackType) => {
-      selectionView.tracks[trackType].forEach((track) => {
-        track.uid = `_${track.uid}`;
-        if (track.contents) {
-          track.contents.forEach((content) => {
-            content.uid = `_${content.uid}`;
-          });
-        }
+      locksByViewUid[selectionView.uid] = 'lockWurst';
+      locksDir[selectionView.uid] = [1, 1, 1];
+
+      // Prefix all `uid`s with an underscore
+      Object.keys(selectionView.tracks).forEach((trackType) => {
+        selectionView.tracks[trackType].forEach((track) => {
+          track.uid = `_${track.uid}`;
+          if (track.contents) {
+            track.contents.forEach((content) => {
+              content.uid = `_${content.uid}`;
+            });
+          }
+        });
       });
+
+      // Add view projection view
+      view.tracks.center.push({
+        uid: `${view.uid}.viewport-projection-center`,
+        type: 'viewport-projection-center',
+        fromViewUid: selectionView.uid,
+        options: {
+          projectionFillColor: 'rgba(232, 230, 255, 1)',
+          projectionStrokeColor: 'rgba(99, 87, 255, 1)'
+        },
+        name: 'Viewport Projection'
+      });
+
+      // Add selection view
+      hgConfig.views.push(selectionView);
     });
 
-    // Add view projection view
-    originalView.tracks.center.push({
-      uid: 'viewport-projection-center',
-      type: 'viewport-projection-center',
-      fromViewUid: selectionView.uid,
-      options: {},
-      name: 'Viewport Projection'
-    });
+    hgConfig.zoomLocks = {
+      locksByViewUid,
+      locksDict: { lockWurst: locksDir }
+    };
 
-    // Add selection view
-    hgConfig.views.push(selectionView);
+    hgConfig.locationLocks = {
+      locksByViewUid,
+      locksDict: { lockWurst: locksDir }
+    };
   }
 
   checkServersAvailablility (config) {
@@ -451,6 +470,17 @@ export class Higlass {
    * @param {object} hgConfig - HiGlass's config.
    */
   removeSelectionView (hgConfig) {
+    // Remove selection view
+    for (let i = hgConfig.views.length; i--;) {
+      if (hgConfig.views[i].selectionView) {
+        hgConfig.views.splice(i, 1);
+      }
+    }
+
+    // Remove zoom and location locks
+    hgConfig.zoomLocks = {};
+    hgConfig.locationLocks = {};
+
     const originalView = hgConfig.views[0];
 
     // Adjust height of the original view
@@ -678,12 +708,12 @@ export class Higlass {
 
     this.fragmentsSelection = fgmSelection;
 
-    this.config.views = this.config.views.slice(0, 1);
+    // this.config.views = this.config.views.slice(0, 1);
+
+    this.removeSelectionView(this.config);
 
     if (this.fragmentsSelection) {
       this.addSelectionView(this.config);
-    } else {
-      this.removeSelectionView(this.config);
     }
 
     update.render = true;
@@ -718,6 +748,7 @@ export class Higlass {
   render (config) {
     Promise.all([this.isServersAvailable, this.isAttached])
       .then(() => {
+        console.log(config);
         hg(
           this.plotEl,
           deepClone(config),
