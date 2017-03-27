@@ -4,6 +4,7 @@ import {
   SET_GRAYSCALE,
   SET_FRAGMENTS_HIGHLIGHT,
   SET_FRAGMENTS_SELECTION,
+  SET_FRAGMENTS_SELECTION_FADE_OUT,
   SET_INTERACTIONS,
   SET_SELECTION_VIEW,
   UPDATE_HGL_CONFIG
@@ -13,6 +14,7 @@ import {
   CONFIG,
   FRAGMENTS_HIGHLIGHT,
   FRAGMENTS_SELECTION,
+  FRAGMENTS_SELECTION_FADE_OUT,
   GRAYSCALE,
   INTERACTIONS,
   SELECTION_VIEW
@@ -44,6 +46,18 @@ function fragmentsSelection (state = FRAGMENTS_SELECTION, action) {
   switch (action.type) {
     case SET_FRAGMENTS_SELECTION:
       return action.payload.selection;
+
+    default:
+      return state;
+  }
+}
+
+function fragmentsSelectionFadeOut (
+  state = FRAGMENTS_SELECTION_FADE_OUT, action
+) {
+  switch (action.type) {
+    case SET_FRAGMENTS_SELECTION_FADE_OUT:
+      return action.payload.selectionFadeOut;
 
     default:
       return state;
@@ -84,6 +98,7 @@ export default combineReducers({
   config,
   fragmentsHighlight,
   fragmentsSelection,
+  fragmentsSelectionFadeOut,
   grayscale,
   interactions,
   selectionView

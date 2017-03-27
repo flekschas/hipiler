@@ -19,6 +19,13 @@ export const setFragmentsSelection = selection => ({
   payload: { selection }
 });
 
+export const SET_FRAGMENTS_SELECTION_FADE_OUT = 'SET_FRAGMENTS_SELECTION_FADE_OUT';
+
+export const setFragmentsSelectionFadeOut = selectionFadeOut => ({
+  type: SET_FRAGMENTS_SELECTION_FADE_OUT,
+  payload: { selectionFadeOut }
+});
+
 export const SET_INTERACTIONS = 'SET_INTERACTIONS';
 
 export const setInteractions = interactions => ({

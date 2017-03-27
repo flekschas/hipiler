@@ -4,6 +4,8 @@ export const FRAGMENTS_HIGHLIGHT = true;
 
 export const FRAGMENTS_SELECTION = false;
 
+export const FRAGMENTS_SELECTION_FADE_OUT = false;
+
 export const FGM_LOCATION_HIGHLIGHT_SIZE = 6;
 
 export const GRAYSCALE = true;
