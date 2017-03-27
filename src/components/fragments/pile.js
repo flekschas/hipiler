@@ -47,7 +47,8 @@ import {
   createRectFrame,
   createText,
   frameValue,
-  makeBuffer3f
+  makeBuffer3f,
+  makeRgbaBuffer
 } from 'components/fragments/fragments-utils';
 
 import arraysEqual from 'utils/arrays-equal';
@@ -62,6 +63,8 @@ const logger = LogManager.getLogger('pile');
 
 export default class Pile {
   constructor (id, scene, scale, dims, maxNumPiles) {
+    this.alpha = 1.0;
+    this.alphaSecond = this.alpha;
     this.avgMatrix = new Float32Array(dims ** 2);
     this.cellFrame = createRectFrame(
       this.cellSize, this.cellSize, 0xff0000, 1
@@ -598,7 +601,7 @@ export default class Pile {
 
     this.geometry.addAttribute(
       'customColor',
-      new BufferAttribute(makeBuffer3f(colors), 3)
+      new BufferAttribute(makeRgbaBuffer(colors, this.alpha), 4)
     );
 
     this.mesh = new Mesh(this.geometry, fgmState.shaderMaterial);
@@ -827,6 +830,8 @@ export default class Pile {
     }
 
     this.label.scale.set(scale, scale, scale);
+    this.label.material.opacity = this.alphaSecond;
+
     this.mesh.add(this.label);
   }
 
@@ -963,6 +968,10 @@ export default class Pile {
       STRAND_ARROW_HEAD_LENGTH,
       STRAND_ARROW_HEAD_WIDTH
     );
+    this.strandArrowX.cone.material.transparent = true;
+    this.strandArrowX.line.material.transparent = true;
+    this.strandArrowX.line.material.opacity = this.alphaSecond;
+    this.strandArrowX.cone.material.opacity = this.alphaSecond;
 
     this.strandArrowY = new ArrowHelper(
       new Vector3(0, this.pileMatrices[0].orientationY * -1, 0),
@@ -976,6 +985,10 @@ export default class Pile {
       STRAND_ARROW_HEAD_LENGTH,
       STRAND_ARROW_HEAD_WIDTH
     );
+    this.strandArrowY.cone.material.transparent = true;
+    this.strandArrowY.line.material.transparent = true;
+    this.strandArrowY.line.material.opacity = this.alphaSecond;
+    this.strandArrowY.cone.material.opacity = this.alphaSecond;
 
     // Remove previous rects
     if (this.strandArrowRectX) {
@@ -1084,7 +1097,8 @@ export default class Pile {
       this.matrixWidth,
       this.matrixWidth,
       this.matrixFrameColor,
-      this.matrixFrameThickness
+      this.matrixFrameThickness,
+      this.alphaSecond
     );
 
     this.matrixFrameHighlight = createLineFrame(
@@ -1784,11 +1798,42 @@ export default class Pile {
     );
   }
 
-  updateVisibility () {
-    if (this.isVisibleInSelection) {
-      this.mesh.material.opacity = 1;
-    } else {
-      this.mesh.material.opacity = 0.33;
+  updateAlpha () {
+    let update = false;
+
+    if (this.pileMatrices.some(matrix => matrix.isVisibleInSelection)) {
+      if (this.alpha !== 1.0) {
+        this.alpha = 1.0;
+        this.alphaSecond = 1.0;
+        update = true;
+      }
+    } else if (this.alpha !== 0.25) {
+      this.alpha = 0.25;
+      this.alphaSecond = 0.25;
+      update = true;
+    }
+
+    if (update) {
+      // Update matrix
+      for (let i = this.mesh.geometry.attributes.customColor.count; i--;) {
+        this.mesh.geometry.attributes.customColor.setW(i, this.alpha);
+      }
+
+      this.mesh.geometry.attributes.customColor.needsUpdate = true;
+
+      // Update matrix frame
+      this.matrixFrame.material.uniforms.opacity.value = this.alphaSecond;
+
+      // Update the Strand arrows
+      this.strandArrowX.line.material.opacity = this.alphaSecond;
+      this.strandArrowX.cone.material.opacity = this.alphaSecond;
+      this.strandArrowY.line.material.opacity = this.alphaSecond;
+      this.strandArrowY.cone.material.opacity = this.alphaSecond;
+
+      // Update the label
+      if (this.label) {
+        this.label.material.opacity = this.alphaSecond;
+      }
     }
   }
 }
