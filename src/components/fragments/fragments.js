@@ -1543,6 +1543,8 @@ export class Fragments {
         matrix.locus.globalEnd2 <= this.hglSelectionViewDomains[3]
       ) {
         matrix.isVisibleInSelection = true;
+      } else {
+        matrix.isVisibleInSelection = false;
       }
     });
   }
@@ -4192,7 +4194,7 @@ export class Fragments {
     }
 
     if (update.pilesOpacity) {
-      this.piles.forEach(pile => pile.updateVisibility());
+      this.piles.forEach(pile => pile.updateAlpha());
     }
 
     this.render();
@@ -4399,11 +4401,6 @@ export class Fragments {
     this.determineMatrixVisibility();
 
     update.pilesOpacity = true;
-    // update.piles = true;
-    // update.pilesForce = true;
-    // update.pileFrames = true;
-    // update.layout = true;
-    // update.scrollLimit = true;
 
     return Promise.resolve();
   }
