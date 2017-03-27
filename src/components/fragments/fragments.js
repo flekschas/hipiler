@@ -382,7 +382,7 @@ export class Fragments {
         this.matricesCalcGlobalPos();
 
         if (this.subSelectingPiles) {
-          this.determinMatrixVisibility();
+          this.determineMatrixVisibility();
         }
       })
       .catch((error) => {
@@ -1528,7 +1528,7 @@ export class Fragments {
   /**
    * Determine if a matrix is visible.
    */
-  determinMatrixVisibility () {
+  determineMatrixVisibility () {
     if (!this.hglSelectionViewDomains) {
       return;
     }
@@ -1542,7 +1542,7 @@ export class Fragments {
         matrix.locus.globalStart2 >= this.hglSelectionViewDomains[2] &&
         matrix.locus.globalEnd2 <= this.hglSelectionViewDomains[3]
       ) {
-        matrix.visible = true;
+        matrix.isVisibleInSelection = true;
       }
     });
   }
@@ -2770,9 +2770,7 @@ export class Fragments {
   }
 
   /**
-   * [initShader description]
-   *
-   * @return {[type]} [description]
+   * Initialize shader material.
    */
   initShader () {
     try {
@@ -2785,11 +2783,11 @@ export class Fragments {
         side: DoubleSide,
         linewidth: 2
       });
-    } catch (e) {
+    } catch (error) {
       this.isErrored = true;
       this.errorMsg = 'Failed to initialize shader.';
 
-      logger.error('Failed to initialize shader.', e);
+      logger.error('Failed to initialize shader.', error);
     }
   }
 
@@ -4193,6 +4191,10 @@ export class Fragments {
       this.redrawPiles();
     }
 
+    if (update.pilesOpacity) {
+      this.piles.forEach(pile => pile.updateVisibility());
+    }
+
     this.render();
   }
 
@@ -4394,8 +4396,9 @@ export class Fragments {
 
     this.hglSelectionViewDomains = domains;
 
-    // this.determinMatrixVisibility();
+    this.determineMatrixVisibility();
 
+    update.pilesOpacity = true;
     // update.piles = true;
     // update.pilesForce = true;
     // update.pileFrames = true;
