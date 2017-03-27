@@ -19,6 +19,7 @@ import {
   setGrayscale,
   setFragmentsHighlight,
   setFragmentsSelection,
+  setFragmentsSelectionFadeOut,
   setInteractions,
   setSelectionView
 } from 'components/higlass/higlass-actions';
@@ -335,6 +336,14 @@ export class Higlass {
     return true;
   }
 
+  fragmentsSelectionFadeOutChangeHandler () {
+    this.store.dispatch(
+      setFragmentsSelectionFadeOut(!this.fragmentsSelectionFadeOut)
+    );
+
+    return true;
+  }
+
   /**
    * Handles changes of grayscale.
    */
@@ -521,6 +530,9 @@ export class Higlass {
         update,
         update.render
       );
+      this.updateFragmentsSelectionFadeOut(
+        state.higlass.fragmentsSelectionFadeOut
+      );
       this.updateSelectionView(state.higlass.selectionView, update);
 
       if (update.render) {
@@ -675,6 +687,10 @@ export class Higlass {
     }
 
     update.render = true;
+  }
+
+  updateFragmentsSelectionFadeOut (fadeOut) {
+    this.fragmentsSelectionFadeOut = fadeOut;
   }
 
   updateSelectionView (selectionViewDomains, update) {
