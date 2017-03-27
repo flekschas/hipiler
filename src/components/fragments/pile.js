@@ -1783,4 +1783,12 @@ export default class Pile {
       1
     );
   }
+
+  updateVisibility () {
+    if (this.isVisibleInSelection) {
+      this.mesh.material.opacity = 1;
+    } else {
+      this.mesh.material.opacity = 0.33;
+    }
+  }
 }
