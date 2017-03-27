@@ -1114,7 +1114,7 @@ export default class Pile {
       this.matrixWidth,
       COLORS.WHITE,
       this.matrixFrameThickness + 2,
-      1
+      this.alphaSecond
     );
 
     return this;
@@ -1824,8 +1824,9 @@ export default class Pile {
 
       this.mesh.geometry.attributes.customColor.needsUpdate = true;
 
-      // Update matrix frame
+      // Update matrix frame and pile outline
       this.matrixFrame.material.uniforms.opacity.value = this.alphaSecond;
+      this.pileOutline.material.uniforms.opacity.value = this.alphaSecond;
 
       // Update the Strand arrows
       if (this.strandArrowX) {
