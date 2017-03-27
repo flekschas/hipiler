@@ -166,6 +166,19 @@ export function makeBuffer3f (array) {
   return buffer;
 }
 
+export function makeRgbaBuffer (array, alpha = 1.0) {
+  const buffer = new Float32Array(array.length * 4);  // four components per vertex
+
+  array.forEach((entry, index) => {
+    buffer[(index * 4) + 0] = entry[0];
+    buffer[(index * 4) + 1] = entry[1];
+    buffer[(index * 4) + 2] = entry[2];
+    buffer[(index * 4) + 3] = alpha;
+  });
+
+  return buffer;
+}
+
 export function createLineFrame (width, height, color, lineWidth, opacity) {
   const wh = width / 2;
   const hh = height / 2;
@@ -321,7 +334,9 @@ export function createText (string, x, y, z, size, color, weight) {
   });
 
   const textMaterial = new MeshBasicMaterial({
-    color: color || 0xff0000
+    color: color || 0xff0000,
+    transparent: true,
+    opacity: 1
   });
 
   const label = new Mesh(textGeom, textMaterial);

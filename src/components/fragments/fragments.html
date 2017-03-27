@@ -350,18 +350,18 @@
   </div>
 
   <script type="x-shader/x-vertex" id="shader-vertex">
-     attribute vec3 customColor;
-     varying vec3 vColor;
-     void main() {
-        vColor = customColor;
-        gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
-     }
+    attribute vec4 customColor;
+    varying vec4 vColor;
+    void main() {
+      vColor = customColor;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+    }
   </script>
 
   <script type="x-shader/x-fragment" id="shader-fragment">
-     varying vec3 vColor;
-     void main() {
-       gl_FragColor = vec4( vColor, 1);
-     }
+    varying vec4 vColor;
+    void main() {
+      gl_FragColor = vec4( vColor );
+    }
   </script>
 </template>
