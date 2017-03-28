@@ -3595,24 +3595,41 @@ export class Fragments {
   }
 
   /**
+   * Helper method to scroll to the top.
+   */
+  scrollToTop () {
+    this.scrollView(Infinity);
+  }
+
+  /**
    * Scroll the snippets plot.
    *
    * @param {number} wheelDelta - Wheel movement.
+   * @param {boolean} abs - If `true` the `wheelDelta` defines the absolute
+   *   scroll top position.
    */
-  scrollView (wheelDelta) {
-    let cameraPosY = this.camera.position.y;
+  scrollView (wheelDelta, abs) {
+    let cameraPosY;
 
-    if (wheelDelta > 0) {
-      cameraPosY = Math.min(
-        cameraPosY + wheelDelta, this.scrollLimitTop
-      );
+    if (abs) {
+      this.scrollTop = wheelDelta;
+      cameraPosY = this.scrollTop + this.scrollLimitTop;
     } else {
-      cameraPosY = Math.max(
-        cameraPosY + wheelDelta, this.scrollLimitBottom
-      );
-    }
+      cameraPosY = this.camera.position.y;
 
-    this.scrollTop = cameraPosY - this.scrollLimitTop;
+      if (wheelDelta > 0) {
+        // Scroll to the top
+        cameraPosY = Math.min(
+          cameraPosY + wheelDelta, this.scrollLimitTop
+        );
+      } else {
+        cameraPosY = Math.max(
+          cameraPosY + wheelDelta, this.scrollLimitBottom
+        );
+      }
+
+      this.scrollTop = cameraPosY - this.scrollLimitTop;
+    }
 
     this.camera.position.setY(cameraPosY);
   }
@@ -3929,6 +3946,12 @@ export class Fragments {
       pile.show().frameUpdate().frameCreate().draw();
     });
 
+    // Reset last scroll pos
+    if (typeof this.lastScrollPos !== 'undefined') {
+      this.scrollView(this.lastScrollPos, true);
+      this.lastScrollPos = undefined;
+    }
+
     this.assessMeasuresMax();
     this.calcGrid();
     this.setScrollLimit();
@@ -3950,7 +3973,11 @@ export class Fragments {
       pile.frameUpdate().frameCreate().draw();
     });
 
+    // Save last scroll position
+    this.lastScrollPos = this.scrollTop;
+
     this.calcGrid();
+    this.scrollToTop();
     this.setScrollLimit();
     this.updateLayout(this.piles, [], true)
       .then(() => { this.render(); });
@@ -4202,6 +4229,10 @@ export class Fragments {
       this.piles.forEach(pile => pile.updateAlpha());
     }
 
+    if (update.scrollToTop) {
+      this.scrollToTop();
+    }
+
     this.render();
   }
 
@@ -4238,6 +4269,8 @@ export class Fragments {
       fgmState.isLayout2d = false;
       fgmState.isLayoutMd = true;
       fgmState.scale = 0.25;
+
+      update.scrollToTop = true;
     } else {
       this.arrangeMeasuresReadible = this.arrangeMeasures.map(
         measure => this.wurstCaseToNice(measure)
@@ -4249,6 +4282,8 @@ export class Fragments {
         fgmState.isLayout2d = this.arrangeMeasures.length === 2;
         fgmState.isLayoutMd = !fgmState.isLayout2d;
         fgmState.scale = 0.25;
+
+        update.scrollToTop = true;
       } else {
         fgmState.isLayout2d = false;
         fgmState.isLayoutMd = false;
