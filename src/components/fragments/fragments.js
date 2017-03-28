@@ -757,7 +757,7 @@ export class Fragments {
     this.gridCellWidth = this.matrixGridWidth + MATRIX_GAP_HORIZONTAL;
 
     // Columns and rows
-    if (this.isLayout2d || this.isLayoutMd) {
+    if (!this.isLayout1d) {
       this.gridNumCols = Math.max(Math.floor(
         (this.plotElDim.width - MARGIN_LEFT - MARGIN_RIGHT) /
         this.matrixGridWidth
@@ -2285,7 +2285,7 @@ export class Fragments {
     this.piles.forEach((pile) => {
       const column = Math.floor(pile.x / fgmState.gridCellWidthInclSpacing);
       const row = Math.floor(-pile.y / fgmState.gridCellHeightInclSpacing);
-      const index = ((row - 1) * this.gridNumCols) + column;
+      const index = (row * this.gridNumCols) + column;
 
       if (gridPiles[index]) {
         gridPiles[index].push(pile);
