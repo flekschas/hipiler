@@ -7,6 +7,8 @@ import {
 
 import commands from 'components/fragments/pile-menu-commands';
 
+import fgmState from 'components/fragments/fragments-state';
+
 // import debounce from 'utils/debounce';
 
 const logger = LogManager.getLogger('pile-menu');
@@ -60,6 +62,10 @@ export class PileMenu {
     }
 
     if (command.notInTrash && this.pile.isTrashed) {
+      return false;
+    }
+
+    if (command.inspectionOnly && !fgmState.isPilesInspection) {
       return false;
     }
 

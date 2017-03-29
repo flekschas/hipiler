@@ -153,11 +153,23 @@ export const RECOVER = {
     trigger (pile) {
       store.dispatch(recoverPiles([pile.id]));
       event.publish('decompose.fgm.pileMouseLeave');
+      event.publish('decompose.fgm.pileUnhighlight');
       event.publish('decompose.fgm.removePileArea');
     },
     closeOnClick: true
   }],
   trashedOnly: true
+};
+
+export const REMOVE = {
+  buttons: [{
+    name: 'Remove',
+    trigger (pile) {
+      event.publish('decompose.fgm.removeFromPile', [pile]);
+    },
+    closeOnClick: true
+  }],
+  inspectionOnly: true
 };
 
 export const TRASH = {
@@ -166,6 +178,7 @@ export const TRASH = {
     trigger (pile) {
       store.dispatch(trashPiles([pile.id]));
       event.publish('decompose.fgm.pileMouseLeave');
+      event.publish('decompose.fgm.pileUnhighlight');
       event.publish('decompose.fgm.removePileArea');
     },
     closeOnClick: true
@@ -188,6 +201,7 @@ export const STD = {
 export default [
   INSPECT,
   DISPERSE,
+  REMOVE,
   COLOR,
   BW,
   TRASH,
