@@ -324,6 +324,11 @@ export class Fragments {
       this.removePileArea.bind(this)
     );
 
+    this.event.subscribe(
+      'decompose.fgm.removeFromPile',
+      this.removeFromPile.bind(this)
+    );
+
     // The following setup allows us to imitate deferred objects. I.e., we can
     // resolve promises outside their scope.
     this.resolve = {};
@@ -1033,6 +1038,7 @@ export class Fragments {
       this.highlightPile(fgmState.hoveredPile);
     } else {
       this.showPileMenu();
+      this.highlightPile();
     }
 
     this.render();
@@ -2485,12 +2491,20 @@ export class Fragments {
    * @param {object} pile - Pile to be highlighted.
    */
   highlightPile (pile) {
-    if (fgmState.previousHoveredPile && fgmState.previousHoveredPile !== pile) {
-      fgmState.previousHoveredPile.frameReset();
+    if (this.pileHighlight) {
+      this.pileHighlight.frameReset();
+
+      this.event.publish(
+        'decompose.fgm.pileUnhighlight',
+        this.pileHighlight.pileMatrices.map(matrix => matrix.id)
+      );
+
+      this.pileHighlight = undefined;
     }
 
     if (typeof pile !== 'undefined') {
       pile.frameHighlight();
+      this.pileHighlight = pile;
     }
   }
 
@@ -3111,7 +3125,6 @@ export class Fragments {
       fgmState.previousHoveredPile !== fgmState.hoveredPile &&
       !this.isLassoActive
     ) {
-      this.highlightPile();
       this.removePileArea();
 
       this.drawPilesArea([fgmState.hoveredPile]);
@@ -3128,8 +3141,6 @@ export class Fragments {
   mouseOutPileHandler () {
     fgmState.hoveredPile = undefined;
 
-    this.highlightPile();
-
     if (fgmState.hoveredGapPile) {
       const pile = fgmState.hoveredGapPile;
       fgmState.hoveredGapPile = undefined;
@@ -3137,11 +3148,6 @@ export class Fragments {
     }
 
     if (fgmState.previousHoveredPile) {
-      this.event.publish(
-        'decompose.fgm.pileMouseLeave',
-        fgmState.previousHoveredPile.pileMatrices.map(matrix => matrix.id)
-      );
-
       fgmState.previousHoveredPile.elevateTo();
       fgmState.previousHoveredPile.showSingle(undefined);
       fgmState.previousHoveredPile.setCoverMatrixMode(this.coverDispMode);
@@ -3498,6 +3504,25 @@ export class Fragments {
         }
       }
     });
+  }
+
+  removeFromPile (piles) {
+    if (!fgmState.isPilesInspection) { return; }
+
+    const config = {};
+
+    piles.forEach((pile) => {
+      config[pile.id] = pile.pileMatrices.map(matrix => matrix.id);
+    });
+
+    // console.log('removeFromPile', piles, config);
+
+
+    // if (fgmState.isPilesInspection) {
+    //   this.store.dispatch(stackPilesInspection(config));
+    // } else {
+    //   this.store.dispatch(stackPiles(config));
+    // }
   }
 
   /**

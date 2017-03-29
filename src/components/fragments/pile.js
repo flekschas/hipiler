@@ -1218,7 +1218,7 @@ export default class Pile {
     this.matrixFrameHighlight.material.uniforms.thickness.value =
       this.matrixFrameThickness + 2;
 
-    this.matrixFrameHighlight.material.uniforms.opacity.value = 0;
+    // this.matrixFrameHighlight.material.uniforms.opacity.value = 0;
 
     return this;
   }
@@ -1781,7 +1781,7 @@ export default class Pile {
       this.matrixWidth + this.previewsHeight,
       COLORS.ORANGE,
       this.matrixFrameThickness + 2,
-      0
+      this.matrixFrameHighlight.material.uniforms.opacity.value
     );
   }
 

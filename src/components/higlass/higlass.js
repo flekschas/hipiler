@@ -63,7 +63,7 @@ export class Higlass {
     );
 
     this.event.subscribe(
-      'decompose.fgm.pileMouseLeave',
+      'decompose.fgm.pileUnhighlight',
       this.dehighlightLoci.bind(this)
     );
 
@@ -748,7 +748,6 @@ export class Higlass {
   render (config) {
     Promise.all([this.isServersAvailable, this.isAttached])
       .then(() => {
-        console.log(config);
         hg(
           this.plotEl,
           deepClone(config),
