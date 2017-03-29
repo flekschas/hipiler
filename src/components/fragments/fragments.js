@@ -57,6 +57,7 @@ import {
   ARRANGE_MEASURES,
   CAT_CHROMOSOME,
   CAT_DATASET,
+  CAT_LOCATION,
   CAT_ZOOMOUT_LEVEL,
   CLICK_DELAY_TIME,
   CLUSTER_TSNE,
@@ -232,6 +233,9 @@ export class Fragments {
     ];
 
     this.attrsCatReq = [{
+      id: CAT_LOCATION,
+      name: 'Location'
+    }, {
       id: CAT_CHROMOSOME,
       name: 'Chromosome'
     }, {
@@ -2274,7 +2278,41 @@ export class Fragments {
 
       this.pileUp(batchPileStacking);
     } else {
-      // Group by predefined category
+      switch (category) {
+        case CAT_LOCATION: {
+          const batchPileStacking = {};
+          const pilesByLocation = {};
+
+          this.piles.forEach((pile) => {
+            if (pile.pileMatrices.length === 1) {
+              const matrix = pile.pileMatrices[0];
+              const locus = Object.keys(matrix.locus)
+                .map(key => matrix.locus[key])
+                .reduce((str, value) => str.concat(value), '');
+
+              if (pilesByLocation[locus]) {
+                pilesByLocation[locus].push(pile);
+              } else {
+                pilesByLocation[locus] = [pile];
+              }
+            }
+          });
+
+          Object.keys(pilesByLocation).forEach((locus) => {
+            if (pilesByLocation[locus].length > 1) {
+              batchPileStacking[pilesByLocation[locus][0].id] =
+                pilesByLocation[locus].slice(1).map(matrix => matrix.id);
+            }
+          });
+
+          this.pileUp(batchPileStacking);
+          break;
+        }
+
+        default:
+          // Nothing
+          break;
+      }
     }
   }
 
