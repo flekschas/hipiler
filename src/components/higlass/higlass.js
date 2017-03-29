@@ -393,14 +393,21 @@ export class Higlass {
       locus[7] = 'rgba(255, 255, 255, 0.33)';
     });
 
-    lociIds.forEach((id) => {
-      lociTmp[id][6] = 'rgba(255, 85, 0, 0.66)';
-      lociTmp[id][7] = 'rgba(255, 85, 0, 0.66)';
-      lociTmp[id][8] = 7;
-      lociTmp[id][9] = 7;
-      const tmp = lociTmp[id];
-      lociTmp.splice(id, 1);
+    let counter = 0;
+    lociIds.sort((a, b) => a - b).forEach((id) => {
+      // We need the counter as we splice off the location and add it at the
+      // end again. Mutating the indices.
+      const _id = id - counter;
+
+      lociTmp[_id][6] = 'rgba(255, 85, 0, 0.66)';
+      lociTmp[_id][7] = 'rgba(255, 85, 0, 0.66)';
+      lociTmp[_id][8] = 7;
+      lociTmp[_id][9] = 7;
+      const tmp = lociTmp[_id];
+      lociTmp.splice(_id, 1);
       lociTmp.push(tmp);
+
+      counter += 1;
     });
 
     configTmp.views
