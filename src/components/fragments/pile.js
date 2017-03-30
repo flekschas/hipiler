@@ -29,8 +29,10 @@ import pileColors from 'components/fragments/pile-colors';
 import {
   COLOR_INDICATOR_HEIGHT,
   LABEL_MIN_CELL_SIZE,
+  MAD_MAX,
   PREVIEW_LOW_QUAL_THRESHOLD,
   PREVIEW_NUM_CLUSTERS,
+  STD_MAX,
   STRAND_ARROW_LENGTH,
   STRAND_ARROW_HEAD_LENGTH,
   STRAND_ARROW_HEAD_WIDTH
@@ -299,7 +301,7 @@ export default class Pile {
    * @param {array} i - Index i.
    * @param {array} j - Index j.
    */
-  calculateCellMad (targetMatrix, sourceMatrices, i, j, numMatrices) {
+  calculateCellMad (targetMatrix, sourceMatrices, i, j) {
     const flatIdx = (i * this.dims) + j;
     const mean = sourceMatrices
       .map(matrix => Math.max(matrix[flatIdx], 0))
@@ -307,7 +309,9 @@ export default class Pile {
 
     targetMatrix[i][j] = sourceMatrices
       .map(matrix => Math.max(matrix[flatIdx], 0))
-      .reduce((a, b) => a + Math.abs(b - mean), 0) / sourceMatrices.length;
+      .reduce((a, b) => a + Math.abs(b - mean), 0) /
+      sourceMatrices.length /
+      MAD_MAX;
   }
 
   /**
@@ -355,11 +359,13 @@ export default class Pile {
       .map(matrix => Math.max(matrix[flatIdx], 0))
       .reduce((a, b) => a + b, 0) / sourceMatrices.length;
 
-    targetMatrix[i][j] = Math.sqrt(sourceMatrices
-      .map(matrix => Math.max(matrix[flatIdx], 0))
-      .reduce(
-        (a, b) => a + ((b - mean) ** 2), 0) / (sourceMatrices.length - 1)
-      );
+    targetMatrix[i][j] = Math.sqrt(
+      sourceMatrices
+        .map(matrix => Math.max(matrix[flatIdx], 0))
+        .reduce(
+          (a, b) => a + ((b - mean) ** 2), 0
+        ) / sourceMatrices.length / STD_MAX
+    );
   }
 
   /**
@@ -700,7 +706,7 @@ export default class Pile {
       this.zLayerHeight * 5,
       this.cellSize,
       colors,
-      pileColors.orange(1 - value)
+      pileColors.whiteOrangeBlack(value)
     );
   }
 
@@ -745,7 +751,7 @@ export default class Pile {
       this.zLayerHeight * 5,
       this.cellSize,
       colors,
-      pileColors.orange(1 - value)
+      pileColors.whiteOrangeBlack(value)
     );
   }
 
