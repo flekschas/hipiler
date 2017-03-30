@@ -80,6 +80,32 @@ export const orange = function (value) {
   ];
 };
 
+const whiteOrangeBlackR = scaleLinear().domain([0, 0.4, 0.66, 1]).range([
+  1, 1, 0.250980392, 0
+]);
+const whiteOrangeBlackG = scaleLinear().domain([0, 0.4, 0.66, 1]).range([
+  1, 0.333333333, 0, 0
+]);
+const whiteOrangeBlackB = scaleLinear().domain([0, 0.4, 0.66, 1]).range([
+  1, 0, 0, 0
+]);
+
+/**
+ * Map a value to a relative color array for orange.
+ *
+ * @param {number} value - Domain value, i.e., value to be mapped.
+ * @return {array} Relative color array.
+ */
+export const whiteOrangeBlack = function (value) {
+  this.name = 'whiteOrangeBlack';
+
+  return [
+    whiteOrangeBlackR(value),
+    whiteOrangeBlackG(value),
+    whiteOrangeBlackB(value)
+  ];
+};
+
 /**
  * Map a value to a relative color array for pink.
  *
@@ -144,6 +170,7 @@ export default {
   gray,
   green,
   orange,
+  whiteOrangeBlack,
   pink,
   red,
   yellow
