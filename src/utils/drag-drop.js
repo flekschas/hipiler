@@ -1,30 +1,41 @@
 import $ from './dom-el';
 import hasParent from './has-parent';
 
-export default function dragDrop (el, dropCallback) {
-  const $el = new $(el);
+export default function dragDrop (baseEl, dropEl, dropCallback) {
+  const $baseEl = $(baseEl);
+  let isDragging = false;
 
   document.addEventListener('dragenter', (event) => {
-    if (hasParent(event.target, el)) {
-      $el.addClass('is-dragging-over');
+    if (hasParent(event.target, baseEl)) {
+      $baseEl.addClass('is-dragging-over');
+      isDragging = true;
+      event.preventDefault();
     }
   });
 
   document.addEventListener('dragover', (event) => {
-    event.preventDefault();
+    if (isDragging) {
+      event.preventDefault();
+    }
   });
 
   document.addEventListener('dragleave', () => {
-    $el.removeClass('is-dragging-over');
+    if (isDragging && hasParent(event.target, dropEl)) {
+      $baseEl.removeClass('is-dragging-over');
+      isDragging = false;
+    }
   });
 
   document.addEventListener('drop', (event) => {
-    event.preventDefault();
+    if (isDragging) {
+      event.preventDefault();
 
-    if (hasParent(event.target, el)) {
-      dropCallback(event);
+      if (hasParent(event.target, baseEl)) {
+        dropCallback(event);
+      }
+
+      $baseEl.removeClass('is-dragging-over');
+      isDragging = false;
     }
-
-    $el.removeClass('is-dragging-over');
   }, false);
 }

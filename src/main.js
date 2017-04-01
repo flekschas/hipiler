@@ -8,7 +8,7 @@ Promise.config({
   }
 });
 
-export function configure(aurelia) {
+export function configure (aurelia) {
   aurelia.use
     .standardConfiguration()
     .feature('resources');
@@ -23,3 +23,7 @@ export function configure(aurelia) {
 
   aurelia.start().then(() => aurelia.setRoot());
 }
+
+export default {
+  configure
+};

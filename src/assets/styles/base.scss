@@ -1,4 +1,5 @@
 @import 'colors';
+@import 'transitions';
 
 /* =====  1 Global Rules & Definitions  ===================================== */
 
@@ -33,6 +34,7 @@ footer, header, main, menu, nav, section, summary {
 }
 
 body {
+  height: 100vh;
   text-rendering: optimizeLegibility;
 }
 
@@ -76,18 +78,25 @@ h4 {
 a {
   color: inherit;
   text-decoration: none;
-  border-bottom: 1px solid $orange;
+  border-bottom: 1px solid $gray-lighter;
+  transition: color $transition-very-fast $ease-in-out-cubic,
+              border-bottom-color $transition-very-fast $ease-in-out-cubic;
 }
 
 a:hover, a:focus, a:active {
-  color: $orange;
+  color: $primary;
+  border-bottom-color: $primary;
 }
 
 b, strong {
   font-weight: 700;
 }
 
-/* -----  1.4 Images & Figures  --------------------------------------------- */
+button:hover
+button:active,
+button:focus {
+  outline: none;
+}
 
 img {
   border-style: none;
@@ -100,10 +109,35 @@ figcaption {
   line-height: 1.5rem;
 }
 
+svg-icon {
+  display: block;
+}
 
+/* =====  Global Styles  ==================================================== */
 
+// I should rather use `.btn` but higlass uses the same global class name...
+.button {
+  padding: 0.25rem 0.5rem;
+  cursor: pointer;
+  border: 0;
+  border-radius: 0.25rem;
+  background: $gray-lightest;
+  transition: color $transition-very-fast $ease-in-out-cubic,
+              background $transition-very-fast $ease-in-out-cubic;
 
-/* =====  2 Global Styles  ================================================== */
+  &:hover {
+    border: 0;
+    color: $primary;
+    background: lighten($primary, 40%);
+  }
+
+  &.is-icon-only {
+    svg-icon {
+      width: 1em;
+      height: 1em;
+    }
+  }
+}
 
 .rel {
   position: relative;
@@ -119,28 +153,12 @@ figcaption {
   height: 100%;
 }
 
-.flex-c {
-  display: flex;
-}
-
-.flex-jc-c {
-  justify-content: center;
-}
-
-.flex-jc-sb {
-  justify-content: space-between;
-}
-
-.flex-a-c {
-  align-items: center;
-}
-
-.flex-a-s {
-  align-items: stretch;
-}
-
-.flex-i-g-1 {
-  flex-grow: 1;
+.full-dim {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
 }
 
 .no-list-style {
@@ -162,6 +180,24 @@ figcaption {
   &:hover {
     cursor: pointer;
   }
+}
+
+.icon-inline svg {
+  width: 1em;
+  height: 1em;
+}
+
+.no-overflow {
+  overflow: hidden;
+}
+
+.spinner-bg {
+  padding: 1rem;
+  border-radius: 0.25rem;
+  background: $white;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.1),
+              0 1px 3px 0 rgba(0, 0, 0, 0.05),
+              0 2px 6px 0 rgba(0, 0, 0, 0.05);
 }
 
 body.dragging,

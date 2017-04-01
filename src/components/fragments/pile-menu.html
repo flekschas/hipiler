@@ -1,0 +1,23 @@
+<template>
+  <require from="components/svg-icon/svg-icon"></require>
+
+  <nav
+    id="pile-menu"
+    class="pile-context-menu ${isActive ? 'is-active' : ''} ${isAlignLeft ? 'is-align-left' : ''} ${isBottomUp ? 'is-bottom-up' : ''}"
+    css.bind="css">
+    <ul class="no-list-style rel flex-c flex-d-c">
+      <li
+        class="flex-c ${command.buttons.length ? 'is-multiple' : ''}"
+        repeat.for="command of commands"
+        if.bind="command.isVisible">
+        <button
+          class="flex-g-1"
+          repeat.for="button of command.buttons"
+          click.delegate="trigger(button)"
+          css.one-way="button.css">
+          ${button.name}
+        </button>
+      </li>
+    </ul>
+  </nav>
+</template>

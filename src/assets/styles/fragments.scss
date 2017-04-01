@@ -1,0 +1,14 @@
+@import 'colors';
+@import 'transitions';
+
+fragments {
+  display: block;
+  margin-top: -2rem;
+  padding-top: 2rem;
+
+  .fragment-plot {
+    &.is-piles-inspection {
+      box-shadow: inset 0 0 0 0.25rem lighten($primary, 40%);
+    }
+  }
+}

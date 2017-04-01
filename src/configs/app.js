@@ -1,3 +1,7 @@
+export const name = 'HiPiler';
+
+export const nameShort = 'HiP';
+
 export const environments = {
   dev: {
     debug: true,
@@ -11,13 +15,11 @@ export const environments = {
 
 export const routes = [
   {
-    route: ['', 'home'],
+    route: '',
     name: 'home',
     title: 'Home',
     moduleId: 'views/home',
-    nav: true,
-    showIcon: true,
-    iconId: 'home'
+    nav: false
   },
   {
     route: 'about',
@@ -27,10 +29,39 @@ export const routes = [
     nav: true
   },
   {
+    route: 'docs',
+    name: 'docs',
+    title: 'Documentation',
+    moduleId: 'views/docs',
+    nav: true,
+    navTitle: 'Docs'
+  },
+  {
     route: 'decompose',
     name: 'decompose',
     title: 'Decompose',
     moduleId: 'views/decompose',
-    nav: true
+    nav: false
+  },
+  {
+    route: 'matrix',
+    name: 'matrix',
+    title: 'Matrix',
+    moduleId: 'views/matrix',
+    nav: false
   }
 ];
+
+export const transition = {
+  veryFast: 150,
+  fast: 200,
+  semiFast: 250,
+  normal: 330,
+  slow: 660,
+  slowest: 1000
+};
+
+export default {
+  environments,
+  routes
+};

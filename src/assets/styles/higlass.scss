@@ -1,0 +1,37 @@
+higlass {
+  display: block;
+  margin-top: -2rem;
+  padding-top: 2rem;
+
+  .genome-position-search {
+    .input-group {
+      display: flex;
+
+      div:first-child {
+        flex-grow: 1;
+      }
+    }
+
+    .search-bar:focus {
+      outline: 0;
+    }
+
+    .btn {
+      width: 30px;
+      height: 30px;
+
+      &::before {
+        content: 'Go'
+      }
+
+      &.btn-sm {
+        padding: 5px;
+      }
+    }
+  }
+}
+
+.matrix-full-screen-view higlass {
+  margin-top: 0;
+  padding-top: 0;
+}

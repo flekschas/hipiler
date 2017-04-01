@@ -7,32 +7,440 @@ html {
   background: #fff;
 }
 
-#drag-drop-notifier {
+#drag-drop-notifier,
+#global-error {
   position: fixed;
   z-index: -1;
   font-size: 2em;
   font-weight: bold;
   text-transform: uppercase;
-  color: $dark-gray;
-  background: $light-gray;
+  height: 0;
+  opacity: 0;
+  transition: opacity $transition-very-fast $ease-in-out-cubic;
 }
 
-#toolbar {
+#drag-drop-notifier {
+  color: $white;
+  background: transparentize($primary, 0.25);
+}
+
+#global-error {
+  color: $error-text;
+  background: $error-bg;
+}
+
+.bottom-bar {
+  position: relative;
+  z-index: 2;
+  height: 2.5rem;
+  color: $gray;
+  border-top: 1px solid $gray-lightest;
+  background: $white;
+  transition: height $transition-very-fast $ease-in-out-cubic,
+              box-shadow $transition-very-fast $ease-in-out-cubic;
+
+  &.is-expanded {
+    box-shadow: 0 0 6px 0 rgba(0, 0, 0, 0.1), 0 -1px 3px 0 rgba(0, 0, 0, 0.05);
+  }
+
+  &.is-expanded,
+  .settings-container {
+    height: 10rem;
+  }
+
+  h4 {
+    margin: 0;
+    color: $gray-darker;
+    font-size: 0.85rem;
+    font-weight: normal;
+    text-transform: uppercase;
+    line-height: 2.5rem;
+
+    &:after {
+      content: ':';
+      margin-right: 0.75rem;
+    }
+  }
+
+  .settings-row {
+    box-shadow: inset 0 1px 0 0 $gray-lightest;
+
+    &:first-child {
+      box-shadow: none;
+    }
+  }
+
+  .settings-list {
+    height: 2.5rem;
+    margin-bottom: 0;
+
+    > li {
+      margin-left: 1rem;
+      padding-top: 0.3rem;
+      padding-bottom: 0.3rem;
+
+      &:first-child {
+        margin-left: 0;
+      }
+
+      &.is-disabled {
+        position: relative;
+
+        &::before {
+          content: '';
+          position: absolute;
+          display: block;
+          top: 1px;
+          right: 0;
+          left: 0;
+          bottom: 0;
+          background: transparentize($white, 0.33);
+        }
+      }
+    }
+
+    &.settings-list-buttons-only > li {
+      margin-left: 0.5rem;
+
+      &:first-child {
+        margin-left: 0.5rem;
+      }
+
+      &:last-child {
+        margin-right: 0.5rem;
+      }
+    }
+
+    label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      margin-bottom: 0.125rem;
+      white-space: nowrap;
+
+      .value {
+        &.new em {
+          color: $primary;
+        }
+
+        em {
+          font-style: normal;
+        }
+      }
+    }
+  }
+
+  .button {
+    height: 1.9rem;
+    margin-top: 1px;
+    padding: 0 0.33rem;
+    color: $gray-dark;
+    line-height: 1.9rem;
+    background: transparent;
+    box-shadow: inset 0 0 0 1px $gray-lightest;
+
+    &:hover {
+      color: $primary;
+      box-shadow: inset 0 0 0 1px lighten($primary, 40%);
+
+      &.is-filled {
+        box-shadow: none;
+        background: lighten($primary, 40%);
+      }
+
+      .button-info,
+      &.is-enabled .button-info {
+        background: $primary;
+        box-shadow: -1px 1px 0 0 $white;
+      }
+
+      &.is-disabled {
+        background: transparent;
+        box-shadow: inset 0 0 0 1px $gray-lightest;
+
+        .button-info {
+          background: transparentize($gray, 0.25);
+          box-shadow: -1px 1px 0 0 transparentize($white, 0.25);
+        }
+      }
+    }
+
+    &.is-enabled {
+      .button-info {
+        background: transparentize($black, 0.25);
+      }
+    }
+
+    &.is-disabled {
+      color: $gray-light;
+      cursor: not-allowed;
+
+      &:hover {
+        background: transparent;
+      }
+    }
+
+    &.is-active {
+      color: $primary;
+      background: lighten($primary, 40%);
+      box-shadow: inset 0 0 0 1px lighten($primary, 40%);
+
+      .button-info {
+        background: $primary;
+        box-shadow: -1px 1px 0 0 $white;
+      }
+    }
+
+    &.is-filled {
+      background: $gray-lightest;
+      box-shadow: none;
+    }
+
+    svg-icon {
+      width: 1.125rem;
+      height: 1.9rem;
+    }
+
+    .button-info {
+      position: absolute;
+      top: -0.125rem;
+      right: -0.125rem;
+      min-width: 1.25em;
+      height: 1.25em;
+      color: $white;
+      line-height: 1.25em;
+      border-radius: 1.25em;
+      background: transparentize($gray, 0.25);
+      box-shadow: -1px 1px 0 0 transparentize($white, 0.25);
+      transition: background $transition-very-fast $ease-in-out-cubic,
+                  box-shadow $transition-very-fast $ease-in-out-cubic;
+
+      &.button-info-padded {
+        padding: 0 0.125rem;
+      }
+    }
+  }
+
+  .button-group {
+    .button
+    .button:first-child,
+    .button:last-child {
+      box-shadow: inset 0 0 0 1px $gray-lightest;
+
+      &.is-active {
+        box-shadow: inset 0 0 0 1px $primary;
+      }
+    }
+
+    .button {
+      border-radius: 0;
+    }
+
+    .button:first-child {
+      border-radius: 0.25rem 0 0 0.25rem;
+    }
+
+    .button:last-child {
+      border-radius: 0 0.25rem 0.25rem 0;
+    }
+  }
+
+  .toggler {
+    width: 3rem;
+    cursor: pointer;
+    color: $gray;
+    text-transform: uppercase;
+    background: $gray-lightest;
+  }
+
+  .select-with-button {
+    padding: 1px 0.2rem;
+    font-size: 0.65rem;
+    border-radius: 0.25rem;
+    box-shadow: inset 0 0 0 1px $gray-lightest;
+
+    label {
+      margin-bottom: 0;
+    }
+
+    button {
+      margin: 0.2rem 0 0 0.2rem;
+      height: 1.5rem;
+      line-height: 1.5rem;
+    }
+
+    svg-icon {
+      width: 0.75rem;
+      height: 1.5rem;
+    }
+  }
+
+  .logo {
+    margin: 0.375rem 0.375rem 0 0;
+
+    svg {
+      width: 2rem;
+      height: 2rem;
+    }
+  }
+
+  p {
+    font-size: 0.8rem;
+    line-height: 3rem;
+  }
+}
+
+body.is-dragging-over #drag-drop-notifier,
+body.is-global-error #global-error {
+  z-index: 10;
+  height: 100%;
+  opacity: 1;
+
+  span {
+    transform: scale(1);
+  }
+}
+
+body.is-dragging-over #drag-drop-notifier {
+  animation: pulsePrimary 1.5s $ease-in-out-cubic infinite;
+
+  span {
+    animation: pulseText 1.5s $ease-in-out-cubic infinite;
+  }
+}
+
+@keyframes pulsePrimary {
+  50% {
+    background: transparentize($primary, 0.25);
+  }
+  60% {
+    background: transparentize($primary, 0.05);
+  }
+  100% {
+    background: transparentize($primary, 0.25);
+  }
+}
+
+@keyframes pulseText {
+  50% {
+    transform: scale(1);
+  }
+  60% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+#topbar {
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   height: 3rem;
   padding: 0 0.5rem;
-  border-bottom: 1px solid $lighter-gray;
+  border-bottom: 1px solid $gray-lighter;
   color: $gray;
   background: $white;
   line-height: 3rem;
 
   h1 {
+    position: relative;
     font-weight: normal;
     font-size: 1.5rem;
     line-height: inherit;
+
+    a {
+      border-bottom: 0;
+    }
+
+    &.is-active {
+      &::before {
+        position: absolute;
+        content: '';
+        right: 0;
+        bottom: 0;
+        left: 0;
+        height: 3px;
+        background: $primary;
+      }
+
+      a {
+        color: $black;
+      }
+    }
+
+    .icon-inline {
+      margin-right: 0.25rem;
+      width: 2rem;
+      height: 3rem;
+    }
+  }
+
+  .icon-inline {
+    width: 1em;
+    height: 3rem;
+
+    svg {
+      width: 100%;
+      height: 100%;
+    }
+  }
+
+  .state {
+    margin: 0.5rem 0 0.5rem 0.5rem;
+    padding: 0 0.5rem;
+    color: $gray-dark;
+    font-size: 0.8em;
+    text-transform: uppercase;
+    line-height: 2rem;
+    border: 0;
+    background: none;
+
+
+    &.state-indicator::after {
+      content: '';
+      margin: 0.75rem 0 0 0.25rem;
+      width: 0.5rem;
+      height: 0.5rem;
+      border-radius: 0.5rem;
+      background: $gray-lighter;
+    }
+
+    &.state-active {
+      color: $primary;
+    }
+
+    &.state-ready {
+      color: $primary;
+    }
+
+    .icon-inline {
+      margin-right: 0.25rem;
+
+      svg {
+        height: 1.85rem;
+      }
+    }
+  }
+}
+
+#infobar {
+  position: absolute;
+  top: 3rem;
+  right: 0;
+  left: 0;
+  height: 3rem;
+  line-height: 3rem;
+  color: $gray-dark;
+  background: $gray-lighter;
+
+  a {
+    border-bottom-color: $gray-light;
+
+    &:hover {
+      border-bottom-color: $primary;
+    }
   }
 }
 
@@ -46,15 +454,11 @@ html {
   background: $white;
 }
 
-#toolbar,
-#main {
-  transition: opacity $transition-very-fast $ease-in-out-cubic;
+#infobar + #main {
+  top: 6rem;
 }
 
-
-body.is-dragging-over {
-  #toolbar,
-  #main {
-    opacity: 0.33;
-  }
+#topbar,
+#main {
+  transition: opacity $transition-very-fast $ease-in-out-cubic;
 }

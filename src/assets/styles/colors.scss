@@ -2,15 +2,25 @@ $black: #000;
 $gray: #999;
 $white: #fff;
 
-$light-gray: #bfbfbf;
-$lighter-gray: #d9d9d9;
-$lightest-gray: #e5e5e5;
+$gray-light: #bfbfbf;
+$gray-lighter: #d9d9d9;
+$gray-lightest: #e5e5e5;
 
-$dark-gray: #666;
-$darker-gray: #444;
-$darkest-gray: #222;
+$gray-dark: #666;
+$gray-darker: #444;
+$gray-darkest: #222;
 
+$green: #40bf00;
 $orange: #ff5500;
+$red: #f60029;
+$yellow: #ffcc00;
+$blue: #4e40ff;
 
 $primary: $orange;
-$secondary: $orange;
+$secondary: $blue;
+
+$active: $green;
+$ready: $yellow;
+
+$error-text: darken($red, 25%);
+$error-bg: lighten($red, 25%);

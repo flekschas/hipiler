@@ -1,0 +1,141 @@
+@import 'colors';
+@import 'transitions';
+
+multi-select {
+  position: relative;
+  display: block;
+  font-size: 0.8rem;
+
+  input {
+    margin-left: 0.25rem;
+    width: 6rem;
+    padding: 0.125rem 0;
+    background: transparent;
+
+    &:active,
+    &:focus {
+      outline: none;
+    }
+  }
+
+  >div{
+    border-radius: 0 0 0.125rem 0.125rem;
+    box-shadow: 0 0 0 1px transparentize($gray-lighter, 1);
+    transition: box-shadow $transition-very-fast $ease-in-out-cubic;
+
+    &.is-active {
+      box-shadow: 0 0 0 1px $gray-lighter;
+    }
+
+    &.is-disabled {
+      opacity: 0.5;
+    }
+  }
+
+  >div.is-in-use {
+    input {
+      width: 2rem;
+    }
+  }
+
+  .options {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    margin: 0;
+    height: 0;
+    opacity: 0;
+    background: $white;
+    overflow: hidden;
+    border-radius: 0.125rem 0.125rem 0 0;
+    box-shadow: 0 0 0 1px transparentize($gray, 1);
+    transition: opacity $transition-very-fast $ease-in-out-cubic,
+                box-shadow $transition-very-fast $ease-in-out-cubic;
+
+    &.bottom-up {
+      top: auto;
+      bottom: 0.3rem;
+    }
+
+    &.is-active {
+      height: auto;
+      opacity: 1;
+      overflow: visible;
+    }
+
+    > li {
+      padding-left: 0.25rem;
+      line-height: 1.5rem;
+      border-top: 1px solid $gray-lightest;
+
+      &:first-child {
+        border-top: 0;
+      }
+
+      &:hover {
+        cursor: pointer;
+      }
+
+      &:hover,
+      &.is-focus,
+      &.is-selected {
+        color: $black;
+        border-top-color: $white;
+      }
+
+      &:hover,
+      &.is-focus,
+      &.is-focus.is-selected {
+        background: $primary;
+      }
+
+      &.is-selected {
+        font-weight: bold;
+        background: $gray-lightest;
+
+        &:after {
+          content: '✓';
+          margin-left: 0.25rem;
+        }
+      }
+    }
+  }
+
+  >div.is-active .options {
+    box-shadow: 0 0 0 1px $gray-lighter;
+  }
+
+  .options-selected {
+    margin: 0.2rem 0;
+    line-height: 1.5rem;
+
+    > li {
+      margin-left: 0.25rem;
+      border-radius: 0.125rem;
+      background: $gray-lightest;
+    }
+
+    span {
+      color: $gray-dark;
+      padding-left: 0.25rem;
+    }
+
+    button {
+      width: 1rem;
+      color: $gray;
+      font-size: 1rem;
+      background: none;
+
+      svg-icon,
+      svg-icon > svg {
+        width: 1rem;
+        height: 1rem;
+      }
+
+      svg-icon > svg {
+        padding: 0.25rem;
+      }
+    }
+  }
+}

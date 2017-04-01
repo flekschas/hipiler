@@ -1,0 +1,367 @@
+`<template>
+  <require from="components/dialog/dialog"></require>
+  <require from="components/fragments/pile-menu"></require>
+  <require from="components/multi-select/multi-select"></require>
+  <require from="components/svg-icon/svg-icon"></require>
+  <require from="components/spinner.html"></require>
+
+  <div class="flex-c flex-a-c flex-jc-c full-dim error-indicator ${isErrored ? 'is-active' : ''}">
+    <div class="flex-c flex-d-c flex-jc-c flex-a-c">
+      <svg-icon icon-id="warning"></svg-icon>
+      <span>${errorMsg}</span>
+    </div>
+  </div>
+  <div class="flex-c flex-a-c flex-jc-c full-dim loading-indicator ${isLoading ? 'is-active' : ''}">
+    <div class="flex-c flex-a-c flex-jc-c spinner-bg">
+      <spinner if.bind="isLoading"></spinner>
+    </div>
+  </div>
+
+  <dialog
+    class="flex-c flex-a-c flex-jc-c full-dim ${dialogIsOpen ? 'is-active' : ''}"
+    deferred.bind="dialogDeferred"
+    is-open.bind="dialogIsOpen"
+    message.bind="dialogMessage"></dialog>
+
+  <pile-menu
+    pile.bind="pileMenuPile"
+    position.bind="pileMenuPosition"
+    is-active.bind="isPileMenuShow"
+    is-align-left.bind="isPileMenuAlignLeft"
+    is-bottom-up.bind="isPileMenuBottomUp"></pile-menu>
+
+  <div class="full-wh flex-c flex-d-c ${state.animation ? 'is-animated' : ''}" ref="baseEl">
+    <main class="flex-g-1 rel fragment-plot ${state.isPilesInspection ? 'is-piles-inspection' : ''}">
+      <div class="full-dim" css.one-way="plotWindowCss">
+        <button
+          class="axis-switch is-icon-only"
+          if.bind="isLayout2d">
+          <svg-icon icon-id="flip-xy" click.delegate="flipXY()"></svg-icon>
+        </button>
+        <div
+          class="axis axis-x axis-top"
+          if.bind="isLayout2d">
+          <div class="flex-c flex-jc-sb axis-labels">
+            <div class="axis-label axis-label-min">
+              ${nicefyMeasure(state.dataMeasuresMin[arrangeMeasures[0]])}
+            </div>
+            <div class="axis-label axis-label-name">
+              ${arrangeMeasuresReadible[0]}
+            </div>
+            <div class="axis-label axis-label-max">
+              ${nicefyMeasure(state.dataMeasuresMax[arrangeMeasures[0]])}
+            </div>
+          </div>
+          <div class="axis-line"></div>
+          <div class="axis-arrow"></div>
+        </div>
+        <div
+          class="axis axis-y axis-left"
+          if.bind="isLayout2d">
+          <div class="flex-c flex-jc-sb flex-d-c axis-labels">
+            <div class="axis-label axis-label-min">
+              <span>${nicefyMeasure(state.dataMeasuresMin[arrangeMeasures[1]])}</span>
+            </div>
+            <div class="axis-label axis-label-name">
+              ${arrangeMeasuresReadible[1]}
+            </div>
+            <div class="axis-label axis-label-max">
+              <span>${nicefyMeasure(state.dataMeasuresMax[arrangeMeasures[1]])}</span>
+            </div>
+          </div>
+          <div class="axis-line"></div>
+          <div class="axis-arrow"></div>
+        </div>
+
+        <div class="grid full-dim ${isGridShown ? 'is-active' : ''}">
+          <ol class="columns full-dim flex-c">
+            <li class="column flex-g-1" repeat.for="col of showGridCols"></li>
+          </ol>
+          <ol class="rows full-dim flex-c flex-d-c">
+            <li class="row flex-g-1" repeat.for="row of showGridRows"></li>
+          </ol>
+        </div>
+
+        <div class="full-dim" ref="plotEl"></div>
+      </div>
+    </main>
+    <footer class="flex-c bottom-bar ${footerIsExpanded ? 'is-expanded' : ''}">
+      <div class="flex-c flex-d-c flex-g-1 settings-container">
+        <div class="flex-c settings-row">
+          <h4>Arrange</h4>
+
+          <multi-select
+            class="flex-g-1"
+            bottom-up="true"
+            options.bind="state.measures"
+            event-id.bind="arrangeSelectedEventId"
+            state-query.bind="arrangeMeasuresAccessPath"
+            disabled.bind="state.isPilesInspection"
+            placeholder="Choose measures…"></multi-select>
+
+          <ul class="flex-c settings-list settings-list-buttons-only">
+            <li class="flex-c ${isDataClustered ? 'button-group' : ''}">
+              <button
+                class="flex-c flex-jc-c flex-a-c rel button ${isDataClustered && !state.isPilesInspection ? 'is-active' : ''}"
+                click.delegate="clusterTsne()"
+                disabled.bind="state.isPilesInspection">
+                Cluster${isDataClustered ? 'ed' : ''}
+              </button>
+              <button
+                class="flex-c flex-jc-c flex-a-c rel button"
+                title="Run t-SNE again"
+                click.delegate="clusterTsne(true)"
+                disabled.bind="state.isPilesInspection"
+                if.bind="isDataClustered">
+                <svg-icon class="icon-inline" icon-id="reset"></svg-icon>
+              </button>
+            </li>
+            <li>
+              <button
+                class="flex-c flex-jc-c flex-a-c rel button is-icon-only ${trashSize > 0 && !state.isPilesInspection ? 'is-enabled' : 'is-disabled'} ${state.trashIsActive ? 'is-active' : ''}"
+                click.delegate="toggleTrash()"
+                disabled.bind="trashSize === 0 || state.isPilesInspection">
+                <svg-icon icon-id="trash"></svg-icon>
+                <span class="button-info">${trashSize}</span>
+              </button>
+            </li>
+            <li if.bind="state.isPilesInspection">
+              <button
+                class="flex-c flex-jc-c flex-a-c rel button is-active"
+                click.delegate="closePilesInspectionHandler()">
+                Close Inspection
+              </button>
+            </li>
+          </ul>
+        </div>
+
+        <div class="flex-c settings-row">
+          <h4>Layout</h4>
+
+          <ul class="flex-c flex-g-1 settings-list">
+            <li class="flex-c flex-d-c">
+              <label for="settings-fgm-size">
+                Snippet Size
+                <span class="value ${cellSizeTmp ? 'is-active' : ''} ${cellSizeTmp !== state.cellSize ? 'new' : ''}">: <em>${cellSizeTmp}</em></span>
+              </label>
+              <input
+                id="settings-fgm-size"
+                type="range"
+                min="1"
+                max="10"
+                step="1"
+                value.one-way="state.cellSize"
+                mousedown.delegate="cellSizeMousedownHandler($event)"
+                mouseup.delegate="cellSizeMouseupHandler($event)"
+                input.delegate="cellSizeInputHandler($event)"
+                change.delegate="cellSizeChangeHandler($event)">
+            </li>
+            <li class="flex-c flex-d-c">
+              <label
+                for="settings-fgm-grid-to-snippet-size"
+                title="Link grid size to cell size">&larr;</label>
+              <input
+                type="checkbox"
+                id="settings-fgm-grid-to-snippet-size"
+                checked.bind="gridCellSizeLock"
+                click.delegate="gridCellSizeLockChangeHandler()">
+            </li>
+            <li class="flex-c flex-d-c ${gridCellSizeLock ? 'is-disabled' : 'is-enabled'}">
+              <label for="settings-fgm-size">
+                Grid Size
+                <span class="value ${gridSizeTmp ? 'is-active' : ''} ${gridSizeTmp != state.gridSize ? 'new' : ''}">: <em>${gridSizeTmp}</em></span>
+              </label>
+              <input
+                id="settings-fgm-size"
+                type="range"
+                min="0.25"
+                max="20"
+                step="0.25"
+                value.one-way="state.gridSize"
+                mousedown.delegate="gridSizeMousedownHandler($event)"
+                mouseup.delegate="gridSizeMouseupHandler($event)"
+                input.delegate="gridSizeInputHandler($event)"
+                change.delegate="gridSizeChangeHandler($event)">
+            </li>
+            <li class="flex-c flex-d-c ${isLayout1d ? 'is-enabled' : 'is-disabled'}">
+              <label
+                for="settings-fgm-hilbert-curve">Hilbert Curve</label>
+              <input
+                type="checkbox"
+                id="settings-fgm-hilbert-curve"
+                checked.bind="state.isHilbertCurve"
+                click.delegate="hilbertCurveChangeHandler()">
+            </li>
+          </ul>
+        </div>
+
+        <div class="flex-c settings-row">
+          <h4>Pile</h4>
+
+          <ul class="flex-c flex-g-1 settings-list">
+            <li>
+              <button
+                class="flex-c flex-jc-c flex-a-c rel button ${piles.length > visiblePilesMax ? 'is-enabled' : 'is-disabled'}"
+                click.delegate="groupBySimilarity()"
+                disabled.bind="piles.length <= visiblePilesMax">
+                By Similarity
+                <span class="button-info button-info-padded">1D</span>
+              </button>
+            </li>
+            <li>
+              <button
+                class="flex-c flex-jc-c flex-a-c rel button ${isLayout1d ? 'is-disabled' : 'is-enabled'}"
+                click.delegate="groupByGrid()"
+                mouseup.delegate="hideGrid()"
+                mouseenter.trigger="showGrid()"
+                mouseleave.trigger="hideGrid()"
+                disabled.bind="isLayout1d">
+                By Grid
+                <span class="button-info button-info-padded">2D</span>
+              </button>
+            </li>
+            <li>
+              <div class="flex-c select-with-button">
+                <div class="flex-c flex-d-c">
+                  <label for="settings-fgm-group-by-category">By Category</label>
+                  <select
+                    id="settings-fgm-group-by-category"
+                    change.delegate="groupByCategorySelectChangeHandler($event)">
+                    <option
+                      selected.bind="!categoryForGrouping">Choose…</option>
+                    <option
+                      repeat.for="option of attrsCatReq"
+                      value.one-way="option.id"
+                      selected.bind="option.id === categoryForGrouping">${option.name}</option>
+                    <option disabled if.bind="colorsUsed.length">──────────</option>
+                    <option
+                      repeat.for="option of colorsUsed"
+                      value.one-way="option.id"
+                      selected.bind="option.id === categoryForGrouping">${option.name}</option>
+                    <option disabled if.bind="attrsCatOther.length">──────────</option>
+                    <option
+                      repeat.for="option of attrsCatOther"
+                      value.one-way="option.id"
+                      selected.bind="option.id === categoryForGrouping">${option.name}</option>
+                  </select>
+                </div>
+                <button
+                  class="flex-c flex-jc-c flex-a-c rel button is-filled"
+                  click.delegate="groupByCategory(categoryForGrouping)"
+                  disabled.bind="!groupCategory">
+                  <svg-icon icon-id="play"></svg-icon>
+                </button>
+              </div>
+            </li>
+            <li>
+              <button
+                class="flex-c flex-jc-c flex-a-c rel button ${isDispersable && !state.trashIsActive ? 'is-enabled' : 'is-disabled'}"
+                click.delegate="disperseAllPiles()"
+                disabled.bind="!isDispersable || state.trashIsActive">
+                Disperse All
+              </button>
+            </li>
+          </ul>
+        </div>
+
+        <div class="flex-c settings-row">
+          <h4>Style</h4>
+
+          <ul class="flex-c flex-g-1 settings-list">
+            <li class="flex-c flex-d-c">
+              <label for="settings-fgm-cover">Cover Mode</label>
+              <select
+                id="settings-fgm-cover"
+                change.delegate="coverDispModeChangeHandler($event)">
+                <option
+                  repeat.for="option of coverDispModes"
+                  value.one-way="option.id"
+                  selected.bind="option.id === coverDispMode">${option.name}</option>
+              </select>
+            </li>
+            <li class="flex-c flex-d-c">
+              <label
+                for="settings-fgm-show-low-quality"
+                title="Show low quality cells">Low Qual.</label>
+              <input
+                type="checkbox"
+                id="settings-fgm-show-low-quality"
+                checked.bind="state.showSpecialCells"
+                click.delegate="showSpecialCellsChangeHandler()">
+            </li>
+            <li class="flex-c flex-d-c">
+              <label
+                for="settings-fgm-matrix-frame-encoding"
+                title="Frame encoding">Frame Enc.</label>
+              <select
+                id="settings-fgm-matrix-frame-encoding"
+                change.delegate="matrixFrameEncodingChangeHandler($event)">
+                <option
+                  value=""
+                  selected.bind="!state.matrixFrameEncoding">---</option>
+                <option
+                  repeat.for="option of state.measures"
+                  value.one-way="option.id"
+                  selected.bind="option.id === state.matrixFrameEncoding">${option.name}</option>
+              </select>
+            </li>
+            <li>
+              <button
+                class="flex-c flex-jc-c flex-a-c rel button ${!state.trashIsActive ? 'is-enabled' : 'is-disabled'}"
+                click.delegate="decolorAll()">
+                Decolor All
+              </button>
+            </li>
+          </ul>
+        </div>
+
+        <div class="flex-c settings-row">
+          <h4>Other</h4>
+
+          <ul class="flex-c flex-g-1 settings-list">
+            <li class="flex-c flex-d-c">
+              <label for="settings-fgm-matrix-orientation">Orientation</label>
+              <select
+                id="settings-fgm-matrix-orientation"
+                change.delegate="matrixOrientationChangeHandler($event)">
+                <option
+                  repeat.for="option of matrixOrientations"
+                  value.one-way="option.id"
+                  selected.bind="option.id === state.matrixOrientation">${option.name}</option>
+              </select>
+            </li>
+            <li class="flex-c flex-d-c">
+              <label for="settings-fgm-round-lasso">Swipe Selection</label>
+              <input
+                type="checkbox"
+                id="settings-fgm-round-lasso"
+                checked.bind="lassoIsRound"
+                click.delegate="lassoIsRoundChangeHandler()">
+            </li>
+          </ul>
+        </div>
+      </div>
+      <button
+        class="toggler ${footerIsExpanded ? 'is-active' : ''}"
+        click.delegate="footerToggle()">
+        ${footerIsExpanded ? 'Less' : 'More'}
+      </button>
+    </footer>
+  </div>
+
+  <script type="x-shader/x-vertex" id="shader-vertex">
+    attribute vec4 customColor;
+    varying vec4 vColor;
+    void main() {
+      vColor = customColor;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+    }
+  </script>
+
+  <script type="x-shader/x-fragment" id="shader-fragment">
+    varying vec4 vColor;
+    void main() {
+      gl_FragColor = vec4( vColor );
+    }
+  </script>
+</template>

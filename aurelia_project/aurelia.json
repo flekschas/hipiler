@@ -4,7 +4,7 @@
   "platform": {
     "id": "web",
     "displayName": "Web",
-    "output": "scripts",
+    "output": "dist",
     "index": "index.html"
   },
   "transpiler": {
@@ -56,7 +56,7 @@
       {
         "id": "web",
         "displayName": "Web",
-        "output": "scripts",
+        "output": "dist",
         "index": "index.html"
       }
     ],
@@ -83,15 +83,38 @@
     "bundles": [
       {
         "name": "app-bundle.js",
-        "source": [
-          "[**/*.js]",
-          "**/*.{css,html}"
-        ]
+        "source": {
+          "include": [
+            "[**/*.js]",
+            "**/*.{css,html}"
+          ],
+          "exclude": [
+            "**/worker-*.js"
+          ]
+        }
+      },
+      {
+        "name": "clusterfck-worker.js",
+        "prepend": [
+          "node_modules/tayden-clusterfck/dist/clusterfck.js",
+          "src/utils/worker-clusterfck.js"
+        ],
+        "source": []
+      },
+      {
+        "name": "tsne-worker.js",
+        "prepend": [
+          "node_modules/tsne-js/build/tsne.min.js",
+          "src/utils/worker-tsne.js"
+        ],
+        "source": []
       },
       {
         "name": "vendor-bundle.js",
         "prepend": [
           "node_modules/bluebird/js/browser/bluebird.core.js",
+          "node_modules/aurelia-cli/lib/resources/scripts/configure-bluebird.js",
+          "node_modules/javascript-detect-element-resize/detect-element-resize.js",
           "node_modules/requirejs/require.js"
         ],
         "dependencies": [
@@ -116,6 +139,9 @@
           "aurelia-task-queue",
           "aurelia-templating",
           "aurelia-templating-binding",
+          "deep-freeze-strict",
+          "polyline-miter-util",
+          "polyline-normals",
           "text",
           {
             "name": "aurelia-templating-resources",
@@ -134,9 +160,48 @@
             "env": "dev"
           },
           {
+            "name": "d3",
+            "path": "../node_modules/d3/build",
+            "main": "d3"
+          },
+          {
+            "name": "gl-vec2",
+            "path": "../node_modules/gl-vec2"
+          },
+          {
+            "name": "hglib",
+            "path": "../node_modules/higlass/dist/scripts",
+            "main": "hglib"
+          },
+          {
+            "name": "hull",
+            "path": "../node_modules/hull.js/dist",
+            "main": "hull"
+          },
+          {
+            "name": "inherits",
+            "path": "../node_modules/inherits",
+            "main": "inherits_browser"
+          },
+          {
+            "name": "localForage",
+            "path": "../node_modules/localforage/dist",
+            "main": "localforage"
+          },
+          {
+            "name": "object-assign",
+            "path": "../node_modules/object-assign",
+            "main": "index"
+          },
+          {
             "name": "redux",
             "path": "../node_modules/redux/dist",
             "main": "redux"
+          },
+          {
+            "name": "redux-freeze",
+            "path": "../node_modules/redux-freeze/lib",
+            "main": "middleware"
           },
           {
             "name": "redux-promise-middleware",
@@ -144,8 +209,44 @@
             "main": "index"
           },
           {
+            "name": "redux-persist",
+            "path": "../node_modules/redux-persist/dist",
+            "main": "redux-persist"
+          },
+          {
+            "name": "redux-thunk",
+            "path": "../node_modules/redux-thunk/dist",
+            "main": "redux-thunk"
+          },
+          {
             "name": "redux-undo",
             "path": "../node_modules/redux-undo/lib",
+            "main": "index"
+          },
+          {
+            "name": "science",
+            "path": "../node_modules/science",
+            "main": "index",
+            "exports": "science"
+          },
+          {
+            "name": "three",
+            "path": "../node_modules/three/build",
+            "main": "three"
+          },
+          {
+            "name": "three-line-2d",
+            "path": "../node_modules/three-line-2d",
+            "main": "index"
+          },
+          {
+            "name": "three-line-2d-shader",
+            "path": "../node_modules/three-line-2d/shaders",
+            "main": "basic"
+          },
+          {
+            "name": "three-orbit-controls",
+            "path": "../node_modules/three-orbit-controls",
             "main": "index"
           }
         ]

@@ -1,31 +1,98 @@
 <template>
+  <require from="components/fragments/fragments"></require>
+  <require from="components/higlass/higlass"></require>
+  <require from="components/svg-icon/svg-icon"></require>
+
   <div class="full-wh flex-c flex-jc-sb flex-a-s" ref="baseEl">
-    <div class="vis-view flex-c flex-jc-sb flex-a-s flex-i-g-1" ref="visEl">
+    <div class="vis-view flex-c flex-jc-sb flex-a-s flex-g-1" ref="visEl">
       <div class="matrix-view rel" css.one-way="css.matrix" ref="matrixColEl">
-        <h2 class="small">Matrix</h2>
+        <header class="column-header rel no-overflow">
+          <h2>Matrix</h2>
+          <ul class="flex-c controls">
+            <li>
+              <button
+                class="is-icon-only"
+                click.delegate="maximizeColumn('matrix')">
+                <svg-icon icon-id="max-horizontal"></svg-icon>
+              </button>
+            </li>
+            <li>
+              <button
+                class="is-icon-only"
+                click.delegate="minimizeColumn('matrix')">
+                <svg-icon icon-id="min-horizontal"></svg-icon>
+              </button>
+            </li>
+          </ul>
+        </header>
+        <higlass class="full-wh no-overflow column-content"></higlass>
       </div>
-      <div class="pattern-view rel" ref="patternColEl">
+      <div
+        class="fragments-view rel"
+        ref="fragmentsColEl">
         <button
           class="column-resizer draggable horizontal-only"
-          mousedown.trigger="columnDragStartHandler($event, 'pattern')"
-          css.one-way="pattern.dragBtnCss"></button>
+          ref="fragmentsDragger"
+          mousedown.trigger="columnDragStartHandler($event, 'fragments')"
+          css.one-way="fragments.dragBtnCss"></button>
         <div
           class="drag-indicator"
-          ref="patternDragIndicator"
-          css.one-way="pattern.dragIndicatorCss"></div>
-        <h2 class="small">Pattern</h2>
+          ref="fragmentsDragIndicator"
+          css.one-way="fragments.dragIndicatorCss"></div>
+        <header class="column-header rel no-overflow">
+          <h2>Snippets</h2>
+          <ul class="flex-c controls">
+            <li>
+              <button
+                class="is-icon-only"
+                click.delegate="maximizeColumn('fragments')">
+                <svg-icon icon-id="max-horizontal"></svg-icon>
+              </button>
+            </li>
+            <li>
+              <button
+                class="is-icon-only"
+                click.delegate="minimizeColumn('fragments')">
+                <svg-icon icon-id="min-horizontal"></svg-icon>
+              </button>
+            </li>
+          </ul>
+        </header>
+        <fragments
+          class="full-wh no-overflow column-content"
+          base-el-is-init.bind="init"></fragments>
       </div>
     </div>
     <div class="stats-view rel" css.one-way="css.stats" ref="statsColEl">
       <button
         class="column-resizer draggable horizontal-only"
+        ref="statsDragger"
         mousedown.trigger="columnDragStartHandler($event, 'stats')"
         css.one-way="stats.dragBtnCss"></button>
       <div
         class="drag-indicator"
         ref="statsDragIndicator"
         css.one-way="stats.dragIndicatorCss"></div>
-      <h2 class="small">Statistics</h2>
+      <header class="column-header rel no-overflow">
+        <h2>Statistics</h2>
+        <ul class="flex-c controls">
+          <li>
+            <button
+              class="is-icon-only"
+              click.delegate="maximizeColumn('stats')">
+              <svg-icon icon-id="max-horizontal"></svg-icon>
+            </button>
+          </li>
+          <li>
+            <button
+              class="is-icon-only"
+              click.delegate="minimizeColumn('stats')">
+              <svg-icon icon-id="min-horizontal"></svg-icon>
+            </button>
+          </li>
+        </ul>
+      </header>
+      <main class="column-content"></main>
     </div>
   </div>
 </template>

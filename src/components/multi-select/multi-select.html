@@ -1,0 +1,33 @@
+<template>
+  <require from="components/svg-icon/svg-icon"></require>
+
+  <div class="rel ${disabled ? 'is-disabled' : ''} ${optionsIsActive ? 'is-active' : ''} ${selectedOptions.length ? 'is-in-use' : ''}" ref="baseEl">
+    <div class="flex-c">
+      <ul class="flex-c options-selected">
+        <li
+          repeat.for="option of selectedOptions"
+          class="flex-c">
+          <span>${option.name}</span>
+          <button class="flex-c flex-jc-c flex-a-c" click.delegate="unselect(option)">
+            <svg-icon icon-id="cross"></svg-icon>
+          </button>
+        </li>
+      </ul>
+      <input
+        class="flex-g-1"
+        type="text"
+        placeholder="${!selectedOptions.length ? placeholder : ''}"
+        enter.delegate="select($event)"
+        focus.trigger="activateOptions()"
+        keydown.delegate="keyDownHandler($event)"
+        disabled.bind="disabled"
+        ref="inputEl"/>
+    </div>
+    <ul class="options ${bottomUp ? 'bottom-up' : ''} ${optionsIsActive ? 'is-active' : ''}">
+      <li
+        repeat.for="option of options"
+        class="${option.isFocus ? 'is-focus' : ''} ${option.isSelected ? 'is-selected' : ''}"
+        click.delegate="select(option)">${option.name}</li>
+    </ul>
+  </div>
+</template>

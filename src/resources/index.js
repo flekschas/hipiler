@@ -1,3 +1,7 @@
-export function configure(config) {
+export function configure (config) {
   //config.globalResources([]);
 }
+
+export default {
+  configure
+};

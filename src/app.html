@@ -1,20 +1,72 @@
 <template>
+  <require from="assets/styles/index.css"></require>
+  <require from="components/navigation.html"></require>
+  <require from="components/svg-icon/svg-icon"></require>
+
   <div
-    class="full-wh"
-    mousemove.trigger="mouseMoveHandler($event)"
-    mouseup.trigger="mouseUpHandler($event)">
-    <require from="assets/styles/index.css"></require>
+    class="full-wh ${currentRoute === 'matrix' ? 'matrix-full-screen-view' : ''}"
+    click.delegate="clickHandler($event)">
 
-    <require from="components/navigation.html"></require>
-
-    <div id="drag-drop-notifier" class="full-wh flex-c flex-jc-c flex-a-c">
-      <span>Drop JSON state</span>
+    <div
+      id="drag-drop-notifier"
+      class="full-wh flex-c flex-jc-c flex-a-c">
+      <div class="full-dim" ref="dragDropArea"></div>
+      <span>Drop Config JSON</span>
     </div>
 
-    <header id="toolbar" class="flex-c flex-jc-sb">
-      <h1>Matrix Decomposition Methods</h1>
+    <div id="global-error" class="full-wh flex-c flex-jc-c flex-a-c">
+      <span>${globalErrorMsg}</span>
+    </div>
 
-      <navigation class="primary-nav" router.bind="router"></navigation>
+    <header id="topbar" class="flex-c flex-jc-sb">
+      <div class="flex-c">
+        <h1 class="${currentRoute === 'home' ? 'is-active' : ''}">
+          <a class="flex-c" route-href="route: home">
+            <svg-icon class="icon-inline" icon-id="logo"></svg-icon>
+            ${currentRoute === 'decompose' || currentRoute === 'matrix' ? appName : appName}
+          </a>
+        </h1>
+        <div
+          class="flex-c state state-active"
+          if.bind="currentRoute === 'decompose' || currentRoute === 'matrix'">
+          <svg-icon class="icon-inline" icon-id="play"></svg-icon>
+          Running
+        </div>
+        <button
+          class="flex-c state state-ready"
+          click.delegate="resumeDecomposition()"
+          if.bind="currentRoute !== 'decompose' && currentRoute !== 'matrix' && decomposeIsReady">
+          <svg-icon class="icon-inline" icon-id="play"></svg-icon>
+          Resume
+        </button>
+        <button
+          class="flex-c state"
+          click.delegate="resetHandler()"
+          if.bind="currentRoute !== 'matrix' && decomposeIsReady">
+          <svg-icon class="icon-inline" icon-id="reset"></svg-icon>
+          Reset
+        </button>
+      </div>
+
+      <navigation
+        class="primary-nav"
+        router.bind="router"
+        external-links.bind="externalLinks"
+        if.bind="currentRoute !== 'matrix'">
+      </navigation>
+    </header>
+
+    <header
+      id="infobar"
+      class="flex-c flex-jc-c flex-a-c"
+      if.bind="!decomposeIsReady">
+      <span>Drag &amp; drop a <a route-href="route: docs">config file</a> to start decomposing</span>
+      <button
+        class="btn"
+        click.delegate="reset()"
+        if.bind="isRehydrated">
+        Reset
+      </button>
     </header>
 
     <main id="main">

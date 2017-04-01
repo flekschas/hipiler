@@ -1,0 +1,74 @@
+<template>
+  <require from="components/svg-icon/svg-icon"></require>
+  <require from="components/spinner.html"></require>
+
+  <div class="flex-c flex-a-c flex-jc-c full-dim error-indicator ${isErrored ? 'is-active' : ''}">
+    <div class="flex-c flex-d-c flex-jc-c flex-a-c">
+      <svg-icon icon-id="warning"></svg-icon>
+      <span>${errorMsg}</span>
+    </div>
+  </div>
+  <div class="flex-c flex-a-c flex-jc-c full-dim loading-indicator ${isLoading ? 'is-active' : ''}">
+    <div class="flex-c flex-a-c flex-jc-c spinner-bg">
+      <spinner if.bind="isLoading"></spinner>
+    </div>
+  </div>
+
+  <div class="full-wh flex-c flex-d-c" ref="baseEl">
+    <main class="flex-g-1 rel">
+      <div class="full-dim" ref="plotEl"></div>
+    </main>
+    <footer class="bottom-bar">
+      <ul class="flex-c settings-list">
+        <li class="flex-c flex-d-c">
+          <label
+            for="settings-hg-grayscale">Grayscale</label>
+          <input
+            type="checkbox"
+            id="settings-hg-grayscale"
+            checked.bind="!!grayscale"
+            click.delegate="grayscaleChangeHandler()">
+        </li>
+        <li class="flex-c flex-d-c">
+          <label
+            for="settings-hg-highlight-fragments"
+            title="Highlight Snippets Locations">Highl. Snipp.</label>
+          <input
+            type="checkbox"
+            id="settings-hg-highlight-fragments"
+            checked.bind="fragmentsHighlight"
+            click.delegate="fragmentsHighlightChangeHandler()">
+        </li>
+        <li class="flex-c flex-d-c">
+          <label
+            for="settings-fgm-selection"
+            title="Enable details view">Details</label>
+          <input
+            type="checkbox"
+            id="settings-fgm-selection"
+            checked.bind="fragmentsSelection"
+            click.delegate="fragmentsSelectionChangeHandler()">
+        </li>
+        <li class="flex-c flex-d-c">
+          <label
+            for="settings-fgm-selection-fadeout"
+            title="Fade out not visible snippets">Fade Out</label>
+          <input
+            type="checkbox"
+            id="settings-fgm-selection-fadeout"
+            disabled.bind="!fragmentsSelection"
+            checked.bind="fragmentsSelectionFadeOut"
+            click.delegate="fragmentsSelectionFadeOutChangeHandler()">
+        </li>
+<!--         <li if.bind="currentRoute !== 'matrix'">
+          <a
+            route-href="route: matrix"
+            target="_blank"
+            class="flex-c flex-jc-c flex-a-c button is-icon-only">
+            <svg-icon icon-id="external"></svg-icon>
+          </a>
+        </li> -->
+      </ul>
+    </footer>
+  </div>
+</template>

@@ -1,53 +1,49 @@
+@import 'mixins/truncate';
 @import 'colors';
 @import 'transitions';
 
 .matrix-view,
-.pattern-view,
+.fragments-view,
 .stats-view {
+  min-width: 3rem;
   padding: 0 0.5rem;
+
+  &.is-transitionable {
+    transition: flex-basis $transition-very-fast $ease-in-out-cubic;
+  }
 }
 
 .matrix-view,
-.pattern-view {
+.fragments-view {
 }
 
 .matrix-view {
   flex-basis: 40%;
+  min-width: 2.5rem;
   padding-left: 0;
 }
 
-.pattern-view {
+.fragments-view {
   flex-grow: 1;
-  border-left: 1px solid $lighter-gray;
+  border-left: 1px solid $gray-lighter;
 }
 
 .stats-view {
   flex-basis: 20rem;
-  border-left: 1px solid $lighter-gray;
+  border-left: 1px solid $gray-lighter;
+  min-width: 2.5rem;
   padding-right: 0;
-}
-
-.matrix-view,
-.pattern-view,
-.stats-view {
-  h2.small {
-    font-size: 1rem;
-    line-height: 2rem;
-    color: $lighter-gray;
-    font-weight: normal;
-    text-transform: uppercase;
-  }
 }
 
 .column-resizer {
   position: absolute;
-  z-index: 2;
+  z-index: 5;
   top: 0;
   left: -0.25rem;
   display: block;
   width: 0.5rem;
   height: 2rem;
-  background: $lighter-gray;
+  background: $gray-lighter;
   transform: translateX(0);
   transition: background $transition-very-fast $ease-in-out-cubic,
               transform $transition-very-fast $ease-in-out-cubic,
@@ -61,20 +57,27 @@
   }
 }
 
-.is-col-drag-pattern .pattern-view .column-resizer,
+.is-col-drag-fragments .fragments-view .column-resizer,
 .is-col-drag-stats .stats-view .column-resizer {
-  transition: background $transition-very-fast $ease-in-out-cubic,
-              width $transition-very-fast $ease-in-out-cubic;
+  transition: background $transition-very-fast $ease-in-out-cubic;
+  width: 1rem;
 }
 
-.is-col-drag-pattern-highlight .pattern-view .column-resizer,
+.is-col-drag-fragments-highlight .fragments-view .column-resizer,
 .is-col-drag-stats-highlight .stats-view .column-resizer {
   background: $primary;
+  width: 1rem;
+
+  &:hover,
+  &:active,
+  &:focus {
+    transform: none;
+  }
 }
 
 .drag-indicator {
   position: absolute;
-  z-index: 1;
+  z-index: 4;
   top: 0;
   left: 0;
   bottom: 0;
@@ -84,7 +87,140 @@
   transition: opacity $transition-very-fast $ease-in-out-cubic;
 }
 
-.is-col-drag-pattern .pattern-view .drag-indicator,
+.is-col-drag-fragments .fragments-view .drag-indicator,
 .is-col-drag-stats .stats-view .drag-indicator {
   opacity: 1;
+}
+
+
+.column-content {
+  .error-indicator,
+  .loading-indicator {
+    height: 0;
+    overflow: hidden;
+    opacity: 0;
+    transition: opacity $transition-very-fast $ease-in-out-cubic;
+
+    &.is-active {
+      height: 100%;
+      opacity: 1;
+    }
+
+    svg {
+      width: 3rem;
+      height: 3rem;
+    }
+  }
+
+  .error-indicator {
+    z-index: 3;
+    color: $error-text;
+    background: transparentize($error-bg, 0.2);
+  }
+
+  .loading-indicator {
+    z-index: 1;
+    background: transparentize($white, 0.33);
+
+    svg {
+      circle{
+        stroke: $gray-light;
+      }
+
+      .one,
+      .two {
+        fill: $white;
+      }
+    }
+  }
+}
+
+.column-header {
+  z-index: 2;
+  height: 2rem;
+
+  &:hover h2 {
+    margin-top: -2rem;
+  }
+
+  h2 {
+    margin: 0;
+  }
+
+  h2 {
+    @include truncate();
+
+    position: absolute;
+    z-index: 1;
+    top: 0;
+    right: 0;
+    left: 0;
+    height: 2rem;
+    min-width: 2rem;
+    font-size: 1rem;
+    line-height: 2rem;
+    color: $gray-lighter;
+    font-weight: normal;
+    text-transform: uppercase;
+    background: $white;
+    transition: margin $transition-very-fast $ease-in-out-cubic;
+  }
+
+  button {
+    min-width: 2rem;
+    height: 2rem;
+    color: $gray;
+    border: none;
+    background: none;
+    transition: color $transition-very-fast $ease-in-out-cubic,
+                background $transition-very-fast $ease-in-out-cubic;
+
+    &:hover {
+      color: $black;
+      background: $gray-lighter;
+    }
+  }
+
+  .controls {
+    position: absolute;
+    top: 0;
+    right: 0;
+    left: 0;
+    height: 2rem;
+    min-width: 2rem;
+    margin: 0;
+  }
+
+  .is-icon-only svg {
+    width: 1.5rem;
+    height: 1.5rem;
+    padding: 0.25rem;
+  }
+}
+
+.bottom-bar {
+  &.is-expanded,
+  .settings-container {
+    height: 12.5rem;
+  }
+
+  multi-select {
+    margin-top: 0.3rem;
+    font-size: 0.9rem;
+
+    input {
+      padding: 0;
+      font-size: 0.9rem;
+      line-height: 1.9rem;
+    }
+
+    .options.bottom-up {
+      bottom: 2rem;
+      margin-bottom: -1px;
+    }
+  }
+
+  .settings-row > button {
+    margin: 0.3rem 0.5rem;
+  }
 }
