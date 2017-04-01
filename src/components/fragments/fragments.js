@@ -3841,7 +3841,9 @@ export class Fragments {
         ready.push(pile.setMatrices(
           matrixIds
             .map(matrixId => fgmState.matrices[matrixId])
-            .filter(matrix => matrix.visible)
+            // This causes an issue when snippets are faded out. I also forgot
+            // why I added this.
+            // .filter(matrix => matrix.visible)
         ));
 
         // Check if there is a pile that is dispersable
