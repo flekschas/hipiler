@@ -139,7 +139,7 @@ export const MAD = {
 
 export const MEAN = {
   buttons: [{
-    name: 'Mean',
+    name: 'Average Cover',
     trigger (pile) {
       event.publish('decompose.fgm.coverDispMode', { mode: MODE_MEAN, pile });
     }
@@ -188,7 +188,7 @@ export const TRASH = {
 
 export const STD = {
   buttons: [{
-    name: 'Standard Dev.',
+    name: 'Variance Cover',
     trigger (pile) {
       event.publish(
         'decompose.fgm.coverDispMode', { mode: MODE_STD, pile }
@@ -207,6 +207,6 @@ export default [
   TRASH,
   RECOVER,
   MEAN,
-  MAD,
+  // MAD,
   STD
 ];
