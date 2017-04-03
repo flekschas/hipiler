@@ -44,7 +44,7 @@ export const DIAGONAL_VALUE = 0.11;
 
 export const DURATION = 250;
 
-export const FONT_URL = 'src/assets/fonts/rubik-regular.json';
+export const FONT_URL = 'assets/fonts/rubik-regular.json';
 
 export const FPS = 25;
 
