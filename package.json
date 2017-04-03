@@ -1,11 +1,11 @@
 {
-  "name": "matrix-decomposition",
+  "name": "hipiler",
   "description": "Matrix decomposition method for visual exploration and comparison",
   "author": "Fritz Lekschas (http://lekschas.de)",
-  "version": "0.1.0",
+  "version": "1.0.0-beta",
   "repository": {
     "type": "git",
-    "url": "https://github.com/flekschas/matrix-decomposition.git"
+    "url": "https://github.com/flekschas/hipiler.git"
   },
   "license": "MIT",
   "dependencies": {
