@@ -23,7 +23,6 @@
     "redux-thunk": "2.2.0",
     "redux-undo": "1.0.0-beta9-5",
     "requirejs": "2.3.3",
-    "science": "1.9.3",
     "tayden-clusterfck": "0.7.0",
     "text": "github:requirejs/text#latest",
     "three": "0.84.0",

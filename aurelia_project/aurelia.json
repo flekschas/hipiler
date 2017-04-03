@@ -224,12 +224,6 @@
             "main": "index"
           },
           {
-            "name": "science",
-            "path": "../node_modules/science",
-            "main": "index",
-            "exports": "science"
-          },
-          {
             "name": "three",
             "path": "../node_modules/three/build",
             "main": "three"
