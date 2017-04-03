@@ -201,7 +201,8 @@
           {
             "name": "redux-freeze",
             "path": "../node_modules/redux-freeze/lib",
-            "main": "middleware"
+            "main": "middleware",
+            "env": "dev"
           },
           {
             "name": "redux-promise-middleware",
