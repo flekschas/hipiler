@@ -1,6 +1,6 @@
 export const externalLinks = [
   {
-    href: 'https://github.com/flekschas/matrix-decomposition',
+    href: 'https://github.com/flekschas/hipiler',
     title: 'GitHub',
     showIcon: true,
     iconId: 'github'
