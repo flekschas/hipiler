@@ -1,4 +1,6 @@
-# Matrix Decomposition
+# HiPiler
+
+> A web-based interactive visualization interface for the exploration and visualization of regions-of-interest in large genome interaction matrices.
 
 ## Get Started
 
@@ -6,10 +8,10 @@
 
 **Prerequisite**:
 
-- Running instance of the [matrix decomposition server](https://github.com/flekschas/matrix-decomposition-server)
+- Running instance of the [HiPiler server](https://github.com/flekschas/hipiler-server)
 
 ```
-git clone https://github.com/flekschas/matrix-decomposition && cd matrix-decomposition
+git clone https://github.com/flekschas/hipiler && cd hipiler
 npm install
 ```
 
