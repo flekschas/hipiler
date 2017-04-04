@@ -1,10 +1,11 @@
-/* eslint TSNE:false */
+/* eslint no-var:0, prefer-arrow-callback:0, no-undef:0 */
 
-self.onmessage = function (e) {
-  let msg = e.data;
-  let currcost = 100;
+self.onmessage = function (event) {
+  var msg = event.data;
+  var currcost = 100;
+  var results;
 
-  let model = new TSNE({
+  var model = new TSNE({
     dim: msg.dim || 2,
     perplexity: msg.perplexity || 25.0,
     earlyExaggeration: msg.earlyExaggeration || 4.0,
@@ -18,11 +19,11 @@ self.onmessage = function (e) {
     type: 'dense'
   });
 
-  model.on('progressData', (pos) => {
+  model.on('progressData', function (pos) {
     self.postMessage({ pos: model.getOutputScaled() });
   });
 
-  model.on('progressIter', (iter) => {
+  model.on('progressIter', function (iter) {
     currcost = (currcost * 0.9) + iter[1];
     self.postMessage({
       iterations: iter[0],
@@ -31,11 +32,11 @@ self.onmessage = function (e) {
     });
   });
 
-  let [error, iter] = model.run();
+  results = model.run();
 
   self.postMessage({
-    err: error,
-    iterations: iter,
+    err: results[0],
+    iterations: results[1],
     stop: true
   });
 };
