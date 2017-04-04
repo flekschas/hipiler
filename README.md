@@ -1,8 +1,8 @@
 # HiPiler
 
-> An interactive web application for exploring and visualizing regions-of-interest in large genome interaction matrices.
-
 ![HiPiler's interface](teaser.png?raw=true)
+
+> An interactive web application for exploring and visualizing regions-of-interest in large genome interaction matrices.
 
 [![Build Status](https://travis-ci.org/flekschas/hipiler.svg?branch=master)](https://travis-ci.org/flekschas/hipiler)
 
