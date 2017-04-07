@@ -273,66 +273,6 @@ export class Fragments {
 
     this.arrangeSelectedEventId = 'fgm.arrange';
 
-    this.event.subscribe(
-      'app.keyDownAlt',
-      this.enableAlt.bind(this)
-    );
-
-    this.event.subscribe(
-      'app.keyUp',
-      this.disableAlt.bind(this)
-    );
-
-    this.event.subscribe(
-      'app.keyUpD',
-      this.toggleCoverDispMode.bind(this)
-    );
-
-    this.event.subscribe(
-      'app.keyUpS',
-      this.lassoIsRoundChangeHandler.bind(this)
-    );
-
-    this.event.subscribe(
-      'app.keyUpZ',
-      this.toggleZoomPan.bind(this)
-    );
-
-    this.event.subscribe(
-      'decompose.fgm.coverDispMode',
-      this.changeCoverDispMode.bind(this)
-    );
-
-    this.event.subscribe(
-      'decompose.fgm.dispersePiles',
-      this.dispersePilesHandler.bind(this)
-    );
-
-    this.event.subscribe(
-      'decompose.fgm.inspectPiles',
-      this.inspectPilesHandler.bind(this)
-    );
-
-    this.event.subscribe(
-      'decompose.fgm.pileAssignColor',
-      this.pileAssignColor.bind(this)
-    );
-
-    this.event.subscribe(
-      'decompose.fgm.pileAssignBW',
-      this.pileAssignBW.bind(this)
-    );
-
-    this.event.subscribe(
-      'decompose.fgm.removePileArea',
-      this.removePileArea.bind(this)
-    );
-
-    this.event.subscribe(
-      'decompose.fgm.removeFromPile',
-      this.removeFromPile.bind(this)
-    );
-
     // The following setup allows us to imitate deferred objects. I.e., we can
     // resolve promises outside their scope.
     this.resolve = {};
@@ -999,18 +939,6 @@ export class Fragments {
     });
   }
 
-  // /**
-  //  * [calculatePiles description]
-  //  *
-  //  * @param {[type]} value - [description]
-  //  * @return {[type]} [description]
-  //  */
-  // calculatePiles (value) {
-  //   this.isLoading = true;
-
-  //   this.setPiling(calculateClusterPiling(value, fgmState.matrices, this.dMat));
-  // }
-
   /**
    * Handle click events
    */
@@ -1480,19 +1408,6 @@ export class Fragments {
   }
 
   /**
-   * [deselectAllMatrices description]
-   *
-   * @return {[type]} [description]
-   */
-  deselectAllMatrices () {
-    this.selectedMatrices.forEach(
-      matrix => matrix.frame.attr('class', 'matrixbackground')
-    );
-
-    this.selectedMatrices = [];
-  }
-
-  /**
    * Destroy alternative pile if it exist.
    *
    * @description
@@ -1620,30 +1535,6 @@ export class Fragments {
       }
     });
   }
-
-  // /**
-  //  * [distance description]
-  //  *
-  //  * @param {[type]} m1         - [description]
-  //  * @param {[type]} m2         - [description]
-  //  * @param {[type]} focusNodes - [description]
-  //  * @return {[type]} [description]
-  //  */
-  // distance (m1, m2, focusNodes) {
-  //   let d = 0;
-  //   let a;
-  //   let b;
-
-  //   focusNodes.forEach((node, index) => {
-  //     a = node;
-  //     for (let j = index; j < focusNodes.length; j++) {
-  //       b = focusNodes[j];
-  //       d += (m1.matrix[a][b] - m2.matrix[a][b]) ** 2;
-  //     }
-  //   });
-
-  //   return Math.sqrt(d);
-  // }
 
   /**
    * Drag handler
@@ -1956,36 +1847,6 @@ export class Fragments {
 
     this.store.dispatch(setArrangeMeasures(arrangeMeasures.reverse()));
   }
-
-  // /**
-  //  * [focusOn description]
-  //  *
-  //  * @param {[type]} nodes - [description]
-  //  * @return {[type]} [description]
-  //  */
-  // focusOn (nodes) {
-  //   fgmState.focusNodes = nodes;
-
-  //   // update sizes
-  //   this.matrixWidth = this.cellSize * fgmState.focusNodes.length;
-  //   this.matrixWidthHalf = this.matrixWidth / 2;
-
-  //   fgmState.calculateDistanceMatrix();
-
-  //   // update highlight frame
-  //   fgmState.scene.remove(this.highlightFrame);
-  //   this.highlightFrame = createRectFrame(
-  //     this.matrixWidth, this.matrixWidth, 0x000000, HIGHLIGHT_FRAME_LINE_WIDTH
-  //   );
-  //   fgmState.scene.add(this.highlightFrame);
-
-  //   // redraw
-  //   this.piles.forEach(pile => pile.frameUpdate());
-  //   this.redrawPiles();
-  //   this.updateLayout().then(() => {
-  //     this.render();
-  //   });
-  // }
 
   /**
    * Toggle footer
@@ -2682,6 +2543,41 @@ export class Fragments {
       'app.keyUp',
       this.keyUpHandler.bind(this)
     );
+
+    this.event.subscribe(
+      'decompose.fgm.coverDispMode',
+      this.changeCoverDispMode.bind(this)
+    );
+
+    this.event.subscribe(
+      'decompose.fgm.dispersePiles',
+      this.dispersePilesHandler.bind(this)
+    );
+
+    this.event.subscribe(
+      'decompose.fgm.inspectPiles',
+      this.inspectPilesHandler.bind(this)
+    );
+
+    this.event.subscribe(
+      'decompose.fgm.pileAssignColor',
+      this.pileAssignColor.bind(this)
+    );
+
+    this.event.subscribe(
+      'decompose.fgm.pileAssignBW',
+      this.pileAssignBW.bind(this)
+    );
+
+    this.event.subscribe(
+      'decompose.fgm.removePileArea',
+      this.removePileArea.bind(this)
+    );
+
+    this.event.subscribe(
+      'decompose.fgm.removeFromPile',
+      this.removeFromPile.bind(this)
+    );
   }
 
   /**
@@ -2898,54 +2794,48 @@ export class Fragments {
     this.store.dispatch(inspectPiles(pilesConfig));
   }
 
-  // /**
-  //  * [isSameOrdering description]
-  //  *
-  //  * @param {[type]} o1 - [description]
-  //  * @param {[type]} o2 - [description]
-  //  * @return  {Boolean}          - [description]
-  //  */
-  // isSameOrdering (o1, o2) {
-  //   if (!o1 || !o2) {
-  //     return false;
-  //   }
-
-  //   if (o1.length !== o2.length) {
-  //     return false;
-  //   }
-
-  //   let same = true;
-
-  //   for (let i = 0; i < o1.length; i++) {
-  //     if (o1[i] !== o2[i]) {
-  //       same = false;
-  //       break;
-  //     }
-  //   }
-
-  //   return same;
-  // }
-
   /**
    * Handle ALT key-down  events.
    */
   keyDownAltHandler () {
     this.keyAltIsDown = true;
-
-    const downDelta = Date.now() - this.keyAltDownTime;
-
-    this.keyAltDownTime = Date.now();
-
-    if (downDelta < DBL_CLICK_DELAY_TIME) {
-      this.footerToggle();
-    }
   }
 
   /**
-   * Handle ALT key-up  events.
+   * Handle key-up  events.
+   *
+   * @param {object} event - Key up event object.
    */
-  keyUpHandler () {
-    this.keyAltIsDown = false;
+  keyUpHandler (event) {
+    this.isAltKeyDown = false;
+
+    console.log('ass', event.keyCode);
+
+    switch (event.keyCode) {
+      case 76:  // L == Round Lasso
+        this.lassoIsRoundChangeHandler();
+        break;
+
+      case 78:  // N == Navigate snippets view via pan-and-zoom
+        this.toggleZoomPan();
+        break;
+
+      case 83:  // S == Show / hide statistics panel
+        // this.toggleStatsPanel();
+        break;
+
+      case 86:  // V == Variance Cover Mode
+        this.toggleCoverDispMode();
+        break;
+
+      case 88:  // X == Show / hide advance menu
+        this.footerToggle();
+        break;
+
+      default:
+        // Nothing
+        break;
+    }
   }
 
   /**
@@ -3752,67 +3642,6 @@ export class Fragments {
     piles.forEach((pile) => { pile.setCoverMatrixMode(mode); });
   }
 
-  // /**
-  //  * [setSimilarityPiling description]
-  //  *
-  //  * @param {[type]} value - [description]
-  //  */
-  // setSimilarityPiling (value) {
-  //   this.calculatePiles(value);
-  // }
-
-  // /**
-  //  * [setPiling description]
-  //  *
-  //  * @param {[type]} newPiling - [description]
-  //  */
-  // setPiling (newPiling) {
-  //   this.piles.forEach(pile => this.destroyPile(pile));
-
-  //   this.piles = [];
-
-  //   let matrices = [];
-  //   let l = 0;
-
-  //   for (let i = 1; i <= newPiling.length; i++) {
-  //     matrices = [];
-
-  //     if (i < newPiling.length) {
-  //       for (let j = l; j < newPiling[i]; j++) {
-  //         matrices.push(matrices[j]);
-  //       }
-  //     } else if (l < matrices.length) {
-  //       for (let j = l; j < matrices.length; j++) {
-  //         matrices.push(matrices[j]);
-  //       }
-  //     } else {
-  //       break;
-  //     }
-
-  //     const newPile = new Pile(
-  //       this.piles.length,
-  //       fgmState.scene,
-  //       fgmState.scale,
-  //       this.fragDims
-  //     );
-
-  //     this.piles.push(newPile);
-  //     newPile.addMatrices(matrices);
-
-  //     this.sortByOriginalOrder(newPile);
-  //     newPile.setCoverMatrixMode(this.coverDispMode);
-  //     newPile.draw();
-
-  //     l = newPiling[i];
-  //   }
-
-  //   this.isLoading = true;
-
-  //   this.updateLayout().then(() => {
-  //     this.render();
-  //   });
-  // }
-
   /**
    * Setup piles from pile config
    *
@@ -4057,74 +3886,6 @@ export class Fragments {
   sortByOriginalOrder (pile) {
     pile.pileMatrices.sort(this.matrixTimeComparator);
   }
-
-  // /**
-  //  * Splits a pile at the position of the passed matrix. The passed matrix
-  //  * becomes the base for the new pile.
-  //  *
-  //  * @param {array} matrix - Matrix
-  //  * @param {boolean} noAnimation - If `true` force no animation.
-  //  */
-  // splitPile (matrix, noAnimation) {
-  //   if (noAnimation) {
-  //     let pileSrc = matrix.pile;
-  //     let pileNew = new Pile(
-  //       this.piles.length,
-  //       fgmState.scene,
-  //       fgmState.scale,
-  //       this.fragDims
-  //     );
-
-  //     pileNew.colored = pileSrc.colored;
-  //     this.piles.splice(this.piles.indexOf(pileSrc) + 1, 0, pileNew);
-
-  //     let m = [];
-  //     for (let i = pileSrc.getMatrixPosition(matrix); i < pileSrc.size(); i++) {
-  //       // Needs refactoring
-  //       m.push(pileSrc.getMatrix(i));
-  //     }
-
-  //     this.pileUp(m, pileNew);
-
-  //     pileNew.draw();
-  //     pileSrc.draw();
-
-  //     this.updateLayout().then(() => {
-  //       this.render();
-  //     });
-  //   } else {
-  //     // Needs refactoring
-  //     // this.pilingAnimations.push(SplitAnimation(matrix));
-  //     // this.startAnimations();
-  //   }
-  // }
-
-  // /**
-  //  * Starts all animations in pilingAnimations array.
-  //  */
-  // startAnimations () {
-  //   clearInterval(this.interval);
-
-  //   this.interval = setInterval(() => {
-  //     this.pilingAnimations.forEach((pileAnimation, index) => {
-  //       pileAnimation.step();
-  //       if (pileAnimation.done) {
-  //         this.pilingAnimations.splice(index, 1);
-  //       }
-  //     });
-
-  //     if (this.pilingAnimations.length === 0) {
-  //       clearInterval(this.interval);
-  //       this.interval = undefined;
-  //       this.pilingAnimations = [];
-  //       this.updateLayout().then(() => {
-  //         this.render();
-  //       });
-  //     }
-
-  //     this.render();
-  //   }, 500 / FPS);
-  // }
 
   /**
    * Handle all piles display mode changes
