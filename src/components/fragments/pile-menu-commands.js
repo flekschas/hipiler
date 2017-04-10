@@ -16,20 +16,21 @@ import {
 const store = Container.instance.get(States).store;
 const event = Container.instance.get(EventAggregator);
 
-export const BW = {
-  buttons: [
-    {
-      name: 'Black & White',
-      trigger (pile) {
-        event.publish('decompose.fgm.pileAssignBW', { pile });
-      }
-    }
-  ],
-  isColoredOnly: true
-};
-
 export const COLOR = {
   buttons: [
+    {
+      name: 'X',
+      css: {
+        color: '#000',
+        background: '#fff',
+        boxShadow: 'inset 0 0 0 1px #efefef',
+        marginRight: '0.25rem'
+      },
+      trigger (pile) {
+        event.publish('decompose.fgm.pileAssignBW', { pile });
+      },
+      isColoredOnly: true
+    },
     {
       name: 'G',
       minWidth: 1,
@@ -100,7 +101,8 @@ export const COLOR = {
         event.publish('decompose.fgm.pileAssignColor', { pile, color: 'pink' });
       }
     }
-  ]
+  ],
+  label: 'Assign Color'
 };
 
 export const INSPECT = {
@@ -128,8 +130,7 @@ export const DISPERSE = {
 
 export const MAD = {
   buttons: [{
-    name: 'Mean Avg. Dev.',
-    row: 0,
+    name: 'Mean avg. deviation',
     trigger (pile) {
       event.publish('decompose.fgm.coverDispMode', { mode: MODE_MAD, pile });
     }
@@ -139,7 +140,7 @@ export const MAD = {
 
 export const MEAN = {
   buttons: [{
-    name: 'Average Cover',
+    name: 'Average cover',
     trigger (pile) {
       event.publish('decompose.fgm.coverDispMode', { mode: MODE_MEAN, pile });
     }
@@ -172,9 +173,23 @@ export const REMOVE = {
   inspectionOnly: true
 };
 
+export const SEPARATOR = {
+  buttons: [],
+  isSeparator: true
+};
+
+export const SHOW_IN_MATRIX = {
+  buttons: [{
+    name: 'Show in matrix',
+    trigger (pile) {
+      event.publish('decompose.fgm.showInMatrix', { pile });
+    }
+  }]
+};
+
 export const TRASH = {
   buttons: [{
-    name: 'Trash',
+    name: 'Move to trash',
     trigger (pile) {
       store.dispatch(trashPiles([pile.id]));
       event.publish('decompose.fgm.pileMouseLeave');
@@ -202,10 +217,14 @@ export default [
   INSPECT,
   DISPERSE,
   REMOVE,
+  SEPARATOR,
+  SHOW_IN_MATRIX,
+  SEPARATOR,
   COLOR,
-  BW,
+  SEPARATOR,
   TRASH,
   RECOVER,
+  SEPARATOR,
   MEAN,
   // MAD,
   STD

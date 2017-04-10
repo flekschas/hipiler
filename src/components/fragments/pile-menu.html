@@ -7,16 +7,21 @@
     css.bind="css">
     <ul class="no-list-style rel flex-c flex-d-c">
       <li
-        class="flex-c ${command.buttons.length ? 'is-multiple' : ''}"
+        class="flex-c flex-d-c ${command.buttons.length ? 'is-multiple' : ''}"
         repeat.for="command of commands"
         if.bind="command.isVisible">
-        <button
-          class="flex-g-1"
-          repeat.for="button of command.buttons"
-          click.delegate="trigger(button)"
-          css.one-way="button.css">
-          ${button.name}
-        </button>
+        <div class="separator" if.bind="command.isSeparator"></div>
+        <label if.bind="command.label">${command.label}</label>
+        <div class="flex-c">
+          <button
+            class="flex-g-1"
+            repeat.for="button of command.buttons"
+            click.delegate="trigger(button)"
+            css.one-way="button.css"
+            if.bind="button.isVisible">
+            ${button.name}
+          </button>
+        </div>
       </li>
     </ul>
   </nav>
