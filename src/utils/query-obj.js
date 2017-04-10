@@ -1,4 +1,12 @@
-export default function queryObj (obj, queries) {
+/**
+ * Simple object query function
+ *
+ * @param {object} obj - Object to be queried.
+ * @param {array} queries - Array of queries.
+ * @param {*} defVal - Default value to be returned when query fails.
+ * @return {*} Value of the queried property or `undefined`.
+ */
+export default function queryObj (obj, queries, defVal) {
   try {
     const query = queries[0];
     const nextQueries = queries.slice(1);
@@ -9,6 +17,6 @@ export default function queryObj (obj, queries) {
 
     return obj[query];
   } catch (e) {
-    return undefined;
+    return defVal;
   }
 }
