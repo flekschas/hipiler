@@ -416,6 +416,14 @@ export class Fragments {
     return !fgmState.isLayout2d && !fgmState.isLayoutMd;
   }
 
+  get isModifierKeyDown () {
+    if (this.isAltKeyDown || this.isCtrlKeyDown || this.isMetaKeyDown) {
+      return true;
+    }
+
+    return false;
+  }
+
   get matrixGridWidth () {
     return this.fragDims * this.gridSize;
   }
@@ -990,16 +998,6 @@ export class Fragments {
    * Handle double click events.
    */
   canvasDblClickHandler () {
-    // Disabled for now
-    // if (
-    //   fgmState.hoveredPile &&
-    //   fgmState.hoveredPile !== this.openedPile
-    // ) {
-    //   this.openedPileRoot = fgmState.hoveredPile;
-    // } else {
-    //   this.openedPile = fgmState.hoveredPile;
-    // }
-
     if (fgmState.hoveredPile) {
       this.dispersePilesHandler([fgmState.hoveredPile]);
       fgmState.hoveredPile = undefined;
@@ -1474,10 +1472,6 @@ export class Fragments {
     });
   }
 
-  disableAlt () {
-    this.isAltKeyDown = false;
-  }
-
   /**
    * Disperse all piles.
    */
@@ -1616,7 +1610,7 @@ export class Fragments {
    * @param {number} currentY - Current Y position.
    */
   drawLasso (startX, currentX, startY, currentY) {
-    if (this.keyAltIsDown || this.lassoIsRound) {
+    if (this.isKeyAltDown || this.lassoIsRound) {
       if (!this.isLassoRoundActive) {
         this.isLassoRoundActive = true;
       }
@@ -1760,10 +1754,6 @@ export class Fragments {
         }
       });
     }
-  }
-
-  enableAlt () {
-    this.isAltKeyDown = true;
   }
 
   /**
@@ -2535,8 +2525,8 @@ export class Fragments {
     );
 
     this.event.subscribe(
-      'app.keyDownAlt',
-      this.keyDownAltHandler.bind(this)
+      'app.keyDown',
+      this.keyDownHandler.bind(this)
     );
 
     this.event.subscribe(
@@ -2795,10 +2785,20 @@ export class Fragments {
   }
 
   /**
-   * Handle ALT key-down  events.
+   * Handle key-down events.
    */
-  keyDownAltHandler () {
-    this.keyAltIsDown = true;
+  keyDownHandler (event) {
+    if (event.altKey) {
+      this.isAltKeyDown = true;
+    }
+
+    if (event.ctrlKey) {
+      this.isCtrlKeyDown = true;
+    }
+
+    if (event.metaKey) {
+      this.isMetaKeyDown = true;
+    }
   }
 
   /**
@@ -2807,34 +2807,40 @@ export class Fragments {
    * @param {object} event - Key up event object.
    */
   keyUpHandler (event) {
-    this.isAltKeyDown = false;
+    if (!this.isModifierKeyDown) {
+      switch (event.keyCode) {
+        case 67:  // C == Cover Mode
+          this.toggleCoverDispMode();
+          break;
 
-    console.log('ass', event.keyCode);
+        case 83:  // S == Selection (rect lasso or swiping)
+          this.lassoIsRoundChangeHandler();
+          break;
 
-    switch (event.keyCode) {
-      case 76:  // L == Round Lasso
-        this.lassoIsRoundChangeHandler();
-        break;
+        case 88:  // X == Show / hide advance menu
+          this.footerToggle();
+          break;
 
-      case 78:  // N == Navigate snippets view via pan-and-zoom
-        this.toggleZoomPan();
-        break;
+        case 90:  // Z == Zoom snippets view
+          this.toggleZoomPan();
+          break;
 
-      case 83:  // S == Show / hide statistics panel
-        // this.toggleStatsPanel();
-        break;
+        default:
+          // Nothing
+          break;
+      }
+    }
 
-      case 86:  // V == Variance Cover Mode
-        this.toggleCoverDispMode();
-        break;
+    if (event.code === 'AltLeft') {
+      this.isAltKeyDown = false;
+    }
 
-      case 88:  // X == Show / hide advance menu
-        this.footerToggle();
-        break;
+    if (event.code === 'ControlLeft') {
+      this.isCtrlKeyDown = false;
+    }
 
-      default:
-        // Nothing
-        break;
+    if (event.code === 'MetaLeft') {
+      this.isMetaKeyDown = false;
     }
   }
 
