@@ -9,10 +9,11 @@ import States from 'services/states';
 // Utils etc.
 import $ from 'utils/dom-el';
 import debounce from 'utils/debounce';
+import queryObj from 'utils/query-obj';
 import { transition } from 'configs/app';
 import { requestNextAnimationFrame } from 'utils/request-animation-frame';
 import { updateWidth } from 'views/decompose-actions';
-import { COLUMN_NAMES } from 'views/decompose-defaults';
+import { COLUMNS, COLUMN_NAMES } from 'views/decompose-defaults';
 
 const logger = LogManager.getLogger('decompose');
 
@@ -34,6 +35,11 @@ export class Decompose {
     this.init = false;
 
     this.updateCssDb = debounce(this.updateCss.bind(this), 50);
+
+    this.event.subscribe(
+      'app.keyUp',
+      this.keyUpHandler.bind(this)
+    );
 
     this.update();
   }
@@ -136,6 +142,35 @@ export class Decompose {
     this.dragging = undefined;
   }
 
+  keyUpHandler (event) {
+    switch (event.keyCode) {
+      case 68:  // D == Details (show / hide statistics panel)
+        this.toggleColumnStats();
+        break;
+
+      default:
+        // Nothing
+        break;
+    }
+  }
+
+  toggleColumnStats () {
+    // Current width
+    const width = queryObj(
+      this.store.getState(),
+      ['present', 'decompose', 'columns', 'statsWidth'],
+      0
+    );
+
+    if (width <= 1) {
+      this.store.dispatch(
+        updateWidth('stats', this.columnsLastWidthStats || COLUMNS.statsWidth)
+      );
+    } else {
+      this.minimizeColumn('stats');
+    }
+  }
+
   maximizeColumn (column) {
     let columnToUpdate = column;
     let width = 99;
@@ -164,6 +199,13 @@ export class Decompose {
     if (column === 'fragments') {
       columnToUpdate = 'matrix';
       width = 99;
+    }
+
+    if (column === 'stats') {
+      this.columnsLastWidthStats = queryObj(
+        this.store.getState(),
+        ['present', 'decompose', 'columns', 'statsWidth']
+      );
     }
 
     this.store.dispatch(updateWidth(columnToUpdate, width));
