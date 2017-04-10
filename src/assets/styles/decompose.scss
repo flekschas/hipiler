@@ -189,12 +189,27 @@
     height: 2rem;
     min-width: 2rem;
     margin: 0;
-  }
 
-  .is-icon-only svg {
-    width: 1.5rem;
-    height: 1.5rem;
-    padding: 0.25rem;
+    li {
+      margin-left: 0.5rem;
+
+      &:first-child {
+        margin-left: 0;
+      }
+    }
+
+    button {
+      svg {
+        width: 1.5rem;
+        height: 1.5rem;
+        padding: 0.25rem;
+      }
+
+      span {
+        font-size: 0.9rem;
+        line-height: 1.5rem;
+      }
+    }
   }
 }
 
