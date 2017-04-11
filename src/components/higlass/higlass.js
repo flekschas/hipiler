@@ -376,10 +376,10 @@ export class Higlass {
   goToPile (pile) {
     let chrom1;
     let start1 = Infinity;
-    let end1 = Infinity;
+    let end1 = -1;
     let chrom2;
     let start2 = Infinity;
-    let end2 = Infinity;
+    let end2 = -1;
 
     pile.pileMatrices.forEach((pileMatrix) => {
       const _chrom1 = `chr${pileMatrix.locus.chrom1}`;
@@ -400,7 +400,7 @@ export class Higlass {
         if (pileMatrix.locus.start1 < start1) {
           start1 = pileMatrix.locus.start1;
         }
-        if (pileMatrix.locus.end1 < end1) {
+        if (pileMatrix.locus.end1 > end1) {
           end1 = pileMatrix.locus.end1;
         }
       }
@@ -420,7 +420,7 @@ export class Higlass {
         if (pileMatrix.locus.start2 < start2) {
           start2 = pileMatrix.locus.start2;
         }
-        if (pileMatrix.locus.end2 < end2) {
+        if (pileMatrix.locus.end2 > end2) {
           end2 = pileMatrix.locus.end2;
         }
       }
