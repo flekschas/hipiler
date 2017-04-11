@@ -1015,6 +1015,8 @@ export class Fragments {
    * @param {object} event - Event object
    */
   canvasMouseDownHandler (event) {
+    this.mouseDownTime = Date.now();
+
     if (event.which !== 1) { return; }
 
     event.preventDefault();
@@ -1029,8 +1031,6 @@ export class Fragments {
       cameraX: this.camera.position.x,
       cameraY: this.camera.position.y
     };
-
-    this.mouseDownTime = Date.now();
 
     if (fgmState.hoveredPile) {
       this.mouseDownDwelling = setTimeout(() => {
@@ -1093,7 +1093,7 @@ export class Fragments {
    * listeneing to them separately.
    */
   canvasMouseClickHandler (event) {
-    this.mouseDownTimeDelta = Date.now() - this.mouseDownTime;
+    this.mouseDownTimeDelta = (Date.now() - this.mouseDownTime) || 0;
 
     if (this.mouseDownTimeDelta < CLICK_DELAY_TIME) {
       this.mouseClickCounter += 1;
@@ -1141,11 +1141,8 @@ export class Fragments {
    * Handle mouse up events on the canvas.
    *
    * @param {object} event - Mouse up event.
-   * @param {boolean} mouseLeft - If `true` mouse has left the canvas.
    */
-  canvasMouseUpHandler (event, mouseLeft) {
-    if (event.which !== 1) { return; }
-
+  canvasMouseUpHandler (event) {
     event.preventDefault();
 
     fgmState.scene.updateMatrixWorld();
@@ -1186,7 +1183,7 @@ export class Fragments {
       );
     } else if (this.isLassoRoundActive && this.lassoRoundMinMove) {
       pilesSelected = this.getLassoRoundSelection();
-    } else if (!mouseLeft) {
+    } else {
       this.canvasMouseClickHandler(event);
     }
 
@@ -2503,7 +2500,7 @@ export class Fragments {
 
     this.canvas.addEventListener(
       'mouseleave', (event) => {
-        this.canvasMouseUpHandler(event, true);
+        this.canvasMouseUpHandler(event);
       }, false
     );
 
