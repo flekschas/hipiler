@@ -182,7 +182,7 @@ export const SHOW_IN_MATRIX = {
   buttons: [{
     name: 'Show in matrix',
     trigger (pile) {
-      event.publish('decompose.fgm.showInMatrix', { pile });
+      event.publish('decompose.fgm.showInMatrix', pile);
     }
   }]
 };

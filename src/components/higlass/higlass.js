@@ -67,6 +67,11 @@ export class Higlass {
       this.dehighlightLoci.bind(this)
     );
 
+    this.event.subscribe(
+      'decompose.fgm.showInMatrix',
+      this.goToPile.bind(this)
+    );
+
     // The following setup allows us to imitate deferred objects. I.e., we can
     // resolve promises outside their scope.
     this.resolve = {};
@@ -361,6 +366,71 @@ export class Higlass {
     );
 
     return true;
+  }
+
+  /**
+   * Navigate to a pile.
+   *
+   * @param {object} pile - Pile to be navigated to.
+   */
+  goToPile (pile) {
+    let chrom1;
+    let start1 = Infinity;
+    let end1 = Infinity;
+    let chrom2;
+    let start2 = Infinity;
+    let end2 = Infinity;
+
+    pile.pileMatrices.forEach((pileMatrix) => {
+      const _chrom1 = `chr${pileMatrix.locus.chrom1}`;
+      const _chrom2 = `chr${pileMatrix.locus.chrom2}`;
+
+      if (
+        !chrom1 || (
+          this.chromInfo.get()[_chrom1].offset <
+          this.chromInfo.get()[chrom1].offset
+        )
+      ) {
+        chrom1 = _chrom1;
+      }
+
+      if (
+        _chrom1 === chrom1
+      ) {
+        if (pileMatrix.locus.start1 < start1) {
+          start1 = pileMatrix.locus.start1;
+        }
+        if (pileMatrix.locus.end1 < end1) {
+          end1 = pileMatrix.locus.end1;
+        }
+      }
+
+      if (
+        !chrom2 || (
+          this.chromInfo.get()[_chrom2].offset <
+          this.chromInfo.get()[chrom2].offset
+        )
+      ) {
+        chrom2 = _chrom2;
+      }
+
+      if (
+        _chrom2 === chrom2
+      ) {
+        if (pileMatrix.locus.start2 < start2) {
+          start2 = pileMatrix.locus.start2;
+        }
+        if (pileMatrix.locus.end2 < end2) {
+          end2 = pileMatrix.locus.end2;
+        }
+      }
+    });
+
+    this.config.views.filter(view => view.selectionView).forEach((view) => {
+      this.api.goTo(
+        view.uid, chrom2, start2, end2, chrom1, start1, end1, true
+      );
+    });
   }
 
   /**
