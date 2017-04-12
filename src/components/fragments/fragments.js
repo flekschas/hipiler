@@ -320,7 +320,7 @@ export class Fragments {
 
     Promise
       .all([this.isDataLoaded, this.isFontLoaded, this.isInitBase])
-      .then(() => { this.initPlot(this.data); })
+      .then((results) => { this.initPlot(results[0]); })
       .catch((error) => {
         logger.error('Failed to initialize the fragment plot', error);
       });
@@ -2842,7 +2842,7 @@ export class Fragments {
   loadData (config) {
     this.isLoading = true;
 
-    const loadData = new Promise((resolve, reject) => {
+    return new Promise((resolve, reject) => {
       let dataUrl;
 
       const queryString = config.apiParams ?
@@ -2864,20 +2864,17 @@ export class Fragments {
         .post(JSON.stringify(postData), (error, results) => {
           if (error) {
             this.hasErrored('Could not load data');
-            reject(Error(this.errorMsg));
-          } else {
-            this.isLoading = false;
-            this.data = this.initData(
-              config, results.fragments
-            );
-            resolve(this.data);
+            this.reject.isDataLoaded(Error(this.errorMsg));
+            return;
           }
+
+          this.isLoading = false;
+          const finalResults = this.initData(
+            config, results.fragments
+          );
+          this.resolve.isDataLoaded(finalResults);
         });
     });
-
-    loadData
-      .then(results => this.resolve.isDataLoaded(results))
-      .catch(error => this.reject.isDataLoaded(error));
   }
 
   /**
