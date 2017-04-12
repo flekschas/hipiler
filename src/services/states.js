@@ -2,16 +2,20 @@
 import localforage from 'localForage';
 import { applyMiddleware, compose, createStore } from 'redux';
 import { autoRehydrate, persistStore, purgeStoredState } from 'redux-persist';
+import createCompressor from 'redux-persist-transform-compress';
 import thunk from 'redux-thunk';
 // import freeze from 'redux-freeze';
 import undoable, { ActionCreators } from 'redux-undo';
 
 import appReducer from 'app-reducer';
 
+const compressor = createCompressor();
+
 const CONFIG = {
   storage: localforage,
   debounce: 75,
-  keyPrefix: 'matrixDecompositionMethods.'
+  keyPrefix: 'hipiler.',
+  transforms: [compressor]
 };
 
 export default class States {

@@ -140,6 +140,8 @@
           "aurelia-templating",
           "aurelia-templating-binding",
           "deep-freeze-strict",
+          "json-stringify-safe",
+          "lz-string",
           "polyline-miter-util",
           "polyline-normals",
           "text",
@@ -213,6 +215,11 @@
             "name": "redux-persist",
             "path": "../node_modules/redux-persist/dist",
             "main": "redux-persist"
+          },
+          {
+            "name": "redux-persist-transform-compress",
+            "path": "../node_modules/redux-persist-transform-compress/lib",
+            "main": "index"
           },
           {
             "name": "redux-thunk",
