@@ -1031,15 +1031,6 @@ export class Fragments {
       cameraX: this.camera.position.x,
       cameraY: this.camera.position.y
     };
-
-    if (fgmState.hoveredPile) {
-      this.mouseDownDwelling = setTimeout(() => {
-        if (fgmState.hoveredPile) {
-          fgmState.hoveredPile.frameSetTemp(COLORS.GREEN, 2, true).draw();
-        }
-        this.render();
-      }, ZOOM_DELAY_TIME);
-    }
   }
 
   /**
@@ -1114,13 +1105,6 @@ export class Fragments {
       }
     } else {
       this.mouseClickCounter = 0;
-
-      if (this.isLayout2d && this.mouseDownTimeDelta > ZOOM_DELAY_TIME) {
-        if (fgmState.hoveredPile) {
-          this.pileZoomed = fgmState.hoveredPile.scaleTo(6).frameCreate().draw();
-        }
-        this.mouseDownTimeDelta = 0;
-      }
     }
   }
 
@@ -1149,8 +1133,6 @@ export class Fragments {
     this.camera.updateProjectionMatrix();
     fgmState.scene.remove(this.lassoObject);
     this.mouseIsDown = false;
-
-    clearTimeout(this.mouseDownDwelling);
 
     let pilesSelected = [];
 
@@ -3072,18 +3054,12 @@ export class Fragments {
   mouseOutPileHandler () {
     fgmState.hoveredPile = undefined;
 
-    if (fgmState.hoveredGapPile) {
-      const pile = fgmState.hoveredGapPile;
-      fgmState.hoveredGapPile = undefined;
-      pile.draw();
-    }
-
     if (fgmState.previousHoveredPile) {
       fgmState.previousHoveredPile.elevateTo();
       fgmState.previousHoveredPile.showSingle(undefined);
       fgmState.previousHoveredPile.setCoverMatrixMode(this.coverDispMode);
       this.highlightFrame.visible = false;
-      fgmState.previousHoveredPile.draw(false, true);
+      fgmState.previousHoveredPile.draw();
       fgmState.previousHoveredPile = undefined;
     }
 
@@ -3937,6 +3913,8 @@ export class Fragments {
       const state = this.store.getState().present.decompose;
       const stateFgm = state.fragments;
       const stateHgl = state.higlass;
+
+      console.log(this.store.getState());
 
       const update = {};
       const ready = [];
