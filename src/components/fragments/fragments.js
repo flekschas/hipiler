@@ -80,9 +80,8 @@ import {
   MATRIX_ORIENTATION_5_TO_3,
   MATRIX_ORIENTATION_INITIAL,
   MATRIX_ORIENTATION_UNDEF,
-  MODE_MAD,
-  MODE_MEAN,
-  MODE_STD,
+  MODE_AVERAGE,
+  MODE_VARIANCE,
   PILE_AREA_BORDER,
   PILE_AREA_BG,
   PILE_AREA_POINTS,
@@ -95,8 +94,7 @@ import {
   Z_HIGHLIGHT,
   Z_HIGHLIGHT_AREA,
   Z_LASSO,
-  Z_STACK_PILE_TARGET,
-  ZOOM_DELAY_TIME
+  Z_STACK_PILE_TARGET
 } from 'components/fragments/fragments-defaults';
 
 import fgmState from 'components/fragments/fragments-state';
@@ -247,14 +245,11 @@ export class Fragments {
     }];
 
     this.coverDispModes = [{
-      id: MODE_MEAN,
-      name: 'Mean'
+      id: MODE_AVERAGE,
+      name: 'Average (Mean)'
     }, {
-      id: MODE_MAD,
-      name: 'Mean Avg. Dev.'
-    }, {
-      id: MODE_STD,
-      name: 'Standard Dev.'
+      id: MODE_VARIANCE,
+      name: 'Variance (STD)'
     }];
 
     this.matrixOrientations = [{
@@ -3870,7 +3865,9 @@ export class Fragments {
    */
   toggleCoverDispMode () {
     this.store.dispatch(
-      setCoverDispMode(this.coverDispMode !== MODE_MEAN ? MODE_MEAN : MODE_STD)
+      setCoverDispMode(
+        this.coverDispMode !== MODE_AVERAGE ? MODE_AVERAGE : MODE_VARIANCE
+      )
     );
   }
 

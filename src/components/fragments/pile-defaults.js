@@ -14,6 +14,4 @@ export const STRAND_ARROW_HEAD_WIDTH = 8;
 
 export const VALUE_DOMAIN = [0, 1];
 
-export const MAD_MAX = (VALUE_DOMAIN[1] - VALUE_DOMAIN[0]) / 2;
-
 export const STD_MAX = (VALUE_DOMAIN[1] - VALUE_DOMAIN[0]) / 2;

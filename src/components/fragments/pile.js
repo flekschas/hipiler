@@ -15,9 +15,8 @@ import {
 import {
   MATRIX_FRAME_THICKNESS,
   MATRIX_FRAME_THICKNESS_MAX,
-  MODE_MAD,
-  MODE_MEAN,
-  MODE_STD,
+  MODE_AVERAGE,
+  MODE_VARIANCE,
   PREVIEW_SIZE,
   SHADER_ATTRIBUTES,
   Z_BASE,
@@ -29,7 +28,6 @@ import pileColors from 'components/fragments/pile-colors';
 import {
   COLOR_INDICATOR_HEIGHT,
   LABEL_MIN_CELL_SIZE,
-  MAD_MAX,
   PREVIEW_LOW_QUAL_THRESHOLD,
   PREVIEW_NUM_CLUSTERS,
   STD_MAX,
@@ -75,8 +73,8 @@ export default class Pile {
     this.color = pileColors.gray;
     this.colored = false;
     this.colorIndicator = {};
-    this.coverMatrix = [];
-    this.coverMatrixMode = MODE_MEAN;
+    this.coverMatrix = new Float32Array(dims ** 2);
+    this.coverMatrixMode = MODE_AVERAGE;
     this.dims = dims;
     this.geometry = new BufferGeometry({ attributes: SHADER_ATTRIBUTES });
     this.highlighted = false;
@@ -87,7 +85,6 @@ export default class Pile {
     this.matrixFrameThickness = MATRIX_FRAME_THICKNESS;
     this.matrixFrameColor = COLORS.GRAY_LIGHT;
     this.measures = {};
-    this.orderedLocally = false;
     this.pileMatrices = [];
     this.previewsHeight = 0;
     this.rank = this.id;
@@ -233,7 +230,6 @@ export default class Pile {
 
     this.assessMeasures();
     this.frameUpdate(fgmState.matrixFrameEncoding);
-    this.calculateAvgMatrix(this.pileMatrices, this.avgMatrix);
     this.calculateCoverMatrix();
     this.matrixClusters = this.calculateKMeansCluster();
 
@@ -258,60 +254,39 @@ export default class Pile {
   }
 
   /**
-   * Calculate a-per pile average matrix.
+   * Calculate the average (mean) matrix.
    *
-   * @param {array} matrices - Matrices to be flattened.
-   * @return {array} Flat Float32 average matrix.
+   * @param {array} targetMatrix - Matrix to be updated in place with the
+   *   average.
+   * @param {array} sourceMatrices - Matrices to be averaged.
+   * @return `targetMatrix`.
    */
-  calculateAvgMatrix (matrices = this.pileMatrices, avgMatrix) {
-    if (!avgMatrix) {
-      avgMatrix = new Float32Array(this.dims ** 2);
-    }
-
-    const numMatrices = matrices.length;
+  calculateAverage (
+    targetMatrix = this.coverMatrix,
+    sourceMatrices = this.pileMatrices
+  ) {
+    const numMatrices = sourceMatrices.length;
 
     if (numMatrices > 1) {
-      for (let i = 0; i < this.dims; i++) {
-        for (let j = 0; j < this.dims; j++) {
-          this.calculateCellMean(
-            avgMatrix,
-            matrices,
-            i,
-            j,
-            numMatrices,
-            true
-          );
-        }
+      const d2 = this.dims ** 2;
+      for (let i = 0; i < d2; i++) {
+        this.calculateCellMean(
+          targetMatrix,
+          sourceMatrices,
+          i,
+          numMatrices
+        );
       }
     } else {
       // Copy first pile matrix
-      Matrix.flatten(matrices[0].matrix).forEach((cell, index) => {
-        avgMatrix[index] = cell;
+      sourceMatrices[0].matrix.forEach((cell, index) => {
+        targetMatrix[index] = cell;
       });
     }
 
-    return avgMatrix;
-  }
+    this.isAvgCalced = true;
 
-  /**
-   * Calculate cell mean absolute difference.
-   *
-   * @param {array} targetMatrix - Target matrix.
-   * @param {array} sourceMatrices - Source matrices used for calclation.
-   * @param {array} i - Index i.
-   * @param {array} j - Index j.
-   */
-  calculateCellMad (targetMatrix, sourceMatrices, i, j) {
-    const flatIdx = (i * this.dims) + j;
-    const mean = sourceMatrices
-      .map(matrix => Math.max(matrix[flatIdx], 0))
-      .reduce((a, b) => a + b, 0) / sourceMatrices.length;
-
-    targetMatrix[i][j] = sourceMatrices
-      .map(matrix => Math.max(matrix[flatIdx], 0))
-      .reduce((a, b) => a + Math.abs(b - mean), 0) /
-      sourceMatrices.length /
-      MAD_MAX;
+    return targetMatrix;
   }
 
   /**
@@ -319,30 +294,27 @@ export default class Pile {
    *
    * @param {array} targetMatrix - Flat Target matrix.
    * @param {array} sourceMatrices - Source matrices used for calclation.
-   * @param {array} i - Index i.
-   * @param {array} j - Index j.
-   * @param {boolean} flat - If `true` the target matrix is flat.
+   * @param {number} i - Cell index.
+   * @param {number} numMatrices - Number of matrices.
    */
-  calculateCellMean (targetMatrix, sourceMatrices, i, j, numMatrices, flat) {
+  calculateCellMean (targetMatrix, sourceMatrices, i, numMatrices) {
     let lowQualCounter = 0;
 
-    let avg = (sourceMatrices
-      .map(matrix => matrix.matrix[i][j])
-      .reduce((acc, value) => {
-        if (value < 0) { lowQualCounter += 1; }
-        return acc + value;
-      }, 0) + lowQualCounter) / numMatrices;
+    let mean = sourceMatrices
+      .map(matrix => matrix.matrix[i])
+      .reduce((sum, value) => {
+        lowQualCounter += Math.min(value, 0);
+        return sum + Math.max(value, 0);
+      }, 0);
 
-    if (lowQualCounter === numMatrices) {
+    if (lowQualCounter === -numMatrices) {
       // We keep the low quality info in case all cells are of low quality
-      avg = -1;
+      mean = -1;
+    } else {
+      mean /= (numMatrices + lowQualCounter);
     }
 
-    if (flat) {
-      targetMatrix[(i * this.dims) + j] = avg;
-    } else {
-      targetMatrix[i][j] = avg;
-    }
+    targetMatrix[i] = mean;
   }
 
   /**
@@ -350,86 +322,121 @@ export default class Pile {
    *
    * @param {array} targetMatrix - Target matrix.
    * @param {array} sourceMatrices - Source matrices used for calclation.
-   * @param {array} i - Index i.
-   * @param {array} j - Index j.
+   * @param {number} i - Cell index.
+   * @param {number} numMatrices - Number of matrices.
    */
-  calculateCellStd (targetMatrix, sourceMatrices, i, j) {
-    const flatIdx = (i * this.dims) + j;
-    const mean = sourceMatrices
-      .map(matrix => Math.max(matrix[flatIdx], 0))
-      .reduce((a, b) => a + b, 0) / sourceMatrices.length;
-
-    targetMatrix[i][j] = Math.sqrt(
+  calculateCellStd (targetMatrix, sourceMatrices, i, numMatrices) {
+    targetMatrix[i] = Math.sqrt(
       sourceMatrices
-        .map(matrix => Math.max(matrix[flatIdx], 0))
+        .map(matrix => matrix.matrix[i])
         .reduce(
-          (a, b) => a + ((b - mean) ** 2), 0
+          (a, b) => a + ((b - targetMatrix[i]) ** 2), 0
         ) / sourceMatrices.length / STD_MAX
     );
   }
 
   /**
-   * Calculate global matrix.
+   * Calculate the variance (standard deviation) matrix.
+   *
+   * @param {array} targetMatrix - Matrix to be updated in place with the
+   *   average.
+   * @param {array} sourceMatrices - Matrices to be averaged.
+   * @return `targetMatrix`.
+   */
+  calculateVariance (
+    targetMatrix = this.coverMatrix,
+    sourceMatrices = this.pileMatrices
+  ) {
+    // In order to calculate the variance we need the mean anyway so we can
+    // calculate it upfront.
+    if (!this.isAvgCalced) {
+      this.calculateAverage();
+    }
+
+    const numMatrices = sourceMatrices.length;
+
+    if (numMatrices > 1) {
+      const d2 = this.dims ** 2;
+      for (let i = 0; i < d2; i++) {
+        this.calculateCellStd(
+          targetMatrix,
+          sourceMatrices,
+          i,
+          numMatrices
+        );
+      }
+    } else {
+      // Copy first pile matrix
+      sourceMatrices[0].matrix.forEach((cell, index) => {
+        targetMatrix[index] = cell;
+      });
+    }
+
+    this.isAvgCalced = false;
+
+    return targetMatrix;
+  }
+
+  /**
+   * Calculate cover matrix.
    *
    * @return {object} Self.
    */
   calculateCoverMatrix () {
-    const numMatrices = this.pileMatrices.length;
-
-    this.coverMatrix = new Array(this.dims).fill(undefined);
-
-    if (numMatrices > 1) {
-      // Create empty this.dims x this.dims matrix
-      this.coverMatrix = this.coverMatrix
-        .map(row => new Float32Array(this.dims));
-
-      if (
-        this.coverMatrixMode === MODE_MAD ||
-        this.coverMatrixMode === MODE_STD
-      ) {
-        for (let i = 0; i < this.dims; i++) {
-          for (let j = 0; j < this.dims; j++) {
-            switch (this.coverMatrixMode) {
-              case MODE_MAD:
-                this.calculateCellMad(
-                  this.coverMatrix,
-                  this.clustersAvgMatrices,
-                  i,
-                  j,
-                  numMatrices
-                );
-                break;
-
-              case MODE_STD:
-                this.calculateCellStd(
-                  this.coverMatrix,
-                  this.clustersAvgMatrices,
-                  i,
-                  j,
-                  numMatrices
-                );
-                break;
-
-              default:
-                // Nothing
-                break;
-            }
-          }
-        }
-      } else {
-        // Copy the average matrix from `this.avgMatrix`.
-        for (let i = 0; i < this.dims; i++) {
-          this.coverMatrix[i] = this.avgMatrix.slice(
-            i * this.dims, (i + 1) * this.dims
-          );
-        }
-      }
+    if (this.coverMatrixMode === MODE_VARIANCE) {
+      this.calculateVariance();
     } else {
-      // Copy first pile matrix
-      this.pileMatrices[0].matrix.forEach((row, index) => {
-        this.coverMatrix[index] = row.slice();
-      });
+      this.calculateAverage();
     }
+
+    // if (numMatrices > 1) {
+    //   // Create empty this.dims x this.dims matrix
+    //   this.coverMatrix = this.coverMatrix
+    //     .map(row => new Float32Array(this.dims));
+
+    //   if (this.coverMatrixMode === MODE_STD) {
+    //     for (let i = 0; i < this.dims; i++) {
+    //       for (let j = 0; j < this.dims; j++) {
+    //         switch (this.coverMatrixMode) {
+    //           case MODE_MAD:
+    //             this.calculateCellMad(
+    //               this.coverMatrix,
+    //               this.clustersAvgMatrices,
+    //               i,
+    //               j,
+    //               numMatrices
+    //             );
+    //             break;
+
+    //           case MODE_STD:
+    //             this.calculateCellStd(
+    //               this.coverMatrix,
+    //               this.clustersAvgMatrices,
+    //               i,
+    //               j,
+    //               numMatrices
+    //             );
+    //             break;
+
+    //           default:
+    //             // Nothing
+    //             break;
+    //         }
+    //       }
+    //     }
+    //   } else {
+    //     this.coverMatrix = this.calculateAverage();
+    //     // Copy the average matrix from `this.avgMatrix`.
+    //     for (let i = 0; i < this.dims; i++) {
+    //       this.coverMatrix[i] = this.avgMatrix.slice(
+    //         i * this.dims, (i + 1) * this.dims
+    //       );
+    //     }
+    //   }
+    // } else {
+    //   // Copy the matrix from the first pileMatrix.
+    //   this.coverMatrix = this.pileMatrices[0].matrix.slice();
+    // }
 
     return this;
   }
@@ -469,10 +476,16 @@ export default class Pile {
    */
   calculateKMeansCluster () {
     return new Promise((resolve, reject) => {
+      if (this.pileMatrices.length === 1) {
+        this.isMatricesClustered = false;
+        this.clustersAvgMatrices = [this.coverMatrix];
+        return resolve();
+      }
+
       if (this.pileMatrices.length <= PREVIEW_NUM_CLUSTERS) {
         this.isMatricesClustered = false;
         this.clustersAvgMatrices = this.pileMatrices.map(
-          pileMatrix => Matrix.flatten(pileMatrix.matrix)
+          pileMatrix => pileMatrix.matrix
         );
         return resolve();
       }
@@ -493,7 +506,8 @@ export default class Pile {
 
             this.clustersAvgMatrices = [];
             this.clusters.forEach((cluster) => {
-              this.clustersAvgMatrices.push(this.calculateAvgMatrix(
+              this.clustersAvgMatrices.push(this.calculateAverage(
+                new Float32Array(this.dims ** 2),
                 cluster.map(matrixId => fgmState.matricesIdx[matrixId])
               ));
             });
@@ -512,7 +526,7 @@ export default class Pile {
           this.isMatricesClustered = false;
           logger.error('K-means clustering failed', error);
           this.clustersAvgMatrices = this.pileMatrices.map(
-            pileMatrix => Matrix.flatten(pileMatrix.matrix)
+            pileMatrix => pileMatrix.matrix
           );
           resolve();
         });
@@ -690,72 +704,6 @@ export default class Pile {
   }
 
   /**
-   * Draw mean average deviation cover matrix.
-   *
-   * @param {array} positions - Positions array to be changed in-place.
-   * @param {array} colors - Colors array to be changed in-place.
-   * @param {number} x - X coordinate.
-   * @param {number} y - Y coordinate.
-   * @param {number} value - Cover matrix value.
-   */
-  drawCoverMad (positions, colors, x, y, value) {
-    add2dSqrtBuffRect(
-      positions,
-      -y,
-      -x,
-      this.zLayerHeight * 5,
-      this.cellSize,
-      colors,
-      pileColors.whiteOrangeBlack(value)
-    );
-  }
-
-  /**
-   * Draw mean cover matrix.
-   *
-   * @param {array} positions - Positions array to be changed in-place.
-   * @param {array} colors - Colors array to be changed in-place.
-   * @param {number} x - X coordinate.
-   * @param {number} y - Y coordinate.
-   * @param {number} value - Cover matrix value.
-   */
-  drawCoverMean (positions, colors, x, y, value) {
-    add2dSqrtBuffRect(
-      positions,
-      -y,
-      -x,
-      this.zLayerHeight * 5,
-      this.cellSize,
-      colors,
-      this.getColor(
-        value,
-        fgmState.showSpecialCells
-      )
-    );
-  }
-
-  /**
-   * Draw standard variation cover matrix.
-   *
-   * @param {array} positions - Positions array to be changed in-place.
-   * @param {array} colors - Colors array to be changed in-place.
-   * @param {number} x - X coordinate.
-   * @param {number} y - Y coordinate.
-   * @param {number} value - Cover matrix value.
-   */
-  drawCoverStd (positions, colors, x, y, value) {
-    add2dSqrtBuffRect(
-      positions,
-      -y,
-      -x,
-      this.zLayerHeight * 5,
-      this.cellSize,
-      colors,
-      pileColors.whiteOrangeBlack(value)
-    );
-  }
-
-  /**
    * Draw multiple matrices.
    *
    * @param {array} positions - Positions array to be changed in-place.
@@ -777,19 +725,20 @@ export default class Pile {
           (j * this.cellSize)
         );
 
-        const value = this.coverMatrix[i][j];
+        const value = this.coverMatrix[(i * this.dims) + j];
+        const color = this.coverMatrixMode === MODE_VARIANCE ?
+          pileColors.whiteOrangeBlack(value) :
+          this.getColor(value, fgmState.showSpecialCells);
 
-        switch (this.coverMatrixMode) {
-          case MODE_MAD:
-            this.drawCoverMad(positions, colors, x, y, value);
-            break;
-          case MODE_STD:
-            this.drawCoverStd(positions, colors, x, y, value);
-            break;
-          default:
-            this.drawCoverMean(positions, colors, x, y, value);
-            break;
-        }
+        add2dSqrtBuffRect(
+          positions,
+          -y,
+          -x,
+          this.zLayerHeight * 5,
+          this.cellSize,
+          colors,
+          color
+        );
       }
     }
   }
@@ -944,7 +893,7 @@ export default class Pile {
           this.cellSize,
           colors,
           this.getColor(
-            cellValue(matrix[i][j]),
+            cellValue(matrix[(i * this.dims) + j]),
             fgmState.showSpecialCells
           )
         );
@@ -1297,16 +1246,9 @@ export default class Pile {
   getMatrixPreview (index) {
     if (this.isMatricesClustered) {
       if (index < PREVIEW_NUM_CLUSTERS) {
-        const matrix = [];
-        for (let i = 0; i < this.dims; i++) {
-          matrix.push(this.clustersAvgMatrices[index].slice(
-            i * this.dims, (i + 1) * this.dims
-          ));
-        }
-
         return {
           id: '__cluster__',
-          matrix
+          matrix: this.clustersAvgMatrices[index]
         };
       }
       return;
@@ -1468,7 +1410,6 @@ export default class Pile {
 
     this.assessMeasures();
     this.frameUpdate(fgmState.matrixFrameEncoding);
-    this.calculateAvgMatrix(this.pileMatrices, this.avgMatrix);
     this.calculateCoverMatrix();
     this.matrixClusters = this.calculateKMeansCluster();
 
@@ -1535,30 +1476,10 @@ export default class Pile {
 
     this.assessMeasures();
     this.frameUpdate(fgmState.matrixFrameEncoding);
-    this.calculateAvgMatrix(this.pileMatrices, this.avgMatrix);
     this.calculateCoverMatrix();
     this.matrixClusters = this.calculateKMeansCluster();
 
     return this.matrixClusters;
-  }
-
-  /**
-   * Set node order.
-   *
-   * @param {???} nodeOrder - Node order.
-   * @param {boolean} orderedLocally - If `true` is locally ordered.
-   * @return {object} Self.
-   */
-  setNodeOrder (nodeOrder, orderedLocally) {
-    if (!orderedLocally) {
-      this.orderedLocally = false;
-    } else {
-      this.orderedLocally = orderedLocally;
-    }
-
-    this.nodeOrder = nodeOrder;
-
-    return this;
   }
 
   /**

@@ -41,7 +41,7 @@ import {
   MATRICES_COLORS,
   MATRIX_FRAME_ENCODING,
   MATRIX_ORIENTATION_INITIAL,
-  MODE_MEAN,
+  MODE_AVERAGE,
   PILES_INSPECTION,
   PILES,
   SHOW_SPECIAL_CELLS
@@ -145,7 +145,7 @@ export function config (state = { ...CONFIG }, action) {
   }
 }
 
-export function coverDispMode (state = MODE_MEAN, action) {
+export function coverDispMode (state = MODE_AVERAGE, action) {
   switch (action.type) {
     case SET_COVER_DISP_MODE:
       return action.payload.coverDispMode;

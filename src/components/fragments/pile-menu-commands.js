@@ -10,7 +10,7 @@ import {
 } from 'components/fragments/fragments-actions';
 
 import {
-  MODE_MAD, MODE_MEAN, MODE_STD
+  MODE_AVERAGE, MODE_VARIANCE
 } from 'components/fragments/fragments-defaults';
 
 const store = Container.instance.get(States).store;
@@ -105,14 +105,24 @@ export const COLOR = {
   label: 'Assign Color'
 };
 
-export const INSPECT = {
+export const COVER_AVERAGE = {
   buttons: [{
-    name: 'Inspect',
+    name: 'Average cover',
     trigger (pile) {
-      event.publish('decompose.fgm.inspectPiles', [pile]);
-      event.publish('decompose.fgm.removePileArea');
-    },
-    closeOnClick: true
+      event.publish('decompose.fgm.coverDispMode', { mode: MODE_AVERAGE, pile });
+    }
+  }],
+  stackedPileOnly: true
+};
+
+export const COVER_VARIANCE = {
+  buttons: [{
+    name: 'Variance cover',
+    trigger (pile) {
+      event.publish(
+        'decompose.fgm.coverDispMode', { mode: MODE_VARIANCE, pile }
+      );
+    }
   }],
   stackedPileOnly: true
 };
@@ -128,22 +138,14 @@ export const DISPERSE = {
   stackedPileOnly: true
 };
 
-export const MAD = {
+export const INSPECT = {
   buttons: [{
-    name: 'Mean avg. deviation',
+    name: 'Inspect',
     trigger (pile) {
-      event.publish('decompose.fgm.coverDispMode', { mode: MODE_MAD, pile });
-    }
-  }],
-  stackedPileOnly: true
-};
-
-export const MEAN = {
-  buttons: [{
-    name: 'Average cover',
-    trigger (pile) {
-      event.publish('decompose.fgm.coverDispMode', { mode: MODE_MEAN, pile });
-    }
+      event.publish('decompose.fgm.inspectPiles', [pile]);
+      event.publish('decompose.fgm.removePileArea');
+    },
+    closeOnClick: true
   }],
   stackedPileOnly: true
 };
@@ -201,18 +203,6 @@ export const TRASH = {
   notInTrash: true
 };
 
-export const STD = {
-  buttons: [{
-    name: 'Variance Cover',
-    trigger (pile) {
-      event.publish(
-        'decompose.fgm.coverDispMode', { mode: MODE_STD, pile }
-      );
-    }
-  }],
-  stackedPileOnly: true
-};
-
 export default [
   INSPECT,
   DISPERSE,
@@ -225,7 +215,6 @@ export default [
   TRASH,
   RECOVER,
   SEPARATOR,
-  MEAN,
-  // MAD,
-  STD
+  COVER_AVERAGE,
+  COVER_VARIANCE
 ];

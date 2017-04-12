@@ -1,17 +1,24 @@
 export default class Matrix {
   constructor (id, matrix, locus, orientation, measures) {
+    this.dim = matrix.length;
     this.id = id;
-    this.matrix = matrix;
     this.locus = locus;
+    this.matrix = Matrix.to1d(matrix);
     this.measures = measures;
     this.orientation = orientation;
-
     this.orientationX = this.orientation.strand1 === 'coding' ? 1 : -1;
     this.orientationY = this.orientation.strand2 === 'coding' ? 1 : -1;
-
-    this.dim = matrix.length;
-
     this.visible = true;
+  }
+
+  /**
+   * Flatten  a 2D array.
+   *
+   * @param {array} matrix - 2D matrix to be flattened.
+   * @return {array} 1D arrays.
+   */
+  static flatten (matrix) {
+    return matrix.reduce((a, b) => a.concat(b), []);
   }
 
   /**
@@ -23,16 +30,6 @@ export default class Matrix {
   flipX () {
     Matrix.flipX(this.matrix);
     this.orientationX *= -1;
-  }
-  /**
-   * Flip the raw matix's x axis in-place.
-   *
-   * @param {array} matrix - 2D matrix to be flipped.
-   * @return {number} Orientation.
-   */
-  flipY () {
-    Matrix.flipY(this.matrix);
-    this.orientationY *= -1;
   }
 
   /**
@@ -80,6 +77,17 @@ export default class Matrix {
   }
 
   /**
+   * Flip the raw matix's x axis in-place.
+   *
+   * @param {array} matrix - 2D matrix to be flipped.
+   * @return {number} Orientation.
+   */
+  flipY () {
+    Matrix.flipY(this.matrix);
+    this.orientationY *= -1;
+  }
+
+  /**
    * Flip the raw matix's y axis in-place.
    *
    * @param {array} matrix - Matrix to be flipped.
@@ -123,12 +131,14 @@ export default class Matrix {
   }
 
   /**
-   * Flatten  a 2D array.
+   * Convert a 2D classic array into a 1D Float32Array.
    *
-   * @param {array} matrix - 2D matrix to be flattened.
-   * @return {array} 1D arrays.
+   * @param {array} matrix2d - 2D array to be converted into 1D.
+   * @return  {[type]} 1D Floast32Array
    */
-  static flatten (matrix) {
-    return matrix.reduce((a, b) => a.concat(b), []);
+  static to1d (matrix2d) {
+    return Float32Array.from(
+      matrix2d.reduce((matrix1d, row) => matrix1d.concat(row), [])
+    );
   }
 }
