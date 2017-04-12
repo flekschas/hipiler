@@ -13,7 +13,7 @@ const compressor = createCompressor();
 
 const CONFIG = {
   storage: localforage,
-  debounce: 75,
+  debounce: 25,
   keyPrefix: 'hipiler.',
   transforms: [compressor]
 };
@@ -21,7 +21,9 @@ const CONFIG = {
 export default class States {
   constructor () {
     this.store = createStore(
-      undoable(appReducer),
+      undoable(appReducer, {
+        limit: 50
+      }),
       undefined,
       compose(
         autoRehydrate(),
