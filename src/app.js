@@ -107,37 +107,38 @@ export default class App {
   }
 
   keyDownHandler (event) {
+    if (event.ctrlKey || event.metaKey) {
+      this.isCtrlMetaKeyDown = true;
+    }
+
     // 90 === Z
-    if (event.keyCode === 90 && (event.ctrlKey || event.metaKey)) {
+    if (event.keyCode === 90 && this.isCtrlMetaKeyDown) {
       event.preventDefault();
-      this.undo();
+      if (!this.wasUndoRedo) {
+        this.undo();
+        this.wasUndoRedo = true;
+      }
     }
 
     // 90 === Y
-    if (event.keyCode === 89 && (event.ctrlKey || event.metaKey)) {
+    if (event.keyCode === 89 && this.isCtrlMetaKeyDown) {
       event.preventDefault();
-      this.redo();
+      if (!this.wasUndoRedo) {
+        this.redo();
+        this.wasUndoRedo = true;
+      }
     }
 
-    if (event.altKey) {
-      this.event.publish('app.keyDownAlt', event);
-    }
+    this.event.publish('app.keyDown', event);
   }
 
   keyUpHandler (event) {
-    // 68 === D
-    if (event.keyCode === 68) {
-      this.event.publish('app.keyUpD', event);
+    if (event.code === 'ControlLeft' || event.code === 'MetaLeft') {
+      this.isCtrlMetaKeyDown = false;
     }
 
-    // 83 === S
-    if (event.keyCode === 83) {
-      this.event.publish('app.keyUpS', event);
-    }
-
-    // 90 === Z
-    if (event.keyCode === 90) {
-      this.event.publish('app.keyUpZ', event);
+    if (this.wasUndoRedo && !this.isCtrlMetaKeyDown) {
+      this.wasUndoRedo = false;
     }
 
     this.event.publish('app.keyUp', event);

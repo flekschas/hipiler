@@ -140,6 +140,8 @@
           "aurelia-templating",
           "aurelia-templating-binding",
           "deep-freeze-strict",
+          "json-stringify-safe",
+          "lz-string",
           "polyline-miter-util",
           "polyline-normals",
           "text",
@@ -201,7 +203,8 @@
           {
             "name": "redux-freeze",
             "path": "../node_modules/redux-freeze/lib",
-            "main": "middleware"
+            "main": "middleware",
+            "env": "dev"
           },
           {
             "name": "redux-promise-middleware",
@@ -214,6 +217,11 @@
             "main": "redux-persist"
           },
           {
+            "name": "redux-persist-transform-compress",
+            "path": "../node_modules/redux-persist-transform-compress/lib",
+            "main": "index"
+          },
+          {
             "name": "redux-thunk",
             "path": "../node_modules/redux-thunk/dist",
             "main": "redux-thunk"
@@ -222,12 +230,6 @@
             "name": "redux-undo",
             "path": "../node_modules/redux-undo/lib",
             "main": "index"
-          },
-          {
-            "name": "science",
-            "path": "../node_modules/science",
-            "main": "index",
-            "exports": "science"
           },
           {
             "name": "three",

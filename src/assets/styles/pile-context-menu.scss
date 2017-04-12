@@ -4,7 +4,9 @@
 .pile-context-menu {
   position: fixed;
   z-index: 99;
-  opacity: 0.5;
+  opacity: 0;
+  font-family: 'Rubik', sans-serif;
+  font-size: 0.8rem;
   transform: scale(0);
   transform-origin: right top;
   transition: opacity $transition-very-fast $ease-in-out-cubic,
@@ -43,6 +45,7 @@
   button {
     margin: 1px 0;
     padding: 0.125rem 0.25rem;
+    font: inherit;
     text-align: right;
     background: transparent;
 
@@ -53,5 +56,25 @@
     &:active {
       background: $primary;
     }
+  }
+
+  label {
+    color: $gray;
+    text-align: right;
+
+    &:after {
+      content: ':';
+    }
+  }
+
+  .separator {
+    margin: 0.25rem -0.125rem;
+    height: 1px;
+    background: $gray-lightest;
+  }
+
+  li:first-child .separator,
+  li:last-child .separator {
+    display: none;
   }
 }

@@ -36,6 +36,10 @@ export class PileMenu {
       this.commands.forEach((command) => {
         command.isVisible = this.isVisible(command);
         command.pile = this.pile;
+
+        command.buttons.forEach((button) => {
+          button.isVisible = this.isVisible(button);
+        });
       });
 
       // Somtimes isActive is not properly recognized. This seems to be a bug

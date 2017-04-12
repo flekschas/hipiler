@@ -1,29 +1,29 @@
 {
-  "name": "matrix-decomposition",
+  "name": "hipiler",
   "description": "Matrix decomposition method for visual exploration and comparison",
   "author": "Fritz Lekschas (http://lekschas.de)",
-  "version": "0.1.0",
+  "version": "1.0.0-beta",
   "repository": {
     "type": "git",
-    "url": "https://github.com/flekschas/matrix-decomposition.git"
+    "url": "https://github.com/flekschas/hipiler.git"
   },
   "license": "MIT",
   "dependencies": {
     "aurelia-animator-css": "1.0.1",
     "aurelia-bootstrapper": "2.1.1",
     "bluebird": "3.4.7",
-    "d3": "4.5.0",
+    "d3": "4.7.4",
     "higlass": "0.5.9",
     "hull.js": "0.2.10",
     "javascript-detect-element-resize": "0.5.3",
     "localforage": "1.5.0",
     "redux": "3.6.0",
-    "redux-persist": "4.4.2",
+    "redux-persist": "4.6.0",
+    "redux-persist-transform-compress": "^4.2.0",
     "redux-promise-middleware": "4.2.0",
     "redux-thunk": "2.2.0",
     "redux-undo": "1.0.0-beta9-5",
-    "requirejs": "2.3.2",
-    "science": "1.9.3",
+    "requirejs": "2.3.3",
     "tayden-clusterfck": "0.7.0",
     "text": "github:requirejs/text#latest",
     "three": "0.84.0",
@@ -33,8 +33,8 @@
   },
   "peerDependencies": {},
   "devDependencies": {
-    "aurelia-cli": "0.26.1",
-    "aurelia-testing": "1.0.0-beta.3.0.0",
+    "aurelia-cli": "0.27.0",
+    "aurelia-testing": "1.0.0-beta.3.0.1",
     "aurelia-tools": "1.0.0",
     "babel-eslint": "7.1.1",
     "babel-plugin-syntax-flow": "6.18.0",
@@ -72,7 +72,7 @@
     "minimatch": "3.0.3",
     "redux-freeze": "0.1.5",
     "through2": "2.0.3",
-    "uglify-js": "2.7.5",
+    "uglify-js": "2.8.21",
     "vinyl-fs": "2.4.4"
   },
   "scripts": {

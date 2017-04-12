@@ -11,16 +11,18 @@
           <ul class="flex-c controls">
             <li>
               <button
-                class="is-icon-only"
+                class="flex-c"
                 click.delegate="maximizeColumn('matrix')">
                 <svg-icon icon-id="max-horizontal"></svg-icon>
+                <span>Max</span>
               </button>
             </li>
             <li>
               <button
-                class="is-icon-only"
+                class="flex-c"
                 click.delegate="minimizeColumn('matrix')">
                 <svg-icon icon-id="min-horizontal"></svg-icon>
+                <span>Min</span>
               </button>
             </li>
           </ul>
@@ -44,16 +46,18 @@
           <ul class="flex-c controls">
             <li>
               <button
-                class="is-icon-only"
+                class="flex-c"
                 click.delegate="maximizeColumn('fragments')">
                 <svg-icon icon-id="max-horizontal"></svg-icon>
+                <span>Max</span>
               </button>
             </li>
             <li>
               <button
-                class="is-icon-only"
+                class="flex-c"
                 click.delegate="minimizeColumn('fragments')">
                 <svg-icon icon-id="min-horizontal"></svg-icon>
+                <span>Min</span>
               </button>
             </li>
           </ul>
@@ -74,20 +78,22 @@
         ref="statsDragIndicator"
         css.one-way="stats.dragIndicatorCss"></div>
       <header class="column-header rel no-overflow">
-        <h2>Statistics</h2>
+        <h2>Details</h2>
         <ul class="flex-c controls">
           <li>
             <button
-              class="is-icon-only"
+              class="flex-c"
               click.delegate="maximizeColumn('stats')">
               <svg-icon icon-id="max-horizontal"></svg-icon>
+              <span>Max</span>
             </button>
           </li>
           <li>
             <button
-              class="is-icon-only"
+              class="flex-c"
               click.delegate="minimizeColumn('stats')">
               <svg-icon icon-id="min-horizontal"></svg-icon>
+              <span>Min</span>
             </button>
           </li>
         </ul>

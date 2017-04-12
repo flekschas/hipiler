@@ -44,7 +44,7 @@ export const DIAGONAL_VALUE = 0.11;
 
 export const DURATION = 250;
 
-export const FONT_URL = 'src/assets/fonts/rubik-regular.json';
+export const FONT_URL = 'assets/fonts/rubik-regular.json';
 
 export const FPS = 25;
 
@@ -121,21 +121,14 @@ export const MATRIX_ORIENTATION_3_TO_5 = 3;
  *
  * @type {Number}
  */
-export const MODE_MEAN = 0;
-
-/**
- * Mean average deviation
- *
- * @type {Number}
- */
-export const MODE_MAD = 1;
+export const MODE_AVERAGE = 0;
 
 /**
  * Standard deviaton
  *
  * @type {Number}
  */
-export const MODE_STD = 2;
+export const MODE_VARIANCE = 1;
 
 export const ORDER_DATA = 0;
 

@@ -80,9 +80,8 @@ import {
   MATRIX_ORIENTATION_5_TO_3,
   MATRIX_ORIENTATION_INITIAL,
   MATRIX_ORIENTATION_UNDEF,
-  MODE_MAD,
-  MODE_MEAN,
-  MODE_STD,
+  MODE_AVERAGE,
+  MODE_VARIANCE,
   PILE_AREA_BORDER,
   PILE_AREA_BG,
   PILE_AREA_POINTS,
@@ -95,8 +94,7 @@ import {
   Z_HIGHLIGHT,
   Z_HIGHLIGHT_AREA,
   Z_LASSO,
-  Z_STACK_PILE_TARGET,
-  ZOOM_DELAY_TIME
+  Z_STACK_PILE_TARGET
 } from 'components/fragments/fragments-defaults';
 
 import fgmState from 'components/fragments/fragments-state';
@@ -247,14 +245,11 @@ export class Fragments {
     }];
 
     this.coverDispModes = [{
-      id: MODE_MEAN,
-      name: 'Mean'
+      id: MODE_AVERAGE,
+      name: 'Average (Mean)'
     }, {
-      id: MODE_MAD,
-      name: 'Mean Avg. Dev.'
-    }, {
-      id: MODE_STD,
-      name: 'Standard Dev.'
+      id: MODE_VARIANCE,
+      name: 'Variance (STD)'
     }];
 
     this.matrixOrientations = [{
@@ -272,66 +267,6 @@ export class Fragments {
     }];
 
     this.arrangeSelectedEventId = 'fgm.arrange';
-
-    this.event.subscribe(
-      'app.keyDownAlt',
-      this.enableAlt.bind(this)
-    );
-
-    this.event.subscribe(
-      'app.keyUp',
-      this.disableAlt.bind(this)
-    );
-
-    this.event.subscribe(
-      'app.keyUpD',
-      this.toggleCoverDispMode.bind(this)
-    );
-
-    this.event.subscribe(
-      'app.keyUpS',
-      this.lassoIsRoundChangeHandler.bind(this)
-    );
-
-    this.event.subscribe(
-      'app.keyUpZ',
-      this.toggleZoomPan.bind(this)
-    );
-
-    this.event.subscribe(
-      'decompose.fgm.coverDispMode',
-      this.changeCoverDispMode.bind(this)
-    );
-
-    this.event.subscribe(
-      'decompose.fgm.dispersePiles',
-      this.dispersePilesHandler.bind(this)
-    );
-
-    this.event.subscribe(
-      'decompose.fgm.inspectPiles',
-      this.inspectPilesHandler.bind(this)
-    );
-
-    this.event.subscribe(
-      'decompose.fgm.pileAssignColor',
-      this.pileAssignColor.bind(this)
-    );
-
-    this.event.subscribe(
-      'decompose.fgm.pileAssignBW',
-      this.pileAssignBW.bind(this)
-    );
-
-    this.event.subscribe(
-      'decompose.fgm.removePileArea',
-      this.removePileArea.bind(this)
-    );
-
-    this.event.subscribe(
-      'decompose.fgm.removeFromPile',
-      this.removeFromPile.bind(this)
-    );
 
     // The following setup allows us to imitate deferred objects. I.e., we can
     // resolve promises outside their scope.
@@ -380,7 +315,7 @@ export class Fragments {
 
     Promise
       .all([this.isDataLoaded, this.isFontLoaded, this.isInitBase])
-      .then(() => { this.initPlot(this.data); })
+      .then((results) => { this.initPlot(results[0]); })
       .catch((error) => {
         logger.error('Failed to initialize the fragment plot', error);
       });
@@ -474,6 +409,14 @@ export class Fragments {
 
   get isLayout1d () {
     return !fgmState.isLayout2d && !fgmState.isLayoutMd;
+  }
+
+  get isModifierKeyDown () {
+    if (this.isAltKeyDown || this.isCtrlKeyDown || this.isMetaKeyDown) {
+      return true;
+    }
+
+    return false;
   }
 
   get matrixGridWidth () {
@@ -999,18 +942,6 @@ export class Fragments {
     });
   }
 
-  // /**
-  //  * [calculatePiles description]
-  //  *
-  //  * @param {[type]} value - [description]
-  //  * @return {[type]} [description]
-  //  */
-  // calculatePiles (value) {
-  //   this.isLoading = true;
-
-  //   this.setPiling(calculateClusterPiling(value, fgmState.matrices, this.dMat));
-  // }
-
   /**
    * Handle click events
    */
@@ -1062,16 +993,6 @@ export class Fragments {
    * Handle double click events.
    */
   canvasDblClickHandler () {
-    // Disabled for now
-    // if (
-    //   fgmState.hoveredPile &&
-    //   fgmState.hoveredPile !== this.openedPile
-    // ) {
-    //   this.openedPileRoot = fgmState.hoveredPile;
-    // } else {
-    //   this.openedPile = fgmState.hoveredPile;
-    // }
-
     if (fgmState.hoveredPile) {
       this.dispersePilesHandler([fgmState.hoveredPile]);
       fgmState.hoveredPile = undefined;
@@ -1089,6 +1010,8 @@ export class Fragments {
    * @param {object} event - Event object
    */
   canvasMouseDownHandler (event) {
+    this.mouseDownTime = Date.now();
+
     if (event.which !== 1) { return; }
 
     event.preventDefault();
@@ -1103,17 +1026,6 @@ export class Fragments {
       cameraX: this.camera.position.x,
       cameraY: this.camera.position.y
     };
-
-    this.mouseDownTime = Date.now();
-
-    if (fgmState.hoveredPile) {
-      this.mouseDownDwelling = setTimeout(() => {
-        if (fgmState.hoveredPile) {
-          fgmState.hoveredPile.frameSetTemp(COLORS.GREEN, 2, true).draw();
-        }
-        this.render();
-      }, ZOOM_DELAY_TIME);
-    }
   }
 
   /**
@@ -1167,7 +1079,7 @@ export class Fragments {
    * listeneing to them separately.
    */
   canvasMouseClickHandler (event) {
-    this.mouseDownTimeDelta = Date.now() - this.mouseDownTime;
+    this.mouseDownTimeDelta = (Date.now() - this.mouseDownTime) || 0;
 
     if (this.mouseDownTimeDelta < CLICK_DELAY_TIME) {
       this.mouseClickCounter += 1;
@@ -1188,13 +1100,6 @@ export class Fragments {
       }
     } else {
       this.mouseClickCounter = 0;
-
-      if (this.isLayout2d && this.mouseDownTimeDelta > ZOOM_DELAY_TIME) {
-        if (fgmState.hoveredPile) {
-          this.pileZoomed = fgmState.hoveredPile.scaleTo(6).frameCreate().draw();
-        }
-        this.mouseDownTimeDelta = 0;
-      }
     }
   }
 
@@ -1215,19 +1120,14 @@ export class Fragments {
    * Handle mouse up events on the canvas.
    *
    * @param {object} event - Mouse up event.
-   * @param {boolean} mouseLeft - If `true` mouse has left the canvas.
    */
-  canvasMouseUpHandler (event, mouseLeft) {
-    if (event.which !== 1) { return; }
-
+  canvasMouseUpHandler (event) {
     event.preventDefault();
 
     fgmState.scene.updateMatrixWorld();
     this.camera.updateProjectionMatrix();
     fgmState.scene.remove(this.lassoObject);
     this.mouseIsDown = false;
-
-    clearTimeout(this.mouseDownDwelling);
 
     let pilesSelected = [];
 
@@ -1260,7 +1160,7 @@ export class Fragments {
       );
     } else if (this.isLassoRoundActive && this.lassoRoundMinMove) {
       pilesSelected = this.getLassoRoundSelection();
-    } else if (!mouseLeft) {
+    } else {
       this.canvasMouseClickHandler(event);
     }
 
@@ -1480,19 +1380,6 @@ export class Fragments {
   }
 
   /**
-   * [deselectAllMatrices description]
-   *
-   * @return {[type]} [description]
-   */
-  deselectAllMatrices () {
-    this.selectedMatrices.forEach(
-      matrix => matrix.frame.attr('class', 'matrixbackground')
-    );
-
-    this.selectedMatrices = [];
-  }
-
-  /**
    * Destroy alternative pile if it exist.
    *
    * @description
@@ -1559,10 +1446,6 @@ export class Fragments {
     });
   }
 
-  disableAlt () {
-    this.isAltKeyDown = false;
-  }
-
   /**
    * Disperse all piles.
    */
@@ -1620,30 +1503,6 @@ export class Fragments {
       }
     });
   }
-
-  // /**
-  //  * [distance description]
-  //  *
-  //  * @param {[type]} m1         - [description]
-  //  * @param {[type]} m2         - [description]
-  //  * @param {[type]} focusNodes - [description]
-  //  * @return {[type]} [description]
-  //  */
-  // distance (m1, m2, focusNodes) {
-  //   let d = 0;
-  //   let a;
-  //   let b;
-
-  //   focusNodes.forEach((node, index) => {
-  //     a = node;
-  //     for (let j = index; j < focusNodes.length; j++) {
-  //       b = focusNodes[j];
-  //       d += (m1.matrix[a][b] - m2.matrix[a][b]) ** 2;
-  //     }
-  //   });
-
-  //   return Math.sqrt(d);
-  // }
 
   /**
    * Drag handler
@@ -1725,7 +1584,7 @@ export class Fragments {
    * @param {number} currentY - Current Y position.
    */
   drawLasso (startX, currentX, startY, currentY) {
-    if (this.keyAltIsDown || this.lassoIsRound) {
+    if (this.isKeyAltDown || this.lassoIsRound) {
       if (!this.isLassoRoundActive) {
         this.isLassoRoundActive = true;
       }
@@ -1871,10 +1730,6 @@ export class Fragments {
     }
   }
 
-  enableAlt () {
-    this.isAltKeyDown = true;
-  }
-
   /**
    * Extract the min and max points of a set of points on a line.
    *
@@ -1956,36 +1811,6 @@ export class Fragments {
 
     this.store.dispatch(setArrangeMeasures(arrangeMeasures.reverse()));
   }
-
-  // /**
-  //  * [focusOn description]
-  //  *
-  //  * @param {[type]} nodes - [description]
-  //  * @return {[type]} [description]
-  //  */
-  // focusOn (nodes) {
-  //   fgmState.focusNodes = nodes;
-
-  //   // update sizes
-  //   this.matrixWidth = this.cellSize * fgmState.focusNodes.length;
-  //   this.matrixWidthHalf = this.matrixWidth / 2;
-
-  //   fgmState.calculateDistanceMatrix();
-
-  //   // update highlight frame
-  //   fgmState.scene.remove(this.highlightFrame);
-  //   this.highlightFrame = createRectFrame(
-  //     this.matrixWidth, this.matrixWidth, 0x000000, HIGHLIGHT_FRAME_LINE_WIDTH
-  //   );
-  //   fgmState.scene.add(this.highlightFrame);
-
-  //   // redraw
-  //   this.piles.forEach(pile => pile.frameUpdate());
-  //   this.redrawPiles();
-  //   this.updateLayout().then(() => {
-  //     this.render();
-  //   });
-  // }
 
   /**
    * Toggle footer
@@ -2652,7 +2477,7 @@ export class Fragments {
 
     this.canvas.addEventListener(
       'mouseleave', (event) => {
-        this.canvasMouseUpHandler(event, true);
+        this.canvasMouseUpHandler(event);
       }, false
     );
 
@@ -2674,13 +2499,48 @@ export class Fragments {
     );
 
     this.event.subscribe(
-      'app.keyDownAlt',
-      this.keyDownAltHandler.bind(this)
+      'app.keyDown',
+      this.keyDownHandler.bind(this)
     );
 
     this.event.subscribe(
       'app.keyUp',
       this.keyUpHandler.bind(this)
+    );
+
+    this.event.subscribe(
+      'decompose.fgm.coverDispMode',
+      this.changeCoverDispMode.bind(this)
+    );
+
+    this.event.subscribe(
+      'decompose.fgm.dispersePiles',
+      this.dispersePilesHandler.bind(this)
+    );
+
+    this.event.subscribe(
+      'decompose.fgm.inspectPiles',
+      this.inspectPilesHandler.bind(this)
+    );
+
+    this.event.subscribe(
+      'decompose.fgm.pileAssignColor',
+      this.pileAssignColor.bind(this)
+    );
+
+    this.event.subscribe(
+      'decompose.fgm.pileAssignBW',
+      this.pileAssignBW.bind(this)
+    );
+
+    this.event.subscribe(
+      'decompose.fgm.removePileArea',
+      this.removePileArea.bind(this)
+    );
+
+    this.event.subscribe(
+      'decompose.fgm.removeFromPile',
+      this.removeFromPile.bind(this)
     );
   }
 
@@ -2898,54 +2758,64 @@ export class Fragments {
     this.store.dispatch(inspectPiles(pilesConfig));
   }
 
-  // /**
-  //  * [isSameOrdering description]
-  //  *
-  //  * @param {[type]} o1 - [description]
-  //  * @param {[type]} o2 - [description]
-  //  * @return  {Boolean}          - [description]
-  //  */
-  // isSameOrdering (o1, o2) {
-  //   if (!o1 || !o2) {
-  //     return false;
-  //   }
-
-  //   if (o1.length !== o2.length) {
-  //     return false;
-  //   }
-
-  //   let same = true;
-
-  //   for (let i = 0; i < o1.length; i++) {
-  //     if (o1[i] !== o2[i]) {
-  //       same = false;
-  //       break;
-  //     }
-  //   }
-
-  //   return same;
-  // }
-
   /**
-   * Handle ALT key-down  events.
+   * Handle key-down events.
    */
-  keyDownAltHandler () {
-    this.keyAltIsDown = true;
+  keyDownHandler (event) {
+    if (event.altKey) {
+      this.isAltKeyDown = true;
+    }
 
-    const downDelta = Date.now() - this.keyAltDownTime;
+    if (event.ctrlKey) {
+      this.isCtrlKeyDown = true;
+    }
 
-    this.keyAltDownTime = Date.now();
-
-    if (downDelta < DBL_CLICK_DELAY_TIME) {
-      this.footerToggle();
+    if (event.metaKey) {
+      this.isMetaKeyDown = true;
     }
   }
 
   /**
-   * Handle ALT key-up  events.
+   * Handle key-up  events.
+   *
+   * @param {object} event - Key up event object.
    */
-  keyUpHandler () {
-    this.keyAltIsDown = false;
+  keyUpHandler (event) {
+    if (!this.isModifierKeyDown) {
+      switch (event.keyCode) {
+        case 67:  // C == Cover Mode
+          this.toggleCoverDispMode();
+          break;
+
+        case 83:  // S == Selection (rect lasso or swiping)
+          this.lassoIsRoundChangeHandler();
+          break;
+
+        case 88:  // X == Show / hide advance menu
+          this.footerToggle();
+          break;
+
+        case 90:  // Z == Zoom snippets view
+          this.toggleZoomPan();
+          break;
+
+        default:
+          // Nothing
+          break;
+      }
+    }
+
+    if (event.code === 'AltLeft') {
+      this.isAltKeyDown = false;
+    }
+
+    if (event.code === 'ControlLeft') {
+      this.isCtrlKeyDown = false;
+    }
+
+    if (event.code === 'MetaLeft') {
+      this.isMetaKeyDown = false;
+    }
   }
 
   /**
@@ -2967,7 +2837,7 @@ export class Fragments {
   loadData (config) {
     this.isLoading = true;
 
-    const loadData = new Promise((resolve, reject) => {
+    return new Promise((resolve, reject) => {
       let dataUrl;
 
       const queryString = config.apiParams ?
@@ -2989,20 +2859,17 @@ export class Fragments {
         .post(JSON.stringify(postData), (error, results) => {
           if (error) {
             this.hasErrored('Could not load data');
-            reject(Error(this.errorMsg));
-          } else {
-            this.isLoading = false;
-            this.data = this.initData(
-              config, results.fragments
-            );
-            resolve(this.data);
+            this.reject.isDataLoaded(Error(this.errorMsg));
+            return;
           }
+
+          this.isLoading = false;
+          const finalResults = this.initData(
+            config, results.fragments
+          );
+          this.resolve.isDataLoaded(finalResults);
         });
     });
-
-    loadData
-      .then(results => this.resolve.isDataLoaded(results))
-      .catch(error => this.reject.isDataLoaded(error));
   }
 
   /**
@@ -3179,18 +3046,12 @@ export class Fragments {
   mouseOutPileHandler () {
     fgmState.hoveredPile = undefined;
 
-    if (fgmState.hoveredGapPile) {
-      const pile = fgmState.hoveredGapPile;
-      fgmState.hoveredGapPile = undefined;
-      pile.draw();
-    }
-
     if (fgmState.previousHoveredPile) {
       fgmState.previousHoveredPile.elevateTo();
       fgmState.previousHoveredPile.showSingle(undefined);
       fgmState.previousHoveredPile.setCoverMatrixMode(this.coverDispMode);
       this.highlightFrame.visible = false;
-      fgmState.previousHoveredPile.draw(false, true);
+      fgmState.previousHoveredPile.draw();
       fgmState.previousHoveredPile = undefined;
     }
 
@@ -3752,67 +3613,6 @@ export class Fragments {
     piles.forEach((pile) => { pile.setCoverMatrixMode(mode); });
   }
 
-  // /**
-  //  * [setSimilarityPiling description]
-  //  *
-  //  * @param {[type]} value - [description]
-  //  */
-  // setSimilarityPiling (value) {
-  //   this.calculatePiles(value);
-  // }
-
-  // /**
-  //  * [setPiling description]
-  //  *
-  //  * @param {[type]} newPiling - [description]
-  //  */
-  // setPiling (newPiling) {
-  //   this.piles.forEach(pile => this.destroyPile(pile));
-
-  //   this.piles = [];
-
-  //   let matrices = [];
-  //   let l = 0;
-
-  //   for (let i = 1; i <= newPiling.length; i++) {
-  //     matrices = [];
-
-  //     if (i < newPiling.length) {
-  //       for (let j = l; j < newPiling[i]; j++) {
-  //         matrices.push(matrices[j]);
-  //       }
-  //     } else if (l < matrices.length) {
-  //       for (let j = l; j < matrices.length; j++) {
-  //         matrices.push(matrices[j]);
-  //       }
-  //     } else {
-  //       break;
-  //     }
-
-  //     const newPile = new Pile(
-  //       this.piles.length,
-  //       fgmState.scene,
-  //       fgmState.scale,
-  //       this.fragDims
-  //     );
-
-  //     this.piles.push(newPile);
-  //     newPile.addMatrices(matrices);
-
-  //     this.sortByOriginalOrder(newPile);
-  //     newPile.setCoverMatrixMode(this.coverDispMode);
-  //     newPile.draw();
-
-  //     l = newPiling[i];
-  //   }
-
-  //   this.isLoading = true;
-
-  //   this.updateLayout().then(() => {
-  //     this.render();
-  //   });
-  // }
-
   /**
    * Setup piles from pile config
    *
@@ -4058,74 +3858,6 @@ export class Fragments {
     pile.pileMatrices.sort(this.matrixTimeComparator);
   }
 
-  // /**
-  //  * Splits a pile at the position of the passed matrix. The passed matrix
-  //  * becomes the base for the new pile.
-  //  *
-  //  * @param {array} matrix - Matrix
-  //  * @param {boolean} noAnimation - If `true` force no animation.
-  //  */
-  // splitPile (matrix, noAnimation) {
-  //   if (noAnimation) {
-  //     let pileSrc = matrix.pile;
-  //     let pileNew = new Pile(
-  //       this.piles.length,
-  //       fgmState.scene,
-  //       fgmState.scale,
-  //       this.fragDims
-  //     );
-
-  //     pileNew.colored = pileSrc.colored;
-  //     this.piles.splice(this.piles.indexOf(pileSrc) + 1, 0, pileNew);
-
-  //     let m = [];
-  //     for (let i = pileSrc.getMatrixPosition(matrix); i < pileSrc.size(); i++) {
-  //       // Needs refactoring
-  //       m.push(pileSrc.getMatrix(i));
-  //     }
-
-  //     this.pileUp(m, pileNew);
-
-  //     pileNew.draw();
-  //     pileSrc.draw();
-
-  //     this.updateLayout().then(() => {
-  //       this.render();
-  //     });
-  //   } else {
-  //     // Needs refactoring
-  //     // this.pilingAnimations.push(SplitAnimation(matrix));
-  //     // this.startAnimations();
-  //   }
-  // }
-
-  // /**
-  //  * Starts all animations in pilingAnimations array.
-  //  */
-  // startAnimations () {
-  //   clearInterval(this.interval);
-
-  //   this.interval = setInterval(() => {
-  //     this.pilingAnimations.forEach((pileAnimation, index) => {
-  //       pileAnimation.step();
-  //       if (pileAnimation.done) {
-  //         this.pilingAnimations.splice(index, 1);
-  //       }
-  //     });
-
-  //     if (this.pilingAnimations.length === 0) {
-  //       clearInterval(this.interval);
-  //       this.interval = undefined;
-  //       this.pilingAnimations = [];
-  //       this.updateLayout().then(() => {
-  //         this.render();
-  //       });
-  //     }
-
-  //     this.render();
-  //   }, 500 / FPS);
-  // }
-
   /**
    * Handle all piles display mode changes
    *
@@ -4133,7 +3865,9 @@ export class Fragments {
    */
   toggleCoverDispMode () {
     this.store.dispatch(
-      setCoverDispMode(this.coverDispMode !== MODE_MEAN ? MODE_MEAN : MODE_STD)
+      setCoverDispMode(
+        this.coverDispMode !== MODE_AVERAGE ? MODE_AVERAGE : MODE_VARIANCE
+      )
     );
   }
 
@@ -4173,6 +3907,8 @@ export class Fragments {
       const state = this.store.getState().present.decompose;
       const stateFgm = state.fragments;
       const stateHgl = state.higlass;
+
+      console.log(this.store.getState());
 
       const update = {};
       const ready = [];

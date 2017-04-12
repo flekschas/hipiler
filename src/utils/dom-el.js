@@ -1,4 +1,15 @@
+/**
+ * Simple jQuery-like DOM library
+ *
+ * @type  {Object}
+ */
 const DomEl = {
+  /**
+   * Add a class to the wrapped DOM element.
+   *
+   * @param {string} className - Class name to be added.
+   * @return {object} Self.
+   */
   addClass (className) {
     if (!this.hasClass(className)) {
       const space = this.node.className.length > 0 ? ' ' : '';
@@ -9,6 +20,15 @@ const DomEl = {
     return this;
   },
 
+  /**
+   * Dispatch a manuel DOM event from the wrapper DOM element.
+   *
+   * @param {string} eventName - Name of the event.
+   * @param {string} eventType - Event type.
+   * @param {boolean} blubbles - If `true` the event bubbles up the DOM tree.
+   * @param {boolean} cancelable - If `true` the event is cancelable.
+   * @return {object} Self.
+   */
   dispatch (eventName, eventType, blubbles, cancelable) {
     const event = document.createEvent(eventType || 'Event');
 
@@ -19,6 +39,12 @@ const DomEl = {
     return this;
   },
 
+  /**
+   * Check of the wrapped DOM element has a class.
+   *
+   * @param {string} className - Class name to be checked.
+   * @return {boolean} If `true` DOM element has `className`.
+   */
   hasClass (className, pos) {
     const re = new RegExp(`\\s?${className}\\s?`);
 
@@ -33,6 +59,12 @@ const DomEl = {
 
   node: undefined,
 
+  /**
+   * Remove a class from the wrapped DOM element.
+   *
+   * @param {string} className - Class name to be removed.
+   * @return {object} Self.
+   */
   removeClass (className) {
     const re = this.hasClass(className, true);
 

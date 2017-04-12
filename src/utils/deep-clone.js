@@ -1,3 +1,10 @@
+/**
+ * Deep clone an object
+ *
+ * @param {object} target - Target object or undefined to create a new object.
+ * @param {object} source - Object to be cloned.
+ * @return {object} Cloned `source` object
+ */
 function extend (target, source) {
   if (source === null || typeof source !== 'object') {
     return source;

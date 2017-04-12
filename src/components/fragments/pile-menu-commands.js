@@ -10,26 +10,27 @@ import {
 } from 'components/fragments/fragments-actions';
 
 import {
-  MODE_MAD, MODE_MEAN, MODE_STD
+  MODE_AVERAGE, MODE_VARIANCE
 } from 'components/fragments/fragments-defaults';
 
 const store = Container.instance.get(States).store;
 const event = Container.instance.get(EventAggregator);
 
-export const BW = {
-  buttons: [
-    {
-      name: 'Black & White',
-      trigger (pile) {
-        event.publish('decompose.fgm.pileAssignBW', { pile });
-      }
-    }
-  ],
-  isColoredOnly: true
-};
-
 export const COLOR = {
   buttons: [
+    {
+      name: 'X',
+      css: {
+        color: '#000',
+        background: '#fff',
+        boxShadow: 'inset 0 0 0 1px #efefef',
+        marginRight: '0.25rem'
+      },
+      trigger (pile) {
+        event.publish('decompose.fgm.pileAssignBW', { pile });
+      },
+      isColoredOnly: true
+    },
     {
       name: 'G',
       minWidth: 1,
@@ -100,17 +101,28 @@ export const COLOR = {
         event.publish('decompose.fgm.pileAssignColor', { pile, color: 'pink' });
       }
     }
-  ]
+  ],
+  label: 'Assign Color'
 };
 
-export const INSPECT = {
+export const COVER_AVERAGE = {
   buttons: [{
-    name: 'Inspect',
+    name: 'Average cover',
     trigger (pile) {
-      event.publish('decompose.fgm.inspectPiles', [pile]);
-      event.publish('decompose.fgm.removePileArea');
-    },
-    closeOnClick: true
+      event.publish('decompose.fgm.coverDispMode', { mode: MODE_AVERAGE, pile });
+    }
+  }],
+  stackedPileOnly: true
+};
+
+export const COVER_VARIANCE = {
+  buttons: [{
+    name: 'Variance cover',
+    trigger (pile) {
+      event.publish(
+        'decompose.fgm.coverDispMode', { mode: MODE_VARIANCE, pile }
+      );
+    }
   }],
   stackedPileOnly: true
 };
@@ -126,23 +138,14 @@ export const DISPERSE = {
   stackedPileOnly: true
 };
 
-export const MAD = {
+export const INSPECT = {
   buttons: [{
-    name: 'Mean Avg. Dev.',
-    row: 0,
+    name: 'Inspect',
     trigger (pile) {
-      event.publish('decompose.fgm.coverDispMode', { mode: MODE_MAD, pile });
-    }
-  }],
-  stackedPileOnly: true
-};
-
-export const MEAN = {
-  buttons: [{
-    name: 'Average Cover',
-    trigger (pile) {
-      event.publish('decompose.fgm.coverDispMode', { mode: MODE_MEAN, pile });
-    }
+      event.publish('decompose.fgm.inspectPiles', [pile]);
+      event.publish('decompose.fgm.removePileArea');
+    },
+    closeOnClick: true
   }],
   stackedPileOnly: true
 };
@@ -172,9 +175,23 @@ export const REMOVE = {
   inspectionOnly: true
 };
 
+export const SEPARATOR = {
+  buttons: [],
+  isSeparator: true
+};
+
+export const SHOW_IN_MATRIX = {
+  buttons: [{
+    name: 'Show in matrix',
+    trigger (pile) {
+      event.publish('decompose.fgm.showInMatrix', pile);
+    }
+  }]
+};
+
 export const TRASH = {
   buttons: [{
-    name: 'Trash',
+    name: 'Move to trash',
     trigger (pile) {
       store.dispatch(trashPiles([pile.id]));
       event.publish('decompose.fgm.pileMouseLeave');
@@ -186,27 +203,18 @@ export const TRASH = {
   notInTrash: true
 };
 
-export const STD = {
-  buttons: [{
-    name: 'Variance Cover',
-    trigger (pile) {
-      event.publish(
-        'decompose.fgm.coverDispMode', { mode: MODE_STD, pile }
-      );
-    }
-  }],
-  stackedPileOnly: true
-};
-
 export default [
   INSPECT,
   DISPERSE,
   REMOVE,
+  SEPARATOR,
+  SHOW_IN_MATRIX,
+  SEPARATOR,
   COLOR,
-  BW,
+  SEPARATOR,
   TRASH,
   RECOVER,
-  MEAN,
-  // MAD,
-  STD
+  SEPARATOR,
+  COVER_AVERAGE,
+  COVER_VARIANCE
 ];
