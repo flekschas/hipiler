@@ -214,3 +214,7 @@ body.dragging-vertical,
 .draggable.vertical-only:active {
   cursor: ns-resize !important;
 }
+
+.is-aligned-right {
+  text-align: right;
+}

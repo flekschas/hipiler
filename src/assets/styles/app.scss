@@ -287,6 +287,17 @@ html {
     font-size: 0.8rem;
     line-height: 3rem;
   }
+
+  .logos a {
+    border-bottom: 0;
+  }
+
+  .logo-vcg label {
+    margin-right: 0.25rem;
+    font-size: 0.65rem;
+    line-height: 1.125em;
+    cursor: inherit;
+  }
 }
 
 body.is-dragging-over #drag-drop-notifier,
