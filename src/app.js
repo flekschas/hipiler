@@ -17,6 +17,7 @@ import {
 import { externalLinks } from 'configs/nav';
 import dragDrop from 'utils/drag-drop';
 import readJsonFile from 'utils/read-json-file';
+import validateConfig from 'utils/validate-config';
 
 const logger = LogManager.getLogger('app');
 
@@ -64,7 +65,7 @@ export default class App {
       }
 
       results
-        .then(json => this.updateState(json))
+        .then(json => this.setState(json))
         .catch(error => logger.error(error));
     });
 
@@ -153,13 +154,36 @@ export default class App {
   }
 
   resetHandler () {
-    this.router.navigateToRoute('home');
-    this.decomposeIsReady = false;
-    this.reset();
+    this.dialogPromise = new Promise((resolve, reject) => {
+      this.dialogDeferred = { resolve, reject };
+    });
+
+    this.dialogIsOpen = true;
+    this.dialogMessage =
+      'Are you sure you want to reset your current session? This cannot be undone.';
+
+    this.dialogPromise
+      .then(() => {
+        this.router.navigateToRoute('home');
+        this.decomposeIsReady = false;
+        this.reset();
+      })
+      .catch(() => {
+        // Nothing
+      });
   }
 
   resumeDecomposition () {
     this.router.navigateToRoute('decompose');
+  }
+
+  setState (config) {
+    if (validateConfig(config.fgm, config.hgl)) {
+      this.store.dispatch(updateConfigs(config));
+      this.router.navigateToRoute('decompose');
+    } else {
+      this.showGlobalError('Corrupted Config File', 3000);
+    }
   }
 
   showGlobalError (msg, duration) {
@@ -183,29 +207,12 @@ export default class App {
     const state = this.store.getState().present;
 
     try {
-      this.decomposeIsReady = this.validateConfig(
+      this.decomposeIsReady = validateConfig(
         state.decompose.fragments.config,
         state.decompose.higlass.config
       );
     } catch (e) {
       this.decomposeIsReady = false;
-    }
-  }
-
-  updateState (config) {
-    if (this.validateConfig(config.fgm, config.hgl)) {
-      this.store.dispatch(updateConfigs(config));
-      this.router.navigateToRoute('decompose');
-    } else {
-      this.showGlobalError('Corrupted Config File', 3000);
-    }
-  }
-
-  validateConfig (fgm, hgl) {
-    try {
-      return Object.keys(fgm).length || Object.keys(hgl).length;
-    } catch (e) {
-      return false;
     }
   }
 }
