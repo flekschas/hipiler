@@ -54,6 +54,7 @@ import {
 } from 'components/fragments/fragments-actions';
 
 import {
+  API_FRAGMENTS,
   ARRANGE_MEASURES,
   CAT_CHROMOSOME,
   CAT_DATASET,
@@ -1766,14 +1767,16 @@ export class Fragments {
    * @return {array} API ready loci list
    */
   extractLoci (config) {
-    const chrom1 = config.fragmentsHeader.indexOf('chrom1');
-    const start1 = config.fragmentsHeader.indexOf('start1');
-    const end1 = config.fragmentsHeader.indexOf('end1');
-    const chrom2 = config.fragmentsHeader.indexOf('chrom2');
-    const start2 = config.fragmentsHeader.indexOf('start2');
-    const end2 = config.fragmentsHeader.indexOf('end2');
-    const dataset = config.fragmentsHeader.indexOf('dataset');
-    const zoomOutLevel = config.fragmentsHeader.indexOf('zoomOutLevel');
+    const header = config.fragments[0];
+
+    const chrom1 = header.indexOf('chrom1');
+    const start1 = header.indexOf('start1');
+    const end1 = header.indexOf('end1');
+    const chrom2 = header.indexOf('chrom2');
+    const start2 = header.indexOf('start2');
+    const end2 = header.indexOf('end2');
+    const dataset = header.indexOf('dataset');
+    const zoomOutLevel = header.indexOf('zoomOutLevel');
 
     if (-1 in [
       chrom1, start1, end1, chrom2, start2, end2, dataset, zoomOutLevel
@@ -1782,7 +1785,7 @@ export class Fragments {
       return;
     }
 
-    return config.fragments.map(fragment => [
+    return config.fragments.slice(1).map(fragment => [
       fragment[chrom1],
       fragment[start1],
       fragment[end1],
@@ -2406,7 +2409,7 @@ export class Fragments {
    * @return {object} Object with the config and combined raw matrices.
    */
   initData (config, rawMatrices) {
-    const header = ['matrix', ...config.fragmentsHeader];
+    const header = ['matrix', ...config.fragments[0]];
     const fragments = config.fragments.map(
       (fragment, index) => [rawMatrices[index], ...fragment]
     );
@@ -2840,11 +2843,23 @@ export class Fragments {
     return new Promise((resolve, reject) => {
       let dataUrl;
 
+      const params = {
+        precision: config.fragmentsPrecision,
+        dims: config.fragmentsDims
+      };
+
+      if (config.fragmentsNoCache) {
+        params['no-cache'] = 1;
+      }
+
       const queryString = config.apiParams ?
-        this.prepareQueryString(config.apiParams) : '';
+        this.prepareQueryString(params) : '';
+
+      // Remove trailing slashes
+      const server = config.fragmentsServer.replace(/\/+$/, '');
 
       try {
-        dataUrl = `${config.api}${queryString}`;
+        dataUrl = `${server}/${API_FRAGMENTS}/${queryString}`;
       } catch (e) {
         this.hasErrored('Config is broken');
         reject(Error(this.errorMsg));
@@ -3907,8 +3922,6 @@ export class Fragments {
       const state = this.store.getState().present.decompose;
       const stateFgm = state.fragments;
       const stateHgl = state.higlass;
-
-      console.log(this.store.getState());
 
       const update = {};
       const ready = [];
