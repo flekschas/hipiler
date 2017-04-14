@@ -1,0 +1,148 @@
+@import 'colors';
+@import 'transitions';
+
+.home {
+  font-size: 1.25rem;
+
+  .bg {
+    z-index: 0;
+    background-image: url('assets/images/home-bg.png');
+    background-size: cover;
+
+    .fade-out {
+      background: #fff;
+      background: -moz-linear-gradient(top, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.75) 100%); /* FF3.6-15 */
+      background: -webkit-linear-gradient(top, rgba(255, 255, 255, 0.95) 0%,rgba(255, 255, 255, 0.75) 100%); /* Chrome10-25,Safari5.1-6 */
+      background: linear-gradient(to bottom, rgba(255, 255, 255, 0.95) 0%,rgba(255, 255, 255, 0.75) 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+    }
+  }
+
+  main,
+  footer-main {
+    z-index: 1;
+  }
+
+  footer-main {
+    margin: 0 -0.5rem -0.5rem -0.5rem;
+
+    .bottom-bar {
+      height: 3rem;
+      padding: 0 0.5rem 0.5rem 0.5rem;
+    }
+  }
+
+  .wrap-extra {
+    max-width: 45rem;
+    margin: 0 auto;
+  }
+
+  h2.intro {
+    margin-top: 1rem;
+    font-size: 3rem;
+    line-height: 1.25em;
+  }
+
+  .columns > * {
+    margin: 0 1rem;
+
+    &:first-child {
+      margin-left: 0;
+    }
+
+    &:last-child {
+      margin-right: 0;
+    }
+  }
+
+  p {
+    margin-bottom: 0;
+  }
+
+  p.intro {
+    text-align: justify;
+  }
+
+  p.smaller {
+    font-size: 1rem;
+  }
+
+  .is-increased-line-height {
+    line-height: 1.66em;
+  }
+
+  .box {
+    position: relative;
+    margin: 0.5rem 0;
+    padding: 1rem;
+    font-size: 1rem;
+    border-radius: 0.25rem;
+    background: $gray-lightest;
+
+    &:first-child {
+      margin-top: 1rem;
+    }
+  }
+
+  .box-drop {
+    &:after {
+      position: absolute;
+      content: '';
+      top: 0.25rem;
+      right: 0.25rem;
+      bottom: 0.25rem;
+      left: 0.25rem;
+      border: 2px dashed $white;
+      border-radius: 0.125rem;
+    }
+  }
+
+  .box-select {
+    transition: background $transition-very-fast $ease-in-out-cubic,
+                color $transition-very-fast $ease-in-out-cubic;
+
+    &:hover {
+      color: $primary;
+      cursor: pointer;
+      background: lighten($primary, 40%);
+    }
+
+    svg,
+    svg-icon {
+      width: 1.25rem;
+      height: 1.25rem;
+      color: $white;
+    }
+
+    input {
+      display: none;
+    }
+  }
+
+  .box-demo {
+    ul {
+      margin: 0.5rem 0 0 0;
+    }
+
+    li {
+      padding: 0.3rem;
+      transition: background $transition-very-fast $ease-in-out-cubic,
+                  box-shadow $transition-very-fast $ease-in-out-cubic,
+                  color $transition-very-fast $ease-in-out-cubic;
+
+      &:nth-child(odd) {
+        background: lighten($gray-lightest, 5%);
+
+        &:hover {
+          background: lighten($primary, 40%);
+        }
+      }
+
+      &:hover {
+        color: $primary;
+        cursor: pointer;
+        background: lighten($primary, 40%);
+        box-shadow: -2px 0 0 0 $primary;
+      }
+    }
+  }
+}

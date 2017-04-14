@@ -1,9 +1,45 @@
 <template>
   <require from="components/footer-main.html"></require>
+  <require from="components/svg-icon/svg-icon"></require>
 
-  <div class="flex-c flex-d-c full-wh">
-    <main class="flex-g-1">
-      <p>Home</p>
+  <div class="flex-c flex-d-c full-wh home">
+    <div class="bg full-dim"><div class="fade-out full-dim"></div></div>
+    <main class="flex-g-1 wrap">
+      <h2 class="intro">Visual Exploration of</br>Large Genome Interaction Matrices</br>With Interactive Small Multiples.</h2>
+
+      <div class="flex-c columns">
+        <p class="flex-g-1 text max-50 intro is-increased-line-height">HiPiler is an interactive web application for exploring and visualizing many regions-of-interest in large genome interaction matrices. Genome interaction matrices approximate the physical distance of pairs of genomic regions to each other and can contain up to 3 million rows and columns. Traditional matrix aggregation or pan-and-zoom interfaces largely fail in supporting search, inspection, and comparison of local regions-of-interest. HiPiler represents regions-of-interest as thumbnail-like <em>snippets</em>. Snippets can be laid out automatically based on their data and meta attributes. They are linked back to the matrix and can be explored interactively.</p>
+
+        <div class="flex-g-1 flex-c flex-d-c wrap-extra max-50">
+          <p class="is-align-center is-increased-line-height">Try HiPiler using one of the three methods:</p>
+          <div class="flex-c flex-d-c">
+            <div class="flex-g-1 box box-drop">
+              Drag &amp; drop a config
+            </div>
+            <div class="flex-g-1 flex-c box box-select" ref="selectConfigButton">
+              <span class="flex-g-1">Select a config</span>
+              <svg-icon icon-id="arrow-bottom"></svg-icon>
+              <input
+                type="file"
+                accept=".json"
+                ref="inputConfigFile"
+                files.bind="selectedConfig"
+                change.delegate="selectedConfigChanged()"
+              >
+            </div>
+            <div class="flex-g-1 box box-demo">
+              <p>Choose a predefined config:</p>
+              <ul>
+                <li click.delegate="">Rao et al. (2014) GM12878 Loops</li>
+                <li click.delegate="">Rao et al. (2014) GM12878 Loops</li>
+                <li click.delegate="">Rao et al. (2014) GM12878 Loops</li>
+                <li click.delegate="">Rao et al. (2014) GM12878 Loops</li>
+                <li click.delegate="">Rao et al. (2014) GM12878 Loops</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
     </main>
     <footer-main></footer-main>
   </div>
