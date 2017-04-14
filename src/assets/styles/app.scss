@@ -1,11 +1,6 @@
 @import 'colors';
 @import 'transitions';
-
-html {
-  font-family: 'Rubik', sans-serif;
-  font-size: 16px;
-  background: #fff;
-}
+@import 'mixins/rotate';
 
 #drag-drop-notifier,
 #global-error {
@@ -401,13 +396,23 @@ body.is-dragging-over #drag-drop-notifier {
   .state {
     margin: 0.5rem 0 0.5rem 0.5rem;
     padding: 0 0.5rem;
+    cursor: pointer;
     color: $gray-dark;
     font-size: 0.8em;
     text-transform: uppercase;
     line-height: 2rem;
     border: 0;
     background: none;
+    transition: color $transition-very-fast $ease-in-out-cubic;
 
+    &:hover,
+    &.state-active {
+      color: $primary;
+    }
+
+    &:hover .reset svg {
+      @include rotate(180deg, $transition-normal);
+    }
 
     &.state-indicator::after {
       content: '';
@@ -416,14 +421,6 @@ body.is-dragging-over #drag-drop-notifier {
       height: 0.5rem;
       border-radius: 0.5rem;
       background: $gray-lighter;
-    }
-
-    &.state-active {
-      color: $primary;
-    }
-
-    &.state-ready {
-      color: $primary;
     }
 
     .icon-inline {

@@ -10,6 +10,7 @@
 /* -----  1.2 Reset & Normalization  ---------------------------------------- */
 
 *, *::before, *::after {
+  font-family: 'Rubik', sans-serif;
   margin: 0;
   padding: 0;
   border: none;
@@ -33,9 +34,14 @@ footer, header, main, menu, nav, section, summary {
   color: $black;
 }
 
+html,
 body {
   height: 100vh;
+  color: $gray-dark;
+  font-size: 16px;
+  font-weight: 300;
   text-rendering: optimizeLegibility;
+  background: #fff;
 }
 
 /* -----  1.3 General Typography  ------------------------------------------- */
@@ -50,11 +56,11 @@ p, ul, ol, figure, pre {
 
 /* Headings */
 h1, h2, h3 {
-  font-weight: 700;
+  color: $black;
+  font-weight: 500;
 }
 
 h1 {
-  font-weight: 700;
   font-size: 2.5rem;
   line-height: 1.25;
   margin-bottom: 3rem;
@@ -68,6 +74,10 @@ h2 {
 h3 {
   font-size: 1.25em;
   line-height: 1.2;
+}
+
+h4, h5, h6 {
+  font-weight: 300;
 }
 
 h4 {
@@ -111,6 +121,10 @@ figcaption {
 
 svg-icon {
   display: block;
+}
+
+a, p, button {
+  font-weight: 300;
 }
 
 /* =====  Global Styles  ==================================================== */
@@ -215,6 +229,19 @@ body.dragging-vertical,
   cursor: ns-resize !important;
 }
 
-.is-aligned-right {
+.is-align-center {
+  text-align: center;
+}
+
+.is-align-right {
   text-align: right;
+}
+
+.wrap {
+  max-width: 60rem;
+  margin: 0 auto;
+}
+
+.max-50 {
+  max-width: 50%;
 }
