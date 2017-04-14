@@ -11,7 +11,7 @@ export class Dialog {
 
   cancel () {
     if (this.deferred && this.deferred.reject) {
-      this.deferred.reject();
+      this.deferred.reject(Error());
       this.isOpen = false;
     }
   }
