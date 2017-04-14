@@ -4,8 +4,8 @@
 
 > An interactive web application for exploring and visualizing regions-of-interest in large genome interaction matrices.
 
-[![Build Status](https://travis-ci.org/flekschas/hipiler.svg?branch=master)](https://travis-ci.org/flekschas/hipiler)
-
+[![Build Status](https://img.shields.io/travis/flekschas/hipiler/master.svg)](https://travis-ci.org/flekschas/hipiler)
+[![bioRxiv](https://img.shields.io/badge/bioRxiv-10.1101%2F123588-red.svg?colorB=ae353b)](http://biorxiv.org/content/early/2017/04/03/123588)
 
 ## Get Started
 
