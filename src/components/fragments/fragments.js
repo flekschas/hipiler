@@ -2410,7 +2410,7 @@ export class Fragments {
    */
   initData (config, rawMatrices) {
     const header = ['matrix', ...config.fragments[0]];
-    const fragments = config.fragments.map(
+    const fragments = config.fragments.slice(1).map(
       (fragment, index) => [rawMatrices[index], ...fragment]
     );
 
@@ -2882,6 +2882,7 @@ export class Fragments {
           const finalResults = this.initData(
             config, results.fragments
           );
+
           this.resolve.isDataLoaded(finalResults);
         });
     });

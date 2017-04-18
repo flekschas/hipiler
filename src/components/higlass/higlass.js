@@ -322,14 +322,16 @@ export class Higlass {
    * @return {array} List of loci.
    */
   extractLoci (config, piles, pilesColors) {
-    const dataIdxChrom1 = config.fragmentsHeader.indexOf('chrom1');
-    const dataIdxStart1 = config.fragmentsHeader.indexOf('start1');
-    const dataIdxEnd1 = config.fragmentsHeader.indexOf('end1');
-    const dataIdxChrom2 = config.fragmentsHeader.indexOf('chrom2');
-    const dataIdxStart2 = config.fragmentsHeader.indexOf('start2');
-    const dataIdxEnd2 = config.fragmentsHeader.indexOf('end2');
+    const header = config.fragments[0];
 
-    const loci = config.fragments.map(fragment => [
+    const dataIdxChrom1 = header.indexOf('chrom1');
+    const dataIdxStart1 = header.indexOf('start1');
+    const dataIdxEnd1 = header.indexOf('end1');
+    const dataIdxChrom2 = header.indexOf('chrom2');
+    const dataIdxStart2 = header.indexOf('start2');
+    const dataIdxEnd2 = header.indexOf('end2');
+
+    const loci = config.fragments.slice(1).map(fragment => [
       `chr${fragment[dataIdxChrom2]}`,
       fragment[dataIdxStart2],
       fragment[dataIdxEnd2],
