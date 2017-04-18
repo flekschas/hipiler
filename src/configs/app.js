@@ -26,7 +26,8 @@ export const routes = [
     name: 'about',
     title: 'About',
     moduleId: 'views/about',
-    nav: true
+    nav: true,
+    icon: 'info'
   },
   {
     route: 'docs',
@@ -34,7 +35,8 @@ export const routes = [
     title: 'Documentation',
     moduleId: 'views/docs',
     nav: true,
-    navTitle: 'Docs'
+    navTitle: 'Docs',
+    icon: 'help'
   },
   {
     route: 'decompose',
