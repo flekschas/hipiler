@@ -99,7 +99,7 @@ a:hover, a:focus, a:active {
 }
 
 b, strong {
-  font-weight: 700;
+  font-weight: 500;
 }
 
 button:hover
@@ -237,6 +237,18 @@ body.dragging-vertical,
   text-align: right;
 }
 
+.is-increased-font-size {
+  font-size: 1.25em;
+}
+
+.is-increased-line-height {
+  line-height: 1.66em;
+}
+
+.is-justified {
+  text-align: justify;
+}
+
 .wrap {
   max-width: 60rem;
   margin: 0 auto;
@@ -244,4 +256,55 @@ body.dragging-vertical,
 
 .max-50 {
   max-width: 50%;
+}
+
+.iconized {
+  &.iconized-p svg {
+    height: 1em;
+  }
+
+  svg {
+    width: 1em;
+    margin-right: 0.5rem;
+  }
+
+  .icon-info svg {
+    height: 0.75em;
+  }
+}
+
+.smaller {
+  font-size: 1rem;
+}
+
+ul.extra-padding li,
+ol.extra-padding li {
+  margin: 0.125rem 0;
+  padding: 0.25rem 0;
+}
+
+ul.is-columized,
+ol.is-columized {
+  li {
+    display: inline-block;
+    width: 33%;
+  }
+}
+
+p.nm {
+  margin-bottom: 0;
+}
+
+.fade-in {
+  background: #fff;
+  background: -moz-linear-gradient(top, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.75) 100%); /* FF3.6-15 */
+  background: -webkit-linear-gradient(top, rgba(255, 255, 255, 0.95) 0%,rgba(255, 255, 255, 0.75) 100%); /* Chrome10-25,Safari5.1-6 */
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.95) 0%,rgba(255, 255, 255, 0.75) 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+}
+
+.fade-out {
+  background: #fff;
+  background: -moz-linear-gradient(top, rgba(255, 255, 255, 0.75) 0%, rgba(255, 255, 255, 1) 100%); /* FF3.6-15 */
+  background: -webkit-linear-gradient(top, rgba(255, 255, 255, 0.75) 0%,rgba(255, 255, 255, 1) 100%); /* Chrome10-25,Safari5.1-6 */
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.75) 0%,rgba(255, 255, 255, 1) 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
 }
