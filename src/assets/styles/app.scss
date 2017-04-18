@@ -411,7 +411,7 @@ body.is-dragging-over #drag-drop-notifier {
     }
 
     &:hover .reset svg {
-      @include rotate(180deg, $transition-normal);
+      @include rotate(360deg, $transition-slower, ease);
     }
 
     &.state-indicator::after {

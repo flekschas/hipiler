@@ -1,7 +1,7 @@
-@mixin rotate($degree, $transition) {
-  -webkit-animation: spin $transition linear 1;
-  -moz-animation: spin $transition linear 1;
-  animation: spin $transition linear 1;
+@mixin rotate($degree, $speed, $easing) {
+  -webkit-animation: spin $speed $easing 1;
+  -moz-animation: spin $speed $easing 1;
+  animation: spin $speed $easing 1;
   -webkit-transform-origin: 50% 50%;
   -moz-transform-origin: 50% 50%;
   transform-origin: 50% 50%;
