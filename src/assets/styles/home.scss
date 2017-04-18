@@ -2,19 +2,10 @@
 @import 'transitions';
 
 .home {
-  font-size: 1.25rem;
-
   .bg {
     z-index: 0;
     background-image: url('assets/images/home-bg.png');
     background-size: cover;
-
-    .fade-out {
-      background: #fff;
-      background: -moz-linear-gradient(top, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.75) 100%); /* FF3.6-15 */
-      background: -webkit-linear-gradient(top, rgba(255, 255, 255, 0.95) 0%,rgba(255, 255, 255, 0.75) 100%); /* Chrome10-25,Safari5.1-6 */
-      background: linear-gradient(to bottom, rgba(255, 255, 255, 0.95) 0%,rgba(255, 255, 255, 0.75) 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
-    }
   }
 
   main,
@@ -36,7 +27,7 @@
     margin: 0 auto;
   }
 
-  h2.intro {
+  h2 {
     margin-top: 1rem;
     font-size: 3rem;
     line-height: 1.25em;
@@ -56,18 +47,6 @@
 
   p {
     margin-bottom: 0;
-  }
-
-  p.intro {
-    text-align: justify;
-  }
-
-  p.smaller {
-    font-size: 1rem;
-  }
-
-  .is-increased-line-height {
-    line-height: 1.66em;
   }
 
   .box {
