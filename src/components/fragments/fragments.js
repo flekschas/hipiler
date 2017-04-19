@@ -2735,8 +2735,11 @@ export class Fragments {
     this.renderer.setClearColor(0xffffff, 0);
 
     this.canvas = this.renderer.domElement;
-    this.origin = new Vector3();
+    // Suporting HiDPI displays need more work
+    // this.canvas.width = this.plotElDim.width * (window.devicePixelRatio || 1);
+    // this.canvas.height = this.plotElDim.height * (window.devicePixelRatio || 1);
 
+    this.origin = new Vector3();
     this.mouse = new Vector2();
     this.raycaster = new Raycaster();
 
