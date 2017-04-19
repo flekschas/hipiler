@@ -1,6 +1,7 @@
 // Aurelia
 import { inject, LogManager } from 'aurelia-framework';
 import { Router } from 'aurelia-router';
+import { EventAggregator } from 'aurelia-event-aggregator';
 
 // Third party
 import { json } from 'd3';
@@ -17,11 +18,13 @@ import validateConfig from 'utils/validate-config';
 const logger = LogManager.getLogger('home');
 
 
-@inject(Router, States)
+@inject(EventAggregator, Router, States)
 export class Home {
   inputConfigFile;
 
-  constructor (router, states) {
+  constructor (event, router, states) {
+    this.event = event;
+
     this.router = router;
 
     this.store = states.store;
@@ -40,7 +43,9 @@ export class Home {
     json(example.url, (error, config) => {
       if (error) {
         logger.error(error);
-        this.showGlobalError('Could not load example config', 3000);
+        this.event.publish(
+          'showGlobalError', ['Could not load example config', 30000]
+        );
         return;
       }
 
@@ -76,7 +81,9 @@ export class Home {
       this.store.dispatch(updateConfigs(config));
       this.router.navigateToRoute('decompose');
     } else {
-      this.showGlobalError('Corrupted Config File', 3000);
+      this.event.publish(
+        'showGlobalError', ['Corrupted config file', 3000]
+      );
     }
   }
 
