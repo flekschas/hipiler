@@ -7,14 +7,15 @@ import Font from 'services/font';
 import States from 'services/states';
 
 // Utils
-import $ from 'utils/dom-el';
 import { updateConfigs } from 'app-actions';
+import { ERROR_DURATION } from 'app-defaults';
 import {
   name as appName,
   nameShort as appNameShort,
   routes
 } from 'configs/app';
 import { externalLinks } from 'configs/nav';
+import $ from 'utils/dom-el';
 import dragDrop from 'utils/drag-drop';
 import readJsonFile from 'utils/read-json-file';
 import validateConfig from 'utils/validate-config';
@@ -74,6 +75,10 @@ export default class App {
     document.addEventListener('mousemove', this.mouseMoveHandler.bind(this));
     document.addEventListener('mouseup', this.mouseUpHandler.bind(this));
 
+    this.event.subscribe('showGlobalError', (args) => {
+      this.showGlobalError(...args);
+    });
+
     if (!this.decomposeIsReady) {
       this.router.navigateToRoute('home');
     }
@@ -105,6 +110,12 @@ export default class App {
   clickHandler (event) {
     this.event.publish('app.click', event);
     return true;
+  }
+
+  hideGlobalError () {
+    this.corruptConfig = false;
+    this.globalErrorMsg = undefined;
+    $(document.body).removeClass('is-global-error');
   }
 
   keyDownHandler (event) {
@@ -140,6 +151,11 @@ export default class App {
 
     if (this.wasUndoRedo && !this.isCtrlMetaKeyDown) {
       this.wasUndoRedo = false;
+    }
+
+    if (this.globalError && event.keyCode === 27) {  // ESC
+      this.hideGlobalError();
+      return;
     }
 
     this.event.publish('app.keyUp', event);
@@ -186,7 +202,7 @@ export default class App {
     }
   }
 
-  showGlobalError (msg, duration) {
+  showGlobalError (msg, duration = ERROR_DURATION) {
     if (this.globalErrorDisplay) {
       clearTimeout(this.globalErrorDisplay);
     }
@@ -196,11 +212,7 @@ export default class App {
 
     $(document.body).addClass('is-global-error');
 
-    this.globalErrorDisplay = setTimeout(() => {
-      this.corruptConfig = false;
-      this.globalErrorMsg = undefined;
-      $(document.body).removeClass('is-global-error');
-    }, duration);
+    this.globalErrorDisplay = setTimeout(this.hideGlobalError, duration);
   }
 
   update () {

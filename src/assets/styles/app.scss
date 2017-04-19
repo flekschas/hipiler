@@ -22,7 +22,7 @@
 
 #global-error {
   color: $error-text;
-  background: $error-bg;
+  background: transparentize($error-bg, 0.1);
 }
 
 .bottom-bar {
