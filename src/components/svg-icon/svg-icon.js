@@ -12,6 +12,7 @@ export class SvgIcon {
   constructor () {
     this.icon = {
       viewBox: '0 0 16 16',
+      fillRule: '',
       svg: ''
     };
   }
