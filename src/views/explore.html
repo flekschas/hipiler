@@ -5,7 +5,7 @@
 
   <div class="full-wh flex-c flex-jc-sb flex-a-s" ref="baseEl">
     <div class="vis-view flex-c flex-jc-sb flex-a-s flex-g-1" ref="visEl">
-      <div class="matrix-view rel" css.one-way="css.matrix" ref="matrixColEl">
+      <div id="view-matrix" class="matrix-view rel" css.one-way="css.matrix" ref="matrixColEl">
         <header class="column-header rel no-overflow">
           <h2>Matrix</h2>
           <ul class="flex-c controls">
@@ -30,6 +30,7 @@
         <higlass class="full-wh no-overflow column-content"></higlass>
       </div>
       <div
+        id="view-fragments"
         class="fragments-view rel"
         ref="fragmentsColEl">
         <button
@@ -67,7 +68,7 @@
           base-el-is-init.bind="init"></fragments>
       </div>
     </div>
-    <div class="stats-view rel" css.one-way="css.stats" ref="statsColEl">
+    <div id="view-details" class="stats-view rel" css.one-way="css.stats" ref="statsColEl">
       <button
         class="column-resizer draggable horizontal-only"
         ref="statsDragger"

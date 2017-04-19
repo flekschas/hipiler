@@ -17,18 +17,19 @@
 .fragments-view {
 }
 
-.matrix-view {
+#view-matrix {
   flex-basis: 40%;
   min-width: 2.5rem;
   padding-left: 0;
 }
 
-.fragments-view {
+#view-fragments {
   flex-grow: 1;
   border-left: 1px solid $gray-lighter;
 }
 
-.stats-view {
+#view-details {
+  display: none;  // Hide the panel for now
   flex-basis: 20rem;
   border-left: 1px solid $gray-lighter;
   min-width: 2.5rem;
