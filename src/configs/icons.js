@@ -125,6 +125,12 @@ export const PLAY = {
   svg: '<path d="M3.896 1.243l8.91 5.523c2.006 1.236 1.975 1.236-.026 2.467l-8.864 5.52C2 16 2 15.602 2 14V2c0-1.47 0-2 1.896-.757z" fill="currentColor"/>'
 };
 
+export const PLAY_OUTLINE = {
+  viewBox: '0 0 16 16',
+  fillRule: 'evenodd',
+  svg: '<path d="M3.896 1.243l8.91 5.523c2.006 1.236 1.975 1.236-.026 2.467l-8.864 5.52C2 16 2 15.602 2 14V2c0-1.47 0-2 1.896-.757zM13 8.018L3 2v12l10-5.982z" fill="currentColor"/>'
+};
+
 export const PRESENTATION = {
   viewBox: '0 0 16 16',
   svg: '<path d="M16,1.067H8.266V0.267C8.266,0.119,8.147,0,8,0C7.852,0,7.733,0.119,7.733,0.267v0.801H0v11.2 h7.355l-3.278,3.276c-0.104,0.104-0.104,0.273,0,0.378C4.13,15.974,4.198,16,4.266,16c0.068,0,0.137-0.026,0.188-0.078 l3.278-3.278v2.556c0,0.146,0.119,0.267,0.267,0.267c0.147,0,0.266-0.12,0.266-0.267v-2.556l3.279,3.278 C11.596,15.974,11.664,16,11.732,16s0.137-0.026,0.188-0.078c0.104-0.104,0.104-0.273,0-0.378l-3.276-3.276H16V1.067L16,1.067z M0.533,1.6h14.933v10.133H0.533V1.6z" fill="currentColor"/><circle cx="2.5" cy="10" r="1" fill="currentColor"/><circle cx="10" cy="7.724" r="1" fill="currentColor"/><circle cx="6" cy="6" r="1" fill="currentColor"/><circle cx="13.5" cy="4" r="1" fill="currentColor"/><polygon points="2.782,10.247 2.218,9.753 5.901,5.543 9.907,7.357 13.224,3.747 13.776,4.253 10.093,8.265 6.099,6.457" fill="currentColor"/>'
@@ -181,6 +187,7 @@ export default {
   MIN_HORIZONTAL,
   PEOPLE,
   PLAY,
+  PLAY_OUTLINE,
   PRESENTATION,
   TEXT,
   RESET,
