@@ -1,6 +1,7 @@
 @import 'colors';
 @import 'transitions';
 @import 'mixins/rotate';
+@import 'mixins/slide-out-in';
 
 #drag-drop-notifier,
 #global-error {
@@ -418,6 +419,10 @@ body.is-dragging-over #drag-drop-notifier {
 
     &:hover .reset svg {
       @include rotate(360deg, $transition-slower, ease);
+    }
+
+    &:hover .play svg {
+      @include slide-out-in($transition-slow, ease);
     }
 
     &.state-indicator::after {
