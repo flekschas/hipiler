@@ -78,6 +78,7 @@
   "scripts": {
     "build": "au build --env prod",
     "start": "au run --watch",
-    "test": "au test"
+    "test": "au test",
+    "update": "git pull && git submodule update --init --recursive --remote --merge && npm install"
   }
 }

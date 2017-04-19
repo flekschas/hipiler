@@ -82,8 +82,8 @@ npm start
 npm run build
 ```
 
-**Test application**:
+**Update to latest code**:
 
 ```
-npm test
+npm run update
 ```
