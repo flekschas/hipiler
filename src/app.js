@@ -24,6 +24,7 @@ const logger = LogManager.getLogger('app');
 
 @inject(EventAggregator, Font, States)
 export default class App {
+
   constructor (eventAggregator, font, states) {
     this.event = eventAggregator;
 
@@ -46,6 +47,8 @@ export default class App {
     this.externalLinks = externalLinks;
   }
 
+  /* ----------------------- Aurelia-specific methods ----------------------- */
+
   attached () {
     this.font.size = parseInt(
       window
@@ -66,7 +69,7 @@ export default class App {
       }
 
       results
-        .then(json => this.setState(json))
+        .then(json => this.setConfig(json))
         .catch(error => logger.error(error));
     });
 
@@ -99,6 +102,9 @@ export default class App {
     config.fallbackRoute('/');
   }
 
+
+  /* ----------------------- Getter / Setter Variables ---------------------- */
+
   get currentRoute () {
     try {
       return this.router.currentInstruction.config.name;
@@ -107,17 +113,33 @@ export default class App {
     }
   }
 
+
+  /* ----------------------- Getter / Setter Variables ---------------------- */
+
+  /**
+   * Mouse click event handler.
+   *
+   * @param {object} event - Mouse click event object.
+   */
   clickHandler (event) {
     this.event.publish('app.click', event);
     return true;
   }
 
+  /**
+   * Hide global error message.
+   */
   hideGlobalError () {
     this.corruptConfig = false;
     this.globalErrorMsg = undefined;
     $(document.body).removeClass('is-global-error');
   }
 
+  /**
+   * Key down event handler.
+   *
+   * @param {object} event - Kep down event object.
+   */
   keyDownHandler (event) {
     if (event.ctrlKey || event.metaKey) {
       this.isCtrlMetaKeyDown = true;
@@ -144,6 +166,11 @@ export default class App {
     this.event.publish('app.keyDown', event);
   }
 
+  /**
+   * Key up event handler.
+   *
+   * @param {object} event - Kep up event object.
+   */
   keyUpHandler (event) {
     if (event.code === 'ControlLeft' || event.code === 'MetaLeft') {
       this.isCtrlMetaKeyDown = false;
@@ -161,14 +188,27 @@ export default class App {
     this.event.publish('app.keyUp', event);
   }
 
+  /**
+   * Mouse up event handler.
+   *
+   * @param {object} event - Mouse up event object.
+   */
   mouseUpHandler (event) {
     this.event.publish('app.mouseUp', event);
   }
 
+  /**
+   * Mouse move hander
+   *
+   * @param {object} event - Mouse move event object.
+   */
   mouseMoveHandler (event) {
     this.event.publish('app.mouseMove', event);
   }
 
+  /**
+   * Reset state and destroy the current exploration session.
+   */
   resetHandler () {
     this.dialogPromise = new Promise((resolve, reject) => {
       this.dialogDeferred = { resolve, reject };
@@ -189,11 +229,19 @@ export default class App {
       });
   }
 
-  resumeDecomposition () {
+  /**
+   * Resume previous exploration
+   */
+  resumeExploration () {
     this.router.navigateToRoute('decompose');
   }
 
-  setState (config) {
+  /**
+   * Set HiPiler config for exploration
+   *
+   * @param {object} config - Configuration.
+   */
+  setConfig (config) {
     if (validateConfig(config.fgm, config.hgl)) {
       this.store.dispatch(updateConfigs(config));
       this.router.navigateToRoute('decompose');
@@ -202,6 +250,12 @@ export default class App {
     }
   }
 
+  /**
+   * Show a global error message.
+   *
+   * @param {string} msg - Message to be displayed.
+   * @param {number} duration - Time in milliseconds the error is to be shown.
+   */
   showGlobalError (msg, duration = ERROR_DURATION) {
     if (this.globalErrorDisplay) {
       clearTimeout(this.globalErrorDisplay);
@@ -215,6 +269,9 @@ export default class App {
     this.globalErrorDisplay = setTimeout(this.hideGlobalError, duration);
   }
 
+  /**
+   * Update app after the state changed..
+   */
   update () {
     const state = this.store.getState().present;
 
