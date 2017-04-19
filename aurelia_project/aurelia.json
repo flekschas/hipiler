@@ -69,13 +69,15 @@
           "name": "text",
           "extensions": [
             ".html",
-            ".css"
+            ".css",
+            ".json"
           ],
           "stub": true
         }
       ]
     },
     "options": {
+      "depCache": true,
       "minify": "stage & prod",
       "sourcemaps": "dev & stage",
       "rev": "stage & prod"
