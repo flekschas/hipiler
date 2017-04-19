@@ -3,7 +3,6 @@
 
 .home {
   .bg {
-    z-index: 0;
     background-image: url('assets/images/home-bg.png');
     background-size: cover;
   }
@@ -19,6 +18,7 @@
     .bottom-bar {
       height: 3rem;
       padding: 0 0.5rem 0.5rem 0.5rem;
+      background: transparentize($white, 0.25);
     }
   }
 
