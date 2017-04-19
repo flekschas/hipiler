@@ -228,7 +228,7 @@ export class Fragments {
     this.mouseClickCounter = 0;
 
     this.arrangeMeasuresAccessPath = [
-      'decompose', 'fragments', 'arrangeMeasures'
+      'explore', 'fragments', 'arrangeMeasures'
     ];
 
     this.attrsCatReq = [{
@@ -729,7 +729,7 @@ export class Fragments {
       // Get closest Hilbert curve level
       this.hilbertCurveLevel = 1;
       if (fgmState.isHilbertCurve) {
-        const piles = this.store.getState().present.decompose.fragments.piles;
+        const piles = this.store.getState().present.explore.fragments.piles;
         const numPiles = Object.keys(piles)
           .filter(pileId => piles[pileId].length)
           .filter(pileId => pileId[0] !== '_').length;
@@ -983,7 +983,7 @@ export class Fragments {
       if (fgmState.hoveredPile) {
         // Show pile location
         this.event.publish(
-          'decompose.fgm.pileMouseEnter',
+          'explore.fgm.pileMouseEnter',
           fgmState.hoveredPile.pileMatrices.map(matrix => matrix.id)
         );
       }
@@ -1807,7 +1807,7 @@ export class Fragments {
 
     try {
       arrangeMeasures = this.store.getState().present
-        .decompose.fragments.arrangeMeasures;
+        .explore.fragments.arrangeMeasures;
     } catch (e) {
       logger.error('State is corrupted', e);
     }
@@ -2361,7 +2361,7 @@ export class Fragments {
       this.pileHighlight.frameReset();
 
       this.event.publish(
-        'decompose.fgm.pileUnhighlight',
+        'explore.fgm.pileUnhighlight',
         this.pileHighlight.pileMatrices.map(matrix => matrix.id)
       );
 
@@ -2512,37 +2512,37 @@ export class Fragments {
     );
 
     this.event.subscribe(
-      'decompose.fgm.coverDispMode',
+      'explore.fgm.coverDispMode',
       this.changeCoverDispMode.bind(this)
     );
 
     this.event.subscribe(
-      'decompose.fgm.dispersePiles',
+      'explore.fgm.dispersePiles',
       this.dispersePilesHandler.bind(this)
     );
 
     this.event.subscribe(
-      'decompose.fgm.inspectPiles',
+      'explore.fgm.inspectPiles',
       this.inspectPilesHandler.bind(this)
     );
 
     this.event.subscribe(
-      'decompose.fgm.pileAssignColor',
+      'explore.fgm.pileAssignColor',
       this.pileAssignColor.bind(this)
     );
 
     this.event.subscribe(
-      'decompose.fgm.pileAssignBW',
+      'explore.fgm.pileAssignBW',
       this.pileAssignBW.bind(this)
     );
 
     this.event.subscribe(
-      'decompose.fgm.removePileArea',
+      'explore.fgm.removePileArea',
       this.removePileArea.bind(this)
     );
 
     this.event.subscribe(
-      'decompose.fgm.removeFromPile',
+      'explore.fgm.removeFromPile',
       this.removeFromPile.bind(this)
     );
   }
@@ -2665,7 +2665,7 @@ export class Fragments {
     let piles;
 
     try {
-      piles = this.store.getState().present.decompose.fragments.piles;
+      piles = this.store.getState().present.explore.fragments.piles;
     } catch (e) {
       logger.debug('State not ready yet.');
     }
@@ -3407,7 +3407,7 @@ export class Fragments {
         try {
           // Try to remove pile from index
           const prevColor = this.store.getState()
-            .present.decompose.fragments.matricesColors[matrix.id];
+            .present.explore.fragments.matricesColors[matrix.id];
 
           const pos = this.colorsMatrixIdx[prevColor].indexOf(matrix.id);
 
@@ -3920,7 +3920,7 @@ export class Fragments {
    */
   update (init) {
     try {
-      const state = this.store.getState().present.decompose;
+      const state = this.store.getState().present.explore;
       const stateFgm = state.fragments;
       const stateHgl = state.higlass;
 

@@ -27,7 +27,7 @@ export const COLOR = {
         marginRight: '0.25rem'
       },
       trigger (pile) {
-        event.publish('decompose.fgm.pileAssignBW', { pile });
+        event.publish('explore.fgm.pileAssignBW', { pile });
       },
       isColoredOnly: true
     },
@@ -40,7 +40,7 @@ export const COLOR = {
       },
       trigger (pile) {
         event.publish(
-          'decompose.fgm.pileAssignColor', { pile, color: 'green' }
+          'explore.fgm.pileAssignColor', { pile, color: 'green' }
         );
       }
     },
@@ -53,7 +53,7 @@ export const COLOR = {
       },
       trigger (pile) {
         event.publish(
-          'decompose.fgm.pileAssignColor', { pile, color: 'yellow' }
+          'explore.fgm.pileAssignColor', { pile, color: 'yellow' }
         );
       }
     },
@@ -65,7 +65,7 @@ export const COLOR = {
         background: '#d5fafa'
       },
       trigger (pile) {
-        event.publish('decompose.fgm.pileAssignColor', { pile, color: 'cyan' });
+        event.publish('explore.fgm.pileAssignColor', { pile, color: 'cyan' });
       }
     },
     {
@@ -76,7 +76,7 @@ export const COLOR = {
         background: '#ffd5d9'
       },
       trigger (pile) {
-        event.publish('decompose.fgm.pileAssignColor', { pile, color: 'red' });
+        event.publish('explore.fgm.pileAssignColor', { pile, color: 'red' });
       }
     },
     {
@@ -87,7 +87,7 @@ export const COLOR = {
         background: '#dfd7ff'
       },
       trigger (pile) {
-        event.publish('decompose.fgm.pileAssignColor', { pile, color: 'blue' });
+        event.publish('explore.fgm.pileAssignColor', { pile, color: 'blue' });
       }
     },
     {
@@ -98,7 +98,7 @@ export const COLOR = {
         background: '#ffd5f1'
       },
       trigger (pile) {
-        event.publish('decompose.fgm.pileAssignColor', { pile, color: 'pink' });
+        event.publish('explore.fgm.pileAssignColor', { pile, color: 'pink' });
       }
     }
   ],
@@ -109,7 +109,7 @@ export const COVER_AVERAGE = {
   buttons: [{
     name: 'Average cover',
     trigger (pile) {
-      event.publish('decompose.fgm.coverDispMode', { mode: MODE_AVERAGE, pile });
+      event.publish('explore.fgm.coverDispMode', { mode: MODE_AVERAGE, pile });
     }
   }],
   stackedPileOnly: true
@@ -120,7 +120,7 @@ export const COVER_VARIANCE = {
     name: 'Variance cover',
     trigger (pile) {
       event.publish(
-        'decompose.fgm.coverDispMode', { mode: MODE_VARIANCE, pile }
+        'explore.fgm.coverDispMode', { mode: MODE_VARIANCE, pile }
       );
     }
   }],
@@ -131,7 +131,7 @@ export const DISPERSE = {
   buttons: [{
     name: 'Disperse',
     trigger (pile) {
-      event.publish('decompose.fgm.dispersePiles', [pile]);
+      event.publish('explore.fgm.dispersePiles', [pile]);
     },
     closeOnClick: true
   }],
@@ -142,8 +142,8 @@ export const INSPECT = {
   buttons: [{
     name: 'Inspect',
     trigger (pile) {
-      event.publish('decompose.fgm.inspectPiles', [pile]);
-      event.publish('decompose.fgm.removePileArea');
+      event.publish('explore.fgm.inspectPiles', [pile]);
+      event.publish('explore.fgm.removePileArea');
     },
     closeOnClick: true
   }],
@@ -155,9 +155,9 @@ export const RECOVER = {
     name: 'Recover',
     trigger (pile) {
       store.dispatch(recoverPiles([pile.id]));
-      event.publish('decompose.fgm.pileMouseLeave');
-      event.publish('decompose.fgm.pileUnhighlight');
-      event.publish('decompose.fgm.removePileArea');
+      event.publish('explore.fgm.pileMouseLeave');
+      event.publish('explore.fgm.pileUnhighlight');
+      event.publish('explore.fgm.removePileArea');
     },
     closeOnClick: true
   }],
@@ -168,7 +168,7 @@ export const REMOVE = {
   buttons: [{
     name: 'Remove',
     trigger (pile) {
-      event.publish('decompose.fgm.removeFromPile', [pile]);
+      event.publish('explore.fgm.removeFromPile', [pile]);
     },
     closeOnClick: true
   }],
@@ -184,7 +184,7 @@ export const SHOW_IN_MATRIX = {
   buttons: [{
     name: 'Show in matrix',
     trigger (pile) {
-      event.publish('decompose.fgm.showInMatrix', pile);
+      event.publish('explore.fgm.showInMatrix', pile);
     }
   }]
 };
@@ -194,9 +194,9 @@ export const TRASH = {
     name: 'Move to trash',
     trigger (pile) {
       store.dispatch(trashPiles([pile.id]));
-      event.publish('decompose.fgm.pileMouseLeave');
-      event.publish('decompose.fgm.pileUnhighlight');
-      event.publish('decompose.fgm.removePileArea');
+      event.publish('explore.fgm.pileMouseLeave');
+      event.publish('explore.fgm.pileUnhighlight');
+      event.publish('explore.fgm.removePileArea');
     },
     closeOnClick: true
   }],

@@ -30,26 +30,26 @@
         <h1 class="${currentRoute === 'home' ? 'is-active' : ''}">
           <a class="flex-c" route-href="route: home">
             <svg-icon class="icon-inline" icon-id="logo"></svg-icon>
-            ${currentRoute === 'decompose' || currentRoute === 'matrix' ? appName : appName}
+            ${appName}
           </a>
         </h1>
         <div
           class="flex-c state state-active"
-          if.bind="currentRoute === 'decompose' || currentRoute === 'matrix'">
+          if.bind="currentRoute === 'explore' || currentRoute === 'matrix'">
           <svg-icon class="icon-inline play" icon-id="play"></svg-icon>
           Running
         </div>
         <button
           class="flex-c state state-ready"
           click.delegate="resumeExploration()"
-          if.bind="currentRoute !== 'decompose' && currentRoute !== 'matrix' && decomposeIsReady">
+          if.bind="currentRoute !== 'explore' && currentRoute !== 'matrix' && exploreIsReady">
           <svg-icon class="icon-inline play-outline" icon-id="play-outline"></svg-icon>
           Resume
         </button>
         <button
           class="flex-c state"
           click.delegate="resetHandler()"
-          if.bind="currentRoute !== 'matrix' && decomposeIsReady">
+          if.bind="currentRoute !== 'matrix' && exploreIsReady">
           <svg-icon class="icon-inline reset" icon-id="reset"></svg-icon>
           Reset
         </button>

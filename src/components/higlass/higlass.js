@@ -58,17 +58,17 @@ export class Higlass {
     this.id = Math.random();
 
     this.event.subscribe(
-      'decompose.fgm.pileMouseEnter',
+      'explore.fgm.pileMouseEnter',
       this.highlightLoci.bind(this)
     );
 
     this.event.subscribe(
-      'decompose.fgm.pileUnhighlight',
+      'explore.fgm.pileUnhighlight',
       this.dehighlightLoci.bind(this)
     );
 
     this.event.subscribe(
-      'decompose.fgm.showInMatrix',
+      'explore.fgm.showInMatrix',
       this.goToPile.bind(this)
     );
 
@@ -616,7 +616,7 @@ export class Higlass {
 
   update () {
     try {
-      const state = this.store.getState().present.decompose;
+      const state = this.store.getState().present.explore;
 
       const update = {};
 

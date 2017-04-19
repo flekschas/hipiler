@@ -82,7 +82,7 @@ export default class App {
       this.showGlobalError(...args);
     });
 
-    if (!this.decomposeIsReady) {
+    if (!this.exploreIsReady) {
       this.router.navigateToRoute('home');
     }
   }
@@ -221,7 +221,7 @@ export default class App {
     this.dialogPromise
       .then(() => {
         this.router.navigateToRoute('home');
-        this.decomposeIsReady = false;
+        this.exploreIsReady = false;
         this.reset();
       })
       .catch(() => {
@@ -233,7 +233,7 @@ export default class App {
    * Resume previous exploration
    */
   resumeExploration () {
-    this.router.navigateToRoute('decompose');
+    this.router.navigateToRoute('explore');
   }
 
   /**
@@ -244,7 +244,7 @@ export default class App {
   setConfig (config) {
     if (validateConfig(config.fgm, config.hgl)) {
       this.store.dispatch(updateConfigs(config));
-      this.router.navigateToRoute('decompose');
+      this.router.navigateToRoute('explore');
     } else {
       this.showGlobalError('Corrupted Config File', 3000);
     }
@@ -276,12 +276,12 @@ export default class App {
     const state = this.store.getState().present;
 
     try {
-      this.decomposeIsReady = validateConfig(
-        state.decompose.fragments.config,
-        state.decompose.higlass.config
+      this.exploreIsReady = validateConfig(
+        state.explore.fragments.config,
+        state.explore.higlass.config
       );
     } catch (e) {
-      this.decomposeIsReady = false;
+      this.exploreIsReady = false;
     }
   }
 }

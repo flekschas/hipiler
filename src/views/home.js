@@ -79,7 +79,7 @@ export class Home {
   setState (config) {
     if (validateConfig(config.fgm, config.hgl)) {
       this.store.dispatch(updateConfigs(config));
-      this.router.navigateToRoute('decompose');
+      this.router.navigateToRoute('explore');
     } else {
       this.event.publish(
         'showGlobalError', ['Corrupted config file', 3000]

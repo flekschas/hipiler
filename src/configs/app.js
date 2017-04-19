@@ -1,7 +1,5 @@
 export const name = 'HiPiler';
 
-export const nameShort = 'HiP';
-
 export const environments = {
   dev: {
     debug: true,
@@ -39,10 +37,10 @@ export const routes = [
     icon: 'help'
   },
   {
-    route: 'decompose',
-    name: 'decompose',
-    title: 'Decompose',
-    moduleId: 'views/decompose',
+    route: 'explore',
+    name: 'explore',
+    title: 'Explore',
+    moduleId: 'views/explore',
     nav: false
   },
   {
