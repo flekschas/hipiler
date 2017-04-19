@@ -537,7 +537,11 @@ export class Higlass {
    */
   loadChromInfo (chromInfoUrl) {
     json(chromInfoUrl, (error, chromInfo) => {
-      if (error) { logger.error(error); }
+      if (error) {
+        logger.error(error);
+        this.hasErrored('Failed to load chromosome sizes');
+        return;
+      }
 
       this.chromInfo.set(chromInfo);
     });
