@@ -30,11 +30,11 @@
             <div class="flex-g-1 box box-demo">
               <p>Choose a predefined config:</p>
               <ul>
-                <li click.delegate="">Rao et al. (2014) GM12878 Loops</li>
-                <li click.delegate="">Rao et al. (2014) GM12878 Loops</li>
-                <li click.delegate="">Rao et al. (2014) GM12878 Loops</li>
-                <li click.delegate="">Rao et al. (2014) GM12878 Loops</li>
-                <li click.delegate="">Rao et al. (2014) GM12878 Loops</li>
+                <li
+                  repeat.for="example of examples"
+                  click.delegate="loadExample(example)">
+                  ${example.name}
+                </li>
               </ul>
             </div>
           </div>

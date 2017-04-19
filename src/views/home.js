@@ -2,10 +2,14 @@
 import { inject, LogManager } from 'aurelia-framework';
 import { Router } from 'aurelia-router';
 
+// Third party
+import { json } from 'd3';
+
 // Injectable
 import States from 'services/states';
 
 // Utils
+import examples from 'configs/examples';
 import { updateConfigs } from 'app-actions';
 import readJsonFile from 'utils/read-json-file';
 import validateConfig from 'utils/validate-config';
@@ -22,12 +26,26 @@ export class Home {
 
     this.store = states.store;
     this.store.subscribe(this.update.bind(this));
+
+    this.examples = examples;
   }
 
   attached () {
     this.selectConfigButton.addEventListener(
       'click', this.selectConfig.bind(this)
     );
+  }
+
+  loadExample (example) {
+    json(example.url, (error, config) => {
+      if (error) {
+        logger.error(error);
+        this.showGlobalError('Could not load example config', 3000);
+        return;
+      }
+
+      this.setState(config);
+    });
   }
 
   selectedConfigChanged () {
@@ -40,7 +58,7 @@ export class Home {
     }
 
     results
-      .then(json => this.setState(json))
+      .then(resultsJson => this.setState(resultsJson))
       .catch(error => logger.error(error));
   }
 
