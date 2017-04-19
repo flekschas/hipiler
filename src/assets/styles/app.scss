@@ -387,9 +387,10 @@ body.is-dragging-over #drag-drop-notifier {
     width: 1em;
     height: 3rem;
 
+    &.icon-help,
     &.icon-info {
       margin-right: 0.25rem;
-      width: 0.6em;
+      width: 1.25em;
     }
 
     svg {
