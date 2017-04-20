@@ -12,6 +12,17 @@ import plumber from 'gulp-plumber';
 import rename from 'gulp-rename';
 import wrap from 'gulp-wrap';
 
+import * as config from './config.json';
+import * as configLocal from './config.local.json';
+import * as packageJson from './package.json';
+
+// Flags
+const production = gulpUtil.env.production;  // `--production`
+
+// Overwrite global with local settings
+Object.assign(config, configLocal);
+Object.assign(config, { version: packageJson.version });
+
 // Extend marked options
 const renderer = new marked.marked.Renderer();
 
@@ -89,6 +100,22 @@ gulp.task('clean-dist', () => gulp
   .pipe(clean())
 );
 
+// Include config into the index.html
+gulp.task('config', () => gulp
+  .src('index.html')
+  .pipe(plumber())
+  .pipe(modify({
+    fileModifier: (file, contents) => {
+      contents = contents.replace(
+        /window.hipilerConfig = .*/,
+        `window.hipilerConfig = ${JSON.stringify(config)};`
+      );
+      return contents;
+    }
+  }))
+  .pipe(gulp.dest('.'))
+);
+
 // Parse wiki sidebar
 gulp.task('sidebar', () => gulp
   .src('wiki/_Sidebar.md')
@@ -164,4 +191,4 @@ gulp.task('wiki', () => gulp
  * -----------------------------------------------------------------------------
  */
 
-gulp.task('default', gulp.series('clean', 'sidebar', 'wiki'));
+gulp.task('default', gulp.series('clean', 'sidebar', 'wiki', 'config'));
