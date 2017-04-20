@@ -347,6 +347,7 @@ body.is-dragging-over #drag-drop-notifier {
 
 #topbar {
   position: absolute;
+  z-index: 2;
   top: 0;
   left: 0;
   right: 0;
