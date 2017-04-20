@@ -23,6 +23,11 @@ const production = gulpUtil.env.production;  // `--production`
 Object.assign(config, configLocal);
 Object.assign(config, { version: packageJson.version });
 
+if (production) {
+  config.debug = false;
+  config.testing = false;
+}
+
 // Extend marked options
 const renderer = new marked.marked.Renderer();
 

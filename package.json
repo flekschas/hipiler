@@ -84,7 +84,7 @@
   },
   "scripts": {
     "build": "npm run update && gulp && au build --env prod",
-    "build-ghp": "npm run update && gulp clean-dist && gulp && au build --env prod && scripts/cp-prod.sh hipiler-ghp",
+    "build-ghp": "npm run update && gulp clean-dist && gulp --production && au build --env prod && scripts/cp-prod.sh hipiler-ghp",
     "start": "gulp && au run --watch",
     "test": "gulp && au test",
     "update": "git pull && git submodule update --init --recursive --remote --merge && npm install && gulp"
