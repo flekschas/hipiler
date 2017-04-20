@@ -29,13 +29,6 @@ export const routes = [
     title: 'Explore',
     moduleId: 'views/explore',
     nav: false
-  },
-  {
-    route: 'matrix',
-    name: 'matrix',
-    title: 'Matrix',
-    moduleId: 'views/matrix',
-    nav: false
   }
 ];
 
