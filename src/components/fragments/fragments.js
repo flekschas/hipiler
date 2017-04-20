@@ -158,13 +158,13 @@ const sortAsc = (a, b) => {
 export class Fragments {
   @bindable baseElIsInit = false;
 
-  constructor (chromInfo, eventAggregator, states) {
-    this.event = eventAggregator;
+  constructor (chromInfo, event, states) {
+    this.event = event;
     this.chromInfo = chromInfo;
 
     // Link the Redux store
     this.store = states.store;
-    this.store.subscribe(this.update.bind(this));
+    this.unsubscribeStore = this.store.subscribe(this.update.bind(this));
 
     this.arrangeMeasures = [];
     this.attrsCatOther = [];
@@ -226,6 +226,8 @@ export class Fragments {
     this.isLoading = true;
 
     this.mouseClickCounter = 0;
+
+    this.subscriptions = [];
 
     this.arrangeMeasuresAccessPath = [
       'explore', 'fragments', 'arrangeMeasures'
@@ -339,10 +341,25 @@ export class Fragments {
     fgmState.render = this.render;
   }
 
+
+  /* ----------------------- Aurelia-specific methods ----------------------- */
+
+  /**
+   * Called once the component is attached.
+   */
+
   attached () {
     window.addResizeListener(this.baseEl, this.resizeHandler.bind(this));
 
     this.resolve.isAttached();
+  }
+
+  /**
+   * Called once the component is detached.
+   */
+  detached () {
+    this.unsubscribeStore();
+    this.unsubscribeEventListeners();
   }
 
   baseElIsInitChanged () {
@@ -2462,8 +2479,10 @@ export class Fragments {
    * Initialize event listeners
    */
   initEventListeners () {
+    this.preventDefault = event => event.preventDefault();
+
     this.canvas.addEventListener(
-      'click', event => event.preventDefault(), false
+      'click', this.preventDefault, false
     );
 
     this.canvas.addEventListener(
@@ -2471,7 +2490,7 @@ export class Fragments {
     );
 
     this.canvas.addEventListener(
-      'dblclick', event => event.preventDefault(), false
+      'dblclick', this.preventDefault, false
     );
 
     this.canvas.addEventListener(
@@ -2479,9 +2498,7 @@ export class Fragments {
     );
 
     this.canvas.addEventListener(
-      'mouseleave', (event) => {
-        this.canvasMouseUpHandler(event);
-      }, false
+      'mouseleave', this.canvasMouseUpHandler.bind(this), false
     );
 
     this.canvas.addEventListener(
@@ -2496,55 +2513,55 @@ export class Fragments {
       'mousewheel', this.canvasMouseWheelHandler.bind(this), false
     );
 
-    this.event.subscribe(
+    this.subscriptions.push(this.event.subscribe(
       `${EVENT_BASE_NAME}.${this.arrangeSelectedEventId}`,
       this.arrangeChangeHandler.bind(this)
-    );
+    ));
 
-    this.event.subscribe(
+    this.subscriptions.push(this.event.subscribe(
       'app.keyDown',
       this.keyDownHandler.bind(this)
-    );
+    ));
 
-    this.event.subscribe(
+    this.subscriptions.push(this.event.subscribe(
       'app.keyUp',
       this.keyUpHandler.bind(this)
-    );
+    ));
 
-    this.event.subscribe(
+    this.subscriptions.push(this.event.subscribe(
       'explore.fgm.coverDispMode',
       this.changeCoverDispMode.bind(this)
-    );
+    ));
 
-    this.event.subscribe(
+    this.subscriptions.push(this.event.subscribe(
       'explore.fgm.dispersePiles',
       this.dispersePilesHandler.bind(this)
-    );
+    ));
 
-    this.event.subscribe(
+    this.subscriptions.push(this.event.subscribe(
       'explore.fgm.inspectPiles',
       this.inspectPilesHandler.bind(this)
-    );
+    ));
 
-    this.event.subscribe(
+    this.subscriptions.push(this.event.subscribe(
       'explore.fgm.pileAssignColor',
       this.pileAssignColor.bind(this)
-    );
+    ));
 
-    this.event.subscribe(
+    this.subscriptions.push(this.event.subscribe(
       'explore.fgm.pileAssignBW',
       this.pileAssignBW.bind(this)
-    );
+    ));
 
-    this.event.subscribe(
+    this.subscriptions.push(this.event.subscribe(
       'explore.fgm.removePileArea',
       this.removePileArea.bind(this)
-    );
+    ));
 
-    this.event.subscribe(
+    this.subscriptions.push(this.event.subscribe(
       'explore.fgm.removeFromPile',
       this.removeFromPile.bind(this)
-    );
+    ));
   }
 
   /**
@@ -3914,6 +3931,29 @@ export class Fragments {
    */
   unshowMatrixSimilarity () {
     this.piles.forEach(pile => pile.resetSimilarity());
+  }
+
+  /**
+   * Unsubscribe from Aurelia and base event listeners.
+   */
+  unsubscribeEventListeners () {
+    // Remove Aurelia event listeners
+    this.subscriptions.forEach((subscription) => {
+      subscription.dispose();
+    });
+    this.subscriptions = undefined;
+
+    // Remove basic JS event listeners.
+    this.canvas.removeEventListener('click', this.preventDefault);
+    this.canvas.removeEventListener(
+      'contextmenu', this.canvasContextMenuHandler
+    );
+    this.canvas.removeEventListener('dblclick', this.preventDefault);
+    this.canvas.removeEventListener('mousedown', this.canvasMouseDownHandler);
+    this.canvas.removeEventListener('mouseleave', this.canvasMouseUpHandler);
+    this.canvas.removeEventListener('mousemove', this.canvasMouseMoveHandler);
+    this.canvas.removeEventListener('mouseup', this.canvasMouseUpHandler);
+    this.canvas.removeEventListener('mousewheel', this.canvasMouseWheelHandler);
   }
 
   /**

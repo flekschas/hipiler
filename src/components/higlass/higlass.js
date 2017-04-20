@@ -45,7 +45,7 @@ export class Higlass {
 
     // Link the Redux store
     this.store = states.store;
-    this.store.subscribe(this.update.bind(this));
+    this.unsubscribeStore = this.store.subscribe(this.update.bind(this));
 
     this.renderDb = debounce(this.render.bind(this), 50);
     this.checkColumnsDb = debounce(this.checkColumns.bind(this), 150);
@@ -57,20 +57,7 @@ export class Higlass {
     this.chromInfo = chromInfo;
     this.id = Math.random();
 
-    this.event.subscribe(
-      'explore.fgm.pileMouseEnter',
-      this.highlightLoci.bind(this)
-    );
-
-    this.event.subscribe(
-      'explore.fgm.pileUnhighlight',
-      this.dehighlightLoci.bind(this)
-    );
-
-    this.event.subscribe(
-      'explore.fgm.showInMatrix',
-      this.goToPile.bind(this)
-    );
+    this.subscriptions = [];
 
     // The following setup allows us to imitate deferred objects. I.e., we can
     // resolve promises outside their scope.
@@ -107,17 +94,32 @@ export class Higlass {
       });
   }
 
+
+  /* ----------------------- Aurelia-specific methods ----------------------- */
+
+  /**
+   * Called once the component is attached.
+   */
   attached () {
     this.update();
 
     setTimeout(() => { this.isLoading = false; }, 150);
 
     this.resolve.isAttached();
-    logger.debug('HiGlass is attached', this.id);
   }
 
-  deattached () {
-    logger.debug('HiGlass is deattached', this.id);
+  /**
+   * Called once the component is detached.
+   */
+  detached () {
+    // Unsubscribe from redux store
+    this.unsubscribeStore();
+
+    // Unsubscribe from Aurelia events
+    this.subscriptions.forEach((subscription) => {
+      subscription.dispose();
+    });
+    this.subscriptions = undefined;
   }
 
 
@@ -519,6 +521,26 @@ export class Higlass {
         );
       }
     });
+  }
+
+  /**
+   * Initialize event listeners.
+   */
+  initEventListeners () {
+    this.subscriptions.push(this.event.subscribe(
+      'explore.fgm.pileMouseEnter',
+      this.highlightLoci.bind(this)
+    ));
+
+    this.subscriptions.push(this.event.subscribe(
+      'explore.fgm.pileUnhighlight',
+      this.dehighlightLoci.bind(this)
+    ));
+
+    this.subscriptions.push(this.event.subscribe(
+      'explore.fgm.showInMatrix',
+      this.goToPile.bind(this)
+    ));
   }
 
   /**

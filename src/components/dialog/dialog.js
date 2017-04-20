@@ -16,8 +16,25 @@ export class Dialog {
   constructor (event) {
     this.event = event;
 
+    this.subscriptions = [];
+
     this.initEventListeners();
   }
+
+  /* ----------------------- Aurelia-specific methods ----------------------- */
+
+  /**
+   * Called once the component is detached.
+   */
+  detached () {
+    // Unsubscribe from Aurelia events
+    this.subscriptions.forEach((subscription) => {
+      subscription.dispose();
+    });
+    this.subscriptions = undefined;
+  }
+
+  /* ---------------------------- Class methods ----------------------------- */
 
   /**
    * Cancel dialog. This will reject the promise and clode the dialog window.
@@ -33,7 +50,9 @@ export class Dialog {
    * Initializae event listeners.
    */
   initEventListeners () {
-    this.event.subscribe('app.keyUp', this.keyUpHandler.bind(this));
+    this.subscriptions.push(
+      this.event.subscribe('app.keyUp', this.keyUpHandler.bind(this))
+    );
   }
 
   /**

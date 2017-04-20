@@ -28,17 +28,28 @@ export class Home {
     this.router = router;
 
     this.store = states.store;
-    this.store.subscribe(this.update.bind(this));
+    this.unsubscribeStore = this.store.subscribe(this.update.bind(this));
 
     this.examples = examples;
   }
 
   /* ----------------------- Aurelia-specific methods ----------------------- */
 
+  /**
+   * Called once the component is attached.
+   */
   attached () {
     this.selectConfigButton.addEventListener(
       'click', this.selectConfig.bind(this)
     );
+  }
+
+  /**
+   * Called once the component is detached.
+   */
+  detached () {
+    // Unsubscribe from redux store
+    this.unsubscribeStore();
   }
 
   /* ---------------------------- Class methods ----------------------------- */
