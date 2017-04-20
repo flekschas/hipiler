@@ -14,7 +14,7 @@ export default function dragDrop (baseEl, dropEl, dropCallback) {
   let isDragging = false;
 
   document.addEventListener('dragenter', (event) => {
-    if (hasParent(event.target, baseEl)) {
+    if (hasParent(event.target, baseEl) && event.dataTransfer.files.length) {
       $baseEl.addClass('is-dragging-over');
       isDragging = true;
       event.preventDefault();
