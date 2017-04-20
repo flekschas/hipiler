@@ -2,9 +2,16 @@
   <require from="components/footer-main/footer-main"></require>
   <require from="components/svg-icon/svg-icon"></require>
 
-  <div class="flex-c flex-d-c full-wh docs is-slightly-increased-font-size is-increased-line-height">
+  <div class="flex-c flex-d-c full-wh docs is-increased-line-height">
     <main class="flex-g-1 wrap">
-      <compose view.bind="docs"></compose>
+      <div class="flex-c">
+        <compose class="column-3-4" view.bind="docs"></compose>
+        <compose
+          class="column-1-4"
+          ref="sidebarEl"
+          style.bind="sidebarCss"
+          view.bind="sidebar"></compose>
+      </div>
     </main>
     <footer-main></footer-main>
   </div>
