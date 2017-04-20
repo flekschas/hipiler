@@ -1,6 +1,177 @@
 <template>
 <require from="components/svg-icon/svg-icon"></require>
 <div class="wiki-page">
+<h1 id="/docs/data" class="underlined anchored">
+  <a href="#/docs/data" class="hidden-anchor">
+    <svg-icon icon-id="link"></svg-icon>
+  </a>
+  <span>Data</span>
+</h1>
+  
+<p>This pages describes how to load snippets into HiPiler and extract the location of snippets. It also explains how to load HiPiler in a Jupyter notebook.</p>
+
+<h2 id="/docs/data/config-file" class="underlined anchored">
+  <a href="#/docs/data/config-file" class="hidden-anchor">
+    <svg-icon icon-id="link"></svg-icon>
+  </a>
+  <span>Config file</span>
+</h2>
+  <p>HiPiler&#39;s configuration is specified in JSON and consists of two main parts: one for the snippet location and display and another one for HiGlass. The snippet configuration is stored under <code>fgm</code> and HiGlass is configured under <code>hgl</code>.</p>
+<p>This is an example for the snippet configuration:</p>
+<pre><code>{
+  &quot;fgm&quot;: {
+    &quot;fragmentsServer&quot;: &quot;//34.199.119.21/api/v1/&quot;,
+    &quot;fragmentsPrecision&quot;: 2,
+    &quot;fragmentsDims&quot;: 22,
+    &quot;fragments&quot;: [
+      [&quot;chrom1&quot;, &quot;start1&quot;, &quot;end1&quot;, &quot;strand1&quot;, &quot;chrom2&quot;, &quot;start2&quot;, &quot;end2&quot;, &quot;strand2&quot;, &quot;dataset&quot;, &quot;zoomOutLevel&quot;, &quot;size&quot;, &quot;distance-to-diagonal&quot;, &quot;noise&quot;, &quot;_groupA&quot;, , &quot;_groupB&quot;],
+      [&quot;22&quot;, 17395000, 17400000, &quot;coding&quot;, &quot;22&quot;, 17535000, 17540000, &quot;coding&quot;, &quot;CQMd6V_cRw6iCI_-Unl3PQ&quot;, 3, 25000000, 135000, 0.21559968240959723, 1, 1],
+      [&quot;22&quot;, 17400000, 17410000, &quot;coding&quot;, &quot;22&quot;, 17980000, 17990000, &quot;coding&quot;, &quot;CQMd6V_cRw6iCI_-Unl3PQ&quot;, 3, 100000000, 570000, 0.19905589933149648, 1, 4],
+      [&quot;22&quot;, 17650000, 17655000, &quot;coding&quot;, &quot;22&quot;, 17980000, 17985000, &quot;coding&quot;, &quot;CQMd6V_cRw6iCI_-Unl3PQ&quot;, 3, 25000000, 325000, 0.14815256212601854, 3, 2],
+      ...
+    ]
+  },
+  ...
+}
+</code></pre><p>The parameters are defined as follows:</p>
+<ul>
+<li>fragmentsServer: URL to a <a href="https://github.com/hms-dbmi/higlass-server">HiGlass server</a> or <a href="https://github.com/flekschas/hipiler-server">HiPiler server</a></li>
+<li>fragmentsPrecision: Float precision of the raw matrix snippets to be returned by the server</li>
+<li>fragmentsDims: Pixel dimension of the matrix snippets to be returned by the server. Since HiPiler currently only supports squared snippets only one dimension is needed.</li>
+<li>fragments: <a href="https://bedtools.readthedocs.io/en/latest/content/general-usage.html#bedpe-format">BEDPE</a>-like table of snippet locations. For details see below.</li>
+</ul>
+
+<h4 id="/docs/data/bedpe-like-table" class="underlined anchored">
+  <a href="#/docs/data/bedpe-like-table" class="hidden-anchor">
+    <svg-icon icon-id="link"></svg-icon>
+  </a>
+  <span>BEDPE-like table</span>
+</h4>
+  <p>Like a simple spreadsheet, the first row of the BEDPE-like location table contains the header. The following columns are required by HiPiler. Examples are in brackets</p>
+<ul>
+<li>chrom1 [<em>str</em>, e.g.: &#39;chr1&#39;]</li>
+<li>start1 [<em>int</em>, e.g.: 0]</li>
+<li>end1 [<em>int</em>, e.g.: 0]</li>
+<li>strand1 [<em>str</em>, e.g.: &#39;coding&#39; or else]</li>
+<li>chrom2 (like <code>chrom1</code>)</li>
+<li>start2 (like <code>start1</code>)</li>
+<li>end2 (like <code>end1</code>)</li>
+<li>strand2 (like <code>stand1</code>)</li>
+<li>dataset [<em>str</em>, e.g.: &#39;CQMd6V<em>cRw6iCI</em>-Unl3PQ&#39;]</li>
+<li>zoomOutLevel [<em>int</em>, e.g.: 0]</li>
+</ul>
+<p>The <code>dataset</code> is the UUID of the Hi-C map where the locations should be extracted. <code>zoomOutLevel</code> at which zoom level the snippets should be extracted, where 0 means maximally zoomed it.</p>
+<p>Additionally, an unlimited number of extra columns can be appended to load categorical and ordinal attributes for exploration. Ordinal attributes just need to specified by a unique name, e.g., size, distance-to-diagonal, and noise. They appear as measure for arrangement of snippets in HiPiler. Categorical attributes need must be prefixed with an underscore (_), e.g., _groupA and _groupB. They appear as grouping options in HiPiler.</p>
+<p>The local neighborhood (i.e., the Hi-C map) of snippets are shown in HiGlass. The configuration of HiGlass in HiPiler is unrestricted except that one should only configure one row of primary matrices and avoid vertical arrangement of multiple matrices as the vertical space is needed for the detail matrices. For instructions on how to configure HiGlass please visit its <a href="https://github.com/hms-dbmi/higlass/wiki">wiki</a>.</p>
+
+<h4 id="/docs/data/examples" class="underlined anchored">
+  <a href="#/docs/data/examples" class="hidden-anchor">
+    <svg-icon icon-id="link"></svg-icon>
+  </a>
+  <span>Examples</span>
+</h4>
+  <p>A set of example / demo configurations are <a href="https://gist.github.com/flekschas/8b0163f25fd4ffb067aaba2a595da447">available here</a>.</p>
+
+<h2 id="/docs/data/import" class="underlined anchored">
+  <a href="#/docs/data/import" class="hidden-anchor">
+    <svg-icon icon-id="link"></svg-icon>
+  </a>
+  <span>Import</span>
+</h2>
+  <p>There are two options to load a configuration:</p>
+<ol>
+<li>Drag and drop JSON onto the browser window of HiPiler.</li>
+<li>Go to the home page and click on <em>Select a config</em>.</li>
+</ol>
+
+<h2 id="/docs/data/export" class="underlined anchored">
+  <a href="#/docs/data/export" class="hidden-anchor">
+    <svg-icon icon-id="link"></svg-icon>
+  </a>
+  <span>Export</span>
+</h2>
+  <p><em>Coming soon</em></p>
+
+<h2 id="/docs/data/jupyter-notebook-integration" class="underlined anchored">
+  <a href="#/docs/data/jupyter-notebook-integration" class="hidden-anchor">
+    <svg-icon icon-id="link"></svg-icon>
+  </a>
+  <span>Jupyter notebook integration</span>
+</h2>
+  <p><em>Coming soon</em></p>
+</div>
+<div class="wiki-page">
+<h1 id="/docs/usage-scenarios" class="underlined anchored">
+  <a href="#/docs/usage-scenarios" class="hidden-anchor">
+    <svg-icon icon-id="link"></svg-icon>
+  </a>
+  <span>Usage Scenarios</span>
+</h1>
+  
+<p>This page describes usage scenarios on how to analyze the following types of features in Hi-C contact maps.</p>
+
+<h2 id="/docs/usage-scenarios/loops" class="underlined anchored">
+  <a href="#/docs/usage-scenarios/loops" class="hidden-anchor">
+    <svg-icon icon-id="link"></svg-icon>
+  </a>
+  <span>Loops</span>
+</h2>
+  <p><em>Coming soon</em></p>
+
+<h2 id="/docs/usage-scenarios/structural-variations" class="underlined anchored">
+  <a href="#/docs/usage-scenarios/structural-variations" class="hidden-anchor">
+    <svg-icon icon-id="link"></svg-icon>
+  </a>
+  <span>Structural Variations</span>
+</h2>
+  <p><em>Coming soon</em></p>
+
+<h2 id="/docs/usage-scenarios/telomeres" class="underlined anchored">
+  <a href="#/docs/usage-scenarios/telomeres" class="hidden-anchor">
+    <svg-icon icon-id="link"></svg-icon>
+  </a>
+  <span>Telomeres</span>
+</h2>
+  <p><em>Coming soon</em></p>
+
+<h2 id="/docs/usage-scenarios/enhancer-promotor-units" class="underlined anchored">
+  <a href="#/docs/usage-scenarios/enhancer-promotor-units" class="hidden-anchor">
+    <svg-icon icon-id="link"></svg-icon>
+  </a>
+  <span>Enhancer-Promotor Units</span>
+</h2>
+  <p><em>Coming soon</em></p>
+</div>
+<div class="wiki-page">
+<h1 id="/docs/faq" class="underlined anchored">
+  <a href="#/docs/faq" class="hidden-anchor">
+    <svg-icon icon-id="link"></svg-icon>
+  </a>
+  <span>FAQ</span>
+</h1>
+  
+<ul>
+<li><p><strong>Is HiPiler the same as HiGlass?</strong></p>
+<p>No. HiPiler is a separate application that integrates HiGlass. Having said that, both might eventually merge in the future.</p>
+</li>
+<li><p><strong>Do you guys prefix every app name with <em>Hi</em>? 🙈</strong></p>
+<p>Oh yes we do!</p>
+</li>
+<li><p><strong>Are these FAQs good for anything? 🤔</strong></p>
+<p>We don&#39;t know. Please tell us!</p>
+</li>
+<li><p><strong>HELP! 😩 I am lost, something keeps on breaking, and nobody wants to talk to me!</strong></p>
+<p>We&#39;re deeply sorry. Whatever it is, shoot us an email. We are here to help you out! HiPiler is not letting you down!</p>
+</li>
+<li><p><strong>What about Easter eggs?! 😮</strong></p>
+<p>You better find them!</p>
+</li>
+<li><p><strong>No, seriously! 😑 How can I find those Easter eggs? You have to help me out.</strong></p>
+<p>Would there be any fun in telling you about them?</p>
+</li>
+</ul>
+</div>
+<div class="wiki-page">
 <h1 id="/docs/getting-started" class="underlined anchored">
   <a href="#/docs/getting-started" class="hidden-anchor">
     <svg-icon icon-id="link"></svg-icon>
@@ -9,7 +180,6 @@
 </h1>
   
 <p>This page describes how you can set up HiPiler locally, explains the functionality of the interface, and provides a cheat sheet for nifty keyboard shortcuts that help you to be more productive.</p>
-<p>If you want to just right into HiPiler please follow the link below to the demo page.</p>
 <p><strong>Demo:</strong> <em>Coming soon</em></p>
 <p><strong>Video:</strong> <em>Coming soon</em> </p>
 
@@ -19,13 +189,13 @@
   </a>
   <span>Local setup</span>
 </h2>
-  <p>In order to run HiPiler on your own data all you need is a running instance of the HiPiler or HiGlass server. The server needs to be loaded with a cooler contact map.</p>
-<p>You can directly drop configuration files into the <a href="">public instance</a> of HiPiler as the interface is executed locally on your browser anyway and only communicates with the server specified in your config file. (For more infos on how to configure HiPiler please go to <a href="Data#config-file">Data &gt; Config File</a></p>
+  <p>In order to run HiPiler on your own data all you need is a running instance of the HiPiler or HiGlass server. The server needs to be loaded with a Hi-C contact map and a corresponding chromosome size definition file.</p>
+<p>Having <a href="Data#config-file">configured</a> HiPiler with your local server, you can directly drop the configuration files into the <a href="">public instance</a> of HiPiler as the interface is executed locally on your browser and only communicates with the server specified in your config file. (For more infos on how to configure HiPiler please go to <a href="Data#config-file">Data &gt; Config File</a></p>
 <p>If you want to compile the frontend application yourself please follow the instructions below:</p>
 <pre><code>git clone https://github.com/flekschas/hipiler &amp;&amp; cd hipiler
-npm install
-npm run compile
-</code></pre><p>The first step fetches the source code, the second step loads third-party libraries, and the last step compiles HiPiler. The final build is located in <code>/dist</code>. To run HiPiler locally open <code>index.html</code>. You might need to have a local web server running.</p>
+npm run update
+npm run build
+</code></pre><p>The first step fetches the source code, the second step loads third-party libraries and the documentation, and the last step compiles HiPiler. The final build is located in <code>/dist</code>. Open <code>index.html</code> to run HiPiler. You might need to have a local web server running.</p>
 
 <h2 id="/docs/getting-started/the-interface" class="underlined anchored">
   <a href="#/docs/getting-started/the-interface" class="hidden-anchor">
@@ -215,179 +385,5 @@ npm run compile
 </tr>
 </tbody>
 </table>
-</div>
-<div class="wiki-page">
-<h1 id="/docs/data" class="underlined anchored">
-  <a href="#/docs/data" class="hidden-anchor">
-    <svg-icon icon-id="link"></svg-icon>
-  </a>
-  <span>Data</span>
-</h1>
-  
-<p>This pages describes how to load snippets into HiPiler and extract the location of snippets. It also explains how to load HiPiler in a Jupyter notebook.</p>
-
-<h2 id="/docs/data/config-file" class="underlined anchored">
-  <a href="#/docs/data/config-file" class="hidden-anchor">
-    <svg-icon icon-id="link"></svg-icon>
-  </a>
-  <span>Config file</span>
-</h2>
-  <p>HiPiler&#39;s configuration is specified in JSON and consists of two main parts: one for the snippet location and display and another one for HiGlass. The snippet configuration is stored under <code>fgm</code> and HiGlass is configured under <code>hgl</code>.</p>
-<p>This is an example for the snippet configuration:</p>
-<pre><code>{
-  &quot;fgm&quot;: {
-    &quot;fragmentsServer&quot;: &quot;//34.199.119.21/api/v1/&quot;,
-    &quot;fragmentsPrecision&quot;: 2,
-    &quot;fragmentsDims&quot;: 22,
-    &quot;fragments&quot;: [
-      [&quot;chrom1&quot;, &quot;start1&quot;, &quot;end1&quot;, &quot;strand1&quot;, &quot;chrom2&quot;, &quot;start2&quot;, &quot;end2&quot;, &quot;strand2&quot;, &quot;dataset&quot;, &quot;zoomOutLevel&quot;, &quot;size&quot;, &quot;distance-to-diagonal&quot;, &quot;noise&quot;, &quot;_groupA&quot;, , &quot;_groupB&quot;],
-      [&quot;22&quot;, 17395000, 17400000, &quot;coding&quot;, &quot;22&quot;, 17535000, 17540000, &quot;coding&quot;, &quot;CQMd6V_cRw6iCI_-Unl3PQ&quot;, 3, 25000000, 135000, 0.21559968240959723, 1, 1],
-      [&quot;22&quot;, 17400000, 17410000, &quot;coding&quot;, &quot;22&quot;, 17980000, 17990000, &quot;coding&quot;, &quot;CQMd6V_cRw6iCI_-Unl3PQ&quot;, 3, 100000000, 570000, 0.19905589933149648, 1, 4],
-      [&quot;22&quot;, 17650000, 17655000, &quot;coding&quot;, &quot;22&quot;, 17980000, 17985000, &quot;coding&quot;, &quot;CQMd6V_cRw6iCI_-Unl3PQ&quot;, 3, 25000000, 325000, 0.14815256212601854, 3, 2],
-      ...
-    ]
-  },
-  ...
-}
-</code></pre><p>The parameters are defined as follows:</p>
-<ul>
-<li>fragmentsServer: URL to a <a href="https://github.com/hms-dbmi/higlass-server">HiGlass server</a> or <a href="https://github.com/flekschas/hipiler-server">HiPiler server</a></li>
-<li>fragmentsPrecision: Float precision of the raw matrix snippets to be returned by the server</li>
-<li>fragmentsDims: Pixel dimension of the matrix snippets to be returned by the server. Since HiPiler currently only supports squared snippets only one dimension is needed.</li>
-<li>fragments: <a href="https://bedtools.readthedocs.io/en/latest/content/general-usage.html#bedpe-format">BEDPE</a>-like table of snippet locations. For details see below.</li>
-</ul>
-
-<h4 id="/docs/data/bedpe-like-table" class="underlined anchored">
-  <a href="#/docs/data/bedpe-like-table" class="hidden-anchor">
-    <svg-icon icon-id="link"></svg-icon>
-  </a>
-  <span>BEDPE-like table</span>
-</h4>
-  <p>Like a simple spreadsheet, the first row of the BEDPE-like location table contains the header. The following columns are required by HiPiler. Examples are in brackets</p>
-<ul>
-<li>chrom1 [<em>str</em>, e.g.: &#39;chr1&#39;]</li>
-<li>start1 [<em>int</em>, e.g.: 0]</li>
-<li>end1 [<em>int</em>, e.g.: 0]</li>
-<li>strand1 [<em>str</em>, e.g.: &#39;coding&#39; or else]</li>
-<li>chrom2 (like <code>chrom1</code>)</li>
-<li>start2 (like <code>start1</code>)</li>
-<li>end2 (like <code>end1</code>)</li>
-<li>strand2 (like <code>stand1</code>)</li>
-<li>dataset [<em>str</em>, e.g.: &#39;CQMd6V<em>cRw6iCI</em>-Unl3PQ&#39;]</li>
-<li>zoomOutLevel [<em>int</em>, e.g.: 0]</li>
-</ul>
-<p>The <code>dataset</code> is the UUID of the Hi-C map where the locations should be extracted. <code>zoomOutLevel</code> at which zoom level the snippets should be extracted, where 0 means maximally zoomed it.</p>
-<p>Additionally, an unlimited number of extra columns can be appended to load categorical and ordinal attributes for exploration. Ordinal attributes just need to specified by a unique name, e.g., size, distance-to-diagonal, and noise. They appear as measure for arrangement of snippets in HiPiler. Categorical attributes need must be prefixed with an underscore (_), e.g., _groupA and _groupB. They appear as grouping options in HiPiler.</p>
-<p>The local neighborhood (i.e., the Hi-C map) of snippets are shown in HiGlass. The configuration of HiGlass in HiPiler is unrestricted except that one should only configure one row of primary matrices and avoid vertical arrangement of multiple matrices as the vertical space is needed for the detail matrices. For instructions on how to configure HiGlass please visit its <a href="https://github.com/hms-dbmi/higlass/wiki">wiki</a>.</p>
-
-<h4 id="/docs/data/examples" class="underlined anchored">
-  <a href="#/docs/data/examples" class="hidden-anchor">
-    <svg-icon icon-id="link"></svg-icon>
-  </a>
-  <span>Examples</span>
-</h4>
-  <p>A set of example / demo configurations are <a href="https://gist.github.com/flekschas/8b0163f25fd4ffb067aaba2a595da447">available here</a>.</p>
-
-<h2 id="/docs/data/import" class="underlined anchored">
-  <a href="#/docs/data/import" class="hidden-anchor">
-    <svg-icon icon-id="link"></svg-icon>
-  </a>
-  <span>Import</span>
-</h2>
-  <p>There are two options to load a configuration:</p>
-<ol>
-<li>Drag and drop JSON onto the browser window of HiPiler.</li>
-<li>Go to the home page and click on <em>Select a config</em>.</li>
-</ol>
-
-<h2 id="/docs/data/export" class="underlined anchored">
-  <a href="#/docs/data/export" class="hidden-anchor">
-    <svg-icon icon-id="link"></svg-icon>
-  </a>
-  <span>Export</span>
-</h2>
-  <p><em>Coming soon</em></p>
-
-<h2 id="/docs/data/jupyter-notebook-integration" class="underlined anchored">
-  <a href="#/docs/data/jupyter-notebook-integration" class="hidden-anchor">
-    <svg-icon icon-id="link"></svg-icon>
-  </a>
-  <span>Jupyter notebook integration</span>
-</h2>
-  <p><em>Coming soon</em></p>
-</div>
-<div class="wiki-page">
-<h1 id="/docs/usage-scenarios" class="underlined anchored">
-  <a href="#/docs/usage-scenarios" class="hidden-anchor">
-    <svg-icon icon-id="link"></svg-icon>
-  </a>
-  <span>Usage Scenarios</span>
-</h1>
-  
-<p>This page describes usage scenarios on how to analyze the following types of features in Hi-C contact maps.</p>
-
-<h2 id="/docs/usage-scenarios/loops" class="underlined anchored">
-  <a href="#/docs/usage-scenarios/loops" class="hidden-anchor">
-    <svg-icon icon-id="link"></svg-icon>
-  </a>
-  <span>Loops</span>
-</h2>
-  <p><em>Coming soon</em></p>
-
-<h2 id="/docs/usage-scenarios/structural-variations" class="underlined anchored">
-  <a href="#/docs/usage-scenarios/structural-variations" class="hidden-anchor">
-    <svg-icon icon-id="link"></svg-icon>
-  </a>
-  <span>Structural Variations</span>
-</h2>
-  <p><em>Coming soon</em></p>
-
-<h2 id="/docs/usage-scenarios/telomeres" class="underlined anchored">
-  <a href="#/docs/usage-scenarios/telomeres" class="hidden-anchor">
-    <svg-icon icon-id="link"></svg-icon>
-  </a>
-  <span>Telomeres</span>
-</h2>
-  <p><em>Coming soon</em></p>
-
-<h2 id="/docs/usage-scenarios/enhancer-promotor-units" class="underlined anchored">
-  <a href="#/docs/usage-scenarios/enhancer-promotor-units" class="hidden-anchor">
-    <svg-icon icon-id="link"></svg-icon>
-  </a>
-  <span>Enhancer-Promotor Units</span>
-</h2>
-  <p><em>Coming soon</em></p>
-</div>
-<div class="wiki-page">
-<h1 id="/docs/faq" class="underlined anchored">
-  <a href="#/docs/faq" class="hidden-anchor">
-    <svg-icon icon-id="link"></svg-icon>
-  </a>
-  <span>FAQ</span>
-</h1>
-  
-<ul>
-<li><p><strong>Is HiPiler the same as HiGlass?</strong></p>
-<p>No. HiPiler is a separate application that integrates HiGlass. Having said that, both might eventually merge in the future.</p>
-</li>
-<li><p><strong>Do you guys prefix every app name with <em>Hi</em>? 🙈</strong></p>
-<p>Oh yes we do!</p>
-</li>
-<li><p><strong>Are these FAQs good for anything? 🤔</strong></p>
-<p>We don&#39;t know. Please tell us!</p>
-</li>
-<li><p><strong>HELP! 😩 I am lost, something keeps on breaking, and nobody wants to talk to me!</strong></p>
-<p>We&#39;re deeply sorry. Whatever it is, shoot us an email. We are here to help you out! HiPiler is not letting you down!</p>
-</li>
-<li><p><strong>What about Easter eggs?! 😮</strong></p>
-<p>You better find them!</p>
-</li>
-<li><p><strong>No, seriously! 😑 How can I find those Easter eggs? You have to help me out.</strong></p>
-<p>There wouldn&#39;t be any fun in telling you about them.</p>
-</li>
-<li><p><strong>Are the main developer&#39;s two personalities talking to each other here? 😬</strong></p>
-<p>Maybe!</p>
-</li>
-</ul>
 </div>
 </template>
