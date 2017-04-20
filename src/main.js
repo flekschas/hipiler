@@ -1,6 +1,3 @@
-import { environments } from 'configs/app';
-import config from 'config';
-
 //Configure Bluebird Promises.
 Promise.config({
   warnings: {
@@ -9,15 +6,28 @@ Promise.config({
 });
 
 export function configure (aurelia) {
+  let debug = false;
+  let testing = false;
+
   aurelia.use
     .standardConfiguration()
-    .feature('resources');
+    .feature('resources')
+    .plugin('aurelia-configuration', (config) => {
+      config.setDirectory('.');
+      config.setEnvironments({
+        development: ['localhost'],
+        production: ['github.io']
+      });
 
-  if (environments[config.env].debug) {
+      debug = config.get('debug');
+      testing = config.get('testing');
+    });
+
+  if (debug) {
     aurelia.use.developmentLogging();
   }
 
-  if (environments[config.env].testing) {
+  if (testing) {
     aurelia.use.plugin('aurelia-testing');
   }
 

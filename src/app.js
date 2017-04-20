@@ -1,6 +1,7 @@
 // Aurelia
 import { inject, LogManager } from 'aurelia-framework';
 import { EventAggregator } from 'aurelia-event-aggregator';
+import { AureliaConfiguration } from 'aurelia-configuration';
 
 // Injectable
 import Font from 'services/font';
@@ -9,11 +10,7 @@ import States from 'services/states';
 // Utils
 import { updateConfigs } from 'app-actions';
 import { ERROR_DURATION } from 'app-defaults';
-import {
-  name as appName,
-  nameShort as appNameShort,
-  routes
-} from 'configs/app';
+import { routes } from 'configs/app';
 import { externalLinks } from 'configs/nav';
 import $ from 'utils/dom-el';
 import dragDrop from 'utils/drag-drop';
@@ -22,11 +19,13 @@ import validateConfig from 'utils/validate-config';
 
 const logger = LogManager.getLogger('app');
 
-@inject(EventAggregator, Font, States)
+@inject(AureliaConfiguration, EventAggregator, Font, States)
 export default class App {
 
-  constructor (eventAggregator, font, states) {
-    this.event = eventAggregator;
+  constructor (config, event, font, states) {
+    this.event = event;
+
+    console.log(config, config.get('name'));
 
     this.font = font;
 
@@ -39,8 +38,7 @@ export default class App {
 
     this.isRehydrated = states.isRehydrated;
 
-    this.appName = appName;
-    this.appNameShort = appNameShort;
+    this.appName = config.get('name');
 
     this.update();
 
@@ -91,7 +89,7 @@ export default class App {
   configureRouter (config, router) {
     this.router = router;
 
-    config.title = appName;
+    config.title = this.appName;
 
     config.map(routes);
 

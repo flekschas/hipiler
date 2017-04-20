@@ -1,0 +1,10 @@
+{
+    "name": "HiPiler",
+    "debug": false,
+    "testing": false,
+    "server": "http://higlass.io/api/v1/",
+    "development": {
+        "debug": true,
+        "testing": true
+    }
+}

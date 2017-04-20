@@ -11,6 +11,7 @@
   "dependencies": {
     "aurelia-animator-css": "1.0.1",
     "aurelia-bootstrapper": "2.1.1",
+    "aurelia-configuration": "1.0.17",
     "bluebird": "3.4.7",
     "d3": "4.7.4",
     "gulp-marked": "flekschas/gulp-marked",
@@ -84,6 +85,7 @@
   },
   "scripts": {
     "build": "gulp && au build --env prod",
+    "build-ghp": "gulp clean-dist && gulp && au build --env prod && scripts/cp-prod.sh hipiler-ghp",
     "start": "gulp && au run --watch",
     "test": "gulp && au test",
     "update": "git pull && git submodule update --init --recursive --remote --merge && npm install && gulp"

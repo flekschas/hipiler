@@ -1,16 +1,3 @@
-export const name = 'HiPiler';
-
-export const environments = {
-  dev: {
-    debug: true,
-    testing: true
-  },
-  prod: {
-    debug: false,
-    testing: false
-  }
-};
-
 export const routes = [
   {
     route: '',
@@ -62,6 +49,6 @@ export const transition = {
 };
 
 export default {
-  environments,
-  routes
+  routes,
+  transition
 };
