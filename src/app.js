@@ -55,17 +55,12 @@ export default class App {
 
     // Drag and drop handler
     dragDrop(document.body, this.dragDropArea, (event) => {
-      let results;
-
-      try {
-        results = readJsonFile(event.dataTransfer.files[0]);
-      } catch (e) {
-        logger.error(e);
-      }
-
-      results
+      readJsonFile(event.dataTransfer.files[0])
         .then(json => this.setConfig(json))
-        .catch(error => logger.error(error));
+        .catch((error) => {
+          logger.info(error);
+          this.showGlobalError('Invalid JSON file');
+        });
     });
 
     document.addEventListener('keydown', this.keyDownHandler.bind(this));
