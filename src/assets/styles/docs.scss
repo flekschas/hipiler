@@ -1,0 +1,92 @@
+@import 'colors';
+@import 'transitions';
+
+pre,
+code {
+  padding: 0 0.125rem;
+  font-family: 'Roboto Mono', monospace;
+  background: #f3f3f3;
+}
+
+code {
+  font-size: 0.8em;
+}
+
+pre {
+  overflow: hidden;
+  padding: 0.25rem;
+  font-size: 0.85em;
+  line-height: 1.5em;
+}
+
+.wiki-page {
+  position: relative;
+
+  &:first-child {
+    border-top: 0;
+  }
+
+  h1 {
+    display: block;
+    margin: 1em 0 0.25em;
+    padding: 0;
+    cursor: pointer;
+    text-transform: uppercase;
+    border-bottom: 2px solid #f3f3f3;
+
+    &:hover {
+      color: #000;
+    }
+
+    .hidden-anchor > .icon {
+      height: 3rem;
+    }
+  }
+
+  h2, h3, h4 {
+    margin: 1em 0 0.5em;
+  }
+
+  h2 {
+    font-size: 1.5em;
+    line-height: 1.5em;
+  }
+
+  h3 {
+    font-size: 1.25em;
+  }
+
+  h4 {
+    font-size: 1em;
+    font-weight: 500;
+    color: $black;
+  }
+
+  *:last-child {
+    margin-bottom: 1rem;
+  }
+
+  table {
+    margin-bottom: 0.5rem;
+    font-size: 0.85em;
+    border-collapse: collapse;
+
+    th {
+      font-weight: bold;
+    }
+
+    td, th {
+      padding: 0.25rem;
+      border: 1px solid #e5e5e5;
+    }
+
+    tr:nth-child(even) td {
+      background: #f3f3f3;
+    }
+  }
+
+  li {
+    margin-left: 1.5rem;
+    list-style-type: disc;
+  }
+}

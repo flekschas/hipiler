@@ -241,6 +241,10 @@ body.dragging-vertical,
   font-size: 1.25em;
 }
 
+.is-slightly-increased-font-size {
+  font-size: 1.125em;
+}
+
 .is-increased-line-height {
   line-height: 1.66em;
 }
@@ -303,4 +307,59 @@ p.nm {
   background: -moz-linear-gradient(top, rgba(255, 255, 255, 0.75) 0%, rgba(255, 255, 255, 1) 100%); /* FF3.6-15 */
   background: -webkit-linear-gradient(top, rgba(255, 255, 255, 0.75) 0%,rgba(255, 255, 255, 1) 100%); /* Chrome10-25,Safari5.1-6 */
   background: linear-gradient(to bottom, rgba(255, 255, 255, 0.75) 0%,rgba(255, 255, 255, 1) 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+}
+
+.anchored {
+  position: relative;
+}
+
+.hidden-anchor {
+  position: absolute;
+  display: block;
+  top: 0;
+  left: -2rem;
+  bottom: 0;
+  width: 2.5rem;
+  padding: 0 1.5rem 0 0.25rem;
+  opacity: 0.33;
+  transform: scale(0);
+  transition: all $transition-fast $ease-in-out-cubic;
+  border-bottom: 0;
+  box-shadow: none !important;
+  cursor: pointer;
+
+  svg-icon {
+    width: 1.125rem;
+    height: 100%;
+  }
+}
+
+.anchored:hover .hidden-anchor,
+.anchored:target .hidden-anchor {
+  transform: scale(1);
+}
+
+.hidden-anchor:hover,
+.anchored:target .hidden-anchor {
+  opacity: 1;
+}
+
+.anchored:target {
+  color: $black;
+
+  &.underlined::after {
+    position: absolute;
+    z-index: -1;
+    display: block;
+    top: 0;
+    left: -2rem;
+    border-bottom: 2px solid $primary;
+    background: transparentize($primary, 0.9);
+  }
+
+  .hidden-anchor {
+    width: 1.5rem;
+    color: $white;
+    background: $primary;
+  }
 }
