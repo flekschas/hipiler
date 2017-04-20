@@ -7,8 +7,9 @@ import gulpUtil from 'gulp-util';
 import marked from 'gulp-marked';
 import modify from 'gulp-modify';
 import notify from 'gulp-notify';
+import order from 'gulp-order';
 import plumber from 'gulp-plumber';
-import runSequence from 'run-sequence';
+import rename from 'gulp-rename';
 import wrap from 'gulp-wrap';
 
 // Extend marked options
@@ -18,14 +19,14 @@ const makeH = (increment = 0) => (text, level) => {
   const escapedText = text.toLowerCase().replace(/[^\w]+/g, '-');
 
   return `
-<h${level + increment} id="${escapedText}" class="underlined anchored">
-  <a href="#${escapedText}" class="hidden-anchor">
+<h${level + increment} id="/docs/${escapedText}" class="underlined anchored">
+  <a href="#/docs/${escapedText}" class="hidden-anchor">
     <svg-icon icon-id="link"></svg-icon>
   </a>
   <span>${text}</span>
 </h${level + increment}>
   `;
-}
+};
 
 renderer.heading = makeH(1);
 
@@ -65,6 +66,8 @@ gulp.src = (...args) => gulpSrc
 const extractFileName =
   file => file.path.slice(file.base.length).replace(/-/gi, ' ').slice(0, -5);
 
+let pageOrder = [];
+
 
 /*
  * -----------------------------------------------------------------------------
@@ -79,13 +82,53 @@ gulp.task('clean', () => gulp
   .pipe(clean())
 );
 
+// Parse wiki sidebar
+gulp.task('sidebar', () => gulp
+  .src('wiki/_Sidebar.md')
+  .pipe(plumber())
+  .pipe(modify({
+    fileModifier: (file, contents) => {
+      const lines = contents.split('\n');
+      lines.forEach((line) => {
+        if (line.slice(0, 3) === '**[') {
+          const end = line.indexOf(']');
+          if (end >= 0) {
+            pageOrder.push(`**/${line.slice(3, end).replace(/ /gi, '-')}.md`);
+          }
+        }
+      });
+      return contents;
+    }
+  }))
+  .pipe(marked(markedOptions))
+  .pipe(rename((path) => {
+    path.basename = 'sidebar';
+  }))
+  .pipe(gulp.dest('assets/wiki'))
+);
+
 // Parse wiki's markdown files
 gulp.task('wiki', () => gulp
   .src(['wiki/**/*.md', '!wiki/_Sidebar.md'])
   .pipe(plumber())
+  .pipe(order(pageOrder))
   .pipe(marked(markedOptions))
   .pipe(modify({
-    fileModifier: (file, contents) => `${makeH(0)(extractFileName(file), 1)}\n${contents}`
+    fileModifier: (file, contents) => {
+      let fileName = extractFileName(file);
+
+      if (fileName === 'Home') {
+        fileName = 'Getting Started';
+      }
+
+      const prefix = fileName.toLowerCase().replace(/ /gi, '-');
+
+      // Add page-specific prefices to anchor links
+      contents = contents.replace(/id="\/docs\//gi, `id="/docs/${prefix}/`);
+      contents = contents.replace(/href="#\/docs\//gi, `href="#/docs/${prefix}/`);
+
+      return `${makeH(0)(fileName, 1)}\n${contents}`;
+    }
   }))
   .pipe(wrap('<div class="wiki-page"><%= contents %></div>'))
   .pipe(concat('wiki.html', { newLine: '\n' }))
@@ -100,4 +143,4 @@ gulp.task('wiki', () => gulp
  * -----------------------------------------------------------------------------
  */
 
-gulp.task('default', gulp.series('clean', 'wiki'));
+gulp.task('default', gulp.series('clean', 'sidebar', 'wiki'));
