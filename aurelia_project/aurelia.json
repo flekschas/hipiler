@@ -141,12 +141,16 @@
           "aurelia-task-queue",
           "aurelia-templating",
           "aurelia-templating-binding",
-          "deep-freeze-strict",
           "json-stringify-safe",
           "lz-string",
           "polyline-miter-util",
           "polyline-normals",
           "text",
+          {
+            "name": "aurelia-configuration",
+            "path": "../node_modules/aurelia-configuration/dist/amd",
+            "main": "index"
+          },
           {
             "name": "aurelia-templating-resources",
             "path": "../node_modules/aurelia-templating-resources/dist/amd",
@@ -167,6 +171,12 @@
             "name": "d3",
             "path": "../node_modules/d3/build",
             "main": "d3"
+          },
+          {
+            "name": "deep-freeze-strict",
+            "path": "../node_modules/deep-freeze-strict",
+            "main": "index",
+            "env": "dev"
           },
           {
             "name": "gl-vec2",
