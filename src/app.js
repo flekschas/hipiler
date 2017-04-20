@@ -25,8 +25,6 @@ export default class App {
   constructor (config, event, font, states) {
     this.event = event;
 
-    console.log(config, config.get('name'));
-
     this.font = font;
 
     this.store = states.store;
