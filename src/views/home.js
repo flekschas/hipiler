@@ -33,11 +33,15 @@ export class Home {
     this.examples = examples;
   }
 
+  /* ----------------------- Aurelia-specific methods ----------------------- */
+
   attached () {
     this.selectConfigButton.addEventListener(
       'click', this.selectConfig.bind(this)
     );
   }
+
+  /* ---------------------------- Class methods ----------------------------- */
 
   loadExample (example) {
     json(example.url, (error, config) => {
