@@ -1,5 +1,5 @@
 // Aurelia
-import { inject } from 'aurelia-framework';
+import { inject, InlineViewStrategy } from 'aurelia-framework';
 
 // Injectable
 import States from 'services/states';
@@ -14,7 +14,7 @@ export class Docs {
     this.store = states.store;
     this.store.subscribe(this.update.bind(this));
 
-    this.docs = wiki;
+    this.docs = new InlineViewStrategy(wiki);
 
     this.update();
   }
