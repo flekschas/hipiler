@@ -16,7 +16,11 @@ export class Docs {
 
     this.sidebar = new InlineViewStrategy(sidebar);
     this.sidebarCss = {};
+
+    this.subscriptions = [];
   }
+
+  /* ----------------------- Aurelia-specific methods ----------------------- */
 
   attached () {
     this.sidebarOffsetTop = this.sidebarEl.getBoundingClientRect().top -
@@ -24,6 +28,15 @@ export class Docs {
 
     this.initEventListeners();
   }
+
+  detached () {
+    this.subscriptions.forEach((subscription) => {
+      subscription.dispose();
+    });
+    this.subscriptions = [];
+  }
+
+  /* ---------------------------- Class methods ----------------------------- */
 
   adjustSidebarPos (event) {
     this.sidebarMarginTop = Math.abs(
@@ -38,6 +51,8 @@ export class Docs {
   }
 
   initEventListeners () {
-    this.event.subscribe('app.scroll', this.adjustSidebarPos.bind(this));
+    this.subscriptions.push(
+      this.event.subscribe('app.scroll', this.adjustSidebarPos.bind(this))
+    );
   }
 }
