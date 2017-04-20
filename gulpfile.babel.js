@@ -97,10 +97,24 @@ gulp.task('sidebar', () => gulp
           }
         }
       });
+
       return contents;
     }
   }))
   .pipe(marked(markedOptions))
+  .pipe(modify({
+    fileModifier: (file, contents) => {
+      contents = contents.replace(
+        /href="(.+)"/gi,
+        (a, b) => `href="${b.toLowerCase().replace('#', '/')}"`
+      );
+      contents = contents.replace(/href="home/gi, 'href="getting-started');
+      contents = contents.replace(/href="/gi, 'href="#/docs/');
+
+      return contents;
+    }
+  }))
+  .pipe(wrap('<template>\n<require from="components/svg-icon/svg-icon"></require>\n<aside class="sidebar">\n<%= contents %>\n</aside>\n</template>'))
   .pipe(rename((path) => {
     path.basename = 'sidebar';
   }))
