@@ -82,6 +82,13 @@ gulp.task('clean', () => gulp
   .pipe(clean())
 );
 
+// Cean
+gulp.task('clean-dist', () => gulp
+  .src('dist/*', { read: false })
+  .pipe(plumber())
+  .pipe(clean())
+);
+
 // Parse wiki sidebar
 gulp.task('sidebar', () => gulp
   .src('wiki/_Sidebar.md')
