@@ -4,3 +4,4 @@ node_modules
 .DS_STORE
 *.log
 assets/wiki/*
+config.local.json
