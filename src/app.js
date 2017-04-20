@@ -1,7 +1,6 @@
 // Aurelia
 import { inject, LogManager } from 'aurelia-framework';
 import { EventAggregator } from 'aurelia-event-aggregator';
-import { AureliaConfiguration } from 'aurelia-configuration';
 
 // Injectable
 import Font from 'services/font';
@@ -19,10 +18,10 @@ import validateConfig from 'utils/validate-config';
 
 const logger = LogManager.getLogger('app');
 
-@inject(AureliaConfiguration, EventAggregator, Font, States)
+@inject(EventAggregator, Font, States)
 export default class App {
 
-  constructor (config, event, font, states) {
+  constructor (event, font, states) {
     this.event = event;
 
     this.font = font;
@@ -36,7 +35,7 @@ export default class App {
 
     this.isRehydrated = states.isRehydrated;
 
-    this.appName = config.get('name');
+    this.appName = window.hipilerConfig.name;
 
     this.update();
 

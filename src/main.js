@@ -6,28 +6,15 @@ Promise.config({
 });
 
 export function configure (aurelia) {
-  let debug = false;
-  let testing = false;
-
   aurelia.use
     .standardConfiguration()
-    .feature('resources')
-    .plugin('aurelia-configuration', (config) => {
-      config.setDirectory('.');
-      config.setEnvironments({
-        development: ['localhost'],
-        production: ['github.io']
-      });
+    .feature('resources');
 
-      debug = config.get('debug');
-      testing = config.get('testing');
-    });
-
-  if (debug) {
+  if (window.hipilerConfig.debug) {
     aurelia.use.developmentLogging();
   }
 
-  if (testing) {
+  if (window.hipilerConfig.testing) {
     aurelia.use.plugin('aurelia-testing');
   }
 

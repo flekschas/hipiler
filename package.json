@@ -11,7 +11,6 @@
   "dependencies": {
     "aurelia-animator-css": "1.0.1",
     "aurelia-bootstrapper": "2.1.1",
-    "aurelia-configuration": "1.0.17",
     "bluebird": "3.4.7",
     "d3": "4.7.4",
     "gulp-marked": "flekschas/gulp-marked",
