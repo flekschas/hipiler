@@ -1,5 +1,6 @@
 #!/bin/sh
 
+rm -r ../$1/*
 cp -r assets ../$1/
 cp -r dist ../$1/
 cp config.json ../$1/
