@@ -77,6 +77,7 @@ export default class App {
     document.addEventListener('keyup', this.keyUpHandler.bind(this));
     document.addEventListener('mousemove', this.mouseMoveHandler.bind(this));
     document.addEventListener('mouseup', this.mouseUpHandler.bind(this));
+    document.addEventListener('scroll', this.scrollHandler.bind(this));
 
     this.event.subscribe('showGlobalError', (args) => {
       this.showGlobalError(...args);
@@ -234,6 +235,16 @@ export default class App {
    */
   resumeExploration () {
     this.router.navigateToRoute('explore');
+  }
+
+  /**
+   * Publish scroll event
+   *
+   * @param {object} event - Scroll event object.
+   */
+  scrollHandler (event) {
+    this.event.publish('app.scroll', event);
+    // this.event.subscribe
   }
 
   /**
