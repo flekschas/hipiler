@@ -14,22 +14,20 @@ import wrap from 'gulp-wrap';
 // Extend marked options
 const renderer = new marked.marked.Renderer();
 
-renderer.heading = (text, level) => {
+const makeH = (increment = 0) => (text, level) => {
   const escapedText = text.toLowerCase().replace(/[^\w]+/g, '-');
 
   return `
-<h${level} id="${escapedText}" class="underlined anchored">
+<h${level + increment} id="${escapedText}" class="underlined anchored">
   <a href="#${escapedText}" class="hidden-anchor">
-    <svg class="icon">
-      <use
-        xmlns:xlink="http://www.w3.org/1999/xlink"
-        xlink:href="../assets/images/icons.svg#link"></use>
-    </svg>
+    <svg-icon icon-id="link"></svg-icon>
   </a>
   <span>${text}</span>
-</h${level + 1}>
+</h${level + increment}>
   `;
-};
+}
+
+renderer.heading = makeH(1);
 
 const markedOptions = {};
 Object.assign(markedOptions, { renderer });
@@ -65,7 +63,7 @@ gulp.src = (...args) => gulpSrc
   }));
 
 const extractFileName =
-  file => file.path.slice(file.base.length).replace(/-/gi, ' ').slice(0, -3);
+  file => file.path.slice(file.base.length).replace(/-/gi, ' ').slice(0, -5);
 
 
 /*
@@ -83,14 +81,15 @@ gulp.task('clean', () => gulp
 
 // Parse wiki's markdown files
 gulp.task('wiki', () => gulp
-  .src('wiki/**/*.md')
+  .src(['wiki/**/*.md', '!wiki/_Sidebar.md'])
   .pipe(plumber())
-  .pipe(modify({
-    fileModifier: (file, contents) => `# ${extractFileName(file)}\n${contents}`
-  }))
   .pipe(marked(markedOptions))
+  .pipe(modify({
+    fileModifier: (file, contents) => `${makeH(0)(extractFileName(file), 1)}\n${contents}`
+  }))
   .pipe(wrap('<div class="wiki-page"><%= contents %></div>'))
   .pipe(concat('wiki.html', { newLine: '\n' }))
+  .pipe(wrap('<template>\n<require from="components/svg-icon/svg-icon"></require>\n<%= contents %>\n</template>'))
   .pipe(gulp.dest('assets/wiki'))
 );
 
