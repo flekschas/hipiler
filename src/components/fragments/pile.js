@@ -450,8 +450,11 @@ export default class Pile {
 
   createWorkerClusterfck () {
     return new Promise((resolve, reject) => {
+      const hash = window.hipilerConfig.workerClusterfckHash.length ?
+        `-${window.hipilerConfig.workerClusterfckHash}` : '';
+
       queue()
-        .defer(text, 'dist/clusterfck-worker.js')
+        .defer(text, `dist/clusterfck-worker${hash}.js`)
         .await((error, clusterfckWorker) => {
           if (error) { logger.error(error); reject(Error(error)); }
 

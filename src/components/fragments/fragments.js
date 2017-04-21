@@ -1296,8 +1296,11 @@ export class Fragments {
    */
   createWorkerTsne () {
     return new Promise((resolve, reject) => {
+      const hash = window.hipilerConfig.workerTsneHash.length ?
+        `-${window.hipilerConfig.workerTsneHash}` : '';
+
       queue()
-        .defer(text, 'dist/tsne-worker.js')
+        .defer(text, `dist/tsne-worker${hash}.js`)
         .await((error, tSneWorker) => {
           if (error) { logger.error(error); reject(Error(error)); }
 
