@@ -2,7 +2,7 @@
   "name": "hipiler",
   "description": "Visual exploration of large genome interaction matrices with interactive small multiples.",
   "author": "Fritz Lekschas (http://lekschas.de)",
-  "version": "1.0.0-beta3",
+  "version": "1.0.0-beta4",
   "repository": {
     "type": "git",
     "url": "https://github.com/flekschas/hipiler.git"
