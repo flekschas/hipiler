@@ -1,6 +1,8 @@
 {
-    "name": "HiPiler",
     "debug": false,
+    "name": "HiPiler",
+    "server": "http://higlass.io/api/v1/",
     "testing": false,
-    "server": "http://higlass.io/api/v1/"
+    "workerClusterfckHash": "",
+    "workerTsneHash": ""
 }

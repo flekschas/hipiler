@@ -12,20 +12,25 @@ import plumber from 'gulp-plumber';
 import rename from 'gulp-rename';
 import wrap from 'gulp-wrap';
 
-import * as config from './config.json';
-import * as configLocal from './config.local.json';
-import * as packageJson from './package.json';
+import config from './config.json';
+import configLocal from './config.local.json';
+import packageJson from './package.json';
 
 // Flags
 const production = gulpUtil.env.production;  // `--production`
 
+// We need an extra object because the import creates a `default` property
+const _config = {};
+
 // Overwrite global with local settings
-Object.assign(config, configLocal);
-Object.assign(config, { version: packageJson.version });
+Object.assign(_config, config, configLocal);
+Object.assign(_config, { version: packageJson.version });
+
+console.log(_config);
 
 if (production) {
-  config.debug = false;
-  config.testing = false;
+  _config.debug = false;
+  _config.testing = false;
 }
 
 // Extend marked options
@@ -113,12 +118,36 @@ gulp.task('config', () => gulp
     fileModifier: (file, contents) => {
       contents = contents.replace(
         /window.hipilerConfig = .*/,
-        `window.hipilerConfig = ${JSON.stringify(config)};`
+        `window.hipilerConfig = ${JSON.stringify(_config)};`
       );
       return contents;
     }
   }))
   .pipe(gulp.dest('.'))
+);
+
+// Extract hashes
+gulp.task('hash', () => gulp
+  .src([
+    'dist/clusterfck-worker*',
+    'dist/tsne-worker*'
+  ])
+  .pipe(plumber())
+  .pipe(modify({
+    fileModifier: (file, contents) => {
+      const hash = file.path.slice(file.path.indexOf('worker') + 7, -3);
+
+      if (file.path.indexOf('clusterfck') >= 0) {
+        _config.workerClusterfckHash = hash;
+      }
+
+      if (file.path.indexOf('tsne') >= 0) {
+        _config.workerTsneHash = hash;
+      }
+
+      return contents;
+    }
+  }))
 );
 
 // Parse wiki sidebar
@@ -196,4 +225,6 @@ gulp.task('wiki', () => gulp
  * -----------------------------------------------------------------------------
  */
 
-gulp.task('default', gulp.series('clean', 'sidebar', 'wiki', 'config'));
+gulp.task('index', gulp.series('hash', 'config'));
+
+gulp.task('default', gulp.series('clean', 'sidebar', 'wiki'));
