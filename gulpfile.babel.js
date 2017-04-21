@@ -13,8 +13,14 @@ import rename from 'gulp-rename';
 import wrap from 'gulp-wrap';
 
 import config from './config.json';
-import configLocal from './config.local.json';
 import packageJson from './package.json';
+
+let configLocal = {};
+try {
+  configLocal = require('./config.local.json');  // eslint-disable-line global-require
+} catch (e) {
+  // Nothing
+}
 
 // Flags
 const production = gulpUtil.env.production;  // `--production`
