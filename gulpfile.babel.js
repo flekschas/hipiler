@@ -26,8 +26,6 @@ const _config = {};
 Object.assign(_config, config, configLocal);
 Object.assign(_config, { version: packageJson.version });
 
-console.log(_config);
-
 if (production) {
   _config.debug = false;
   _config.testing = false;
