@@ -453,8 +453,10 @@ export default class Pile {
       const hash = window.hipilerConfig.workerClusterfckHash.length ?
         `-${window.hipilerConfig.workerClusterfckHash}` : '';
 
+      const loc = window.hipilerConfig.workerLoc || 'dist';
+
       queue()
-        .defer(text, `dist/clusterfck-worker${hash}.js`)
+        .defer(text, `${loc}/clusterfck-worker${hash}.js`)
         .await((error, clusterfckWorker) => {
           if (error) { logger.error(error); reject(Error(error)); }
 

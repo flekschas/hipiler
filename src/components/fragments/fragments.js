@@ -1299,8 +1299,10 @@ export class Fragments {
       const hash = window.hipilerConfig.workerTsneHash.length ?
         `-${window.hipilerConfig.workerTsneHash}` : '';
 
+      const loc = window.hipilerConfig.workerLoc || 'dist';
+
       queue()
-        .defer(text, `dist/tsne-worker${hash}.js`)
+        .defer(text, `${loc}/tsne-worker${hash}.js`)
         .await((error, tSneWorker) => {
           if (error) { logger.error(error); reject(Error(error)); }
 
