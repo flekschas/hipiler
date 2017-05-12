@@ -54,7 +54,7 @@ export default class App {
     );
 
     // Drag and drop handler
-    dragDrop(document.body, this.dragDropArea, (event) => {
+    dragDrop(this.baseEl, this.dragDropArea, (event) => {
       readJsonFile(event.dataTransfer.files[0])
         .then(json => this.setConfig(json))
         .catch((error) => {
@@ -123,7 +123,7 @@ export default class App {
   hideGlobalError () {
     this.corruptConfig = false;
     this.globalErrorMsg = undefined;
-    $(document.body).removeClass('is-global-error');
+    $(this.baseEl).removeClass('is-global-error');
   }
 
   /**
@@ -265,9 +265,11 @@ export default class App {
     this.globalError = true;
     this.globalErrorMsg = msg;
 
-    $(document.body).addClass('is-global-error');
+    $(this.baseEl).addClass('is-global-error');
 
-    this.globalErrorDisplay = setTimeout(this.hideGlobalError, duration);
+    this.globalErrorDisplay = setTimeout(
+      this.hideGlobalError.bind(this), duration
+    );
   }
 
   /**

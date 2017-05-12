@@ -6,7 +6,8 @@
 
   <div
     class="full-wh ${currentRoute === 'matrix' ? 'matrix-full-screen-view' : ''}"
-    click.delegate="clickHandler($event)">
+    click.delegate="clickHandler($event)"
+    ref="baseEl">
 
     <div
       id="drag-drop-notifier"
