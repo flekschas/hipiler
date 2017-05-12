@@ -39,6 +39,10 @@
   main {
     position: relative;
     z-index: 1;
+
+    > *:last-child {
+      margin-bottom: 4rem;
+    }
   }
 
   main > p:first-child {
