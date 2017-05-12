@@ -1,3 +1,5 @@
+export const name = 'HiPiler';
+
 export const routes = [
   {
     route: '',

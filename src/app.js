@@ -9,7 +9,7 @@ import States from 'services/states';
 // Utils
 import { updateConfigs } from 'app-actions';
 import { ERROR_DURATION } from 'app-defaults';
-import { routes } from 'configs/app';
+import { name, routes } from 'configs/app';
 import { externalLinks } from 'configs/nav';
 import $ from 'utils/dom-el';
 import dragDrop from 'utils/drag-drop';
@@ -35,7 +35,7 @@ export default class App {
 
     this.isRehydrated = states.isRehydrated;
 
-    this.appName = window.hipilerConfig.name;
+    this.appName = name;
 
     this.update();
 
