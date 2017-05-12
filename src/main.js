@@ -12,6 +12,10 @@ export function configure (aurelia) {
     .standardConfiguration()
     .feature('resources');
 
+  if (!window.hipilerConfig) {
+    window.hipilerConfig = {};
+  }
+
   if (window.hipilerConfig.debug) {
     aurelia.use.developmentLogging();
   }
