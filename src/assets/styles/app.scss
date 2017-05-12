@@ -288,6 +288,7 @@
 
   &.footer-main p {
     font-size: 0.9rem;
+    color: $gray;
   }
 
   .logos a {
@@ -302,8 +303,8 @@
   }
 }
 
-body.is-dragging-over #drag-drop-notifier,
-body.is-global-error #global-error {
+.is-dragging-over #drag-drop-notifier,
+.is-global-error #global-error {
   z-index: 10;
   height: 100%;
   opacity: 1;
@@ -313,7 +314,7 @@ body.is-global-error #global-error {
   }
 }
 
-body.is-dragging-over #drag-drop-notifier {
+.is-dragging-over #drag-drop-notifier {
   animation: pulsePrimary 1.5s $ease-in-out-cubic infinite;
 
   span {

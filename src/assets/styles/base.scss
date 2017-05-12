@@ -3,14 +3,13 @@
 
 /* =====  1 Global Rules & Definitions  ===================================== */
 
-/* -----  1.1 Font Definitions  --------------------------------------------- */
-
-/* We're using Google Fonts for performance reasons */
+/* -----  1.1 Body / base definition  --------------------------------------- */
 
 /* -----  1.2 Reset & Normalization  ---------------------------------------- */
 
 *, *::before, *::after {
   font-family: 'Rubik', sans-serif;
+  text-rendering: optimizeLegibility;
   margin: 0;
   padding: 0;
   border: none;
@@ -34,16 +33,6 @@ footer, header, main, menu, nav, section, summary {
   color: $black;
 }
 
-html,
-body {
-  height: 100vh;
-  color: $gray-dark;
-  font-size: 16px;
-  font-weight: 300;
-  text-rendering: optimizeLegibility;
-  background: #fff;
-}
-
 /* -----  1.3 General Typography  ------------------------------------------- */
 
 h1, h2, h3, h4, h5, h6,
@@ -54,9 +43,18 @@ p, ul, ol, figure, pre {
   margin: 0 0 1em;
 }
 
-/* Headings */
-h1, h2, h3 {
+h4, h5, h6, a, p, input, select, option, ul, ol, li, figure, pre, td, th,
+button {
+  color: $gray-dark;
+  font-weight: 300;
+}
+
+h1, h2, h3, th {
   color: $black;
+}
+
+/* Headings */
+h1, h2, h3, b, strong {
   font-weight: 500;
 }
 
@@ -76,10 +74,6 @@ h3 {
   line-height: 1.2;
 }
 
-h4, h5, h6, input, select, option {
-  font-weight: 300;
-}
-
 h4 {
   font-size: 1em;
 }
@@ -87,7 +81,7 @@ h4 {
 /* Links */
 a {
   color: inherit;
-  text-decoration: none;
+  text-decoration: none !important;
   border-bottom: 1px solid $gray-lighter;
   transition: color $transition-very-fast $ease-in-out-cubic,
               border-bottom-color $transition-very-fast $ease-in-out-cubic;
@@ -96,10 +90,6 @@ a {
 a:hover, a:focus, a:active {
   color: $primary;
   border-bottom-color: $primary;
-}
-
-b, strong {
-  font-weight: 500;
 }
 
 button:hover
@@ -237,14 +227,6 @@ body.dragging-vertical,
   text-align: right;
 }
 
-.is-increased-font-size {
-  font-size: 1.25em;
-}
-
-.is-slightly-increased-font-size {
-  font-size: 1.125em;
-}
-
 .is-increased-line-height {
   line-height: 1.66em;
 }
@@ -361,5 +343,21 @@ p.nm {
     width: 1.5rem;
     color: $white;
     background: $primary;
+  }
+}
+
+@media (min-width: 60rem) {  // 960px
+  .is-increased-font-size {
+    font-size: 1.125em;
+  }
+}
+
+@media (min-width: 64rem) {  // 1024px
+  .is-slightly-increased-font-size {
+    font-size: 1.125em;
+  }
+
+  .is-increased-font-size {
+    font-size: 1.25em;
   }
 }

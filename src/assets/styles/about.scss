@@ -42,7 +42,7 @@
   }
 
   main > p:first-child {
-    margin: 12rem 4rem 2rem 4rem;
+    margin: 4rem 4rem 2rem 4rem;
     color: $black;
   }
 
@@ -78,6 +78,14 @@
 
     li {
       margin-right: 1rem;
+    }
+  }
+}
+
+@media (min-width: 64rem) {  // 1024px
+  .about {
+    main > p:first-child {
+      margin-top: 12rem;
     }
   }
 }

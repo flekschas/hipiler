@@ -1,30 +1,37 @@
-// Mixins
-@import 'mixins/truncate';
+#hipiler {
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+  background: #fff;
 
-// Components
-@import 'colors';
-@import 'transitions';
-@import 'flexbox';
-@import 'range';
-@import 'multi-select';
-@import 'svg-icon';
-@import 'axis';
-@import 'grid';
-@import 'pile-context-menu';
-@import 'dialog';
-@import 'columns';
+  // Mixins
+  @import 'mixins/truncate';
 
-// Base style
-@import 'base';
+  // Components
+  @import 'colors';
+  @import 'transitions';
+  @import 'flexbox';
+  @import 'range';
+  @import 'multi-select';
+  @import 'svg-icon';
+  @import 'axis';
+  @import 'grid';
+  @import 'pile-context-menu';
+  @import 'dialog';
+  @import 'columns';
 
-// Global app styles
-@import 'app';
+  // Base style
+  @import 'base';
 
-// Specific component styles
-@import 'navigation';
-@import 'home';
-@import 'about';
-@import 'docs';
-@import 'explore';
-@import 'higlass';
-@import 'fragments';
+  // Global app styles
+  @import 'app';
+
+  // Specific component styles
+  @import 'navigation';
+  @import 'home';
+  @import 'about';
+  @import 'docs';
+  @import 'explore';
+  @import 'higlass';
+  @import 'fragments';
+}
