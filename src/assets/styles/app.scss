@@ -287,6 +287,7 @@
   }
 
   &.footer-main p {
+    margin-top: 0;
     font-size: 0.9rem;
     color: $gray;
   }
@@ -361,6 +362,7 @@
 
   h1 {
     position: relative;
+    margin-top: 0;
     font-weight: normal;
     font-size: 1.5rem;
     line-height: inherit;
