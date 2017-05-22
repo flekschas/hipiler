@@ -74,10 +74,10 @@ export class Higlass {
       this.reject.isLociExtracted = reject;
     });
 
-    this.isGlobalLociCalced = new Promise((resolve, reject) => {
-      this.resolve.isGlobalLociCalced = resolve;
-      this.reject.isGlobalLociCalced = reject;
-    });
+    // this.isGlobalLociCalced = new Promise((resolve, reject) => {
+    //   this.resolve.isGlobalLociCalced = resolve;
+    //   this.reject.isGlobalLociCalced = reject;
+    // });
 
     this.isServersAvailable = new Promise((resolve, reject) => {
       this.resolve.isServersAvailable = resolve;
@@ -101,6 +101,7 @@ export class Higlass {
    * Called once the component is attached.
    */
   attached () {
+    this.initEventListeners();
     this.update();
 
     setTimeout(() => { this.isLoading = false; }, 150);
@@ -209,6 +210,12 @@ export class Higlass {
     };
   }
 
+  /**
+   * Check server availablility.
+   *
+   * @param {object} config - HiGlass config.
+   * @return {object} Promise resolving to true if all servers are available.
+   */
   checkServersAvailablility (config) {
     let servers;
 
@@ -223,24 +230,24 @@ export class Higlass {
     return Promise.all(servers.map(server => ping(server)));
   }
 
-  calcGlobalLoci (loci, chromInfo) {
-    const globalLoci = loci.map((locus) => {
-      const offsetX = chromInfo[locus[0]].offset;
-      const offsetY = chromInfo[locus[3]].offset;
+  // calcGlobalLoci (loci, chromInfo) {
+  //   const globalLoci = loci.map((locus) => {
+  //     const offsetX = chromInfo[locus[0]].offset;
+  //     const offsetY = chromInfo[locus[3]].offset;
 
-      return [
-        ...locus,
-        offsetX + locus[1],
-        offsetX + locus[2],
-        offsetY + locus[4],
-        offsetY + locus[5]
-      ];
-    });
+  //     return [
+  //       ...locus,
+  //       offsetX + locus[1],
+  //       offsetX + locus[2],
+  //       offsetY + locus[4],
+  //       offsetY + locus[5]
+  //     ];
+  //   });
 
-    this.resolve.isGlobalLociCalced();
+  //   this.resolve.isGlobalLociCalced();
 
-    return globalLoci;
-  }
+  //   return globalLoci;
+  // }
 
   checkColumns (newColumns) {
     if (this.columns !== newColumns) {
@@ -307,7 +314,7 @@ export class Higlass {
   /**
    * Dehighlight locations.
    */
-  dehighlightLoci () {
+  blurLoci () {
     if (!this.isFgmHighlight) { return; }
 
     this.isFgmHighlight = false;
@@ -456,7 +463,8 @@ export class Higlass {
     this.isErrored = true;
   }
 
-  highlightLoci (lociIds) {
+  focusLoci (lociIds) {
+    console.log('focus loci', lociIds);
     if (!this.loci) { return; }
 
     const configTmp = deepClone(this.config);
@@ -495,6 +503,8 @@ export class Higlass {
 
     this.isFgmHighlight = true;
 
+    console.log('focus loci!!');
+
     this.render(configTmp);
   }
 
@@ -528,18 +538,15 @@ export class Higlass {
    */
   initEventListeners () {
     this.subscriptions.push(this.event.subscribe(
-      'explore.fgm.pileMouseEnter',
-      this.highlightLoci.bind(this)
+      'explore.fgm.pileFocus', this.focusLoci.bind(this)
     ));
 
     this.subscriptions.push(this.event.subscribe(
-      'explore.fgm.pileUnhighlight',
-      this.dehighlightLoci.bind(this)
+      'explore.fgm.pileBlur', this.blurLoci.bind(this)
     ));
 
     this.subscriptions.push(this.event.subscribe(
-      'explore.fgm.showInMatrix',
-      this.goToPile.bind(this)
+      'explore.fgm.showInMatrix', this.goToPile.bind(this)
     ));
   }
 
@@ -624,7 +631,7 @@ export class Higlass {
       const yStart = this.chromInfoData[location[4]].offset + location[5];
       const yEnd = this.chromInfoData[location[6]].offset + location[7];
 
-      this.isGlobalLociCalced.then(this.updateLociColor.bind(this));
+      // this.isGlobalLociCalced.then(this.updateLociColor.bind(this));
 
       // Update state
       this.store.dispatch(setSelectionView([

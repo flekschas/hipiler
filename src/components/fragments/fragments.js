@@ -1000,7 +1000,7 @@ export class Fragments {
       if (fgmState.hoveredPile) {
         // Show pile location
         this.event.publish(
-          'explore.fgm.pileMouseEnter',
+          'explore.fgm.pileFocus',
           fgmState.hoveredPile.pileMatrices.map(matrix => matrix.id)
         );
       }
@@ -2383,7 +2383,7 @@ export class Fragments {
       this.pileHighlight.frameReset();
 
       this.event.publish(
-        'explore.fgm.pileUnhighlight',
+        'explore.fgm.pileBlur',
         this.pileHighlight.pileMatrices.map(matrix => matrix.id)
       );
 
