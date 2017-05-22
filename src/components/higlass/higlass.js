@@ -464,7 +464,6 @@ export class Higlass {
   }
 
   focusLoci (lociIds) {
-    console.log('focus loci', lociIds);
     if (!this.loci) { return; }
 
     const configTmp = deepClone(this.config);
@@ -502,8 +501,6 @@ export class Higlass {
       });
 
     this.isFgmHighlight = true;
-
-    console.log('focus loci!!');
 
     this.render(configTmp);
   }
