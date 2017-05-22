@@ -2734,6 +2734,8 @@ export class Fragments {
    * Initialize the canvas container.
    */
   initWebGl () {
+    const devicePixelRatio = window.devicePixelRatio || 1;
+
     this.camera = new OrthographicCamera(
       this.plotElDim.width / -2,  // left
       this.plotElDim.width / 2,  // right
@@ -2753,13 +2755,14 @@ export class Fragments {
     this.scrollLimitTop = this.cameraPosOrgY;
 
     this.renderer = new WebGLRenderer(WEB_GL_CONFIG);
-    this.renderer.setSize(this.plotElDim.width, this.plotElDim.height);
+    this.renderer.setSize(
+      this.plotElDim.width * devicePixelRatio,
+      this.plotElDim.height * devicePixelRatio
+    );
     this.renderer.setClearColor(0xffffff, 0);
+    this.renderer.context.scale(devicePixelRatio, devicePixelRatio);
 
     this.canvas = this.renderer.domElement;
-    // Suporting HiDPI displays need more work
-    // this.canvas.width = this.plotElDim.width * (window.devicePixelRatio || 1);
-    // this.canvas.height = this.plotElDim.height * (window.devicePixelRatio || 1);
 
     this.origin = new Vector3();
     this.mouse = new Vector2();
