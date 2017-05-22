@@ -2734,8 +2734,6 @@ export class Fragments {
    * Initialize the canvas container.
    */
   initWebGl () {
-    const devicePixelRatio = window.devicePixelRatio || 1;
-
     this.camera = new OrthographicCamera(
       this.plotElDim.width / -2,  // left
       this.plotElDim.width / 2,  // right
@@ -2755,12 +2753,12 @@ export class Fragments {
     this.scrollLimitTop = this.cameraPosOrgY;
 
     this.renderer = new WebGLRenderer(WEB_GL_CONFIG);
+    this.renderer.setPixelRatio(window.devicePixelRatio || 1);
     this.renderer.setSize(
-      this.plotElDim.width * devicePixelRatio,
-      this.plotElDim.height * devicePixelRatio
+      this.plotElDim.width,
+      this.plotElDim.height
     );
     this.renderer.setClearColor(0xffffff, 0);
-    this.renderer.context.scale(devicePixelRatio, devicePixelRatio);
 
     this.canvas = this.renderer.domElement;
 
@@ -2869,7 +2867,7 @@ export class Fragments {
     this.isLoading = true;
 
     return new Promise((resolve, reject) => {
-      let dataUrl;
+      let url;
 
       const params = {
         precision: config.fragmentsPrecision,
@@ -2887,7 +2885,7 @@ export class Fragments {
       const server = config.fragmentsServer.replace(/\/+$/, '');
 
       try {
-        dataUrl = `${server}/${API_FRAGMENTS}/${queryString}`;
+        url = `${server}/${API_FRAGMENTS}/${queryString}`;
       } catch (e) {
         this.hasErrored('Config is broken');
         reject(Error(this.errorMsg));
@@ -2897,7 +2895,7 @@ export class Fragments {
         loci: this.extractLoci(config)
       };
 
-      json(dataUrl)
+      json(url)
         .header('Content-Type', 'application/json')
         .post(JSON.stringify(postData), (error, results) => {
           if (error) {
@@ -3457,8 +3455,6 @@ export class Fragments {
     piles.forEach((pile) => {
       config[pile.id] = pile.pileMatrices.map(matrix => matrix.id);
     });
-
-    // console.log('removeFromPile', piles, config);
 
 
     // if (fgmState.isPilesInspection) {
