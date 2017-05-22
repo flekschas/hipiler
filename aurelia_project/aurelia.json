@@ -62,27 +62,100 @@
     ],
     "loader": {
       "type": "require",
-      "configTarget": "hipiler.js",
+      "configTarget": "vendor-bundle.js",
       "includeBundleMetadataInConfig": "auto",
       "plugins": [
         {
           "name": "text",
           "extensions": [
             ".html",
-            ".css",
-            ".json"
+            ".css"
           ],
           "stub": true
         }
       ]
     },
     "options": {
-      "depCache": true,
-      "minify": "stage & prod",
+      "minify": "stage",
       "sourcemaps": "dev & stage",
       "rev": "stage & prod"
     },
     "bundles": [
+      {
+        "name": "app-bundle.js",
+        "source": {
+          "include": [
+            "[**/*.js]",
+            "**/*.{css,html}"
+          ],
+          "exclude": [
+            "**/components/fragments/*",
+            "**/components/higlass/*",
+            "**/worker-*.js"
+          ]
+        }
+      },
+      {
+        "name": "exploration-bundle.js",
+        "dependencies": [
+          "polyline-miter-util",
+          "polyline-normals",
+          {
+            "name": "d3",
+            "path": "../node_modules/d3/build",
+            "main": "d3"
+          },
+          {
+            "name": "gl-vec2",
+            "path": "../node_modules/gl-vec2",
+            "main": "index"
+          },
+          {
+            "name": "hglib",
+            "path": "../node_modules/higlass/dist/scripts",
+            "main": "hglib"
+          },
+          {
+            "name": "hull",
+            "path": "../node_modules/hull.js/dist",
+            "main": "hull"
+          },
+          {
+            "name": "three",
+            "path": "../node_modules/three/build",
+            "main": "three"
+          },
+          {
+            "name": "three-line-2d",
+            "path": "../node_modules/three-line-2d",
+            "main": "index"
+          },
+          {
+            "name": "three-line-2d-shader",
+            "path": "../node_modules/three-line-2d/shaders",
+            "main": "basic"
+          },
+          {
+            "name": "three-orbit-controls",
+            "path": "../node_modules/three-orbit-controls",
+            "main": "index"
+          }
+        ],
+        "prepend": [
+          "node_modules/javascript-detect-element-resize/detect-element-resize.js"
+        ],
+        "source": {
+          "include": [
+            "[**/components/fragments/*.js]",
+            "[**/components/higlass/*.js]",
+            "**/components/fragments/*.{css,html}",
+            "**/components/higlass/*.{css,html}"
+          ],
+          "exclude": [
+            "**/worker-*.js"
+          ]
+        }
+      },
       {
         "name": "clusterfck-worker.js",
         "prepend": [
@@ -100,20 +173,11 @@
         "source": []
       },
       {
-        "name": "hipiler.js",
-        "source": {
-          "include": [
-            "[**/*.js]",
-            "**/*.{css,html}"
-          ],
-          "exclude": [
-            "**/worker-*.js"
-          ]
-        },
+        "name": "vendor-bundle.js",
         "prepend": [
-          "node_modules/requirejs/require.js",
           "node_modules/bluebird/js/browser/bluebird.core.js",
-          "node_modules/javascript-detect-element-resize/detect-element-resize.js"
+          "node_modules/aurelia-cli/lib/resources/scripts/configure-bluebird.js",
+          "node_modules/requirejs/require.js"
         ],
         "dependencies": [
           "aurelia-binding",
@@ -137,10 +201,9 @@
           "aurelia-task-queue",
           "aurelia-templating",
           "aurelia-templating-binding",
+          "deep-freeze-strict",
           "json-stringify-safe",
           "lz-string",
-          "polyline-miter-util",
-          "polyline-normals",
           "text",
           {
             "name": "aurelia-templating-resources",
@@ -157,31 +220,6 @@
             "path": "../node_modules/aurelia-testing/dist/amd",
             "main": "aurelia-testing",
             "env": "dev"
-          },
-          {
-            "name": "d3",
-            "path": "../node_modules/d3/build",
-            "main": "d3"
-          },
-          {
-            "name": "deep-freeze-strict",
-            "path": "../node_modules/deep-freeze-strict",
-            "main": "index",
-            "env": "dev"
-          },
-          {
-            "name": "gl-vec2",
-            "path": "../node_modules/gl-vec2"
-          },
-          {
-            "name": "hglib",
-            "path": "../node_modules/higlass/dist/scripts",
-            "main": "hglib"
-          },
-          {
-            "name": "hull",
-            "path": "../node_modules/hull.js/dist",
-            "main": "hull"
           },
           {
             "name": "inherits",
@@ -232,26 +270,6 @@
           {
             "name": "redux-undo",
             "path": "../node_modules/redux-undo/lib",
-            "main": "index"
-          },
-          {
-            "name": "three",
-            "path": "../node_modules/three/build",
-            "main": "three"
-          },
-          {
-            "name": "three-line-2d",
-            "path": "../node_modules/three-line-2d",
-            "main": "index"
-          },
-          {
-            "name": "three-line-2d-shader",
-            "path": "../node_modules/three-line-2d/shaders",
-            "main": "basic"
-          },
-          {
-            "name": "three-orbit-controls",
-            "path": "../node_modules/three-orbit-controls",
             "main": "index"
           }
         ]
