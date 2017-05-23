@@ -163,9 +163,10 @@ gulp.task('sidebar', () => gulp
       const lines = contents.split('\n');
       lines.forEach((line) => {
         if (line.slice(0, 3) === '**[') {
-          const end = line.indexOf(']');
-          if (end >= 0) {
-            pageOrder.push(`**/${line.slice(3, end).replace(/ /gi, '-')}.md`);
+          const start = line.indexOf('](');
+          const end = line.indexOf(')');
+          if (start >= 0 && end >= 0) {
+            pageOrder.push(`**/${line.slice(start + 2, end).replace(/ /gi, '-')}.md`);
           }
         }
       });
