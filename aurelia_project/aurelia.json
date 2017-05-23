@@ -248,11 +248,6 @@
             "env": "dev"
           },
           {
-            "name": "redux-promise-middleware",
-            "path": "../node_modules/redux-promise-middleware/dist",
-            "main": "index"
-          },
-          {
             "name": "redux-persist",
             "path": "../node_modules/redux-persist/dist",
             "main": "redux-persist"
