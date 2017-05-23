@@ -1,9 +1,238 @@
 <template>
-  <require from="components/footer-main.html"></require>
+  <require from="components/footer-main/footer-main"></require>
+  <require from="components/svg-icon/svg-icon"></require>
 
-  <div class="flex-c flex-d-c full-wh">
-    <main class="flex-g-1">
-      <p>About this website</p>
+  <div class="flex-c flex-d-c full-wh about is-increased-font-size">
+    <div class="bg-video">
+      <div class="fade-out full-dim"></div>
+      <video autoplay loop poster="assets/images/about-bg.jpg">
+        <source src="assets/videos/about.webm" type="video/webm">
+        <source src="assets/videos/about.mp4" type="video/mp4">
+      </video>
+    </div>
+    <main class="flex-g-1 wrap">
+      <p class="is-justified is-increased-line-height">
+      <strong>HiPiler</strong> is an interactive visualization interface for the exploration and visualization of regions-of-interest in large <a href="https://en.wikipedia.org/wiki/Chromosome_conformation_capture#Hi-C_.28all-vs-all.29" target="_blank">genome interaction matrices</a>. Genome interaction matrices approximate the physical distance of pairs of genomic regions to each other and can contain up to 3 million rows and columns with many sparse regions. Traditional matrix aggregation or pan-and-zoom interfaces largely fail in supporting search, inspection, and comparison of local regions-of-interest (ROIs). ROIs can be defined, e.g., by sets of adjacent rows and columns, or by specific visual patterns in the matrix. ROIs are first-class objects in HiPiler, which represents them as thumbnail-like “snippets”. Snippets can be laid out automatically based on their data and meta attributes. They are linked back to the matrix and can be explored interactively. The design of HiPiler is based on a series of semi-structured interviews with 10 domain experts involved in the analysis and interpretation of genome interaction matrices. In <a href="#paper">the paper</a> we describe six exploration tasks that are crucial for analysis of interaction matrices and demonstrate how HiPiler supports these tasks. We report on a user study with a series of data exploration sessions with domain experts to assess the usability of HiPiler as well as to demonstrate respective findings in the data.
+      </p>
+
+      <h2 id="paper" class="flex-c iconized">
+        <svg-icon icon-id="document"></svg-icon>
+        Preprint
+      </h2>
+      <h3 class="publication-title">
+        <a href="http://biorxiv.org/content/early/2017/04/03/123588" target="_blank">
+        HiPiler: Visual Exploration Of Large Genome Interaction Matrices With Interactive Small Multiples
+        </a>
+      </h3>
+      <p class="publication-authors">Fritz Lekschas, Benjamin Bach, Peter Kerpedjiev, Nils Gehlenborg, and Hanspeter Pfister.</p>
+      <div class="publication-journal flex-c iconized">
+        <svg-icon icon-id="biorxiv"></svg-icon>
+        <p class="nm">bioRxiv, doi: <a href="https://doi.org/10.1101/123588" target="_blank">10.1101/123588</p>
+      </div>
+
+      <h2 class="flex-c iconized">
+        <svg-icon icon-id="code"></svg-icon>
+        Source Code
+      </h2>
+      <ul class="extra-padding">
+        <li class="flex-c iconized">
+          <svg-icon icon-id="github"></svg-icon>
+          <a href="https://github.com/flekschas/hipiler" target="_blank">
+            https://github.com/flekschas/hipiler
+          </a>
+        </li>
+        <li class="flex-c iconized">
+          <svg-icon icon-id="github"></svg-icon>
+          <a href="https://github.com/flekschas/hipiler-server" target="_blank">
+            https://github.com/flekschas/hipiler-server
+          </a>
+        </li>
+        <li class="flex-c iconized">
+          <svg-icon icon-id="github"></svg-icon>
+          <a href="https://github.com/hms-dbmi/higlass-server" target="_blank">
+            https://github.com/hms-dbmi/higlass-server
+          </a>
+        </li>
+      </ul>
+
+      <h2 id="authors" class="flex-c iconized">
+        <svg-icon icon-id="people"></svg-icon>
+        Authors
+      </h2>
+      <ol id="author-list" class="extra-padding">
+        <li>
+          <h3>Fritz Lekschas</h3>
+          <p>Harvard John A. Paulson School of Engineering and Applied Sciences</p>
+          <ul class="flex-c">
+            <li class="flex-c iconized">
+              <svg-icon icon-id="globe"></svg-icon>
+              <a href="http://lekschas.de" target="_blank">
+                lekschas.de
+            </a>
+            </li>
+            <li class="flex-c iconized">
+              <svg-icon icon-id="gezwitscher"></svg-icon>
+              <a href="https://twitter.com/flekschas" target="_blank">
+                flekschas
+            </a>
+            </li>
+            <li class="flex-c iconized">
+              <svg-icon icon-id="github"></svg-icon>
+              <a href="https://github.com/flekschas" target="_blank">
+                flekschas
+            </a>
+            </li>
+          </ul>
+        </li>
+        <li>
+          <h3>Benjamin Bach</h3>
+          <p>The University of Edinburgh</p>
+          <ul class="flex-c">
+            <li class="flex-c iconized">
+              <svg-icon icon-id="globe"></svg-icon>
+              <a href="http://benjbach.me" target="_blank">
+                benjbach.me
+            </a>
+            </li>
+            <li class="flex-c iconized">
+              <svg-icon icon-id="gezwitscher"></svg-icon>
+              <a href="https://twitter.com/benjbach" target="_blank">
+                benjbach
+            </a>
+            </li>
+            <li class="flex-c iconized">
+              <svg-icon icon-id="github"></svg-icon>
+              <a href="https://github.com/benjbach" target="_blank">
+                benjbach
+            </a>
+            </li>
+          </ul>
+        </li>
+        <li>
+          <h3>Peter Kerpedjiev</h3>
+          <p>Harvard Medical School</p>
+          <ul class="flex-c">
+            <li class="flex-c iconized">
+              <svg-icon icon-id="globe"></svg-icon>
+              <a href="http://www.emptypipes.org" target="_blank">
+                emptypipes.org
+            </a>
+            </li>
+            <li class="flex-c iconized">
+              <svg-icon icon-id="gezwitscher"></svg-icon>
+              <a href="https://twitter.com/pkerpedjiev" target="_blank">
+                pkerpedjiev
+            </a>
+            </li>
+            <li class="flex-c iconized">
+              <svg-icon icon-id="github"></svg-icon>
+              <a href="https://github.com/pkerpedjiev" target="_blank">
+                pkerpedjiev
+            </a>
+            </li>
+          </ul>
+        </li>
+        <li>
+          <h3>Nils Gehlenborg</h3>
+          <p>Harvard Medical School</p>
+          <ul class="flex-c">
+            <li class="flex-c iconized">
+              <svg-icon icon-id="globe"></svg-icon>
+              <a href="http://gehlenborglab.org" target="_blank">
+                gehlenborglab.org
+            </a>
+            </li>
+            <li class="flex-c iconized">
+              <svg-icon icon-id="gezwitscher"></svg-icon>
+              <a href="https://twitter.com/nils_gehlenborg" target="_blank">
+                nils_gehlenborg
+            </a>
+            </li>
+            <li class="flex-c iconized">
+              <svg-icon icon-id="github"></svg-icon>
+              <a href="https://github.com/ngehlenborg" target="_blank">
+                ngehlenborg
+            </a>
+            </li>
+          </ul>
+        </li>
+        <li>
+          <h3>Hanspeter Pfister</h3>
+          <p>Harvard John A. Paulson School of Engineering and Applied Sciences</p>
+          <ul class="flex-c">
+            <li class="flex-c iconized">
+              <svg-icon icon-id="globe"></svg-icon>
+              <a href="http://vcg.seas.harvard.edu" target="_blank">
+                vcg.seas.harvard.edu
+            </a>
+            </li>
+            <li class="flex-c iconized">
+              <svg-icon icon-id="gezwitscher"></svg-icon>
+              <a href="https://twitter.com/hpfister" target="_blank">
+                hpfister
+            </a>
+            </li>
+            <li class="flex-c iconized">
+              <svg-icon icon-id="github"></svg-icon>
+              <a href="https://github.com/hpfister" target="_blank">
+                hpfister
+            </a>
+            </li>
+          </ul>
+        </li>
+      </ol>
+
+      <h2 class="flex-c iconized">
+        <svg-icon icon-id="people"></svg-icon>
+        Acknowledgements
+      </h2>
+      <p class="is-increased-line-height">We would like to deeply thank all the wonderful people who helped us along the way with many useful insights. You are the best!</p>
+      <ul class="is-columized extra-padding">
+        <li>Nezar Abdennur</li>
+        <li>Burak Alver</li>
+        <li>Houda Belaghzal</li>
+        <li>Aafke van den Berg</li>
+        <li>Job Dekker</li>
+        <li>Geoff Fudenberg</li>
+        <li>Joha Gibcus</li>
+        <li>Anton Goloborodko</li>
+        <li>David Gorkin</li>
+        <li>Maxim Imakaev</li>
+        <li>Yu Liu</li>
+        <li>Leonid Mirny</li>
+        <li>Johannes Nubler</li>
+        <li>Peter Park</li>
+        <li>Hendrik Strobelt</li>
+        <li>Su Wang</li>
+      </ul>
+
+      <h2 id="icons" class="flex-c iconized">
+        <svg-icon class="icon-info" icon-id="info"></svg-icon>
+        Icons
+      </h2>
+      <p class="is-increased-line-height">The following sets of beautiful icons have been slightly adjusted by Fritz Lekschas and are used across the application and the paper. Thanks so much for the fantastic work.</p>
+      <ul class="extra-padding">
+        <li class="flex-c iconized">
+          <svg-icon icon-id="code"></svg-icon>
+          <p class="nm"><a href="https://thenounproject.com/term/code/821469/" target="_blank">Code</a> by Bernar Novalyi</p>
+        </li>
+        <li class="flex-c iconized">
+          <svg-icon icon-id="dna"></svg-icon>
+          <p class="nm"><a href="https://thenounproject.com/term/dna/57372/" target="_blank">DNA</a> by Irene Hoffman</p>
+        </li>
+        <li class="flex-c iconized">
+          <svg-icon icon-id="globe"></svg-icon>
+          <p class="nm"><a href="https://thenounproject.com/term/globe/939093/" target="_blank">Globe</a> by Storm Icons</p>
+        </li>
+        <li class="flex-c iconized">
+          <svg-icon icon-id="trash"></svg-icon>
+          <p class="nm"><a href="https://thenounproject.com/term/trash-can/754572/" target="_blank">Trash Can</a> by Andrea Nobis</p>
+        </li>
+        <li class="flex-c iconized">
+          <svg-icon icon-id="reset"></svg-icon>
+          <p class="nm"><a href="https://thenounproject.com/term/reload/584835/" target="_blank">Reload</a> by Viktor Vorobyev</p>
+        </li>
+      </ul>
     </main>
     <footer-main></footer-main>
   </div>

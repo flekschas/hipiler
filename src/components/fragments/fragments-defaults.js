@@ -8,6 +8,8 @@ import pileColors from 'components/fragments/pile-colors';
 
 export const ANIMATION = true;
 
+export const API_FRAGMENTS = 'fragments_by_loci';
+
 export const ARRANGE_MEASURES = [];
 
 export const CAT_CHROMOSOME = 'chrom1';

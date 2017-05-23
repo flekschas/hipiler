@@ -1,11 +1,7 @@
 @import 'colors';
 @import 'transitions';
-
-html {
-  font-family: 'Rubik', sans-serif;
-  font-size: 16px;
-  background: #fff;
-}
+@import 'mixins/rotate';
+@import 'mixins/slide-out-in';
 
 #drag-drop-notifier,
 #global-error {
@@ -26,7 +22,7 @@ html {
 
 #global-error {
   color: $error-text;
-  background: $error-bg;
+  background: transparentize($error-bg, 0.1);
 }
 
 .bottom-bar {
@@ -52,7 +48,7 @@ html {
     margin: 0;
     color: $gray-darker;
     font-size: 0.85rem;
-    font-weight: normal;
+    font-weight: 300;
     text-transform: uppercase;
     line-height: 2.5rem;
 
@@ -134,6 +130,7 @@ html {
     margin-top: 1px;
     padding: 0 0.33rem;
     color: $gray-dark;
+    font-size: 0.8rem;
     line-height: 1.9rem;
     background: transparent;
     box-shadow: inset 0 0 0 1px $gray-lightest;
@@ -207,6 +204,7 @@ html {
       min-width: 1.25em;
       height: 1.25em;
       color: $white;
+      font-size: 0.6rem;
       line-height: 1.25em;
       border-radius: 1.25em;
       background: transparentize($gray, 0.25);
@@ -215,7 +213,7 @@ html {
                   box-shadow $transition-very-fast $ease-in-out-cubic;
 
       &.button-info-padded {
-        padding: 0 0.125rem;
+        padding: 0.05rem 0.15rem;
       }
     }
   }
@@ -287,10 +285,27 @@ html {
     font-size: 0.8rem;
     line-height: 3rem;
   }
+
+  &.footer-main p {
+    margin-top: 0;
+    font-size: 0.9rem;
+    color: $gray;
+  }
+
+  .logos a {
+    border-bottom: 0;
+  }
+
+  .logo-vcg label {
+    margin-right: 0.25rem;
+    font-size: 0.65rem;
+    line-height: 1.125em;
+    cursor: inherit;
+  }
 }
 
-body.is-dragging-over #drag-drop-notifier,
-body.is-global-error #global-error {
+.is-dragging-over #drag-drop-notifier,
+.is-global-error #global-error {
   z-index: 10;
   height: 100%;
   opacity: 1;
@@ -300,7 +315,7 @@ body.is-global-error #global-error {
   }
 }
 
-body.is-dragging-over #drag-drop-notifier {
+.is-dragging-over #drag-drop-notifier {
   animation: pulsePrimary 1.5s $ease-in-out-cubic infinite;
 
   span {
@@ -334,6 +349,7 @@ body.is-dragging-over #drag-drop-notifier {
 
 #topbar {
   position: absolute;
+  z-index: 2;
   top: 0;
   left: 0;
   right: 0;
@@ -346,6 +362,7 @@ body.is-dragging-over #drag-drop-notifier {
 
   h1 {
     position: relative;
+    margin-top: 0;
     font-weight: normal;
     font-size: 1.5rem;
     line-height: inherit;
@@ -381,6 +398,12 @@ body.is-dragging-over #drag-drop-notifier {
     width: 1em;
     height: 3rem;
 
+    &.icon-help,
+    &.icon-info {
+      margin-right: 0.25rem;
+      width: 1.25em;
+    }
+
     svg {
       width: 100%;
       height: 100%;
@@ -390,13 +413,27 @@ body.is-dragging-over #drag-drop-notifier {
   .state {
     margin: 0.5rem 0 0.5rem 0.5rem;
     padding: 0 0.5rem;
+    cursor: pointer;
     color: $gray-dark;
     font-size: 0.8em;
     text-transform: uppercase;
     line-height: 2rem;
     border: 0;
     background: none;
+    transition: color $transition-very-fast $ease-in-out-cubic;
 
+    &:hover,
+    &.state-active {
+      color: $primary;
+    }
+
+    &:hover .reset svg {
+      @include rotate(360deg, $transition-slower, ease);
+    }
+
+    &:hover .play-outline svg {
+      @include slide-out-in($transition-slow, ease);
+    }
 
     &.state-indicator::after {
       content: '';
@@ -405,14 +442,6 @@ body.is-dragging-over #drag-drop-notifier {
       height: 0.5rem;
       border-radius: 0.5rem;
       background: $gray-lighter;
-    }
-
-    &.state-active {
-      color: $primary;
-    }
-
-    &.state-ready {
-      color: $primary;
     }
 
     .icon-inline {
@@ -461,4 +490,8 @@ body.is-dragging-over #drag-drop-notifier {
 #topbar,
 #main {
   transition: opacity $transition-very-fast $ease-in-out-cubic;
+}
+
+.sticky {
+    transition: padding-top $transition-normal cubic-bezier(0.3, 0, 0, 1);
 }

@@ -1,18 +1,63 @@
 // Aurelia
-import { inject } from 'aurelia-framework';
+import { inject, InlineViewStrategy } from 'aurelia-framework';
+import { EventAggregator } from 'aurelia-event-aggregator';
 
-// Injectable
-import States from 'services/states';
+// Docs
+import sidebar from 'text!../../assets/wiki/sidebar.html';  // eslint-disable-line import/no-webpack-loader-syntax
+import wiki from 'text!../../assets/wiki/wiki.html';  // eslint-disable-line import/no-webpack-loader-syntax
+
+// Utils etc.
+import debounce from 'utils/debounce';
 
 
-@inject(States)
+@inject(EventAggregator)
 export class Docs {
-  constructor (states) {
-    this.store = states.store;
-    this.store.subscribe(this.update.bind(this));
+  constructor (event) {
+    this.event = event;
 
-    this.update();
+    this.docs = new InlineViewStrategy(wiki);
+
+    this.sidebar = new InlineViewStrategy(sidebar);
+    this.sidebarCss = {};
+
+    this.subscriptions = [];
   }
 
-  update () {}
+  /* ----------------------- Aurelia-specific methods ----------------------- */
+
+  attached () {
+    this.sidebarOffsetTop = this.sidebarEl.getBoundingClientRect().top -
+      document.body.getBoundingClientRect().top;
+
+    this.initEventListeners();
+  }
+
+  detached () {
+    this.subscriptions.forEach((subscription) => {
+      subscription.dispose();
+    });
+    this.subscriptions = [];
+  }
+
+  /* ---------------------------- Class methods ----------------------------- */
+
+  adjustSidebarPos (event) {
+    this.sidebarMarginTop = Math.abs(
+      this.sidebarOffsetTop - this.sidebarEl.getBoundingClientRect().top
+    );
+
+    this.sidebarMarginTop = (this.sidebarMarginTop - 48) < 0 ? 0 : this.sidebarMarginTop - 48;
+
+    this.sidebarCss = {
+      'padding-top': `${this.sidebarMarginTop}px`
+    };
+  }
+
+  initEventListeners () {
+    const adjustSidebarPosDb = debounce(this.adjustSidebarPos.bind(this), 50);
+
+    this.subscriptions.push(
+      this.event.subscribe('app.scroll', adjustSidebarPosDb)
+    );
+  }
 }

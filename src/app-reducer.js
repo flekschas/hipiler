@@ -1,6 +1,6 @@
 import { combineReducers } from 'redux';
 
-import decompose from 'views/decompose-reducers';
+import explore from 'views/explore-reducers';
 
 /**
  * The global / app reducer
@@ -20,6 +20,6 @@ import decompose from 'views/decompose-reducers';
  */
 export default combineReducers({
   // Views
-  decompose
+  explore
   // Components
 });

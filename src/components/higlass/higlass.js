@@ -45,7 +45,7 @@ export class Higlass {
 
     // Link the Redux store
     this.store = states.store;
-    this.store.subscribe(this.update.bind(this));
+    this.unsubscribeStore = this.store.subscribe(this.update.bind(this));
 
     this.renderDb = debounce(this.render.bind(this), 50);
     this.checkColumnsDb = debounce(this.checkColumns.bind(this), 150);
@@ -57,20 +57,7 @@ export class Higlass {
     this.chromInfo = chromInfo;
     this.id = Math.random();
 
-    this.event.subscribe(
-      'decompose.fgm.pileMouseEnter',
-      this.highlightLoci.bind(this)
-    );
-
-    this.event.subscribe(
-      'decompose.fgm.pileUnhighlight',
-      this.dehighlightLoci.bind(this)
-    );
-
-    this.event.subscribe(
-      'decompose.fgm.showInMatrix',
-      this.goToPile.bind(this)
-    );
+    this.subscriptions = [];
 
     // The following setup allows us to imitate deferred objects. I.e., we can
     // resolve promises outside their scope.
@@ -87,10 +74,10 @@ export class Higlass {
       this.reject.isLociExtracted = reject;
     });
 
-    this.isGlobalLociCalced = new Promise((resolve, reject) => {
-      this.resolve.isGlobalLociCalced = resolve;
-      this.reject.isGlobalLociCalced = reject;
-    });
+    // this.isGlobalLociCalced = new Promise((resolve, reject) => {
+    //   this.resolve.isGlobalLociCalced = resolve;
+    //   this.reject.isGlobalLociCalced = reject;
+    // });
 
     this.isServersAvailable = new Promise((resolve, reject) => {
       this.resolve.isServersAvailable = resolve;
@@ -107,17 +94,33 @@ export class Higlass {
       });
   }
 
+
+  /* ----------------------- Aurelia-specific methods ----------------------- */
+
+  /**
+   * Called once the component is attached.
+   */
   attached () {
+    this.initEventListeners();
     this.update();
 
     setTimeout(() => { this.isLoading = false; }, 150);
 
     this.resolve.isAttached();
-    logger.debug('HiGlass is attached', this.id);
   }
 
-  deattached () {
-    logger.debug('HiGlass is deattached', this.id);
+  /**
+   * Called once the component is detached.
+   */
+  detached () {
+    // Unsubscribe from redux store
+    this.unsubscribeStore();
+
+    // Unsubscribe from Aurelia events
+    this.subscriptions.forEach((subscription) => {
+      subscription.dispose();
+    });
+    this.subscriptions = undefined;
   }
 
 
@@ -207,6 +210,12 @@ export class Higlass {
     };
   }
 
+  /**
+   * Check server availablility.
+   *
+   * @param {object} config - HiGlass config.
+   * @return {object} Promise resolving to true if all servers are available.
+   */
   checkServersAvailablility (config) {
     let servers;
 
@@ -221,24 +230,24 @@ export class Higlass {
     return Promise.all(servers.map(server => ping(server)));
   }
 
-  calcGlobalLoci (loci, chromInfo) {
-    const globalLoci = loci.map((locus) => {
-      const offsetX = chromInfo[locus[0]].offset;
-      const offsetY = chromInfo[locus[3]].offset;
+  // calcGlobalLoci (loci, chromInfo) {
+  //   const globalLoci = loci.map((locus) => {
+  //     const offsetX = chromInfo[locus[0]].offset;
+  //     const offsetY = chromInfo[locus[3]].offset;
 
-      return [
-        ...locus,
-        offsetX + locus[1],
-        offsetX + locus[2],
-        offsetY + locus[4],
-        offsetY + locus[5]
-      ];
-    });
+  //     return [
+  //       ...locus,
+  //       offsetX + locus[1],
+  //       offsetX + locus[2],
+  //       offsetY + locus[4],
+  //       offsetY + locus[5]
+  //     ];
+  //   });
 
-    this.resolve.isGlobalLociCalced();
+  //   this.resolve.isGlobalLociCalced();
 
-    return globalLoci;
-  }
+  //   return globalLoci;
+  // }
 
   checkColumns (newColumns) {
     if (this.columns !== newColumns) {
@@ -305,7 +314,7 @@ export class Higlass {
   /**
    * Dehighlight locations.
    */
-  dehighlightLoci () {
+  blurLoci () {
     if (!this.isFgmHighlight) { return; }
 
     this.isFgmHighlight = false;
@@ -322,14 +331,16 @@ export class Higlass {
    * @return {array} List of loci.
    */
   extractLoci (config, piles, pilesColors) {
-    const dataIdxChrom1 = config.fragmentsHeader.indexOf('chrom1');
-    const dataIdxStart1 = config.fragmentsHeader.indexOf('start1');
-    const dataIdxEnd1 = config.fragmentsHeader.indexOf('end1');
-    const dataIdxChrom2 = config.fragmentsHeader.indexOf('chrom2');
-    const dataIdxStart2 = config.fragmentsHeader.indexOf('start2');
-    const dataIdxEnd2 = config.fragmentsHeader.indexOf('end2');
+    const header = config.fragments[0];
 
-    const loci = config.fragments.map(fragment => [
+    const dataIdxChrom1 = header.indexOf('chrom1');
+    const dataIdxStart1 = header.indexOf('start1');
+    const dataIdxEnd1 = header.indexOf('end1');
+    const dataIdxChrom2 = header.indexOf('chrom2');
+    const dataIdxStart2 = header.indexOf('start2');
+    const dataIdxEnd2 = header.indexOf('end2');
+
+    const loci = config.fragments.slice(1).map(fragment => [
       `chr${fragment[dataIdxChrom2]}`,
       fragment[dataIdxStart2],
       fragment[dataIdxEnd2],
@@ -452,7 +463,7 @@ export class Higlass {
     this.isErrored = true;
   }
 
-  highlightLoci (lociIds) {
+  focusLoci (lociIds) {
     if (!this.loci) { return; }
 
     const configTmp = deepClone(this.config);
@@ -520,6 +531,23 @@ export class Higlass {
   }
 
   /**
+   * Initialize event listeners.
+   */
+  initEventListeners () {
+    this.subscriptions.push(this.event.subscribe(
+      'explore.fgm.pileFocus', this.focusLoci.bind(this)
+    ));
+
+    this.subscriptions.push(this.event.subscribe(
+      'explore.fgm.pileBlur', this.blurLoci.bind(this)
+    ));
+
+    this.subscriptions.push(this.event.subscribe(
+      'explore.fgm.showInMatrix', this.goToPile.bind(this)
+    ));
+  }
+
+  /**
    * Handles changes of interaction.
    */
   interactionsChangeHandler () {
@@ -535,7 +563,11 @@ export class Higlass {
    */
   loadChromInfo (chromInfoUrl) {
     json(chromInfoUrl, (error, chromInfo) => {
-      if (error) { logger.error(error); }
+      if (error) {
+        logger.error(error);
+        this.hasErrored('Failed to load chromosome sizes');
+        return;
+      }
 
       this.chromInfo.set(chromInfo);
     });
@@ -596,7 +628,7 @@ export class Higlass {
       const yStart = this.chromInfoData[location[4]].offset + location[5];
       const yEnd = this.chromInfoData[location[6]].offset + location[7];
 
-      this.isGlobalLociCalced.then(this.updateLociColor.bind(this));
+      // this.isGlobalLociCalced.then(this.updateLociColor.bind(this));
 
       // Update state
       this.store.dispatch(setSelectionView([
@@ -610,7 +642,7 @@ export class Higlass {
 
   update () {
     try {
-      const state = this.store.getState().present.decompose;
+      const state = this.store.getState().present.explore;
 
       const update = {};
 

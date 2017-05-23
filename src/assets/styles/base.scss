@@ -3,13 +3,13 @@
 
 /* =====  1 Global Rules & Definitions  ===================================== */
 
-/* -----  1.1 Font Definitions  --------------------------------------------- */
-
-/* We're using Google Fonts for performance reasons */
+/* -----  1.1 Body / base definition  --------------------------------------- */
 
 /* -----  1.2 Reset & Normalization  ---------------------------------------- */
 
 *, *::before, *::after {
+  font-family: 'Rubik', sans-serif;
+  text-rendering: optimizeLegibility;
   margin: 0;
   padding: 0;
   border: none;
@@ -33,11 +33,6 @@ footer, header, main, menu, nav, section, summary {
   color: $black;
 }
 
-body {
-  height: 100vh;
-  text-rendering: optimizeLegibility;
-}
-
 /* -----  1.3 General Typography  ------------------------------------------- */
 
 h1, h2, h3, h4, h5, h6,
@@ -48,13 +43,22 @@ p, ul, ol, figure, pre {
   margin: 0 0 1em;
 }
 
+h4, h5, h6, a, p, input, select, option, ul, ol, li, figure, pre, td, th,
+button {
+  color: $gray-dark;
+  font-weight: 300;
+}
+
+h1, h2, h3, th {
+  color: $black;
+}
+
 /* Headings */
-h1, h2, h3 {
-  font-weight: 700;
+h1, h2, h3, b, strong {
+  font-weight: 500;
 }
 
 h1 {
-  font-weight: 700;
   font-size: 2.5rem;
   line-height: 1.25;
   margin-bottom: 3rem;
@@ -77,7 +81,7 @@ h4 {
 /* Links */
 a {
   color: inherit;
-  text-decoration: none;
+  text-decoration: none !important;
   border-bottom: 1px solid $gray-lighter;
   transition: color $transition-very-fast $ease-in-out-cubic,
               border-bottom-color $transition-very-fast $ease-in-out-cubic;
@@ -86,10 +90,6 @@ a {
 a:hover, a:focus, a:active {
   color: $primary;
   border-bottom-color: $primary;
-}
-
-b, strong {
-  font-weight: 700;
 }
 
 button:hover
@@ -111,6 +111,10 @@ figcaption {
 
 svg-icon {
   display: block;
+}
+
+a, p, button, .btn-like {
+  font-weight: 300;
 }
 
 /* =====  Global Styles  ==================================================== */
@@ -213,4 +217,147 @@ body.dragging-horizontal,
 body.dragging-vertical,
 .draggable.vertical-only:active {
   cursor: ns-resize !important;
+}
+
+.is-align-center {
+  text-align: center;
+}
+
+.is-align-right {
+  text-align: right;
+}
+
+.is-increased-line-height {
+  line-height: 1.66em;
+}
+
+.is-justified {
+  text-align: justify;
+}
+
+.wrap {
+  max-width: 60rem;
+  margin: 0 auto;
+}
+
+.max-50 {
+  max-width: 50%;
+}
+
+.iconized {
+  &.iconized-p svg {
+    height: 1em;
+  }
+
+  svg {
+    width: 1em;
+    margin-right: 0.5rem;
+  }
+}
+
+.smaller {
+  font-size: 1rem;
+}
+
+ul.extra-padding li,
+ol.extra-padding li {
+  margin: 0.125rem 0;
+  padding: 0.25rem 0;
+}
+
+ul.is-columized,
+ol.is-columized {
+  li {
+    display: inline-block;
+    width: 33%;
+  }
+}
+
+p.nm {
+  margin-bottom: 0;
+}
+
+.fade-in {
+  background: #fff;
+  background: -moz-linear-gradient(top, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.75) 100%); /* FF3.6-15 */
+  background: -webkit-linear-gradient(top, rgba(255, 255, 255, 0.95) 0%,rgba(255, 255, 255, 0.75) 100%); /* Chrome10-25,Safari5.1-6 */
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.95) 0%,rgba(255, 255, 255, 0.75) 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+}
+
+.fade-out {
+  background: #fff;
+  background: -moz-linear-gradient(top, rgba(255, 255, 255, 0.75) 0%, rgba(255, 255, 255, 1) 100%); /* FF3.6-15 */
+  background: -webkit-linear-gradient(top, rgba(255, 255, 255, 0.75) 0%,rgba(255, 255, 255, 1) 100%); /* Chrome10-25,Safari5.1-6 */
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.75) 0%,rgba(255, 255, 255, 1) 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+}
+
+.anchored {
+  position: relative;
+}
+
+.hidden-anchor {
+  position: absolute;
+  display: block;
+  top: 0;
+  left: -2rem;
+  bottom: 0;
+  width: 2.5rem;
+  padding: 0 1.5rem 0 0.25rem;
+  opacity: 0.33;
+  transform: scale(0);
+  transition: all $transition-fast $ease-in-out-cubic;
+  border-bottom: 0;
+  box-shadow: none !important;
+  cursor: pointer;
+
+  svg-icon {
+    width: 1.125rem;
+    height: 100%;
+  }
+}
+
+.anchored:hover .hidden-anchor,
+.anchored:target .hidden-anchor {
+  transform: scale(1);
+}
+
+.hidden-anchor:hover,
+.anchored:target .hidden-anchor {
+  opacity: 1;
+}
+
+.anchored:target {
+  color: $black;
+
+  &.underlined::after {
+    position: absolute;
+    z-index: -1;
+    display: block;
+    top: 0;
+    left: -2rem;
+    border-bottom: 2px solid $primary;
+    background: transparentize($primary, 0.9);
+  }
+
+  .hidden-anchor {
+    width: 1.5rem;
+    color: $white;
+    background: $primary;
+  }
+}
+
+@media (min-width: 60rem) {  // 960px
+  .is-increased-font-size {
+    font-size: 1.125em;
+  }
+}
+
+@media (min-width: 64rem) {  // 1024px
+  .is-slightly-increased-font-size {
+    font-size: 1.125em;
+  }
+
+  .is-increased-font-size {
+    font-size: 1.25em;
+  }
 }

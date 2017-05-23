@@ -1,0 +1,129 @@
+@import 'colors';
+@import 'transitions';
+
+.home {
+  .bg {
+    position: fixed;
+    background-image: url('assets/images/home-bg.png');
+    background-size: cover;
+    z-index: -1;
+  }
+
+  main,
+  footer-main {
+    z-index: 1;
+  }
+
+  footer-main {
+    margin: 0 -0.5rem -0.5rem -0.5rem;
+
+    .bottom-bar {
+      height: 3rem;
+      padding: 0 0.5rem 0.5rem 0.5rem;
+      background: transparentize($white, 0.25);
+    }
+  }
+
+  .wrap-extra {
+    max-width: 45rem;
+    margin: 0 auto;
+  }
+
+  h2 {
+    margin-top: 1rem;
+    font-size: 3rem;
+    line-height: 1.25em;
+  }
+
+  .columns > * {
+    margin: 0 1rem;
+
+    &:first-child {
+      margin-left: 0;
+    }
+
+    &:last-child {
+      margin-right: 0;
+    }
+  }
+
+  p {
+    margin-bottom: 0;
+  }
+
+  .box {
+    position: relative;
+    margin: 0.5rem 0;
+    padding: 1rem;
+    font-size: 1rem;
+    border-radius: 0.25rem;
+    background: $gray-lightest;
+
+    &:first-child {
+      margin-top: 1rem;
+    }
+  }
+
+  .box-drop {
+    &:after {
+      position: absolute;
+      content: '';
+      top: 0.25rem;
+      right: 0.25rem;
+      bottom: 0.25rem;
+      left: 0.25rem;
+      border: 2px dashed $white;
+      border-radius: 0.125rem;
+    }
+  }
+
+  .box-select {
+    transition: background $transition-very-fast $ease-in-out-cubic,
+                color $transition-very-fast $ease-in-out-cubic;
+
+    &:hover {
+      color: $primary;
+      cursor: pointer;
+      background: lighten($primary, 40%);
+    }
+
+    svg,
+    svg-icon {
+      width: 1.25rem;
+      height: 1.25rem;
+      color: $white;
+    }
+
+    input {
+      display: none;
+    }
+  }
+
+  .box-demo {
+    ul {
+      margin: 0.5rem 0 0 0;
+    }
+
+    li {
+      padding: 0.3rem;
+      transition: background $transition-very-fast $ease-in-out-cubic,
+                  box-shadow $transition-very-fast $ease-in-out-cubic,
+                  color $transition-very-fast $ease-in-out-cubic;
+
+      &:nth-child(odd) {
+        background: lighten($gray-lightest, 5%);
+
+        &:hover {
+          background: lighten($primary, 40%);
+        }
+      }
+
+      &:hover {
+        color: $primary;
+        cursor: pointer;
+        background: lighten($primary, 40%);
+        box-shadow: -2px 0 0 0 $primary;
+      }
+    }
+  }
+}

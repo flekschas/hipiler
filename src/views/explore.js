@@ -12,14 +12,14 @@ import debounce from 'utils/debounce';
 import queryObj from 'utils/query-obj';
 import { transition } from 'configs/app';
 import { requestNextAnimationFrame } from 'utils/request-animation-frame';
-import { updateWidth } from 'views/decompose-actions';
-import { COLUMNS, COLUMN_NAMES } from 'views/decompose-defaults';
+import { updateWidth } from 'views/explore-actions';
+import { COLUMNS, COLUMN_NAMES } from 'views/explore-defaults';
 
-const logger = LogManager.getLogger('decompose');
+const logger = LogManager.getLogger('explore');
 
 
 @inject(EventAggregator, Font, States)
-export class Decompose {
+export class Explore {
   constructor (eventAggregator, font, states) {
     this.event = eventAggregator;
     this.font = font;
@@ -158,7 +158,7 @@ export class Decompose {
     // Current width
     const width = queryObj(
       this.store.getState(),
-      ['present', 'decompose', 'columns', 'statsWidth'],
+      ['present', 'explore', 'columns', 'statsWidth'],
       0
     );
 
@@ -204,7 +204,7 @@ export class Decompose {
     if (column === 'stats') {
       this.columnsLastWidthStats = queryObj(
         this.store.getState(),
-        ['present', 'decompose', 'columns', 'statsWidth']
+        ['present', 'explore', 'columns', 'statsWidth']
       );
     }
 
@@ -213,7 +213,7 @@ export class Decompose {
 
   update () {
     try {
-      this.updateCssDb(this.store.getState().present.decompose.columns);
+      this.updateCssDb(this.store.getState().present.explore.columns);
     } catch (e) {
       logger.error('State invalid', e);
     }

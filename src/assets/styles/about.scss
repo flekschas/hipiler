@@ -1,0 +1,95 @@
+@import 'colors';
+@import 'transitions';
+@import 'mixins/ratio';
+
+.about {
+  .bg-video {
+    // @include ratio(0.6);
+    position: absolute;
+    z-index: 0;
+    top: 0;
+    right: 0;
+    left: 0;
+    height: 80%;
+    background: #fff;
+    overflow: hidden;
+
+    .fade-out {
+      z-index: 1;
+    }
+
+    video {
+      z-index: 0;
+      /* Make video to at least 100% wide and tall */
+      min-width: 100%;
+      min-height: 100%;
+
+      /* Setting width & height to auto prevents the browser from stretching or squishing the video */
+      width: auto;
+      height: auto;
+
+      /* Center the video */
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%,-50%);
+    }
+  }
+
+  main {
+    position: relative;
+    z-index: 1;
+
+    > *:last-child {
+      margin-bottom: 4rem;
+    }
+  }
+
+  main > p:first-child {
+    margin: 4rem 4rem 2rem 4rem;
+    color: $black;
+  }
+
+  h2 {
+    margin: 2em 0 0.66em 0;
+    border-bottom: 1px solid $gray-lightest;
+  }
+
+  .publication-title,
+  #author-list h3 {
+    margin-bottom: 0.5rem;
+    font-size: 1em;
+
+    a {
+      font-weight: 500;
+    }
+  }
+
+  .publication-authors {
+    margin-bottom: 0.5rem;
+  }
+
+  .publication-journal,
+  #author-list ul {
+    color: $gray;
+    font-size: 1.125rem;
+  }
+
+  #author-list {
+    h3 + p {
+      margin-bottom: 0.25rem;
+    }
+
+    li {
+      margin-right: 1rem;
+    }
+  }
+}
+
+@media (min-width: 64rem) {  // 1024px
+  .about {
+    main > p:first-child {
+      margin-top: 12rem;
+    }
+  }
+}

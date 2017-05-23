@@ -7,11 +7,11 @@
     <!-- Meta Tags -->
     <meta name="application-name" content="HiPiler">
     <meta name="author" content="Fritz Lekschas, Benjamin Bach, Peter Kerpedjiev, Nils Gehlenborg, Hanspeter Pfister">
-    <meta name="description" content="Interactive exploration and visualization of regions-of-interest in large genome interaction matrices">
-    <meta name="keywords" content="Matrix Visualization, Genome Interaction Matrix, Interactive Small Multiples, Contact Maps, Biomedical Information Visualization, Hi-C, Chromosome Conformation Capture, Harvard University, Visual Computing Group, Harvard Medical School, Gehlenborg Lab">
+    <meta name="description" content="Visual exploration of large genome interaction matrices with interactive small multiples.">
+    <meta name="keywords" content="Matrix Visualization, Hi-C, Genome Interaction Matrix, Interactive Small Multiples, Genome Contact Maps, Biomedical Visualization, Information Visualization, Chromosome Conformation Capture, Harvard University, Harvard John A. Paulson School of Enbgineering and Applied Sciences, Harvard Medical School, Visual Computing Group, Gehlenborg Lab">
 
     <!-- Fonts -->
-    <link href="//fonts.googleapis.com/css?family=Rubik:300,300i,700" rel="stylesheet" type="text/css">
+    <link href="//fonts.googleapis.com/css?family=Rubik:300,500|Roboto+Mono" rel="stylesheet" type="text/css">
 
     <!-- FavIcons -->
     <link rel="apple-touch-icon-precomposed" sizes="144x144" href="assets/images/favicon-144.png" />
@@ -21,9 +21,13 @@
     <meta name="application-name" content="HiPiler"/>
     <meta name="msapplication-TileColor" content="#FFFFFF" />
     <meta name="msapplication-TileImage" content="assets/images/favicon-144.png" />
+
+    <script type="text/javascript">
+    window.hipilerConfig = {"debug":false,"name":"HiPiler","server":"http://higlass.io/api/v1/","testing":false,"workerClusterfckHash":"a153985d0f","workerTsneHash":"46a24ad61e","version":"1.0.0-beta4"};
+    </script>
   </head>
 
-  <body aurelia-app="main">
+  <body id="hipiler" aurelia-app="main">
     <script src="dist/vendor-bundle.js" data-main="aurelia-bootstrapper"></script>
   </body>
 </html>

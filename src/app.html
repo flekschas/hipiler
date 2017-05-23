@@ -1,11 +1,13 @@
 <template>
   <require from="assets/styles/index.css"></require>
+  <require from="components/dialog/dialog"></require>
   <require from="components/navigation.html"></require>
   <require from="components/svg-icon/svg-icon"></require>
 
   <div
     class="full-wh ${currentRoute === 'matrix' ? 'matrix-full-screen-view' : ''}"
-    click.delegate="clickHandler($event)">
+    click.delegate="clickHandler($event)"
+    ref="baseEl">
 
     <div
       id="drag-drop-notifier"
@@ -18,32 +20,38 @@
       <span>${globalErrorMsg}</span>
     </div>
 
+    <dialog
+      class="flex-c flex-a-c flex-jc-c full-dim ${dialogIsOpen ? 'is-active' : ''}"
+      deferred.bind="dialogDeferred"
+      is-open.bind="dialogIsOpen"
+      message.bind="dialogMessage"></dialog>
+
     <header id="topbar" class="flex-c flex-jc-sb">
       <div class="flex-c">
         <h1 class="${currentRoute === 'home' ? 'is-active' : ''}">
           <a class="flex-c" route-href="route: home">
             <svg-icon class="icon-inline" icon-id="logo"></svg-icon>
-            ${currentRoute === 'decompose' || currentRoute === 'matrix' ? appName : appName}
+            ${appName}
           </a>
         </h1>
         <div
-          class="flex-c state state-active"
-          if.bind="currentRoute === 'decompose' || currentRoute === 'matrix'">
-          <svg-icon class="icon-inline" icon-id="play"></svg-icon>
+          class="flex-c state state-active btn-like"
+          if.bind="currentRoute === 'explore' || currentRoute === 'matrix'">
+          <svg-icon class="icon-inline play" icon-id="play"></svg-icon>
           Running
         </div>
         <button
           class="flex-c state state-ready"
-          click.delegate="resumeDecomposition()"
-          if.bind="currentRoute !== 'decompose' && currentRoute !== 'matrix' && decomposeIsReady">
-          <svg-icon class="icon-inline" icon-id="play"></svg-icon>
+          click.delegate="resumeExploration()"
+          if.bind="currentRoute !== 'explore' && currentRoute !== 'matrix' && exploreIsReady">
+          <svg-icon class="icon-inline play-outline" icon-id="play-outline"></svg-icon>
           Resume
         </button>
         <button
           class="flex-c state"
           click.delegate="resetHandler()"
-          if.bind="currentRoute !== 'matrix' && decomposeIsReady">
-          <svg-icon class="icon-inline" icon-id="reset"></svg-icon>
+          if.bind="currentRoute !== 'matrix' && exploreIsReady">
+          <svg-icon class="icon-inline reset" icon-id="reset"></svg-icon>
           Reset
         </button>
       </div>
@@ -54,19 +62,6 @@
         external-links.bind="externalLinks"
         if.bind="currentRoute !== 'matrix'">
       </navigation>
-    </header>
-
-    <header
-      id="infobar"
-      class="flex-c flex-jc-c flex-a-c"
-      if.bind="!decomposeIsReady">
-      <span>Drag &amp; drop a <a route-href="route: docs">config file</a> to start decomposing</span>
-      <button
-        class="btn"
-        click.delegate="reset()"
-        if.bind="isRehydrated">
-        Reset
-      </button>
     </header>
 
     <main id="main">

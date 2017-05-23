@@ -1,23 +1,26 @@
-import { environments } from 'configs/app';
-import config from 'config';
-
 //Configure Bluebird Promises.
-Promise.config({
-  warnings: {
-    wForgottenReturn: false
-  }
-});
+if (Promise.config) {
+  Promise.config({
+    warnings: {
+      wForgottenReturn: false
+    }
+  });
+}
 
 export function configure (aurelia) {
   aurelia.use
     .standardConfiguration()
     .feature('resources');
 
-  if (environments[config.env].debug) {
+  if (!window.hipilerConfig) {
+    window.hipilerConfig = {};
+  }
+
+  if (window.hipilerConfig.debug) {
     aurelia.use.developmentLogging();
   }
 
-  if (environments[config.env].testing) {
+  if (window.hipilerConfig.testing) {
     aurelia.use.plugin('aurelia-testing');
   }
 

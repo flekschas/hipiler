@@ -33,21 +33,44 @@ export class MultiSelect {
     this.selectedOptionsIdx = {};
 
     this.store = states.store;
-    this.store.subscribe(this.update.bind(this));
+    this.unsubscribeStore = this.store.subscribe(this.update.bind(this));
+
+    this.subscriptions = [];
   }
 
+  /* ----------------------- Aurelia-specific methods ----------------------- */
+
+  /**
+   * Called once the component is attached.
+   */
   attached () {
-    this.event.subscribe(
+    this.subscriptions.push(this.event.subscribe(
       'app.click',
       (event) => {
         if (!hasParent(event.target, this.baseEl)) {
           this.deactivateOptions();
         }
       }
-    );
+    ));
 
     this.update();
   }
+
+  /**
+   * Called once the component is detached.
+   */
+  detached () {
+    // Unsubscribe from redux store
+    this.unsubscribeStore();
+
+    // Unsubscribe from Aurelia events
+    this.subscriptions.forEach((subscription) => {
+      subscription.dispose();
+    });
+    this.subscriptions = undefined;
+  }
+
+  /* ---------------------------- Class methods ----------------------------- */
 
   optionsChanged (newValue, oldValue) {
     this.update();

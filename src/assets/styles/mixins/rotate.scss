@@ -1,0 +1,12 @@
+@mixin rotate($degree, $speed, $easing) {
+  -webkit-animation: spin $speed $easing 1;
+  -moz-animation: spin $speed $easing 1;
+  animation: spin $speed $easing 1;
+  -webkit-transform-origin: 50% 50%;
+  -moz-transform-origin: 50% 50%;
+  transform-origin: 50% 50%;
+
+  @-moz-keyframes spin { 100% { -moz-transform: rotate($degree); } }
+  @-webkit-keyframes spin { 100% { -webkit-transform: rotate($degree); } }
+  @keyframes spin { 100% { -webkit-transform: rotate($degree); transform:rotate($degree); } }
+}

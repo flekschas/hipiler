@@ -17,18 +17,19 @@
 .fragments-view {
 }
 
-.matrix-view {
+#view-matrix {
   flex-basis: 40%;
   min-width: 2.5rem;
   padding-left: 0;
 }
 
-.fragments-view {
+#view-fragments {
   flex-grow: 1;
   border-left: 1px solid $gray-lighter;
 }
 
-.stats-view {
+#view-details {
+  display: none;  // Hide the panel for now
   flex-basis: 20rem;
   border-left: 1px solid $gray-lighter;
   min-width: 2.5rem;
@@ -160,7 +161,7 @@
     font-size: 1rem;
     line-height: 2rem;
     color: $gray-lighter;
-    font-weight: normal;
+    font-weight: 300;
     text-transform: uppercase;
     background: $white;
     transition: margin $transition-very-fast $ease-in-out-cubic;

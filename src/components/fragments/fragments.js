@@ -54,6 +54,7 @@ import {
 } from 'components/fragments/fragments-actions';
 
 import {
+  API_FRAGMENTS,
   ARRANGE_MEASURES,
   CAT_CHROMOSOME,
   CAT_DATASET,
@@ -157,13 +158,13 @@ const sortAsc = (a, b) => {
 export class Fragments {
   @bindable baseElIsInit = false;
 
-  constructor (chromInfo, eventAggregator, states) {
-    this.event = eventAggregator;
+  constructor (chromInfo, event, states) {
+    this.event = event;
     this.chromInfo = chromInfo;
 
     // Link the Redux store
     this.store = states.store;
-    this.store.subscribe(this.update.bind(this));
+    this.unsubscribeStore = this.store.subscribe(this.update.bind(this));
 
     this.arrangeMeasures = [];
     this.attrsCatOther = [];
@@ -226,8 +227,10 @@ export class Fragments {
 
     this.mouseClickCounter = 0;
 
+    this.subscriptions = [];
+
     this.arrangeMeasuresAccessPath = [
-      'decompose', 'fragments', 'arrangeMeasures'
+      'explore', 'fragments', 'arrangeMeasures'
     ];
 
     this.attrsCatReq = [{
@@ -338,10 +341,25 @@ export class Fragments {
     fgmState.render = this.render;
   }
 
+
+  /* ----------------------- Aurelia-specific methods ----------------------- */
+
+  /**
+   * Called once the component is attached.
+   */
+
   attached () {
     window.addResizeListener(this.baseEl, this.resizeHandler.bind(this));
 
     this.resolve.isAttached();
+  }
+
+  /**
+   * Called once the component is detached.
+   */
+  detached () {
+    this.unsubscribeStore();
+    this.unsubscribeEventListeners();
   }
 
   baseElIsInitChanged () {
@@ -728,7 +746,7 @@ export class Fragments {
       // Get closest Hilbert curve level
       this.hilbertCurveLevel = 1;
       if (fgmState.isHilbertCurve) {
-        const piles = this.store.getState().present.decompose.fragments.piles;
+        const piles = this.store.getState().present.explore.fragments.piles;
         const numPiles = Object.keys(piles)
           .filter(pileId => piles[pileId].length)
           .filter(pileId => pileId[0] !== '_').length;
@@ -982,7 +1000,7 @@ export class Fragments {
       if (fgmState.hoveredPile) {
         // Show pile location
         this.event.publish(
-          'decompose.fgm.pileMouseEnter',
+          'explore.fgm.pileFocus',
           fgmState.hoveredPile.pileMatrices.map(matrix => matrix.id)
         );
       }
@@ -1278,8 +1296,13 @@ export class Fragments {
    */
   createWorkerTsne () {
     return new Promise((resolve, reject) => {
+      const hash = window.hipilerConfig.workerTsneHash.length ?
+        `-${window.hipilerConfig.workerTsneHash}` : '';
+
+      const loc = window.hipilerConfig.workerLoc || 'dist';
+
       queue()
-        .defer(text, 'dist/tsne-worker.js')
+        .defer(text, `${loc}/tsne-worker${hash}.js`)
         .await((error, tSneWorker) => {
           if (error) { logger.error(error); reject(Error(error)); }
 
@@ -1766,14 +1789,16 @@ export class Fragments {
    * @return {array} API ready loci list
    */
   extractLoci (config) {
-    const chrom1 = config.fragmentsHeader.indexOf('chrom1');
-    const start1 = config.fragmentsHeader.indexOf('start1');
-    const end1 = config.fragmentsHeader.indexOf('end1');
-    const chrom2 = config.fragmentsHeader.indexOf('chrom2');
-    const start2 = config.fragmentsHeader.indexOf('start2');
-    const end2 = config.fragmentsHeader.indexOf('end2');
-    const dataset = config.fragmentsHeader.indexOf('dataset');
-    const zoomOutLevel = config.fragmentsHeader.indexOf('zoomOutLevel');
+    const header = config.fragments[0];
+
+    const chrom1 = header.indexOf('chrom1');
+    const start1 = header.indexOf('start1');
+    const end1 = header.indexOf('end1');
+    const chrom2 = header.indexOf('chrom2');
+    const start2 = header.indexOf('start2');
+    const end2 = header.indexOf('end2');
+    const dataset = header.indexOf('dataset');
+    const zoomOutLevel = header.indexOf('zoomOutLevel');
 
     if (-1 in [
       chrom1, start1, end1, chrom2, start2, end2, dataset, zoomOutLevel
@@ -1782,7 +1807,7 @@ export class Fragments {
       return;
     }
 
-    return config.fragments.map(fragment => [
+    return config.fragments.slice(1).map(fragment => [
       fragment[chrom1],
       fragment[start1],
       fragment[end1],
@@ -1804,7 +1829,7 @@ export class Fragments {
 
     try {
       arrangeMeasures = this.store.getState().present
-        .decompose.fragments.arrangeMeasures;
+        .explore.fragments.arrangeMeasures;
     } catch (e) {
       logger.error('State is corrupted', e);
     }
@@ -2358,7 +2383,7 @@ export class Fragments {
       this.pileHighlight.frameReset();
 
       this.event.publish(
-        'decompose.fgm.pileUnhighlight',
+        'explore.fgm.pileBlur',
         this.pileHighlight.pileMatrices.map(matrix => matrix.id)
       );
 
@@ -2406,8 +2431,8 @@ export class Fragments {
    * @return {object} Object with the config and combined raw matrices.
    */
   initData (config, rawMatrices) {
-    const header = ['matrix', ...config.fragmentsHeader];
-    const fragments = config.fragments.map(
+    const header = ['matrix', ...config.fragments[0]];
+    const fragments = config.fragments.slice(1).map(
       (fragment, index) => [rawMatrices[index], ...fragment]
     );
 
@@ -2459,8 +2484,10 @@ export class Fragments {
    * Initialize event listeners
    */
   initEventListeners () {
+    this.preventDefault = event => event.preventDefault();
+
     this.canvas.addEventListener(
-      'click', event => event.preventDefault(), false
+      'click', this.preventDefault, false
     );
 
     this.canvas.addEventListener(
@@ -2468,7 +2495,7 @@ export class Fragments {
     );
 
     this.canvas.addEventListener(
-      'dblclick', event => event.preventDefault(), false
+      'dblclick', this.preventDefault, false
     );
 
     this.canvas.addEventListener(
@@ -2476,9 +2503,7 @@ export class Fragments {
     );
 
     this.canvas.addEventListener(
-      'mouseleave', (event) => {
-        this.canvasMouseUpHandler(event);
-      }, false
+      'mouseleave', this.canvasMouseUpHandler.bind(this), false
     );
 
     this.canvas.addEventListener(
@@ -2493,55 +2518,55 @@ export class Fragments {
       'mousewheel', this.canvasMouseWheelHandler.bind(this), false
     );
 
-    this.event.subscribe(
+    this.subscriptions.push(this.event.subscribe(
       `${EVENT_BASE_NAME}.${this.arrangeSelectedEventId}`,
       this.arrangeChangeHandler.bind(this)
-    );
+    ));
 
-    this.event.subscribe(
+    this.subscriptions.push(this.event.subscribe(
       'app.keyDown',
       this.keyDownHandler.bind(this)
-    );
+    ));
 
-    this.event.subscribe(
+    this.subscriptions.push(this.event.subscribe(
       'app.keyUp',
       this.keyUpHandler.bind(this)
-    );
+    ));
 
-    this.event.subscribe(
-      'decompose.fgm.coverDispMode',
+    this.subscriptions.push(this.event.subscribe(
+      'explore.fgm.coverDispMode',
       this.changeCoverDispMode.bind(this)
-    );
+    ));
 
-    this.event.subscribe(
-      'decompose.fgm.dispersePiles',
+    this.subscriptions.push(this.event.subscribe(
+      'explore.fgm.dispersePiles',
       this.dispersePilesHandler.bind(this)
-    );
+    ));
 
-    this.event.subscribe(
-      'decompose.fgm.inspectPiles',
+    this.subscriptions.push(this.event.subscribe(
+      'explore.fgm.inspectPiles',
       this.inspectPilesHandler.bind(this)
-    );
+    ));
 
-    this.event.subscribe(
-      'decompose.fgm.pileAssignColor',
+    this.subscriptions.push(this.event.subscribe(
+      'explore.fgm.pileAssignColor',
       this.pileAssignColor.bind(this)
-    );
+    ));
 
-    this.event.subscribe(
-      'decompose.fgm.pileAssignBW',
+    this.subscriptions.push(this.event.subscribe(
+      'explore.fgm.pileAssignBW',
       this.pileAssignBW.bind(this)
-    );
+    ));
 
-    this.event.subscribe(
-      'decompose.fgm.removePileArea',
+    this.subscriptions.push(this.event.subscribe(
+      'explore.fgm.removePileArea',
       this.removePileArea.bind(this)
-    );
+    ));
 
-    this.event.subscribe(
-      'decompose.fgm.removeFromPile',
+    this.subscriptions.push(this.event.subscribe(
+      'explore.fgm.removeFromPile',
       this.removeFromPile.bind(this)
-    );
+    ));
   }
 
   /**
@@ -2662,7 +2687,7 @@ export class Fragments {
     let piles;
 
     try {
-      piles = this.store.getState().present.decompose.fragments.piles;
+      piles = this.store.getState().present.explore.fragments.piles;
     } catch (e) {
       logger.debug('State not ready yet.');
     }
@@ -2728,12 +2753,16 @@ export class Fragments {
     this.scrollLimitTop = this.cameraPosOrgY;
 
     this.renderer = new WebGLRenderer(WEB_GL_CONFIG);
-    this.renderer.setSize(this.plotElDim.width, this.plotElDim.height);
+    this.renderer.setPixelRatio(window.devicePixelRatio || 1);
+    this.renderer.setSize(
+      this.plotElDim.width,
+      this.plotElDim.height
+    );
     this.renderer.setClearColor(0xffffff, 0);
 
     this.canvas = this.renderer.domElement;
-    this.origin = new Vector3();
 
+    this.origin = new Vector3();
     this.mouse = new Vector2();
     this.raycaster = new Raycaster();
 
@@ -2838,13 +2867,25 @@ export class Fragments {
     this.isLoading = true;
 
     return new Promise((resolve, reject) => {
-      let dataUrl;
+      let url;
+
+      const params = {
+        precision: config.fragmentsPrecision,
+        dims: config.fragmentsDims
+      };
+
+      if (config.fragmentsNoCache) {
+        params['no-cache'] = 1;
+      }
 
       const queryString = config.apiParams ?
-        this.prepareQueryString(config.apiParams) : '';
+        this.prepareQueryString(params) : '';
+
+      // Remove trailing slashes
+      const server = config.fragmentsServer.replace(/\/+$/, '');
 
       try {
-        dataUrl = `${config.api}${queryString}`;
+        url = `${server}/${API_FRAGMENTS}/${queryString}`;
       } catch (e) {
         this.hasErrored('Config is broken');
         reject(Error(this.errorMsg));
@@ -2854,7 +2895,7 @@ export class Fragments {
         loci: this.extractLoci(config)
       };
 
-      json(dataUrl)
+      json(url)
         .header('Content-Type', 'application/json')
         .post(JSON.stringify(postData), (error, results) => {
           if (error) {
@@ -2867,6 +2908,7 @@ export class Fragments {
           const finalResults = this.initData(
             config, results.fragments
           );
+
           this.resolve.isDataLoaded(finalResults);
         });
     });
@@ -3391,7 +3433,7 @@ export class Fragments {
         try {
           // Try to remove pile from index
           const prevColor = this.store.getState()
-            .present.decompose.fragments.matricesColors[matrix.id];
+            .present.explore.fragments.matricesColors[matrix.id];
 
           const pos = this.colorsMatrixIdx[prevColor].indexOf(matrix.id);
 
@@ -3413,8 +3455,6 @@ export class Fragments {
     piles.forEach((pile) => {
       config[pile.id] = pile.pileMatrices.map(matrix => matrix.id);
     });
-
-    // console.log('removeFromPile', piles, config);
 
 
     // if (fgmState.isPilesInspection) {
@@ -3898,17 +3938,38 @@ export class Fragments {
   }
 
   /**
+   * Unsubscribe from Aurelia and base event listeners.
+   */
+  unsubscribeEventListeners () {
+    // Remove Aurelia event listeners
+    this.subscriptions.forEach((subscription) => {
+      subscription.dispose();
+    });
+    this.subscriptions = undefined;
+
+    // Remove basic JS event listeners.
+    this.canvas.removeEventListener('click', this.preventDefault);
+    this.canvas.removeEventListener(
+      'contextmenu', this.canvasContextMenuHandler
+    );
+    this.canvas.removeEventListener('dblclick', this.preventDefault);
+    this.canvas.removeEventListener('mousedown', this.canvasMouseDownHandler);
+    this.canvas.removeEventListener('mouseleave', this.canvasMouseUpHandler);
+    this.canvas.removeEventListener('mousemove', this.canvasMouseMoveHandler);
+    this.canvas.removeEventListener('mouseup', this.canvasMouseUpHandler);
+    this.canvas.removeEventListener('mousewheel', this.canvasMouseWheelHandler);
+  }
+
+  /**
    * Root state update handler
    *
    * @param {boolean} init - If `true` it's part of the init cycle.
    */
   update (init) {
     try {
-      const state = this.store.getState().present.decompose;
+      const state = this.store.getState().present.explore;
       const stateFgm = state.fragments;
       const stateHgl = state.higlass;
-
-      console.log(this.store.getState());
 
       const update = {};
       const ready = [];

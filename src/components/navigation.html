@@ -3,24 +3,25 @@
 
   <nav>
     <ul class="no-list-style flex-c">
-      <li repeat.for="link of router.navigation" class="${link.isActive ? 'is-active' : ''} ${link.config.showIcon ? 'is-icon-only' : ''}">
-        <a href.bind="link.href" if.bind="link.config.showIcon">
-          <svg-icon icon-id.bind="link.config.iconId"></svg-icon>
-        </a>
-        <a href.bind="link.href" if.bind="!link.config.showIcon">
-          ${link.config.navTitle ? link.config.navTitle : link.title}
+      <li repeat.for="link of router.navigation" class="${link.isActive ? 'is-active' : ''} ${link.config.icon ? 'flex-c' : ''} ${link.config.iconOnly ? 'is-icon-only' : ''}">
+        <a href.bind="link.href" class="flex-c">
+          <svg-icon
+            class="icon-inline icon-${link.config.icon}"
+            if.bind="link.config.icon"
+            icon-id.bind="link.config.icon"></svg-icon>
+          <span>${link.config.navTitle ? link.config.navTitle : link.title}</span>
         </a>
       </li>
-      <li repeat.for="link of externalLinks" class="${link.showIcon ? 'is-icon-only' : ''} ${$index === 0 ? 'is-left-separated' : ''}">
+      <li repeat.for="link of externalLinks" class="${link.icon ? 'is-icon-only' : ''} ${$index === 0 ? 'is-left-separated' : ''}">
         <a
           target="_blank"
           href.bind="link.href"
-          if.bind="link.showIcon"
+          if.bind="link.icon"
           title="${link.title}"
           class="rel">
-          <svg-icon base-path="/" icon-id.bind="link.iconId"></svg-icon>
+          <svg-icon base-path="/" icon-id.bind="link.icon"></svg-icon>
         </a>
-        <a target="_blank" href.bind="link.href" if.bind="!link.showIcon">
+        <a target="_blank" href.bind="link.href" if.bind="!link.iconOnly">
           ${link.title}
         </a>
       </li>
