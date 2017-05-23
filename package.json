@@ -2,7 +2,7 @@
   "name": "hipiler",
   "description": "Visual exploration of large genome interaction matrices with interactive small multiples.",
   "author": "Fritz Lekschas (http://lekschas.de)",
-  "version": "1.0.0-beta4",
+  "version": "1.0.0-beta5",
   "repository": {
     "type": "git",
     "url": "https://github.com/flekschas/hipiler.git"
@@ -27,7 +27,7 @@
     "requirejs": "2.3.3",
     "tayden-clusterfck": "0.7.0",
     "text": "github:requirejs/text#latest",
-    "three": "0.84.0",
+    "three": "0.85.2",
     "three-line-2d": "1.1.6",
     "three-orbit-controls": "82.1.0",
     "tsne-js": "1.0.3"
@@ -82,8 +82,8 @@
     "vinyl-fs": "2.4.4"
   },
   "scripts": {
-    "build": "npm run update && gulp && au build --env prod && gulp index",
-    "build-ghp": "npm run update && gulp clean-dist && gulp && au build --env prod && gulp index --production && scripts/cp-prod.sh hipiler-ghp",
+    "build": "npm run update && gulp clean && gulp && au build --env prod && gulp index",
+    "build-ghp": "npm run update && gulp clean && gulp clean-dist && gulp && au build --env prod && gulp index --production && scripts/cp-prod.sh hipiler-ghp",
     "start": "gulp && au run --watch",
     "test": "gulp && au test",
     "update": "git pull && git submodule update --init --recursive --remote --merge && npm install && gulp"
