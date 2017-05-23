@@ -6,6 +6,9 @@ import { EventAggregator } from 'aurelia-event-aggregator';
 import sidebar from 'text!../../assets/wiki/sidebar.html';  // eslint-disable-line import/no-webpack-loader-syntax
 import wiki from 'text!../../assets/wiki/wiki.html';  // eslint-disable-line import/no-webpack-loader-syntax
 
+// Utils etc.
+import debounce from 'utils/debounce';
+
 
 @inject(EventAggregator)
 export class Docs {
@@ -51,8 +54,10 @@ export class Docs {
   }
 
   initEventListeners () {
+    const adjustSidebarPosDb = debounce(this.adjustSidebarPos.bind(this), 50);
+
     this.subscriptions.push(
-      this.event.subscribe('app.scroll', this.adjustSidebarPos.bind(this))
+      this.event.subscribe('app.scroll', adjustSidebarPosDb)
     );
   }
 }

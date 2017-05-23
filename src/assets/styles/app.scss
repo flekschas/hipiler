@@ -491,3 +491,7 @@
 #main {
   transition: opacity $transition-very-fast $ease-in-out-cubic;
 }
+
+.sticky {
+    transition: padding-top $transition-normal cubic-bezier(0.3, 0, 0, 1);
+}
