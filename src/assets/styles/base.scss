@@ -44,12 +44,12 @@ p, ul, ol, figure, pre {
 }
 
 h4, h5, h6, a, p, input, select, option, ul, ol, li, figure, pre, td, th,
-button {
+button, .text {
   color: $gray-dark;
   font-weight: 300;
 }
 
-h1, h2, h3, th {
+h1, h2, h3, th, .text-em {
   color: $black;
 }
 
@@ -251,7 +251,7 @@ body.dragging-vertical,
 
   svg {
     width: 1em;
-    margin-right: 0.5rem;
+    margin-right: 0.33rem;
   }
 }
 
