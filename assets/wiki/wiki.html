@@ -19,12 +19,12 @@
   <span>Local setup</span>
 </h2>
   <p>In order to run HiPiler on your own data all you need is a running instance of the HiPiler or HiGlass server. The server needs to be loaded with a Hi-C contact map and a corresponding chromosome size definition file.</p>
-<p>Having <a href="Data#config-file">configured</a> HiPiler with your local server, you can directly drop the configuration files into the <a href="">public instance</a> of HiPiler as the interface is executed locally on your browser and only communicates with the server specified in your config file. (For more infos on how to configure HiPiler please go to <a href="Data#config-file">Data &gt; Config File</a></p>
+<p>Having <a href="Data#config-file">configured</a> HiPiler with your local server, you can directly drop the configuration files into the <a href="https://flekschas.github.io/hipiler/">public instance</a> of HiPiler as the interface is executed locally on your browser and only communicates with the server specified in your config file. (For more infos on how to configure HiPiler please go to <a href="Data#config-file">Data &gt; Config File</a></p>
 <p>If you want to compile the frontend application yourself please follow the instructions below:</p>
 <pre><code>git clone https://github.com/flekschas/hipiler &amp;&amp; cd hipiler
 npm run update
 npm run build
-</code></pre><p>The first step fetches the source code, the second step loads third-party libraries and the documentation, and the last step compiles HiPiler. The final build is located in <code>/dist</code>. Open <code>index.html</code> to run HiPiler. You might need to have a local web server running.</p>
+</code></pre><p>The first step fetches the source code, the second step loads third-party libraries and the documentation, and the last step compiles HiPiler. The final build is located in <code>/dist</code>. Open <code>index.html</code> to run HiPiler. You need to have a local web server running or start the developmental server with <code>$ npm start</code> and open <a href="http://localhost:9000">localhost:9000</a>.</p>
 
 <h2 id="/docs/getting-started/the-interface" class="underlined anchored">
   <a href="#/docs/getting-started/the-interface" class="hidden-anchor">
@@ -331,7 +331,8 @@ npm run build
   </a>
   <span>Loops</span>
 </h2>
-  <p><em>Coming soon</em></p>
+  <p><strong>Demo</strong>: Go to the <a href="https://flekschas.github.io/hipiler/">public demo</a> and select <em>Rao et al. (2014) GM12878 Mbol 1KB MRes Chr22 Loops</em> from the list of <em>predefined configs</em>.</p>
+<p><strong>Instructions</strong>: <em>Coming soon</em></p>
 
 <h2 id="/docs/usage-scenarios/structural-variations" class="underlined anchored">
   <a href="#/docs/usage-scenarios/structural-variations" class="hidden-anchor">
