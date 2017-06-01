@@ -1,4 +1,5 @@
 dist
+ghp
 node_modules
 .idea
 .DS_STORE
