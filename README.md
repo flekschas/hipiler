@@ -27,7 +27,7 @@ npm install
 
 #### Commands
 
-**Start server**:
+**Start developmental server**:
 
 ```
 npm start
