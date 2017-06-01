@@ -40,6 +40,16 @@ export default class App {
     this.update();
 
     this.externalLinks = externalLinks;
+
+    this.swag = [
+      [66, 79, 67, 75, 87, 85, 82, 83, 84],
+      [67, 79, 80, 82, 69, 83, 83, 79],
+      [72, 69, 76, 80]
+    ];
+    this.swagI = 0;
+    this.swagJ = 0;
+    this.swagInterval = 500;
+    this.swagTime = performance.now();
   }
 
   /* ----------------------- Aurelia-specific methods ----------------------- */
@@ -176,7 +186,62 @@ export default class App {
       return;
     }
 
+    this.keyUpSwagHandler(event.keyCode);
+
     this.event.publish('app.keyUp', event);
+  }
+
+  keyUpSwagHandler (keyCode) {
+    const now = performance.now();
+
+    if (now - this.swagTime > this.swagInterval) {
+      this.swagJ = 0;
+    }
+
+    this.swagTime = now;
+
+    if (this.swagJ === 0) {
+      this.swag.forEach((codeWurst, index) => {
+        if (keyCode === codeWurst[0]) {
+          this.swagI = index;
+          this.swagJ = 1;
+        }
+      });
+    } else if (keyCode === this.swag[this.swagI][this.swagJ]) {
+      this.swagJ += 1;
+    }
+
+    if (this.swagJ === this.swag[this.swagI].length) {
+      this.dialogPromise = new Promise((resolve, reject) => {
+        this.dialogDeferred = { resolve, reject };
+      });
+
+      this.dialogIsOpen = true;
+
+      if (this.swagI < 2) {
+        this.dialogMessage =
+          'Yuuhuu! May the bockwurst be with you my young compression lover.' +
+          '<br/>Learn more about Compresso\'s awesome bockwurst-guided ' +
+          'compression by clicking on <em>Okay</em>.';
+      } else {
+        this.dialogMessage =
+          'We hear you! You are not alone, help is on it\'s way.<br/>' +
+          'Meanwhile have a look at our extensive documentation and get ' +
+          'yourself a nice cup of ☕️';
+      }
+
+      this.dialogPromise
+        .then(() => {
+          if (this.swagI < 2) {
+            window.open('https://github.com/vcg/compresso');
+          } else {
+            this.router.navigateToRoute('docs');
+          }
+        })
+        .catch(() => {
+          // Nothing
+        });
+    }
   }
 
   /**
@@ -211,9 +276,9 @@ export default class App {
 
     this.dialogPromise
       .then(() => {
-        this.router.navigateToRoute('home');
         this.exploreIsReady = false;
         this.reset();
+        this.router.navigateToRoute('home');
       })
       .catch(() => {
         // Nothing
