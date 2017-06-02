@@ -139,12 +139,14 @@ gulp.task('config', () => gulp
           '"https://www.googletagmanager.com/gtm.js?id="+i+dl;f.parentNode.insertBefore(j,f);\n' +
           '})(window,document,"script","dataLayer","GTM-TWJKKPG");\n' +
           '// Google Analytics\n' +
-          '(function(i,s,o,g,r,a,m){i["GoogleAnalyticsObject"]=r;i[r]=i[r]||function(){\n' +
-          '(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),\n' +
-          'm=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)\n' +
-          '})(window,document,"script","https://www.google-analytics.com/analytics.js","ga");\n' +
-          'ga("create", "UA-72219228-4", "auto");\n' +
-          'ga("send", "pageview");\n' +
+          'var _gaq = _gaq || [];' +
+          '_gaq.push(["_setAccount", "UA-72219228-4"]);' +
+          '_gaq.push(["_trackPageview"]);' +
+          '(function() {' +
+          '  var ga = document.createElement("script"); ga.type = "text/javascript"; ga.async = true;' +
+          '  ga.src = ("https:" == document.location.protocol ? "https://ssl" : "http://www") + ".google-analytics.com/ga.js";' +
+          '  var s = document.getElementsByTagName("script")[0]; s.parentNode.insertBefore(ga, s);' +
+          '})();' +
           '\n' + insert;
       }
 
