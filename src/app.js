@@ -276,8 +276,8 @@ export default class App {
 
     this.dialogPromise
       .then(() => {
-        this.exploreIsReady = false;
         this.reset();
+        this.exploreIsReady = false;
         this.router.navigateToRoute('home');
       })
       .catch(() => {

@@ -1,5 +1,6 @@
 import { combineReducers } from 'redux';
 
+import { RESET_STATE } from 'app-actions';
 import explore from 'views/explore-reducers';
 
 /**
@@ -18,8 +19,18 @@ import explore from 'views/explore-reducers';
  * }
  * ````
  */
-export default combineReducers({
+const appReducer = combineReducers({
   // Views
   explore
   // Components
 });
+
+const rootReducer = (state, action) => {
+  if (action.type === RESET_STATE) {
+    state = undefined;
+  }
+
+  return appReducer(state, action);
+};
+
+export default rootReducer;

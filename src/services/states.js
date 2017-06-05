@@ -7,6 +7,7 @@ import thunk from 'redux-thunk';
 // import freeze from 'redux-freeze';
 import undoable, { ActionCreators } from 'redux-undo';
 
+import { resetState } from 'app-actions';
 import appReducer from 'app-reducer';
 
 const compressor = createCompressor();
@@ -47,6 +48,13 @@ export default class States {
   }
 
   reset () {
+    // Reset state to default values
+    this.store.dispatch(resetState());
+
+    // Clear history
+    this.store.dispatch(ActionCreators.clearHistory());
+
+    // Purge persistent store
     return purgeStoredState(CONFIG);
   }
 }

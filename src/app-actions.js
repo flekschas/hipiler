@@ -12,3 +12,11 @@ export const updateConfigs = config => (dispath) => {
   dispath(updateHglConfig(config.hgl));
   dispath(updateFgmConfig(config.fgm));
 };
+
+
+export const RESET_STATE = 'RESET_STATE';
+
+export const resetState = () => ({
+  type: RESET_STATE,
+  payload: undefined
+});
