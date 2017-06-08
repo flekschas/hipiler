@@ -84,6 +84,10 @@
       margin-right: 1rem;
     }
   }
+
+  #youtube {
+    @include ratio(.626);
+  }
 }
 
 @media (min-width: 64rem) {  // 1024px
