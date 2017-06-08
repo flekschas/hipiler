@@ -4,10 +4,10 @@
 
 > An interactive web application for exploring and visualizing regions-of-interest in large genome interaction matrices.
 
-[![Build Status](https://img.shields.io/travis/flekschas/hipiler/master.svg)](https://travis-ci.org/flekschas/hipiler)
-[![Demo](https://img.shields.io/badge/demo-running-red.svg?colorB=30cc8b)](http://biorxiv.org/content/early/2017/04/03/123588)
-[![Video](https://img.shields.io/badge/video-introduction-red.svg?colorB=30cccc)](https://youtu.be/qoLqje5OYKg)
-[![bioRxiv](https://img.shields.io/badge/bioRxiv-10.1101%2F123588-red.svg?colorB=ae353b)](http://biorxiv.org/content/early/2017/04/03/123588)
+[![Build Status](https://img.shields.io/travis/flekschas/hipiler/master.svg?colorB=6357ff)](https://travis-ci.org/flekschas/hipiler)
+[![Demo](https://img.shields.io/badge/demo-running-red.svg?colorB=f25100)](http://biorxiv.org/content/early/2017/04/03/123588)
+[![Video](https://img.shields.io/badge/video-awesome-red.svg?colorB=f25100)](https://youtu.be/qoLqje5OYKg)
+[![bioRxiv](https://img.shields.io/badge/bioRxiv-10.1101%2F123588-red.svg?colorB=f25100)](http://biorxiv.org/content/early/2017/04/03/123588)
 
 ## Introduction
 
