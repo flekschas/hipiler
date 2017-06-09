@@ -50,6 +50,12 @@ export const FONT_URL = 'assets/fonts/rubik-regular.json';
 
 export const FPS = 25;
 
+export const FRAGMENTS_BASE_RES = 1000;
+
+export const FRAGMENT_PRECISION = 2;
+
+export const FRAGMENT_SIZE = 22;
+
 export const GRID_CELL_SIZE_LOCK = true;
 
 export const GRID_SIZE = CELL_SIZE;

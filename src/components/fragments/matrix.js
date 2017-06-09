@@ -1,5 +1,5 @@
 export default class Matrix {
-  constructor (id, matrix, locus, orientation, measures) {
+  constructor (id, matrix, locus, resolution, orientation, measures) {
     this.dim = matrix.length;
     this.id = id;
     this.locus = locus;
@@ -9,6 +9,7 @@ export default class Matrix {
     this.orientationX = this.orientation.strand1 === 'coding' ? 1 : -1;
     this.orientationY = this.orientation.strand2 === 'coding' ? 1 : -1;
     this.visible = true;
+    this.resolution = resolution;
   }
 
   /**
