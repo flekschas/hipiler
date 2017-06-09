@@ -39,10 +39,10 @@ export const recoverPiles = piles => ({
   payload: { piles }
 });
 
-export const REMOVE_PILES = 'REMOVE_PILES';
+export const REMOVE_PILES_INSPECTION = 'REMOVE_PILES_INSPECTION';
 
-export const removePiles = piles => ({
-  type: REMOVE_PILES,
+export const removePilesInspection = piles => ({
+  type: REMOVE_PILES_INSPECTION,
   payload: { piles }
 });
 
@@ -160,6 +160,22 @@ export const setShowSpecialCells = showSpecialCells => ({
   type: SET_SHOW_SPECIAL_CELLS,
   payload: { showSpecialCells }
 });
+
+export const SPLIT_PILES = 'SPLIT_PILES';
+
+export const splitPiles = piles => ({
+  type: SPLIT_PILES,
+  payload: { piles }
+});
+
+export const SPLIT_PILES_INSPECTION = 'SPLIT_PILES_INSPECTION';
+
+export const splitPilesInspection = (
+  sourcePile, matrices, piles
+) => (dispath) => {
+  dispath(splitPiles({ sourcePile: matrices }));
+  dispath(removePilesInspection(piles));
+};
 
 export const STACK_PILES = 'STACK_PILES';
 
