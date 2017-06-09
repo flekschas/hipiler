@@ -403,6 +403,43 @@ export class Higlass {
         const _chrom1 = `chr${pileMatrix.locus.chrom1}`;
         const _chrom2 = `chr${pileMatrix.locus.chrom2}`;
 
+        // Get number of pixel of the two dimensions (i.e., x and y) of the
+        // annotation. The dimension of the snippets might differ because when
+        // pulling the snippets a certain dimension is enforced.
+        const dim1 = (
+          pileMatrix.locus.globalEnd1 - pileMatrix.locus.globalStart1
+        ) / pileMatrix.resolution;
+        const dim2 = (
+          pileMatrix.locus.globalEnd2 - pileMatrix.locus.globalStart2
+        ) / pileMatrix.resolution;
+
+        // Get the x and y center of the annotation
+        const dim1Center = pileMatrix.locus.start1 + ((
+          pileMatrix.locus.end1 - pileMatrix.locus.start1
+        ) / 2);
+        const dim2Center = pileMatrix.locus.start2 + ((
+          pileMatrix.locus.end2 - pileMatrix.locus.start2
+        ) / 2);
+
+        // Calculate the dimension (at base pair resolution) of the snippet from
+        // its center point.
+        const w = (pileMatrix.resolution * pileMatrix.dim / 2);
+
+        // Get the real start and end of x and y at base pair resolution
+        let realStart1 = pileMatrix.locus.start1;
+        let realEnd1 = pileMatrix.locus.end1;
+        if (dim1 < pileMatrix.dim) {
+          realStart1 = dim1Center - w;
+          realEnd1 = dim1Center + w;
+        }
+
+        let realStart2 = pileMatrix.locus.start2;
+        let realEnd2 = pileMatrix.locus.end2;
+        if (dim2 < pileMatrix.dim) {
+          realStart2 = dim2Center - w;
+          realEnd2 = dim2Center + w;
+        }
+
         if (
           !chrom1 || (
             this.chromInfo.get()[_chrom1].offset <
@@ -415,11 +452,11 @@ export class Higlass {
         if (
           _chrom1 === chrom1
         ) {
-          if (pileMatrix.locus.start1 < start1) {
-            start1 = pileMatrix.locus.start1;
+          if (realStart1 < start1) {
+            start1 = realStart1;
           }
-          if (pileMatrix.locus.end1 > end1) {
-            end1 = pileMatrix.locus.end1;
+          if (realEnd1 > end1) {
+            end1 = realEnd1;
           }
         }
 
@@ -435,11 +472,11 @@ export class Higlass {
         if (
           _chrom2 === chrom2
         ) {
-          if (pileMatrix.locus.start2 < start2) {
-            start2 = pileMatrix.locus.start2;
+          if (realStart2 < start2) {
+            start2 = realStart2;
           }
-          if (pileMatrix.locus.end2 > end2) {
-            end2 = pileMatrix.locus.end2;
+          if (realEnd2 > end2) {
+            end2 = realEnd2;
           }
         }
       });
