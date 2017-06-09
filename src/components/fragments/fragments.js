@@ -49,6 +49,7 @@ import {
   setMatrixOrientation,
   setPiles,
   setShowSpecialCells,
+  splitPilesInspection,
   stackPiles,
   stackPilesInspection
 } from 'components/fragments/fragments-actions';
@@ -3456,15 +3457,42 @@ export class Fragments {
     });
   }
 
+  /**
+   * Remove piles from an inspected pile.
+   *
+   * @param {array} piles - Piles to be removed from inspected pile.
+   */
   removeFromPile (piles) {
     if (!fgmState.isPilesInspection) { return; }
 
-    const config = {};
+    const configGlobal = [];
+    const configInspection = {};
 
     piles.forEach((pile) => {
-      config[pile.id] = pile.pileMatrices.map(matrix => matrix.id);
+      const matrixIds = pile.pileMatrices.map(matrix => matrix.id);
+
+      configGlobal.push(...matrixIds);
+      configInspection[pile.id] = matrixIds;
     });
 
+    const source = this.pilesInspectionConfigs[
+      this.pilesInspectionConfigs.length - 1
+    ].__source;
+
+    if (source.length > 1) {
+      logger.info(
+        'Removing multiple piles from more than one pile is not yet supported.'
+      );
+      return;
+    }
+
+    const sourcePileId = source[0];
+
+    console.log(sourcePileId, configGlobal, configInspection);
+
+    // this.store.dispatch(splitPilesInspection(
+    //   sourcePileId, sourcePileId, configInspection
+    // ));
 
     // if (fgmState.isPilesInspection) {
     //   this.store.dispatch(stackPilesInspection(config));

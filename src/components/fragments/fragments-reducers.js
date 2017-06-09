@@ -7,7 +7,7 @@ import {
   DISPERSE_PILES_INSPECTION,
   INSPECT_PILES,
   RECOVER_PILES,
-  REMOVE_PILES,
+  REMOVE_PILES_INSPECTION,
   SET_ANIMATION,
   SET_ARRANGE_MEASURES,
   SET_CELL_SIZE,
@@ -22,6 +22,7 @@ import {
   SET_MATRIX_ORIENTATION,
   SET_PILES,
   SET_SHOW_SPECIAL_CELLS,
+  SPLIT_PILES,
   STACK_PILES,
   STACK_PILES_INSPECTION,
   TRASH_PILES,
@@ -292,6 +293,19 @@ export function pilesInspection (state = PILES_INSPECTION, action) {
       return newState;
     }
 
+    case REMOVE_PILES_INSPECTION: {
+      // Create copy of old state
+      const newState = copyPilesState(state);
+
+      action.payload.piles
+        .forEach((pileId) => {
+          newState[pileId] = undefined;
+          delete newState[pileId];
+        });
+
+      return newState;
+    }
+
     case STACK_PILES_INSPECTION: {
       const newState = [...state];
       const pilesConfig = copyPilesState(newState[newState.length - 1]);
@@ -322,14 +336,32 @@ export function piles (state = PILES, action) {
     case DISPERSE_PILES:
       return disperse(action.payload.piles, copyPilesState(state));
 
-    case REMOVE_PILES: {
+    case SPLIT_PILES: {
       // Create copy of old state
       const newState = copyPilesState(state);
 
-      action.payload.piles
-        .forEach((pileId) => {
-          newState[`__${pileId}`] = [...newState[pileId]];
-          newState[pileId] = [];
+      Object.keys(action.payload.piles)
+        .forEach((sourcePileId) => {
+          const pile = newState[sourcePileId];
+          const newPileIds = action.payload.piles[sourcePileId];
+
+          if (pile.length > 1) {
+            newPileIds.forEach((pileIds) => {
+
+              const idx = pile.indexOf(pileId);
+
+              if (idx === 0) {
+                sourcePileId = pile[1];
+                newState[sourcePileId] = pile.slice(1);
+                newState[pileId] = [pileId];
+              }
+
+              if (idx > 0) {
+                pile.splice(idx, 1);
+                newState[pileId] = [pileId];
+              }
+            });
+          }
         });
 
       return newState;
