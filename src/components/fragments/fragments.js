@@ -2480,8 +2480,6 @@ export class Fragments {
       `${EVENT_BASE_NAME}.${this.arrangeSelectedEventId}.update`
     );
 
-    console.log(fragments[0]);
-
     return { header, fragments };
   }
 
