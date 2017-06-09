@@ -166,7 +166,7 @@ export const RECOVER = {
 
 export const REMOVE = {
   buttons: [{
-    name: 'Remove',
+    name: 'Remove from pile',
     trigger (pile) {
       event.publish('explore.fgm.removeFromPile', [pile]);
     },
