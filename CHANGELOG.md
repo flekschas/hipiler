@@ -1,14 +1,17 @@
-v1.0.0-beta7 - 2017-06-??
+v1.0.0-beta8 - 2017-06-??
 
-- Fix a column resizing caused by a bug in Aurelia
-- Fix state reset
-- Fix bug when clicking "Show in matrix" without having activated the detail matrix
-- Fix bug when pulling non-standard snippets
-- Add support for loading unbalanced snippets
 - Implement removing matrices from piles
+
+v1.0.0-beta7 - 2017-06-09
+
+- Add support for loading unbalanced snippets
 - Add introduction video
 - Add 2 more examples
 - Add changelog
+- Enhance "Show in matrix"
+- Fix a column resizing caused by a bug in Aurelia
+- Fix state reset
+- Fix bug when pulling non-standard snippets
 
 v1.0.0-beta6 - 2017-05-23
 
