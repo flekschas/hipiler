@@ -31,6 +31,7 @@ import {
 import COLORS from 'configs/colors';
 import arraysEqual from 'utils/arrays-equal';
 import deepClone from 'utils/deep-clone';
+import HaltResume from 'utils/halt-resume';
 
 const logger = LogManager.getLogger('higlass');
 
@@ -56,6 +57,8 @@ export class Higlass {
 
     this.chromInfo = chromInfo;
     this.id = Math.random();
+
+    this.stateChangeResume = new HaltResume();
 
     this.subscriptions = [];
 
@@ -392,56 +395,61 @@ export class Higlass {
     let start2 = Infinity;
     let end2 = -1;
 
-    pile.pileMatrices.forEach((pileMatrix) => {
-      const _chrom1 = `chr${pileMatrix.locus.chrom1}`;
-      const _chrom2 = `chr${pileMatrix.locus.chrom2}`;
+    if (!this.fragmentsSelection) {
+      this.fragmentsSelectionChangeHandler();
+      this.stateChangeResume.halt(this.goToPile.bind(this), [pile]);
+    } else {
+      pile.pileMatrices.forEach((pileMatrix) => {
+        const _chrom1 = `chr${pileMatrix.locus.chrom1}`;
+        const _chrom2 = `chr${pileMatrix.locus.chrom2}`;
 
-      if (
-        !chrom1 || (
-          this.chromInfo.get()[_chrom1].offset <
-          this.chromInfo.get()[chrom1].offset
-        )
-      ) {
-        chrom1 = _chrom1;
-      }
-
-      if (
-        _chrom1 === chrom1
-      ) {
-        if (pileMatrix.locus.start1 < start1) {
-          start1 = pileMatrix.locus.start1;
+        if (
+          !chrom1 || (
+            this.chromInfo.get()[_chrom1].offset <
+            this.chromInfo.get()[chrom1].offset
+          )
+        ) {
+          chrom1 = _chrom1;
         }
-        if (pileMatrix.locus.end1 > end1) {
-          end1 = pileMatrix.locus.end1;
-        }
-      }
 
-      if (
-        !chrom2 || (
-          this.chromInfo.get()[_chrom2].offset <
-          this.chromInfo.get()[chrom2].offset
-        )
-      ) {
-        chrom2 = _chrom2;
-      }
-
-      if (
-        _chrom2 === chrom2
-      ) {
-        if (pileMatrix.locus.start2 < start2) {
-          start2 = pileMatrix.locus.start2;
+        if (
+          _chrom1 === chrom1
+        ) {
+          if (pileMatrix.locus.start1 < start1) {
+            start1 = pileMatrix.locus.start1;
+          }
+          if (pileMatrix.locus.end1 > end1) {
+            end1 = pileMatrix.locus.end1;
+          }
         }
-        if (pileMatrix.locus.end2 > end2) {
-          end2 = pileMatrix.locus.end2;
-        }
-      }
-    });
 
-    this.config.views.filter(view => view.selectionView).forEach((view) => {
-      this.api.goTo(
-        view.uid, chrom2, start2, end2, chrom1, start1, end1, true
-      );
-    });
+        if (
+          !chrom2 || (
+            this.chromInfo.get()[_chrom2].offset <
+            this.chromInfo.get()[chrom2].offset
+          )
+        ) {
+          chrom2 = _chrom2;
+        }
+
+        if (
+          _chrom2 === chrom2
+        ) {
+          if (pileMatrix.locus.start2 < start2) {
+            start2 = pileMatrix.locus.start2;
+          }
+          if (pileMatrix.locus.end2 > end2) {
+            end2 = pileMatrix.locus.end2;
+          }
+        }
+      });
+
+      this.config.views.filter(view => view.selectionView).forEach((view) => {
+        this.api.goTo(
+          view.uid, chrom2, start2, end2, chrom1, start1, end1, true
+        );
+      });
+    }
   }
 
   /**
@@ -677,6 +685,8 @@ export class Higlass {
       if (update.render) {
         this.renderDb(this.config);
       }
+
+      this.stateChangeResume.resume();
     } catch (e) {
       logger.error('State is invalid', e);
     }
