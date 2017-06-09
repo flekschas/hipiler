@@ -12,11 +12,11 @@
         <div class="flex-g-1 flex-c flex-d-c wrap-extra max-50">
           <p class="is-align-center is-increased-line-height">Try HiPiler using one of the three methods:</p>
           <div class="flex-c flex-d-c">
-            <div class="flex-g-1 box box-drop">
+            <div class="flex-g-1 box box-drop text text-em">
               Drag &amp; drop a config
             </div>
             <div class="flex-g-1 flex-c box box-select" ref="selectConfigButton">
-              <span class="flex-g-1">Select a config</span>
+              <span class="flex-g-1 text text-em">Select a config</span>
               <svg-icon icon-id="arrow-bottom"></svg-icon>
               <input
                 type="file"
@@ -27,12 +27,16 @@
               >
             </div>
             <div class="flex-g-1 box box-demo">
-              <p>Choose a predefined config:</p>
+              <p class="text-em">Choose a predefined config:</p>
               <ul>
                 <li
                   repeat.for="example of examples"
                   click.delegate="loadExample(example)">
-                  ${example.name}
+                  <div class="demo-title">${example.name}</div>
+                  <div class="flex-c demo-data">
+                    <svg-icon icon-id="data"></svg-icon>
+                    <div class="flex-g-1">${example.data}</div>
+                  </div>
                 </li>
               </ul>
             </div>

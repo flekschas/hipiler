@@ -105,7 +105,7 @@
     }
 
     li {
-      padding: 0.3rem;
+      padding: 0.5rem;
       transition: background $transition-very-fast $ease-in-out-cubic,
                   box-shadow $transition-very-fast $ease-in-out-cubic,
                   color $transition-very-fast $ease-in-out-cubic;
@@ -123,6 +123,27 @@
         cursor: pointer;
         background: lighten($primary, 40%);
         box-shadow: -2px 0 0 0 $primary;
+      }
+
+      &:hover,
+      &:hover .demo-data,
+      &:hover .demo-title {
+        color: $primary;
+      }
+    }
+
+    .demo-title {
+      margin-bottom: 0.25em;
+    }
+
+    .demo-data {
+      font-size: 0.85em;
+      color: $gray;
+
+      svg {
+        width: 1em;
+        height: 1em;
+        margin-right: 0.25em;
       }
     }
   }

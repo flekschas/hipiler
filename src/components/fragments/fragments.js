@@ -65,6 +65,9 @@ import {
   DBL_CLICK_DELAY_TIME,
   DURATION,
   FONT_URL,
+  FRAGMENTS_BASE_RES,
+  FRAGMENT_PRECISION,
+  FRAGMENT_SIZE,
   HIGHLIGHT_FRAME_LINE_WIDTH,
   LINE,
   LASSO_MATERIAL,
@@ -2587,6 +2590,8 @@ export class Fragments {
   initMatrices (fragments) {
     fgmState.matrices = [];
 
+    const baseRes = this.config.fragmentsBaseRes || FRAGMENTS_BASE_RES;
+
     fragments.forEach((fragment, index) => {
       const measures = {};
 
@@ -2605,6 +2610,7 @@ export class Fragments {
           start2: fragment[this.dataIdxStart2],
           end2: fragment[this.dataIdxEnd2]
         },
+        baseRes * (2 ** fragment[this.dataIdxZoomOutLevel]),
         {
           strand1: fragment[this.dataIdxStrand1],
           strand2: fragment[this.dataIdxStrand2]
@@ -2870,16 +2876,19 @@ export class Fragments {
       let url;
 
       const params = {
-        precision: config.fragmentsPrecision,
-        dims: config.fragmentsDims
+        precision: config.fragmentsPrecision || FRAGMENT_PRECISION,
+        dims: config.fragmentsDims || FRAGMENT_SIZE
       };
 
       if (config.fragmentsNoCache) {
         params['no-cache'] = 1;
       }
 
-      const queryString = config.apiParams ?
-        this.prepareQueryString(params) : '';
+      if (config.fragmentsNoBalance) {
+        params['no-balance'] = 1;
+      }
+
+      const queryString = this.prepareQueryString(params);
 
       // Remove trailing slashes
       const server = config.fragmentsServer.replace(/\/+$/, '');

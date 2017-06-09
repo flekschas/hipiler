@@ -4,8 +4,10 @@
 
 > An interactive web application for exploring and visualizing regions-of-interest in large genome interaction matrices.
 
-[![Build Status](https://img.shields.io/travis/flekschas/hipiler/master.svg)](https://travis-ci.org/flekschas/hipiler)
-[![bioRxiv](https://img.shields.io/badge/bioRxiv-10.1101%2F123588-red.svg?colorB=ae353b)](http://biorxiv.org/content/early/2017/04/03/123588)
+[![Build Status](https://img.shields.io/travis/flekschas/hipiler/master.svg?colorB=6357ff)](https://travis-ci.org/flekschas/hipiler)
+[![Demo](https://img.shields.io/badge/demo-running-red.svg?colorB=f25100)](http://biorxiv.org/content/early/2017/04/03/123588)
+[![Video](https://img.shields.io/badge/video-awesome-red.svg?colorB=f25100)](https://youtu.be/qoLqje5OYKg)
+[![bioRxiv](https://img.shields.io/badge/bioRxiv-10.1101%2F123588-red.svg?colorB=f25100)](http://biorxiv.org/content/early/2017/04/03/123588)
 
 ## Introduction
 
@@ -13,7 +15,9 @@ HiPiler is an interactive web application for exploring and visualizing many reg
 
 ## Get Started
 
-**Live instance**: [https://flekschas.github.io/hipiler](https://flekschas.github.io/hipiler)
+**Live demo**: [https://flekschas.github.io/hipiler](https://flekschas.github.io/hipiler)
+
+**Video introduction**: [https://youtu.be/qoLqje5OYKg](https://youtu.be/qoLqje5OYKg)
 
 **User documentation**: [https://github.com/flekschas/hipiler/wiki](https://github.com/flekschas/hipiler/wiki)
 
@@ -27,7 +31,7 @@ npm install
 
 #### Commands
 
-**Start server**:
+**Start developmental server**:
 
 ```
 npm start

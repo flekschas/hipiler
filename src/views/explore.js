@@ -45,7 +45,7 @@ export class Explore {
   }
 
   attached () {
-    this.$baseEl = new $(this.baseEl);
+    this.$exploreBaseEl = new $(this.exploreBaseEl);
     this.isInitReady = true;
     requestNextAnimationFrame(() => {
       this.init = true;
@@ -61,13 +61,17 @@ export class Explore {
       x: event.clientX
     };
 
-    this.$baseEl.addClass(`is-col-drag-${this.dragging.target}`);
-    this.$baseEl.addClass(`is-col-drag-${this.dragging.target}-highlight`);
+    this.$exploreBaseEl.addClass(`is-col-drag-${this.dragging.target}`);
+    this.$exploreBaseEl.addClass(
+      `is-col-drag-${this.dragging.target}-highlight`
+    );
 
     this.mouseMoveListener = this.event.subscribe(
       'app.mouseMove', this.columnDragMoveHandler.bind(this)
     );
-    this.event.subscribeOnce('app.mouseUp', this.columnDragEndHandler.bind(this));
+    this.event.subscribeOnce(
+      'app.mouseUp', this.columnDragEndHandler.bind(this)
+    );
   }
 
   columnDragMoveHandler (event) {
@@ -97,7 +101,9 @@ export class Explore {
     this.mouseMoveListener.dispose();
 
     const draggerRect = this[`${target}Dragger`].getBoundingClientRect();
-    const dragIndicatorRect = this[`${target}DragIndicator`].getBoundingClientRect();
+    const dragIndicatorRect = this[
+      `${target}DragIndicator`
+    ].getBoundingClientRect();
 
     this[target].dragBtnCss = {
       ...this[target].dragBtnCss,
@@ -118,7 +124,7 @@ export class Explore {
     this.updateColumnWidth(this.dragging);
 
     setTimeout(() => {
-      this.$baseEl.removeClass(`is-col-drag-${target}-highlight`);
+      this.$exploreBaseEl.removeClass(`is-col-drag-${target}-highlight`);
 
       this[target].dragBtnCss = {
         ...this[target].dragBtnCss,
@@ -135,7 +141,7 @@ export class Explore {
       };
 
       requestNextAnimationFrame(() => {
-        this.$baseEl.removeClass(`is-col-drag-${target}`);
+        this.$exploreBaseEl.removeClass(`is-col-drag-${target}`);
       });
     }, transition.fast);
 
@@ -186,7 +192,7 @@ export class Explore {
     }
 
     if (column === 'stats') {
-      width = this.baseEl.getBoundingClientRect().width / 16;
+      width = this.exploreBaseEl.getBoundingClientRect().width / 16;
     }
 
     this.store.dispatch(updateWidth(columnToUpdate, width));
@@ -247,7 +253,8 @@ export class Explore {
   updateCss (columns) {
     COLUMN_NAMES.forEach((columnName) => {
       this.css[columnName] = {
-        flexBasis: `${columns[`${columnName}Width`]}${columns[`${columnName}WidthUnit`]}`
+        flexBasis:
+          `${columns[`${columnName}Width`]}${columns[`${columnName}WidthUnit`]}`
       };
     });
   }

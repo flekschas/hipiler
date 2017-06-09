@@ -31,6 +31,7 @@ import {
 import COLORS from 'configs/colors';
 import arraysEqual from 'utils/arrays-equal';
 import deepClone from 'utils/deep-clone';
+import HaltResume from 'utils/halt-resume';
 
 const logger = LogManager.getLogger('higlass');
 
@@ -56,6 +57,8 @@ export class Higlass {
 
     this.chromInfo = chromInfo;
     this.id = Math.random();
+
+    this.stateChangeResume = new HaltResume();
 
     this.subscriptions = [];
 
@@ -392,56 +395,98 @@ export class Higlass {
     let start2 = Infinity;
     let end2 = -1;
 
-    pile.pileMatrices.forEach((pileMatrix) => {
-      const _chrom1 = `chr${pileMatrix.locus.chrom1}`;
-      const _chrom2 = `chr${pileMatrix.locus.chrom2}`;
+    if (!this.fragmentsSelection) {
+      this.fragmentsSelectionChangeHandler();
+      this.stateChangeResume.halt(this.goToPile.bind(this), [pile]);
+    } else {
+      pile.pileMatrices.forEach((pileMatrix) => {
+        const _chrom1 = `chr${pileMatrix.locus.chrom1}`;
+        const _chrom2 = `chr${pileMatrix.locus.chrom2}`;
 
-      if (
-        !chrom1 || (
-          this.chromInfo.get()[_chrom1].offset <
-          this.chromInfo.get()[chrom1].offset
-        )
-      ) {
-        chrom1 = _chrom1;
-      }
+        // Get number of pixel of the two dimensions (i.e., x and y) of the
+        // annotation. The dimension of the snippets might differ because when
+        // pulling the snippets a certain dimension is enforced.
+        const dim1 = (
+          pileMatrix.locus.globalEnd1 - pileMatrix.locus.globalStart1
+        ) / pileMatrix.resolution;
+        const dim2 = (
+          pileMatrix.locus.globalEnd2 - pileMatrix.locus.globalStart2
+        ) / pileMatrix.resolution;
 
-      if (
-        _chrom1 === chrom1
-      ) {
-        if (pileMatrix.locus.start1 < start1) {
-          start1 = pileMatrix.locus.start1;
+        // Get the x and y center of the annotation
+        const dim1Center = pileMatrix.locus.start1 + ((
+          pileMatrix.locus.end1 - pileMatrix.locus.start1
+        ) / 2);
+        const dim2Center = pileMatrix.locus.start2 + ((
+          pileMatrix.locus.end2 - pileMatrix.locus.start2
+        ) / 2);
+
+        // Calculate the dimension (at base pair resolution) of the snippet from
+        // its center point.
+        const w = (pileMatrix.resolution * pileMatrix.dim / 2);
+
+        // Get the real start and end of x and y at base pair resolution
+        let realStart1 = pileMatrix.locus.start1;
+        let realEnd1 = pileMatrix.locus.end1;
+        if (dim1 < pileMatrix.dim) {
+          realStart1 = dim1Center - w;
+          realEnd1 = dim1Center + w;
         }
-        if (pileMatrix.locus.end1 > end1) {
-          end1 = pileMatrix.locus.end1;
-        }
-      }
 
-      if (
-        !chrom2 || (
-          this.chromInfo.get()[_chrom2].offset <
-          this.chromInfo.get()[chrom2].offset
-        )
-      ) {
-        chrom2 = _chrom2;
-      }
-
-      if (
-        _chrom2 === chrom2
-      ) {
-        if (pileMatrix.locus.start2 < start2) {
-          start2 = pileMatrix.locus.start2;
+        let realStart2 = pileMatrix.locus.start2;
+        let realEnd2 = pileMatrix.locus.end2;
+        if (dim2 < pileMatrix.dim) {
+          realStart2 = dim2Center - w;
+          realEnd2 = dim2Center + w;
         }
-        if (pileMatrix.locus.end2 > end2) {
-          end2 = pileMatrix.locus.end2;
-        }
-      }
-    });
 
-    this.config.views.filter(view => view.selectionView).forEach((view) => {
-      this.api.goTo(
-        view.uid, chrom2, start2, end2, chrom1, start1, end1, true
-      );
-    });
+        if (
+          !chrom1 || (
+            this.chromInfo.get()[_chrom1].offset <
+            this.chromInfo.get()[chrom1].offset
+          )
+        ) {
+          chrom1 = _chrom1;
+        }
+
+        if (
+          _chrom1 === chrom1
+        ) {
+          if (realStart1 < start1) {
+            start1 = realStart1;
+          }
+          if (realEnd1 > end1) {
+            end1 = realEnd1;
+          }
+        }
+
+        if (
+          !chrom2 || (
+            this.chromInfo.get()[_chrom2].offset <
+            this.chromInfo.get()[chrom2].offset
+          )
+        ) {
+          chrom2 = _chrom2;
+        }
+
+        if (
+          _chrom2 === chrom2
+        ) {
+          if (realStart2 < start2) {
+            start2 = realStart2;
+          }
+          if (realEnd2 > end2) {
+            end2 = realEnd2;
+          }
+        }
+      });
+
+      this.config.views.filter(view => view.selectionView).forEach((view) => {
+        this.api.goTo(
+          view.uid, chrom2, start2, end2, chrom1, start1, end1, true
+        );
+      });
+    }
   }
 
   /**
@@ -677,6 +722,8 @@ export class Higlass {
       if (update.render) {
         this.renderDb(this.config);
       }
+
+      this.stateChangeResume.resume();
     } catch (e) {
       logger.error('State is invalid', e);
     }

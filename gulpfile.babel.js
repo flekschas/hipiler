@@ -4,6 +4,7 @@ import clean from 'gulp-clean';
 import concat from 'gulp-concat';
 import gulp from 'gulp';
 import gulpUtil from 'gulp-util';
+import gulpIf from 'gulp-if';
 import marked from 'gulp-marked';
 import modify from 'gulp-modify';
 import notify from 'gulp-notify';
@@ -23,7 +24,8 @@ try {
 }
 
 // Flags
-const production = gulpUtil.env.production;  // `--production`
+let ghp = gulpUtil.env.ghp;  // `--ghp`, i.e., GitHub pages
+let production = ghp || gulpUtil.env.production;  // `--production`
 
 // We need an extra object because the import creates a `default` property
 const _config = {};
@@ -100,16 +102,23 @@ let pageOrder = [];
  * -----------------------------------------------------------------------------
  */
 
-// Cean
+// Clean
 gulp.task('clean', () => gulp
   .src('assets/wiki/*', { read: false })
   .pipe(plumber())
   .pipe(clean())
 );
 
-// Cean
+// Clean
 gulp.task('clean-dist', () => gulp
   .src('dist/*', { read: false })
+  .pipe(plumber())
+  .pipe(clean())
+);
+
+// Clean
+gulp.task('clean-ghp', () => gulp
+  .src('ghp/*', { read: false })
   .pipe(plumber())
   .pipe(clean())
 );
@@ -120,14 +129,69 @@ gulp.task('config', () => gulp
   .pipe(plumber())
   .pipe(modify({
     fileModifier: (file, contents) => {
-      contents = contents.replace(
-        /window.hipilerConfig = .*/,
-        `window.hipilerConfig = ${JSON.stringify(_config)};`
-      );
+      let insert = `window.hipilerConfig = ${JSON.stringify(_config)};`;
+
+      if (ghp) {
+        insert = '// Google Tag Manager\n' +  // eslint-disable-line prefer-template
+          '(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({"gtm.start":\n' +
+          'new Date().getTime(),event:"gtm.js"});var f=d.getElementsByTagName(s)[0],\n' +
+          'j=d.createElement(s),dl=l!="dataLayer"?"&l="+l:"";j.async=true;j.src=\n' +
+          '"https://www.googletagmanager.com/gtm.js?id="+i+dl;f.parentNode.insertBefore(j,f);\n' +
+          '})(window,document,"script","dataLayer","GTM-TWJKKPG");\n' +
+          '// Google Analytics\n' +
+          'var _gaq = _gaq || [];' +
+          '_gaq.push(["_setAccount", "UA-72219228-4"]);' +
+          '_gaq.push(["_trackPageview"]);' +
+          '(function() {' +
+          '  var ga = document.createElement("script"); ga.type = "text/javascript"; ga.async = true;' +
+          '  ga.src = ("https:" == document.location.protocol ? "https://ssl" : "http://www") + ".google-analytics.com/ga.js";' +
+          '  var s = document.getElementsByTagName("script")[0]; s.parentNode.insertBefore(ga, s);' +
+          '})();' +
+          '\n' + insert;
+      }
+
+      return contents.replace(/window.hipilerConfig = .*/, insert);
+    }
+  }))
+  .pipe(gulpIf(ghp, gulp.dest('ghp/')))
+  .pipe(gulpIf(!ghp, gulp.dest('./')))
+);
+
+// Copy to ghp
+gulp.task('copy-ghp', () => gulp
+  .src('favicon.ico')
+  .pipe(plumber())
+  .pipe(gulp.dest('ghp'))
+);
+
+// Copy to ghp
+gulp.task('copy-ghp-assets', () => gulp
+  .src('assets/**')
+  .pipe(plumber())
+  .pipe(gulp.dest('ghp/assets'))
+);
+
+// Copy to ghp
+gulp.task('copy-ghp-dist', () => gulp
+  .src('dist/*')
+  .pipe(plumber())
+  .pipe(gulp.dest('ghp/dist'))
+);
+
+// Set env for ghp
+gulp.task('ghp-env', () => gulp
+  .src('index.html')
+  .pipe(plumber())
+  .pipe(modify({
+    fileModifier: (file, contents) => {
+      ghp = true;
+      production = true;
+      _config.debug = false;
+      _config.testing = false;
+
       return contents;
     }
   }))
-  .pipe(gulp.dest('.'))
 );
 
 // Extract hashes
@@ -230,6 +294,8 @@ gulp.task('wiki', () => gulp
  * -----------------------------------------------------------------------------
  */
 
+gulp.task('default', gulp.series('clean', 'sidebar', 'wiki'));
+
 gulp.task('index', gulp.series('hash', 'config'));
 
-gulp.task('default', gulp.series('clean', 'sidebar', 'wiki'));
+gulp.task('ghp', gulp.series('ghp-env', 'clean-ghp', 'index', 'copy-ghp', 'copy-ghp-assets', 'copy-ghp-dist'));
