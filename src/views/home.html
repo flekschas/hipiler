@@ -32,7 +32,11 @@
                 <li
                   repeat.for="example of examples"
                   click.delegate="loadExample(example)">
-                  ${example.name}
+                  <div class="demo-title">${example.name}</div>
+                  <div class="flex-c demo-data">
+                    <svg-icon icon-id="data"></svg-icon>
+                    <div class="flex-g-1">${example.data}</div>
+                  </div>
                 </li>
               </ul>
             </div>
