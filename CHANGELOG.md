@@ -2,6 +2,7 @@ v1.0.0-beta7 - 2017-06-??
 
 - Fix a column resizing caused by a bug in Aurelia
 - Fix state reset
+- Add support for loading unbalanced snippets
 - Implement removing matrices from piles
 - Add introduction video
 - Add 2 more examples

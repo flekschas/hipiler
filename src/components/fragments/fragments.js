@@ -2878,6 +2878,10 @@ export class Fragments {
         params['no-cache'] = 1;
       }
 
+      if (config.fragmentsNoBalance) {
+        params['no-balance'] = 1;
+      }
+
       const queryString = config.apiParams ?
         this.prepareQueryString(params) : '';
 
