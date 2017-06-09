@@ -65,6 +65,8 @@ import {
   DBL_CLICK_DELAY_TIME,
   DURATION,
   FONT_URL,
+  FRAGMENT_PRECISION,
+  FRAGMENT_SIZE,
   HIGHLIGHT_FRAME_LINE_WIDTH,
   LINE,
   LASSO_MATERIAL,
@@ -2477,6 +2479,8 @@ export class Fragments {
       `${EVENT_BASE_NAME}.${this.arrangeSelectedEventId}.update`
     );
 
+    console.log(fragments[0]);
+
     return { header, fragments };
   }
 
@@ -2870,8 +2874,8 @@ export class Fragments {
       let url;
 
       const params = {
-        precision: config.fragmentsPrecision,
-        dims: config.fragmentsDims
+        precision: config.fragmentsPrecision || FRAGMENT_PRECISION,
+        dims: config.fragmentsDims || FRAGMENT_SIZE
       };
 
       if (config.fragmentsNoCache) {
@@ -2882,8 +2886,7 @@ export class Fragments {
         params['no-balance'] = 1;
       }
 
-      const queryString = config.apiParams ?
-        this.prepareQueryString(params) : '';
+      const queryString = this.prepareQueryString(params);
 
       // Remove trailing slashes
       const server = config.fragmentsServer.replace(/\/+$/, '');
