@@ -2612,7 +2612,7 @@ export class Fragments {
           start2: fragment[this.dataIdxStart2],
           end2: fragment[this.dataIdxEnd2]
         },
-        (2 ** baseRes) * fragment[this.dataIdxZoomOutLevel],
+        baseRes * (2 ** fragment[this.dataIdxZoomOutLevel]),
         {
           strand1: fragment[this.dataIdxStrand1],
           strand2: fragment[this.dataIdxStrand2]
