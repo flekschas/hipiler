@@ -111,11 +111,6 @@
             "main": "index"
           },
           {
-            "name": "hglib",
-            "path": "../node_modules/higlass/dist/scripts",
-            "main": "hglib"
-          },
-          {
             "name": "hull",
             "path": "../node_modules/hull.js/dist",
             "main": "hull"
@@ -175,6 +170,11 @@
       {
         "name": "vendor-bundle.js",
         "prepend": [
+          "node_modules/pixi.js/dist/pixi.js",
+          "node_modules/react/dist/react.js",
+          "node_modules/react-bootstrap/dist/react-bootstrap.js",
+          "node_modules/react-dom/dist/react-dom.js",
+          "node_modules/higlass/dist/scripts/hglib.js",
           "node_modules/bluebird/js/browser/bluebird.core.js",
           "node_modules/aurelia-cli/lib/resources/scripts/configure-bluebird.js",
           "node_modules/requirejs/require.js"

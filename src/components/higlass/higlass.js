@@ -13,7 +13,7 @@ import States from 'services/states';
 import $ from 'utils/dom-el';
 import debounce from 'utils/debounce';
 import ping from 'utils/ping';
-import { createHgComponent as hg } from 'hglib';
+// import { createHgComponent as hg } from 'hglib';
 import { requestNextAnimationFrame } from 'utils/request-animation-frame';
 import {
   setGrayscale,
@@ -904,7 +904,7 @@ export class Higlass {
   render (config) {
     Promise.all([this.isServersAvailable, this.isAttached])
       .then(() => {
-        hg(
+        window.hglib.createHgComponent(
           this.plotEl,
           deepClone(config),
           OPTIONS,
