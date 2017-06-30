@@ -4,5 +4,6 @@ node_modules
 .idea
 .DS_STORE
 *.log
+*.lock
 assets/wiki/*
 config.local.json
