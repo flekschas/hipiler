@@ -1,6 +1,8 @@
 v1.0.0-beta8 - 2017-06-??
 
 - Implement removing matrices from piles
+- 5-10x faster snippet rendering
+- Fixed matrix flipping
 
 v1.0.0-beta7 - 2017-06-09
 
