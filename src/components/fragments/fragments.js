@@ -303,7 +303,7 @@ export class Fragments {
       this.reject.isInitFully = reject;
     });
 
-    this.update();
+    this.update(false, true);
 
     Promise
       .all([this.isAttached, this.isBaseElInit])
@@ -3980,9 +3980,10 @@ export class Fragments {
   /**
    * Root state update handler
    *
-   * @param {boolean} init - If `true` it's part of the init cycle.
+   * @param {boolean} init - If `true` it's part of the init rendering cycle.
+   * @param {boolean} noRendering - If `true` it's part of the init setup.
    */
-  update (init) {
+  update (init, noRendering) {
     try {
       const state = this.store.getState().present.explore;
       const stateFgm = state.fragments;
@@ -4017,7 +4018,9 @@ export class Fragments {
       ready.push(this.updateShowSpecialCells(stateFgm.showSpecialCells, update));
 
       Promise.all([this.isInitFully, ...ready]).finally(() => {
-        this.updateRendering(update);
+        if (!noRendering) {
+          this.updateRendering(update);
+        }
       });
     } catch (error) {
       logger.error('State is invalid', error);
