@@ -519,9 +519,9 @@ export class Fragments {
     return fgmState;
   }
 
-  get strandArrowRects () {
+  get strandArrows () {
     return this.isTrashed ?
-      fgmState.strandArrowRectsTrash : fgmState.strandArrowRects;
+      fgmState.strandArrowsTrash : fgmState.strandArrows;
   }
 
   get subSelectingPiles () {
@@ -3008,7 +3008,7 @@ export class Fragments {
     this.raycaster.setFromCamera(this.mouse, this.camera);
 
     // Check if the user mouses over a strand arrow
-    this.intersects = this.raycaster.intersectObjects(this.strandArrowRects);
+    this.intersects = this.raycaster.intersectObjects(this.strandArrows);
 
     if (this.intersects.length) {
       this.hoveredStrandArrow = this.intersects[0].object;
@@ -4091,11 +4091,15 @@ export class Fragments {
       this.piles.forEach(pile => pile.frameCreate());
     }
 
+    console.log('ASS', update);
+
     if (
       (update.piles || update.pileFramesRecreate) &&
       !update.drawPilesAfter
     ) {
+      const s = performance.now();
       this.redrawPiles();
+      console.log(`BEFORE redraw took ${performance.now() - s}msec`, update.drawPilesAfter);
     }
 
     if (update.scrollLimit) {
@@ -4121,7 +4125,9 @@ export class Fragments {
     }
 
     if (update.drawPilesAfter) {
+      const s = performance.now();
       this.redrawPiles();
+      console.log(`AFTER redraw took ${performance.now() - s}msec`, update.drawPilesAfter);
     }
 
     if (update.pilesOpacity) {

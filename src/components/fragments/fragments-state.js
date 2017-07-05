@@ -66,8 +66,8 @@ const State = {
   scale: 1,
   scene: new Scene(),
   selectedMatrices: [],
-  strandArrowRects: [],
-  strandArrowRectsTrash: [],
+  strandArrows: [],
+  strandArrowsTrash: [],
   trashIsActive: false,
   workerClusterfck: undefined
 };
