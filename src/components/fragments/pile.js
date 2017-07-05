@@ -4,12 +4,10 @@ import { LogManager } from 'aurelia-framework';
 // Third party
 import { queue, text } from 'd3';
 import {
-  ArrowHelper,
   BufferAttribute,
   BufferGeometry,
   Color,
-  Mesh,
-  Vector3
+  Mesh
 } from 'three';
 
 import {
@@ -27,18 +25,14 @@ import pileColors from 'components/fragments/pile-colors';
 
 import {
   ARROW_X,
+  ARROW_X_REV,
   ARROW_Y,
-  DEG_90_RAD,
-  DEG_180_RAD,
-  DEG_270_RAD,
+  ARROW_Y_REV,
   COLOR_INDICATOR_HEIGHT,
   LABEL_MIN_CELL_SIZE,
   PREVIEW_LOW_QUAL_THRESHOLD,
   PREVIEW_NUM_CLUSTERS,
-  STD_MAX,
-  STRAND_ARROW_LENGTH,
-  STRAND_ARROW_HEAD_LENGTH,
-  STRAND_ARROW_HEAD_WIDTH
+  STD_MAX
 } from 'components/fragments/pile-defaults';
 
 import fgmState from 'components/fragments/fragments-state';
@@ -949,21 +943,15 @@ export default class Pile {
     fgmState.scene.remove(this.strandArrowY);
 
     // Clone sprite
-    this.strandArrowX = ARROW_X.clone();
-    this.strandArrowY = ARROW_Y.clone();
+    this.strandArrowX = this.pileMatrices[0].orientationX === 1 ?
+      ARROW_X.clone() : ARROW_X_REV.clone();
+    this.strandArrowY = this.pileMatrices[0].orientationY === 1 ?
+      ARROW_Y.clone() : ARROW_Y_REV.clone();
 
     // Set opacity
     const opacity = isHovering ? 0.66 : 0.2;
     this.strandArrowX.material.opacity = opacity;
     this.strandArrowY.material.opacity = opacity;
-
-    // Rotate if necessary
-    if (this.pileMatrices[0].orientationX === -1) {
-      this.strandArrowX.material.rotation = DEG_180_RAD;
-    }
-    if (this.pileMatrices[0].orientationY === -1) {
-      this.strandArrowY.material.rotation = DEG_270_RAD;
-    }
 
     // Position arrow
     this.strandArrowX.position.set(
@@ -1018,18 +1006,19 @@ export default class Pile {
    * @return {object} Self.
    */
   flipMatrix (axis) {
+    console.log('Flip', axis);
     if (this.pileMatrices.length === 1) {
       switch (axis) {
         case 'x':
           this.pileMatrices[0].flipX();
-          Matrix.flipX(this.avgMatrix, '1D');
-          Matrix.flipX(this.coverMatrix, '2D');
+          Matrix.flipX(this.avgMatrix);
+          Matrix.flipX(this.coverMatrix);
           break;
 
         case 'y':
           this.pileMatrices[0].flipY();
-          Matrix.flipY(this.avgMatrix, '1D');
-          Matrix.flipY(this.coverMatrix, '2D');
+          Matrix.flipY(this.avgMatrix);
+          Matrix.flipY(this.coverMatrix);
           break;
 
         default:
