@@ -26,6 +26,11 @@ import {
 import pileColors from 'components/fragments/pile-colors';
 
 import {
+  ARROW_X,
+  ARROW_Y,
+  DEG_90_RAD,
+  DEG_180_RAD,
+  DEG_270_RAD,
   COLOR_INDICATOR_HEIGHT,
   LABEL_MIN_CELL_SIZE,
   PREVIEW_LOW_QUAL_THRESHOLD,
@@ -105,6 +110,11 @@ export default class Pile {
     this.pilesIdxState[this.id] = this;
 
     this.frameCreate();
+
+    // Just to avoid re-calculation of fixed values
+    this.singleDrawingX = -this.matrixWidthHalf + (this.cellSize / 2);
+    this.singleDrawingY = this.matrixWidthHalf - (this.cellSize / 2);
+    this.singleDrawingZ = this.zLayerHeight * 5;
   }
 
   /****************************** Getter / Setter *****************************/
@@ -182,9 +192,9 @@ export default class Pile {
     return this.pileMatrices.length;
   }
 
-  get strandArrowRects () {
+  get strandArrows () {
     return this.isTrashed ?
-      fgmState.strandArrowRectsTrash : fgmState.strandArrowRects;
+      fgmState.strandArrowsTrash : fgmState.strandArrows;
   }
 
 
@@ -586,6 +596,8 @@ export default class Pile {
    * @return {object} Self.
    */
   draw () {
+    const start0 = performance.now();
+    let start1;
     const positions = [];
     const colors = [];
     const isHovering = this === fgmState.hoveredPile;
@@ -602,6 +614,7 @@ export default class Pile {
       attributes: SHADER_ATTRIBUTES
     });
 
+    // start1 = performance.now();
     if (this.singleMatrix) {
       this.drawSingleMatrix(
         this.singleMatrix.matrix,
@@ -611,7 +624,9 @@ export default class Pile {
     } else {
       this.drawMultipleMatrices(positions, colors);
     }
+    // console.log(`Matrix drawing took ${performance.now() - start1}msec`, !!this.singleMatrix);
 
+    // start1 = performance.now();
     if (this.pileMatrices.length > 1) {
       this.drawPreviews(positions, colors);
       this.updateFrameHighlight();
@@ -630,7 +645,9 @@ export default class Pile {
     );
 
     this.mesh = new Mesh(this.geometry, fgmState.shaderMaterial);
+    // console.log(`Matrix meshing took ${performance.now() - start1}msec`);
 
+    start1 = performance.now();
     if (
       !(fgmState.isHilbertCurve) &&
       !(fgmState.isLayout2d || fgmState.isLayoutMd) &&
@@ -638,6 +655,7 @@ export default class Pile {
     ) {
       this.drawPileLabel(isHovering);
     }
+    console.log(`Label drawing took ${performance.now() - start0}msec`);
 
     // Add frames
     this.mesh.add(this.pileOutline);
@@ -658,16 +676,19 @@ export default class Pile {
     this.mesh.position.set(this.x, this.y, this.z);
     fgmState.scene.add(this.mesh);
 
+    start1 = performance.now();
     if (
       !fgmState.isHilbertCurve &&
       !(fgmState.isLayout2d || fgmState.isLayoutMd)
     ) {
       this.drawStrandArrows(isHovering);
     }
+    console.log(`Arrow took ${performance.now() - start1}msec`);
 
     this.drawColorIndicator();
 
     this.isDrawn = true;
+    console.log(`Snippet drawing took ${performance.now() - start0}msec`);
 
     return this;
   }
@@ -876,31 +897,40 @@ export default class Pile {
    * @param {array} colors - Colors array to be changed in-place.
    */
   drawSingleMatrix (matrix, positions, colors) {
+    const cellSizeHalf = this.cellSize / 2;
+
     for (let i = 0; i < this.dims; i++) {
-      let x = (
-        -this.matrixWidthHalf +
-        (this.cellSize / 2) +
-        (i * this.cellSize)
-      );
+      let x = this.singleDrawingX + (i * this.cellSize);
 
       for (let j = 0; j < this.dims; j++) {
-        let y = (
-          this.matrixWidthHalf -
-          (this.cellSize / 2) -
-          (j * this.cellSize)
+        let y = this.singleDrawingY - (j * this.cellSize);
+
+        const color = this.getColor(
+          cellValue(matrix[(i * this.dims) + j]),
+          fgmState.showSpecialCells
         );
 
-        add2dSqrtBuffRect(
-          positions,
-          -y,
-          -x,
-          this.zLayerHeight * 5,
-          this.cellSize,
-          colors,
-          this.getColor(
-            cellValue(matrix[(i * this.dims) + j]),
-            fgmState.showSpecialCells
-          )
+        const a = -y - cellSizeHalf;
+        const b = -y + cellSizeHalf;
+        const c = -x - cellSizeHalf;
+        const d = -x + cellSizeHalf;
+
+        positions.push(
+          [a, c, this.singleDrawingZ],
+          [b, c, this.singleDrawingZ],
+          [b, d, this.singleDrawingZ],
+          [b, d, this.singleDrawingZ],
+          [a, d, this.singleDrawingZ],
+          [a, c, this.singleDrawingZ]
+        );
+
+        colors.push(
+          color,
+          color,
+          color,
+          color,
+          color,
+          color
         );
       }
     }
@@ -912,84 +942,53 @@ export default class Pile {
    * @param {array} isHovering - If `true` user is currently hovering this pile.
    */
   drawStrandArrows (isHovering) {
-    const offsetX = this.pileMatrices[0].orientationX === -1 ? 10 : 0;
-    const offsetY = this.pileMatrices[0].orientationY === -1 ? 10 : 0;
     const extraOffset = this.isColored ? COLOR_INDICATOR_HEIGHT + 2 : 0;
 
-    this.strandArrowX = new ArrowHelper(
-      new Vector3(this.pileMatrices[0].orientationX * 1, 0, 0),
-      new Vector3(
-        this.matrixWidthHalf - 13 + offsetX,
-        -this.matrixWidthHalf - 9 - extraOffset,
-        0
-      ),
-      STRAND_ARROW_LENGTH,
-      isHovering ? COLORS.GRAY_DARK : COLORS.GRAY_LIGHTER,
-      STRAND_ARROW_HEAD_LENGTH,
-      STRAND_ARROW_HEAD_WIDTH
-    );
-    this.strandArrowX.cone.material.transparent = true;
-    this.strandArrowX.line.material.transparent = true;
-    this.strandArrowX.line.material.opacity = this.alphaSecond;
-    this.strandArrowX.cone.material.opacity = this.alphaSecond;
+    // Remove previous sprites
+    fgmState.scene.remove(this.strandArrowX);
+    fgmState.scene.remove(this.strandArrowY);
 
-    this.strandArrowY = new ArrowHelper(
-      new Vector3(0, this.pileMatrices[0].orientationY * -1, 0),
-      new Vector3(
-        this.matrixWidthHalf - 20,
-        -this.matrixWidthHalf - 4 - offsetY - extraOffset,
-        0
-      ),
-      STRAND_ARROW_LENGTH,
-      isHovering ? COLORS.GRAY_DARK : COLORS.GRAY_LIGHTER,
-      STRAND_ARROW_HEAD_LENGTH,
-      STRAND_ARROW_HEAD_WIDTH
-    );
-    this.strandArrowY.cone.material.transparent = true;
-    this.strandArrowY.line.material.transparent = true;
-    this.strandArrowY.line.material.opacity = this.alphaSecond;
-    this.strandArrowY.cone.material.opacity = this.alphaSecond;
+    // Clone sprite
+    this.strandArrowX = ARROW_X.clone();
+    this.strandArrowY = ARROW_Y.clone();
 
-    // Remove previous rects
-    if (this.strandArrowRectX) {
-      this.strandArrowRects.splice(
-        this.strandArrowRects.indexOf(this.strandArrowRectX), 1
-      );
-      fgmState.scene.remove(this.strandArrowRectX);
+    // Set opacity
+    const opacity = isHovering ? 0.66 : 0.2;
+    this.strandArrowX.material.opacity = opacity;
+    this.strandArrowY.material.opacity = opacity;
+
+    // Rotate if necessary
+    if (this.pileMatrices[0].orientationX === -1) {
+      this.strandArrowX.material.rotation = DEG_180_RAD;
+    }
+    if (this.pileMatrices[0].orientationY === -1) {
+      this.strandArrowY.material.rotation = DEG_270_RAD;
     }
 
-    if (this.strandArrowRectY) {
-      this.strandArrowRects.splice(
-        this.strandArrowRects.indexOf(this.strandArrowRectY), 1
-      );
-      fgmState.scene.remove(this.strandArrowRectY);
-    }
-
-    // Create new rects
-    this.strandArrowRectX = createRect(10, 10, COLORS.WHITE);
-    this.strandArrowRectX.position.set(
+    // Position arrow
+    this.strandArrowX.position.set(
       this.matrixWidthHalf - 7,
       -this.matrixWidthHalf - 9 - extraOffset,
       -1
     );
-    this.strandArrowRectX.userData.pile = this;
-    this.strandArrowRectX.userData.axis = 'x';
 
-    this.strandArrowRectY = createRect(10, 10, COLORS.WHITE);
-    this.strandArrowRectY.position.set(
+    this.strandArrowY.position.set(
       this.matrixWidthHalf - 20,
       -this.matrixWidthHalf - 9 - extraOffset,
       -1
     );
-    this.strandArrowRectY.userData.pile = this;
-    this.strandArrowRectY.userData.axis = 'y';
 
-    this.strandArrowRects.push(
-      this.strandArrowRectX, this.strandArrowRectY
-    );
+    // Associate pile
+    this.strandArrowX.userData.pile = this;
+    this.strandArrowX.userData.axis = 'x';
+    this.strandArrowY.userData.pile = this;
+    this.strandArrowY.userData.axis = 'y';
 
-    this.mesh.add(this.strandArrowRectX);
-    this.mesh.add(this.strandArrowRectY);
+    // Add to helper array for ray casting
+    this.strandArrows.push(this.strandArrowX);
+    this.strandArrows.push(this.strandArrowY);
+
+    // Add arow to mesh
     this.mesh.add(this.strandArrowX);
     this.mesh.add(this.strandArrowY);
   }
