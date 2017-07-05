@@ -10,6 +10,7 @@ import {
   LinePieces,
   Mesh,
   MeshBasicMaterial,
+  NearestFilter,
   PlaneBufferGeometry,
   PlaneGeometry,
   ShaderMaterial,
@@ -339,6 +340,36 @@ export function createText (label) {
     map: texture,
     side: DoubleSide
   });
+
+  material.transparent = true;
+
+  return new Mesh(
+    new PlaneGeometry(canvas.width, canvas.height),
+    material
+  );
+}
+
+export function createImage (pixels, dims) {
+  // Set image data
+  const canvas = document.createElement('canvas');
+  canvas.width = dims;
+  canvas.height = dims;
+
+  const context = canvas.getContext('2d');
+  context.fillStyle = 'transparent';
+  context.fillRect(0, 0, canvas.width, canvas.height);
+
+  const image = new ImageData(pixels, canvas.width, canvas.height);
+
+  context.putImageData(image, 0, 0);
+
+  // canvas contents will be used for a texture
+  const texture = new Texture(canvas);
+  texture.needsUpdate = true;
+  texture.minFilter = NearestFilter;
+  texture.magFilter = NearestFilter;
+
+  const material = new MeshBasicMaterial({ map: texture });
 
   material.transparent = true;
 

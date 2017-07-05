@@ -41,6 +41,7 @@ import {
   add2dSqrtBuffRect,
   addBufferedRect,
   cellValue,
+  createImage,
   createLineFrame,
   createRect,
   createRectFrame,
@@ -85,6 +86,7 @@ export default class Pile {
     this.matrixFrameColor = COLORS.GRAY_LIGHT;
     this.measures = {};
     this.pileMatrices = [];
+    this.pixels = new Uint8ClampedArray((dims ** 2) * 4);
     this.previewsHeight = 0;
     this.rank = this.id;
     this.scale = 1;
@@ -606,12 +608,14 @@ export default class Pile {
       attributes: SHADER_ATTRIBUTES
     });
 
+    this.mesh = new Mesh(this.geometry, fgmState.shaderMaterial);
+
     if (this.singleMatrix) {
-      this.drawSingleMatrix(
+      this.mesh.add(this.drawSingleMatrixNew(
         this.singleMatrix.matrix,
         positions,
         colors
-      );
+      ));
     } else {
       this.drawMultipleMatrices(positions, colors);
     }
@@ -623,17 +627,15 @@ export default class Pile {
     }
 
     // CREATE + ADD MESH
-    this.geometry.addAttribute(
-      'position',
-      new BufferAttribute(makeBuffer3f(positions), 3)
-    );
+    // this.geometry.addAttribute(
+    //   'position',
+    //   new BufferAttribute(makeBuffer3f(positions), 3)
+    // );
 
-    this.geometry.addAttribute(
-      'customColor',
-      new BufferAttribute(makeRgbaBuffer(colors, this.alpha), 4)
-    );
-
-    this.mesh = new Mesh(this.geometry, fgmState.shaderMaterial);
+    // this.geometry.addAttribute(
+    //   'customColor',
+    //   new BufferAttribute(makeRgbaBuffer(colors, this.alpha), 4)
+    // );
 
     if (
       !(fgmState.isHilbertCurve) &&
@@ -912,6 +914,32 @@ export default class Pile {
   }
 
   /**
+   * Draw a single matrix
+   *
+   * @param {array} matrix - Matrix to be drawn.
+   * @param {array} positions - Positions array to be changed in-place.
+   * @param {array} colors - Colors array to be changed in-place.
+   */
+  drawSingleMatrixNew (matrix, positions, colors) {
+    const len = matrix.length;
+
+    // Get pixels
+    for (let i = len; i--;) {
+      const color = this.getColorRgba(
+        cellValue(matrix[i]), fgmState.showSpecialCells
+      );
+
+      this.pixels.set(color, i * 4);
+    }
+
+    // Set image data
+    const imageMesh = createImage(this.pixels, this.dims);
+    imageMesh.scale.set(this.cellSize, this.cellSize, this.cellSize);
+
+    return imageMesh;
+  }
+
+  /**
    * Draw strand arrows for both axis.
    *
    * @param {array} isHovering - If `true` user is currently hovering this pile.
@@ -987,7 +1015,6 @@ export default class Pile {
    * @return {object} Self.
    */
   flipMatrix (axis) {
-    console.log('Flip', axis);
     if (this.pileMatrices.length === 1) {
       switch (axis) {
         case 'x':
@@ -1171,6 +1198,28 @@ export default class Pile {
 
       default:
         return pileColors.gray(1 - value);
+    }
+  }
+
+  /**
+   * Get gray tone color from value.
+   *
+   * @param {number} value - Valuer of the cell.
+   * @param {boolean} showSpecialCells - If `true` return white for special
+   *   values (e.g., low quality) instead of a color.
+   * @return {array} Relative RGB array
+   */
+  getColorRgba (value, showSpecialCells) {
+    switch (value) {
+      case -1:
+        if (showSpecialCells) {
+          return COLORS.LOW_QUALITY_BLUE_RGBA;
+        }
+
+        return [255, 255, 255, 255];
+
+      default:
+        return pileColors.grayRgba(1 - value);
     }
   }
 

@@ -1,6 +1,7 @@
 import { scaleLinear } from 'd3';
 
 const scale = scaleLinear().range([0, 1]);
+const scaleRgb = scaleLinear().range([0, 255]);
 
 /**
  * Map a value to a relative color array for blue.
@@ -46,6 +47,20 @@ export const gray = function (value) {
   const scaled = scale(value);
 
   return [scaled, scaled, scaled];
+};
+
+/**
+ * Map a value to a relative color array for gray.
+ *
+ * @param {number} value - Domain value, i.e., value to be mapped.
+ * @return {array} Relative color array.
+ */
+export const grayRgba = function (value) {
+  this.name = 'gray';
+
+  const scaled = scaleRgb(value);
+
+  return [scaled, scaled, scaled, 255];
 };
 
 /**
@@ -168,6 +183,7 @@ export default {
   categorical,
   cyan,
   gray,
+  grayRgba,
   green,
   orange,
   whiteOrangeBlack,
