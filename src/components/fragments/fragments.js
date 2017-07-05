@@ -974,9 +974,6 @@ export class Fragments {
       this.render();
 
       this.hoveredTool = undefined;
-    } else if (fgmState.hoveredGapPile) {
-      this.pileBackwards(fgmState.hoveredGapPile);
-      fgmState.hoveredGapPile = undefined;
     } else if (this.hoveredStrandArrow) {
       this.hoveredStrandArrow.userData.pile.flipMatrix(
         this.hoveredStrandArrow.userData.axis
@@ -3001,7 +2998,7 @@ export class Fragments {
     this.intersects = this.raycaster.intersectObjects(this.pileMeshes);
 
     if (this.intersects.length) {
-      this.mouseOverPileHandler(this.intersects[0].object);
+      this.mouseOverPileHandler(this.intersects[0].object.parent);
     } else if (fgmState.previousHoveredPile) {
       this.mouseOutPileHandler();
     }
@@ -3463,10 +3460,10 @@ export class Fragments {
       logger.info(
         'Removing multiple piles from more than one pile is not yet supported.'
       );
-      return;
+      // return;
     }
 
-    const sourcePileId = source[0];
+    // const sourcePileId = source[0];
 
     // console.log(sourcePileId, configGlobal, configInspection);
 

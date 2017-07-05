@@ -608,10 +608,12 @@ export default class Pile {
       attributes: SHADER_ATTRIBUTES
     });
 
+    // Create base mesh
     this.mesh = new Mesh(this.geometry, fgmState.shaderMaterial);
 
+    // Draw matrix
     if (this.singleMatrix) {
-      this.mesh.add(this.drawSingleMatrixNew(
+      this.mesh.add(this.drawSingleMatrix(
         this.singleMatrix.matrix,
         positions,
         colors
@@ -620,6 +622,7 @@ export default class Pile {
       this.drawMultipleMatrices(positions, colors);
     }
 
+    // Draw previews
     if (this.pileMatrices.length > 1) {
       this.drawPreviews(positions, colors);
       this.updateFrameHighlight();
@@ -660,7 +663,7 @@ export default class Pile {
     );
 
     this.mesh.pile = this;
-    this.pileMeshes.push(this.mesh);
+    this.pileMeshes.push(...this.mesh.children);
     this.mesh.position.set(this.x, this.y, this.z);
     fgmState.scene.add(this.mesh);
 
@@ -874,53 +877,6 @@ export default class Pile {
    * @param {array} colors - Colors array to be changed in-place.
    */
   drawSingleMatrix (matrix, positions, colors) {
-    const cellSizeHalf = this.cellSize / 2;
-
-    for (let i = 0; i < this.dims; i++) {
-      let x = this.singleDrawingX + (i * this.cellSize);
-
-      for (let j = 0; j < this.dims; j++) {
-        let y = this.singleDrawingY - (j * this.cellSize);
-
-        const color = this.getColor(
-          cellValue(matrix[(i * this.dims) + j]),
-          fgmState.showSpecialCells
-        );
-
-        const a = -y - cellSizeHalf;
-        const b = -y + cellSizeHalf;
-        const c = -x - cellSizeHalf;
-        const d = -x + cellSizeHalf;
-
-        positions.push(
-          [a, c, this.singleDrawingZ],
-          [b, c, this.singleDrawingZ],
-          [b, d, this.singleDrawingZ],
-          [b, d, this.singleDrawingZ],
-          [a, d, this.singleDrawingZ],
-          [a, c, this.singleDrawingZ]
-        );
-
-        colors.push(
-          color,
-          color,
-          color,
-          color,
-          color,
-          color
-        );
-      }
-    }
-  }
-
-  /**
-   * Draw a single matrix
-   *
-   * @param {array} matrix - Matrix to be drawn.
-   * @param {array} positions - Positions array to be changed in-place.
-   * @param {array} colors - Colors array to be changed in-place.
-   */
-  drawSingleMatrixNew (matrix, positions, colors) {
     const len = matrix.length;
 
     // Get pixels
@@ -934,6 +890,7 @@ export default class Pile {
 
     // Set image data
     const imageMesh = createImage(this.pixels, this.dims);
+    imageMesh.position.set(0, 0, this.zLayerHeight * 5);
     imageMesh.scale.set(this.cellSize, this.cellSize, this.cellSize);
 
     return imageMesh;
