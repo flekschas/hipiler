@@ -329,7 +329,7 @@ export function createText (label) {
   canvas.height = 16;
   const context = canvas.getContext('2d');
   context.font = '12px Rubik';
-  context.fillStyle = 'rgba(0,0,0,0.25)';
+  context.fillStyle = 'rgba(0, 0, 0, 0.25)';
   context.fillText(label, 0, 12);
 
   // canvas contents will be used for a texture
@@ -355,12 +355,9 @@ export function createImage (pixels, dims) {
   canvas.width = dims;
   canvas.height = dims;
 
-  const context = canvas.getContext('2d');
-  context.fillStyle = 'transparent';
-  context.fillRect(0, 0, canvas.width, canvas.height);
-
   const image = new ImageData(pixels, canvas.width, canvas.height);
 
+  const context = canvas.getContext('2d');
   context.putImageData(image, 0, 0);
 
   // canvas contents will be used for a texture
@@ -370,8 +367,6 @@ export function createImage (pixels, dims) {
   texture.magFilter = NearestFilter;
 
   const material = new MeshBasicMaterial({ map: texture });
-
-  material.transparent = true;
 
   return new Mesh(
     new PlaneGeometry(canvas.width, canvas.height),
