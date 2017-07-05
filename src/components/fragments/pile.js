@@ -590,8 +590,6 @@ export default class Pile {
    * @return {object} Self.
    */
   draw () {
-    const start0 = performance.now();
-    let start1;
     const positions = [];
     const colors = [];
     const isHovering = this === fgmState.hoveredPile;
@@ -608,7 +606,6 @@ export default class Pile {
       attributes: SHADER_ATTRIBUTES
     });
 
-    start1 = performance.now();
     if (this.singleMatrix) {
       this.drawSingleMatrix(
         this.singleMatrix.matrix,
@@ -618,7 +615,6 @@ export default class Pile {
     } else {
       this.drawMultipleMatrices(positions, colors);
     }
-    console.log(`Matrix drawing took ${performance.now() - start1}msec`);
 
     if (this.pileMatrices.length > 1) {
       this.drawPreviews(positions, colors);
@@ -639,7 +635,6 @@ export default class Pile {
 
     this.mesh = new Mesh(this.geometry, fgmState.shaderMaterial);
 
-    start1 = performance.now();
     if (
       !(fgmState.isHilbertCurve) &&
       !(fgmState.isLayout2d || fgmState.isLayoutMd) &&
@@ -647,9 +642,7 @@ export default class Pile {
     ) {
       this.drawPileLabel(isHovering);
     }
-    console.log(`Label drawing took ${performance.now() - start1}msec`);
 
-    start1 = performance.now();
     // Add frames
     this.mesh.add(this.pileOutline);
     this.pileOutline.position.set(
@@ -668,7 +661,6 @@ export default class Pile {
     this.pileMeshes.push(this.mesh);
     this.mesh.position.set(this.x, this.y, this.z);
     fgmState.scene.add(this.mesh);
-    console.log(`Frames drawing took ${performance.now() - start1}msec`);
 
     if (
       !fgmState.isHilbertCurve &&
@@ -680,7 +672,6 @@ export default class Pile {
     this.drawColorIndicator();
 
     this.isDrawn = true;
-    console.log(`Snippet drawing took ${performance.now() - start0}msec`);
 
     return this;
   }
