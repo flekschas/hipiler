@@ -327,8 +327,8 @@ export function createText (label) {
   canvas.width = 64;
   canvas.height = 16;
   const context = canvas.getContext('2d');
-  context.font = '13px Rubik sans-serif';
-  context.fillStyle = 'rgba(0,0,0,0.33)';
+  context.font = '12px Rubik';
+  context.fillStyle = 'rgba(0,0,0,0.25)';
   context.fillText(label, 0, 12);
 
   // canvas contents will be used for a texture
