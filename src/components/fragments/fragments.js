@@ -12,7 +12,6 @@ import { json, queue, scaleLinear, text } from 'd3';
 import hull from 'hull';
 import {
   DoubleSide,
-  FontLoader,
   Mesh,
   NormalBlending,
   OrthographicCamera,
@@ -65,7 +64,6 @@ import {
   CLUSTER_TSNE,
   DBL_CLICK_DELAY_TIME,
   DURATION,
-  FONT_URL,
   FRAGMENTS_BASE_RES,
   FRAGMENT_PRECISION,
   FRAGMENT_SIZE,
@@ -295,11 +293,6 @@ export class Fragments {
       this.reject.isDataLoaded = reject;
     });
 
-    this.isFontLoaded = new Promise((resolve, reject) => {
-      this.resolve.isFontLoaded = resolve;
-      this.reject.isFontLoaded = reject;
-    });
-
     this.isInitBase = new Promise((resolve, reject) => {
       this.resolve.isInitBase = resolve;
       this.reject.isInitBase = reject;
@@ -311,7 +304,6 @@ export class Fragments {
     });
 
     this.update();
-    this.loadFont();
 
     Promise
       .all([this.isAttached, this.isBaseElInit])
@@ -321,7 +313,7 @@ export class Fragments {
       });
 
     Promise
-      .all([this.isDataLoaded, this.isFontLoaded, this.isInitBase])
+      .all([this.isDataLoaded, this.isInitBase])
       .then((results) => { this.initPlot(results[0]); })
       .catch((error) => {
         logger.error('Failed to initialize the fragment plot', error);
@@ -2925,18 +2917,6 @@ export class Fragments {
   }
 
   /**
-   * Three JS font loader.
-   */
-  loadFont () {
-    const fontLoader = new FontLoader();
-
-    fontLoader.load(FONT_URL, (font) => {
-      fgmState.font = font;
-      this.resolve.isFontLoaded();
-    });
-  }
-
-  /**
    * [matrixTimeComparator description]
    *
    * @param {[type]} a - [description]
@@ -3488,7 +3468,7 @@ export class Fragments {
 
     const sourcePileId = source[0];
 
-    console.log(sourcePileId, configGlobal, configInspection);
+    // console.log(sourcePileId, configGlobal, configInspection);
 
     // this.store.dispatch(splitPilesInspection(
     //   sourcePileId, sourcePileId, configInspection
@@ -4091,15 +4071,11 @@ export class Fragments {
       this.piles.forEach(pile => pile.frameCreate());
     }
 
-    console.log('ASS', update);
-
     if (
       (update.piles || update.pileFramesRecreate) &&
       !update.drawPilesAfter
     ) {
-      const s = performance.now();
       this.redrawPiles();
-      console.log(`BEFORE redraw took ${performance.now() - s}msec`, update.drawPilesAfter);
     }
 
     if (update.scrollLimit) {
@@ -4125,9 +4101,7 @@ export class Fragments {
     }
 
     if (update.drawPilesAfter) {
-      const s = performance.now();
       this.redrawPiles();
-      console.log(`AFTER redraw took ${performance.now() - s}msec`, update.drawPilesAfter);
     }
 
     if (update.pilesOpacity) {
