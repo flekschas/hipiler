@@ -608,7 +608,7 @@ export default class Pile {
       attributes: SHADER_ATTRIBUTES
     });
 
-    // start1 = performance.now();
+    start1 = performance.now();
     if (this.singleMatrix) {
       this.drawSingleMatrix(
         this.singleMatrix.matrix,
@@ -618,9 +618,8 @@ export default class Pile {
     } else {
       this.drawMultipleMatrices(positions, colors);
     }
-    // console.log(`Matrix drawing took ${performance.now() - start1}msec`, !!this.singleMatrix);
+    console.log(`Matrix drawing took ${performance.now() - start1}msec`);
 
-    // start1 = performance.now();
     if (this.pileMatrices.length > 1) {
       this.drawPreviews(positions, colors);
       this.updateFrameHighlight();
@@ -639,7 +638,6 @@ export default class Pile {
     );
 
     this.mesh = new Mesh(this.geometry, fgmState.shaderMaterial);
-    // console.log(`Matrix meshing took ${performance.now() - start1}msec`);
 
     start1 = performance.now();
     if (
@@ -649,8 +647,9 @@ export default class Pile {
     ) {
       this.drawPileLabel(isHovering);
     }
-    console.log(`Label drawing took ${performance.now() - start0}msec`);
+    console.log(`Label drawing took ${performance.now() - start1}msec`);
 
+    start1 = performance.now();
     // Add frames
     this.mesh.add(this.pileOutline);
     this.pileOutline.position.set(
@@ -669,15 +668,14 @@ export default class Pile {
     this.pileMeshes.push(this.mesh);
     this.mesh.position.set(this.x, this.y, this.z);
     fgmState.scene.add(this.mesh);
+    console.log(`Frames drawing took ${performance.now() - start1}msec`);
 
-    start1 = performance.now();
     if (
       !fgmState.isHilbertCurve &&
       !(fgmState.isLayout2d || fgmState.isLayoutMd)
     ) {
       this.drawStrandArrows(isHovering);
     }
-    console.log(`Arrow took ${performance.now() - start1}msec`);
 
     this.drawColorIndicator();
 
@@ -784,26 +782,18 @@ export default class Pile {
 
     if (this.labelText !== labelText) {
       this.labelText = labelText;
-
-      this.label = createText(
-        this.labelText,
-        -this.matrixWidthHalf - 2,
-        -this.matrixWidthHalf - 13 - extraOffset,
-        0,
-        8,
-        isHovering ? COLORS.GRAY_DARK : COLORS.GRAY_LIGHT
-      );
+      this.label = createText(this.labelText);
     } else {
       this.label.material.color.setHex(
         isHovering ? COLORS.GRAY_DARK : COLORS.GRAY_LIGHT
       );
-      this.label.position.set(
-        -this.matrixWidthHalf - 2,
-        -this.matrixWidthHalf - 13 - extraOffset,
-        0
-      );
     }
 
+    this.label.position.set(
+      -this.matrixWidthHalf + 32,
+      -this.matrixWidthHalf - 10 - extraOffset,
+      0
+    );
     this.label.scale.set(scale, scale, scale);
     this.label.material.opacity = this.alphaSecond;
 
