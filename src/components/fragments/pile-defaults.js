@@ -1,4 +1,5 @@
 import {
+  MeshBasicMaterial,
   Sprite,
   SpriteMaterial,
   TextureLoader
@@ -37,6 +38,10 @@ ARROW_X.scale.set(16, 16, 1.0);
 ARROW_X_REV.scale.set(16, 16, 1.0);
 ARROW_Y.scale.set(16, 16, 1.0);
 ARROW_Y_REV.scale.set(16, 16, 1.0);
+
+export const BASE_MATERIAL = new MeshBasicMaterial({
+  color: 0xffff00
+});
 
 export const COLOR_INDICATOR_HEIGHT = 4;
 

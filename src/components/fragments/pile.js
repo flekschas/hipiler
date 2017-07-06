@@ -4,7 +4,7 @@ import { LogManager } from 'aurelia-framework';
 // Third party
 import { queue, text } from 'd3';
 import {
-  BufferGeometry,
+  PlaneGeometry,
   Color,
   Mesh
 } from 'three';
@@ -14,7 +14,6 @@ import {
   MATRIX_FRAME_THICKNESS_MAX,
   MODE_VARIANCE,
   PREVIEW_SIZE,
-  SHADER_ATTRIBUTES,
   Z_BASE,
   Z_PILE_MAX
 } from 'components/fragments/fragments-defaults';
@@ -26,6 +25,7 @@ import {
   ARROW_X_REV,
   ARROW_Y,
   ARROW_Y_REV,
+  BASE_MATERIAL,
   COLOR_INDICATOR_HEIGHT,
   LABEL_MIN_CELL_SIZE,
   PREVIEW_LOW_QUAL_THRESHOLD,
@@ -36,7 +36,6 @@ import {
 import fgmState from 'components/fragments/fragments-state';
 
 import {
-  addBufferedRect,
   cellValue,
   createImage,
   createLineFrame,
@@ -68,7 +67,6 @@ export default class Pile {
     this.colorIndicator = {};
     this.coverMatrix = new Float32Array(dims ** 2);
     this.dims = dims;
-    this.geometry = new BufferGeometry({ attributes: SHADER_ATTRIBUTES });
     this.highlighted = false;
     this.id = id;
     this.idNumeric = parseInt(`${id}`.replace('_', ''), 10);
@@ -509,7 +507,7 @@ export default class Pile {
     const meshIndex = this.pileMeshes.indexOf(this.mesh);
 
     if (meshIndex >= 0) {
-      this.pileMeshes.splice(this.pileMeshes.indexOf(this.mesh), 1);
+      this.pileMeshes.splice(meshIndex, 1);
     }
 
     this.geometry.dispose();
@@ -542,28 +540,37 @@ export default class Pile {
     // UPDATE COVER MATRIX CELLS + PILE PREVIEWS
     if (this.mesh && this.mesh.children.length) {
       this.pileMeshes.splice(
-        this.pileMeshes.indexOf(this.mesh.matrixMesh),
+        this.pileMeshes.indexOf(this.mesh),
         1
       );
       fgmState.scene.remove(this.mesh);
     }
 
-    this.geometry = new BufferGeometry({
-      attributes: SHADER_ATTRIBUTES
-    });
+    // Calculate the preview height first
+    this.getPreviewHeight();
+
+    const width = this.cellSize * this.dims;
+    const height = width + this.previewsHeight;
+
+    this.geometry = new PlaneGeometry(width, height);
+    this.geometry.translate(0, this.previewsHeight / 2, 0);
 
     // Create base mesh
-    this.mesh = new Mesh(this.geometry, fgmState.shaderMaterial);
+    this.mesh = new Mesh(
+      this.geometry,
+      BASE_MATERIAL
+    );
 
     // Draw matrix
-    this.mesh.matrixMesh = this.drawMatrix(this.singleMatrix);
-    this.mesh.add(this.mesh.matrixMesh);
+    this.mesh.add(this.drawMatrix(this.singleMatrix));
 
     // Draw previews
     if (this.pileMatrices.length > 1) {
       this.mesh.add(this.drawPreviews());
       this.updateFrameHighlight();
       this.updatePileOutline();
+    } else {
+      this.previewsHeight = 0;
     }
 
     if (
@@ -588,8 +595,8 @@ export default class Pile {
       0, 0, this.zLayerHeight * 4
     );
 
-    this.mesh.matrixMesh.pile = this;
-    this.pileMeshes.push(this.mesh.matrixMesh);
+    this.mesh.pile = this;
+    this.pileMeshes.push(this.mesh);
     this.mesh.position.set(this.x, this.y, this.z);
     fgmState.scene.add(this.mesh);
 
@@ -686,11 +693,6 @@ export default class Pile {
    * Draw pile matrix previews.
    */
   drawPreviews () {
-    this.previewsHeight = (
-      (this.previewSize * this.clustersAvgMatrices.length) +
-      ((this.clustersAvgMatrices.length + 1) * this.previewGapSize)
-    );
-
     const pixels = new Uint8ClampedArray(this.previewsHeight * this.dims * 4);
     const previewHeight = this.previewSize + this.previewGapSize;
     const rgbaLen = this.dims * 4;
@@ -783,13 +785,13 @@ export default class Pile {
     this.strandArrowX.position.set(
       this.matrixWidthHalf - 7,
       -this.matrixWidthHalf - 9 - extraOffset,
-      -1
+      0
     );
 
     this.strandArrowY.position.set(
       this.matrixWidthHalf - 20,
       -this.matrixWidthHalf - 9 - extraOffset,
-      -1
+      0
     );
 
     // Associate pile
@@ -1161,6 +1163,22 @@ export default class Pile {
    */
   getPos () {
     return this.mesh.position;
+  }
+
+  /**
+   * Calculate the preview height.
+   */
+  getPreviewHeight () {
+    if (this.clustersAvgMatrices.length > 1) {
+      this.previewsHeight = (
+        (this.previewSize * this.clustersAvgMatrices.length) +
+        ((this.clustersAvgMatrices.length + 1) * this.previewGapSize)
+      );
+    } else {
+      this.previewsHeight = 0;
+    }
+
+    return this.previewsHeight;
   }
 
   /**

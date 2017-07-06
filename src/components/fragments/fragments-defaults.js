@@ -175,10 +175,6 @@ export const PREVIEW_SIZE = 2;
 
 export const PREVIEW_MAX = 8;
 
-export const SHADER_ATTRIBUTES = {
-  customColor: { type: 'c', value: [] }
-};
-
 export const SHOW_MATRICES = 1000;
 
 export const SHOW_SPECIAL_CELLS = false;

@@ -1507,7 +1507,7 @@ export class Fragments {
     // Check if we intersect with a pile
     this.intersects = this.raycaster.intersectObjects(
       this.pileMeshes.filter(
-        pileMesh => pileMesh !== this.dragPile.mesh.matrixMesh
+        pileMesh => pileMesh !== this.dragPile.mesh
       )
     );
 
