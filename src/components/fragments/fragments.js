@@ -1148,7 +1148,7 @@ export class Fragments {
       );
     } else if (this.isLassoRoundActive && this.lassoRoundMinMove) {
       pilesSelected = this.getLassoRoundSelection();
-    } else if (event.type === 'mouseclick') {
+    } else if (event.type === 'mouseup') {
       this.canvasMouseClickHandler(event);
     }
 
