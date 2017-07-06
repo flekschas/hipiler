@@ -373,6 +373,14 @@ export class Fragments {
     return this.chromInfo.get();
   }
 
+  get coverDispMode () {
+    return fgmState.coverDispMode;
+  }
+
+  set coverDispMode (value) {
+    fgmState.coverDispMode = value;
+  }
+
   get gridSize () {
     let gridSize = fgmState.gridSize;
 
@@ -947,7 +955,7 @@ export class Fragments {
             // learningRate: 100.0,
             metric: 'euclidean',
             // The t-SNE implementation doesn't understand typed arrays...
-            data: this.piles.map(pile => Array.from(pile.avgMatrix))
+            data: this.piles.map(pile => Array.from(pile.coverMatrix))
           });
         })
         .catch((error) => {
@@ -1372,7 +1380,7 @@ export class Fragments {
    * @param {object} event - Event object.
    */
   changeCoverDispMode (event) {
-    event.pile.setCoverMatrixMode(event.mode).draw();
+    event.pile.setCoverDispMode(event.mode).draw();
 
     this.render();
   }
@@ -1530,12 +1538,12 @@ export class Fragments {
     // Check if we intersect with a pile
     this.intersects = this.raycaster.intersectObjects(
       this.pileMeshes.filter(
-        pileMesh => pileMesh !== this.dragPile.mesh
+        pileMesh => pileMesh.parent !== this.dragPile.mesh
       )
     );
 
     if (this.intersects.length) {
-      fgmState.hoveredPile = this.intersects[0].object.pile;
+      fgmState.hoveredPile = this.intersects[0].object.parent.pile;
     }
 
     this.dragPile.moveTo(
@@ -2221,8 +2229,8 @@ export class Fragments {
       }
 
       return this.calcDistanceEucl(
-        Matrix.flatten(_piles[index - 1].avgMatrix),
-        Matrix.flatten(_piles[index].avgMatrix)
+        _piles[index - 1].coverMatrix,
+        _piles[index].coverMatrix
       );
     });
 
@@ -3078,7 +3086,7 @@ export class Fragments {
     if (fgmState.previousHoveredPile) {
       fgmState.previousHoveredPile.elevateTo();
       fgmState.previousHoveredPile.showSingle(undefined);
-      fgmState.previousHoveredPile.setCoverMatrixMode(this.coverDispMode);
+      fgmState.previousHoveredPile.setCoverDispMode(this.coverDispMode);
       this.highlightFrame.visible = false;
       fgmState.previousHoveredPile.draw();
       fgmState.previousHoveredPile = undefined;
@@ -3658,16 +3666,6 @@ export class Fragments {
   }
 
   /**
-   * Set pile cover mode.
-   *
-   * @param {number} mode - Number defines the cover matrix mode.
-   * @param {array} piles - Piles for which to set the cover matrix mode.
-   */
-  setPileCoverMode (mode, piles) {
-    piles.forEach((pile) => { pile.setCoverMatrixMode(mode); });
-  }
-
-  /**
    * Setup piles from pile config
    *
    * @param {object} pilesConfig - Piles config.
@@ -4194,10 +4192,6 @@ export class Fragments {
 
     update.grid = true;
     update.piles = true;
-
-    if (this.isInitialized) {
-      this.setPileCoverMode(this.coverDispMode, this.piles);
-    }
 
     return Promise.resolve();
   }

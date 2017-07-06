@@ -3,10 +3,9 @@ import { Scene } from 'three';
 import {
   CELL_SIZE,
   GRID_SIZE,
-  MATRIX_ORIENTATION_INITIAL
+  MATRIX_ORIENTATION_INITIAL,
+  MODE_AVERAGE
 } from 'components/fragments/fragments-defaults';
-
-import pilesColors from 'components/fragments/pile-colors';
 
 
 const State = {
@@ -16,7 +15,7 @@ const State = {
   cellSize: CELL_SIZE,
   gridSize: GRID_SIZE,
   colorsIdx: {},
-  colorsAvailable: pilesColors.categorical.map((color, index) => index),
+  coverDispMode: MODE_AVERAGE,
   dataMeasuresMax: {},
   dataMeasuresMin: {},
   dragActive: false,

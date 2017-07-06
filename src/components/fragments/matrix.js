@@ -13,16 +13,6 @@ export default class Matrix {
   }
 
   /**
-   * Flatten  a 2D array.
-   *
-   * @param {array} matrix - 2D matrix to be flattened.
-   * @return {array} 1D arrays.
-   */
-  static flatten (matrix) {
-    return matrix.reduce((a, b) => a.concat(b), []);
-  }
-
-  /**
    * Flip the raw matix's x axis in-place.
    *
    * @param {array} matrix - 2D matrix to be flipped.
