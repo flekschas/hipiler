@@ -1,3 +1,5 @@
+import { batchActions } from 'redux-batched-actions';
+
 export const ADD_PILES = 'ADD_PILES';
 
 export const addPiles = piles => ({
@@ -67,10 +69,10 @@ export const setCellSize = cellSize => ({
   payload: { cellSize }
 });
 
-export const setCellAndGridSize = size => (dispath) => {
-  dispath(setCellSize(size));
-  dispath(setGridSize(size));
-};
+export const setCellAndGridSize = size => batchActions([
+  setCellSize(size),
+  setGridSize(size)
+]);
 
 export const SET_COVER_DISP_MODE = 'SET_COVER_DISP_MODE';
 
@@ -86,10 +88,10 @@ export const setGridCellSizeLock = gridCellSizeLock => ({
   payload: { gridCellSizeLock }
 });
 
-export const setGridCellSizeLockAndGridSize = config => (dispath) => {
-  dispath(setGridCellSizeLock(config.gridCellSizeLock));
-  dispath(setGridSize(config.gridSize));
-};
+export const setGridCellSizeLockAndGridSize = config => batchActions([
+  setGridCellSizeLock(config.gridCellSizeLock),
+  setGridSize(config.gridSize)
+]);
 
 export const SET_GRID_SIZE = 'SET_GRID_SIZE';
 
@@ -170,11 +172,17 @@ export const splitPiles = piles => ({
 
 export const SPLIT_PILES_INSPECTION = 'SPLIT_PILES_INSPECTION';
 
+
 export const splitPilesInspection = (
   sourcePile, matrices, piles
-) => (dispath) => {
-  dispath(splitPiles({ sourcePile: matrices }));
-  dispath(removePilesInspection(piles));
+) => {
+  const obj = {};
+  obj[sourcePile] = matrices;
+
+  return batchActions([
+    splitPiles(obj),
+    removePilesInspection(piles)
+  ]);
 };
 
 export const STACK_PILES = 'STACK_PILES';

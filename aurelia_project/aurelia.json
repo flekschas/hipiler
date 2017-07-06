@@ -242,6 +242,11 @@
             "main": "redux"
           },
           {
+            "name": "redux-batched-actions",
+            "path": "../node_modules/redux-batched-actions/lib",
+            "main": "index"
+          },
+          {
             "name": "redux-freeze",
             "path": "../node_modules/redux-freeze/lib",
             "main": "middleware",
