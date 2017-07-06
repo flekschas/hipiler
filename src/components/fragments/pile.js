@@ -567,10 +567,6 @@ export default class Pile {
     // Draw previews
     if (this.pileMatrices.length > 1) {
       this.mesh.add(this.drawPreviews());
-      this.updateFrameHighlight();
-      this.updatePileOutline();
-    } else {
-      this.previewsHeight = 0;
     }
 
     if (
@@ -581,7 +577,10 @@ export default class Pile {
       this.drawPileLabel(isHovering);
     }
 
-    // Add frames
+    // Update and add frames
+    this.updateFrameHighlight();
+    this.updatePileOutline();
+
     this.mesh.add(this.pileOutline);
     this.pileOutline.position.set(
       0, this.previewsHeight / 2, this.zLayerHeight
