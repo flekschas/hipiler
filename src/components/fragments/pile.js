@@ -241,6 +241,7 @@ export default class Pile {
     this.frameUpdate(fgmState.matrixFrameEncoding);
     this.calculateCoverMatrix();
     this.matrixClusters = this.calculateKMeansCluster();
+    this.numPileMatsChanged = true;
 
     return this.matrixClusters;
   }
@@ -547,7 +548,9 @@ export default class Pile {
     }
 
     // Calculate the preview height first
-    this.getPreviewHeight();
+    if (this.numPileMatsChanged) {
+      this.getPreviewHeight();
+    }
 
     const width = this.cellSize * this.dims;
     const height = width + this.previewsHeight;
@@ -578,18 +581,21 @@ export default class Pile {
     }
 
     // Update and add frames
-    this.updateFrameHighlight();
-    this.updatePileOutline();
+    if (this.numPileMatsChanged) {
+      this.updateFrameHighlight();
+      this.updatePileOutline();
+    }
 
     this.mesh.add(this.pileOutline);
+    this.mesh.add(this.matrixFrameHighlight);
+    this.mesh.add(this.matrixFrame);
+
     this.pileOutline.position.set(
       0, this.previewsHeight / 2, this.zLayerHeight
     );
-    this.mesh.add(this.matrixFrameHighlight);
     this.matrixFrameHighlight.position.set(
       0, this.previewsHeight / 2, this.zLayerHeight * 2
     );
-    this.mesh.add(this.matrixFrame);
     this.matrixFrame.position.set(
       0, 0, this.zLayerHeight * 4
     );
@@ -609,6 +615,7 @@ export default class Pile {
     this.drawColorIndicator();
 
     this.isDrawn = true;
+    this.numPileMatsChanged = false;
 
     return this;
   }
@@ -1316,6 +1323,7 @@ export default class Pile {
     this.frameUpdate(fgmState.matrixFrameEncoding);
     this.calculateCoverMatrix();
     this.matrixClusters = this.calculateKMeansCluster();
+    this.numPileMatsChanged = true;
 
     return this.matrixClusters;
   }
@@ -1384,6 +1392,7 @@ export default class Pile {
     this.frameUpdate(fgmState.matrixFrameEncoding);
     this.calculateCoverMatrix();
     this.matrixClusters = this.calculateKMeansCluster();
+    this.numPileMatsChanged = true;
 
     return this.matrixClusters;
   }
