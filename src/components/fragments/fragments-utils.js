@@ -349,11 +349,11 @@ export function createText (label) {
   );
 }
 
-export function createImage (pixels, dims) {
+export function createImage (pixels, width, height) {
   // Set image data
   const canvas = document.createElement('canvas');
-  canvas.width = dims;
-  canvas.height = dims;
+  canvas.width = width;
+  canvas.height = height;
 
   const image = new ImageData(pixels, canvas.width, canvas.height);
 
