@@ -3571,6 +3571,13 @@ export class Fragments {
   }
 
   /**
+   * Helper method to scroll to the top.
+   */
+  scrollToMax () {
+    this.scrollView(0);
+  }
+
+  /**
    * Scroll the snippets plot.
    *
    * @param {number} wheelDelta - Wheel movement.
@@ -4023,10 +4030,6 @@ export class Fragments {
       this.redrawPiles();
     }
 
-    if (update.scrollLimit) {
-      this.setScrollLimit();
-    }
-
     if (update.layout) {
       window.requestAnimationFrame(() => {
         this.updateLayout(
@@ -4053,8 +4056,16 @@ export class Fragments {
       this.piles.forEach(pile => pile.updateAlpha());
     }
 
+    if (update.scrollLimit) {
+      this.setScrollLimit();
+    }
+
     if (update.scrollToTop) {
       this.scrollToTop();
+    }
+
+    if (update.scrollToMax) {
+      this.scrollToMax();
     }
 
     this.render();
@@ -4156,6 +4167,8 @@ export class Fragments {
 
     update.piles = true;
     update.pileFramesRecreate = true;
+    update.scrollLimit = true;
+    update.scrollToMax = true;
   }
 
   /**
