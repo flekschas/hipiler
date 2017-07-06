@@ -440,7 +440,10 @@ export class Fragments {
   }
 
   get pilePreviewHeight () {
-    return PREVIEW_MAX * this.previewSize;
+    return (
+      (PREVIEW_MAX * this.previewSize) +
+      (PREVIEW_MAX * this.previewGapSize)
+    );
   }
 
   get piles () {
@@ -492,6 +495,10 @@ export class Fragments {
 
   get previewSize () {
     return this.cellSize * (this.cellSize > 2 ? 1 : PREVIEW_SIZE);
+  }
+
+  get previewGapSize () {
+    return this.cellSize > 2 ? 2 : 1;
   }
 
   get rawMatrices () {
