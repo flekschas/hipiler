@@ -482,7 +482,8 @@ export class Fragments {
   }
 
   get pileMeshes () {
-    return fgmState.trashIsActive ? fgmState.pileMeshesTrash : fgmState.pileMeshes;
+    return fgmState.trashIsActive ?
+      fgmState.pileMeshesTrash : fgmState.pileMeshes;
   }
 
   get plotElDim () {
@@ -1506,12 +1507,12 @@ export class Fragments {
     // Check if we intersect with a pile
     this.intersects = this.raycaster.intersectObjects(
       this.pileMeshes.filter(
-        pileMesh => pileMesh.parent !== this.dragPile.mesh
+        pileMesh => pileMesh !== this.dragPile.mesh.matrixMesh
       )
     );
 
     if (this.intersects.length) {
-      fgmState.hoveredPile = this.intersects[0].object.parent.pile;
+      fgmState.hoveredPile = this.intersects[0].object.pile;
     }
 
     this.dragPile.moveTo(
@@ -2974,7 +2975,7 @@ export class Fragments {
     this.intersects = this.raycaster.intersectObjects(this.pileMeshes);
 
     if (this.intersects.length) {
-      this.mouseOverPileHandler(this.intersects[0].object.parent);
+      this.mouseOverPileHandler(this.intersects[0].object);
     } else if (fgmState.previousHoveredPile) {
       this.mouseOutPileHandler();
     }

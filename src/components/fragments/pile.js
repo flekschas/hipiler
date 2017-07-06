@@ -542,8 +542,8 @@ export default class Pile {
     // UPDATE COVER MATRIX CELLS + PILE PREVIEWS
     if (this.mesh && this.mesh.children.length) {
       this.pileMeshes.splice(
-        this.pileMeshes.indexOf(this.mesh.children[0]),
-        this.mesh.children.length
+        this.pileMeshes.indexOf(this.mesh.matrixMesh),
+        1
       );
       fgmState.scene.remove(this.mesh);
     }
@@ -556,7 +556,8 @@ export default class Pile {
     this.mesh = new Mesh(this.geometry, fgmState.shaderMaterial);
 
     // Draw matrix
-    this.mesh.add(this.drawMatrix(this.singleMatrix));
+    this.mesh.matrixMesh = this.drawMatrix(this.singleMatrix);
+    this.mesh.add(this.mesh.matrixMesh);
 
     // Draw previews
     if (this.pileMatrices.length > 1) {
@@ -587,8 +588,8 @@ export default class Pile {
       0, 0, this.zLayerHeight * 4
     );
 
-    this.mesh.pile = this;
-    this.pileMeshes.push(...this.mesh.children);
+    this.mesh.matrixMesh.pile = this;
+    this.pileMeshes.push(this.mesh.matrixMesh);
     this.mesh.position.set(this.x, this.y, this.z);
     fgmState.scene.add(this.mesh);
 
@@ -760,10 +761,8 @@ export default class Pile {
 
   /**
    * Draw strand arrows for both axis.
-   *
-   * @param {array} isHovering - If `true` user is currently hovering this pile.
    */
-  drawStrandArrows (isHovering) {
+  drawStrandArrows () {
     const extraOffset = this.isColored ? COLOR_INDICATOR_HEIGHT + 2 : 0;
 
     // Remove previous sprites
@@ -777,9 +776,8 @@ export default class Pile {
       ARROW_Y.clone() : ARROW_Y_REV.clone();
 
     // Set opacity
-    const opacity = isHovering ? 0.66 : 0.2;
-    this.strandArrowX.material.opacity = opacity;
-    this.strandArrowY.material.opacity = opacity;
+    this.strandArrowX.material.opacity = 0.25;
+    this.strandArrowY.material.opacity = 0.25;
 
     // Position arrow
     this.strandArrowX.position.set(
