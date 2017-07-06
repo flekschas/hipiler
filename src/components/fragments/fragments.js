@@ -2783,7 +2783,7 @@ export class Fragments {
    * @param {object} event - Key up event object.
    */
   keyUpHandler (event) {
-    if (!this.isModifierKeyDown) {
+    if (!this.lastWasModifier) {
       switch (event.keyCode) {
         case 67:  // C == Cover Mode
           this.toggleCoverDispMode();
@@ -2805,6 +2805,14 @@ export class Fragments {
           // Nothing
           break;
       }
+    }
+
+    if (this.lastWasModifier) {
+      this.lastWasModifier = false;
+    }
+
+    if (this.isModifierKeyDown) {
+      this.lastWasModifier = true;
     }
 
     if (event.code === 'AltLeft') {
@@ -3881,8 +3889,11 @@ export class Fragments {
     }
   }
 
+  /**
+   * Toggle between zoom+pan and scaling.
+   */
   toggleZoomPan () {
-    this.isZoomPan = !this.isZoomPan;
+    this.isZoomPan = !this.isLayout1d ? !this.isZoomPan : false;
   }
 
   /**
