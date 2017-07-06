@@ -107,7 +107,6 @@ import Pile from 'components/fragments/pile';
 import Matrix from 'components/fragments/matrix';
 
 import {
-  calculateDistances,
   createChMap,
   createRectFrame,
   is2d
@@ -174,26 +173,17 @@ export class Fragments {
     this.colorsMatrixIdx = {};
     this.colorsUsed = [];
     this.maxDistance = 0;
-    this.pilingMethod = 'clustered';
     this.matrixStrings = '';
     this.matrixPos = []; // index of pile in layout array
     this.matrices = []; // contains all matrices
     this.matricesPileIndex = []; // contains pile index for each matrix.
     this.selectedMatrices = [];
     this.dragActive = false;
-    this.openedPileMatrices = [];
     this.pilesZoomed = {};
     this.plotWindowCss = {};
     this.scrollTop = 0;
     this.shiftDown = false;
-    this.allPileOrdering = [];
-     // Array containing the orderings for all piles, when not all nodes are
-     // focused on.
-    this.focusNodeAllPileOrdering = [];
     this.dataMeasures = {};
-
-    this.nodes = [];
-    this.focusNodes = [];  // currently visible nodes (changed by the user)
 
     this._isLoadedSession = false;
     this._isSavedSession = false;
@@ -208,15 +198,7 @@ export class Fragments {
     this.fragDims = 0;  // Fragment dimensions
     this.scale = 1;
 
-    // If the user changes the focus nodes, matrix similarity must be recalculated
-    // before automatic piling. Distance calculation is performed on the server.
-    this.dMat = [];
-    this.pdMat = [];  // contains similarity between piles
-    this.pdMax = 0;
-
     this.keyAltDownTime = 0;
-
-    this.pilingAnimations = [];
 
     this.mouseIsDown = false;
     this.lassoIsActive = false;
@@ -668,20 +650,6 @@ export class Fragments {
           measure.value
         );
       });
-  }
-
-  /**
-   * [calculateDistanceMatrix description]
-   *
-   * @return {[type]} [description]
-   */
-  calculateDistanceMatrix () {
-    const data = calculateDistances(this.rawMatrices);
-
-    this.dMat = data.distanceMatrix;
-    this.pdMat = data.distanceMatrix;
-    this.maxDistance = data.maxDistance;
-    this.pdMax = this.maxDistance;
   }
 
   /**
@@ -3060,8 +3028,6 @@ export class Fragments {
       }
     }
 
-    fgmState.hoveredPile.updateLabels();
-
     // Hovering over a new pile
     if (
       fgmState.previousHoveredPile !== fgmState.hoveredPile &&
@@ -3747,15 +3713,6 @@ export class Fragments {
   }
 
   /**
-   * [setPilingMethod description]
-   *
-   * @param {[type]} method - [description]
-   */
-  // setPilingMethod (method) {
-  //   this.pilingMethod = method;
-  // }
-
-  /**
    * Set the scroll bottom limiit
    *
    * @param {number} numFragments - Number of fragmets.
@@ -3778,27 +3735,6 @@ export class Fragments {
    */
   showGrid () {
     this.isGridShown = true;
-  }
-
-  /**
-   * [showMatrixSimilarity description]
-   *
-   * @description
-   * Takes a seed pile and shows how similarall the other piles / matrices are.
-   * The similarity between two piles is themean of the distances between all
-   * matrices from p1 to all matrices to p2 (bigraph).
-   *
-   * @param {[type]} pile - [description]
-   * @return {[type]} [description]
-   */
-  showMatrixSimilarity (pile) {
-    let pileIndex = this.piles.indexOf(pile);
-
-    this.piles.forEach((otherPile, index) => {
-      otherPile.showSimilarity(
-        this.pileDistanceColor(this.pdMat[pileIndex][index])
-      );
-    });
   }
 
   /**
@@ -3938,15 +3874,6 @@ export class Fragments {
 
   toggleZoomPan () {
     this.isZoomPan = !this.isZoomPan;
-  }
-
-  /**
-   * [unshowMatrixSimilarity description]
-   *
-   * @return {[type]} [description]
-   */
-  unshowMatrixSimilarity () {
-    this.piles.forEach(pile => pile.resetSimilarity());
   }
 
   /**

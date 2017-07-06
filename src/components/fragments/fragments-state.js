@@ -9,8 +9,6 @@ import {
 
 
 const State = {
-  activeMatrixInPileIndex: undefined,
-  activePile: undefined,
   adjacentDistances: undefined,
   cellSize: CELL_SIZE,
   gridSize: GRID_SIZE,
@@ -21,8 +19,6 @@ const State = {
   dragActive: false,
   draggingMatrix: undefined,
   dragPile: undefined,
-  dynamicdata: undefined,
-  focusNodes: [],
   font: undefined,
   graphMatrices: [],
   gridCellHeightInclSpacing: 0,
@@ -50,9 +46,6 @@ const State = {
   maxDistance: 0,
   measures: [],
   mouse: undefined,
-  nodes: [],
-  openedPileMatrices: [],
-  openedPileRoot: undefined,
   pileMeshes: [],
   pileMeshesTrash: [],
   piles: [],
@@ -60,7 +53,6 @@ const State = {
   pilesInspection: [],
   pilesIdxInspection: {},
   pilesTrash: [],
-  pilingMethod: 'clustered',
   previousHoveredPile: undefined,
   scale: 1,
   scene: new Scene(),
