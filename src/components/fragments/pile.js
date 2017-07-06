@@ -160,6 +160,10 @@ export default class Pile {
     return this.isTrashed ? fgmState.pileMeshesTrash : fgmState.pileMeshes;
   }
 
+  get previewGapSize () {
+    return this.cellSize > 2 ? 2 : 1;
+  }
+
   get previewSize () {
     return this.cellSize * (this.cellSize > 2 ? 1 : PREVIEW_SIZE);
   }
@@ -531,8 +535,6 @@ export default class Pile {
    * @return {object} Self.
    */
   draw () {
-    const positions = [];
-    const colors = [];
     const isHovering = this === fgmState.hoveredPile;
 
     this.isColored = this.pileMatrices.some(matrix => matrix.color);
@@ -554,25 +556,14 @@ export default class Pile {
     this.mesh = new Mesh(this.geometry, fgmState.shaderMaterial);
 
     // Draw matrix
-    this.mesh.add(this.drawMatrix());
+    this.mesh.add(this.drawMatrix(this.singleMatrix));
 
     // Draw previews
     if (this.pileMatrices.length > 1) {
-      this.drawPreviews(positions, colors);
+      this.mesh.add(this.drawPreviews());
       this.updateFrameHighlight();
       this.updatePileOutline();
     }
-
-    // CREATE + ADD MESH
-    // this.geometry.addAttribute(
-    //   'position',
-    //   new BufferAttribute(makeBuffer3f(positions), 3)
-    // );
-
-    // this.geometry.addAttribute(
-    //   'customColor',
-    //   new BufferAttribute(makeRgbaBuffer(colors, this.alpha), 4)
-    // );
 
     if (
       !(fgmState.isHilbertCurve) &&
@@ -692,98 +683,75 @@ export default class Pile {
 
   /**
    * Draw pile matrix previews.
-   *
-   * @param {array} positions - Positions array to be changed in-place.
-   * @param {array} colors - Colors array to be changed in-place.
    */
-  drawPreviews (positions, colors) {
-    this.previewsHeight = this.previewSize * this.clustersAvgMatrices.length;
-
-    // Background
-    addBufferedRect(
-      positions,
-      0,
-      this.matrixWidthHalf + (this.previewsHeight / 2),
-      this.zLayerHeight * 3,
-      this.matrixWidth,
-      this.previewsHeight,
-      colors,
-      [1, 1, 1]
+  drawPreviews () {
+    this.previewsHeight = (
+      (this.previewSize * this.clustersAvgMatrices.length) +
+      ((this.clustersAvgMatrices.length + 1) * this.previewGapSize)
     );
 
-    // Create preview
-    // this.previewHeightIndicator = createRect(
-    //   this.matrixWidth,
-    //   this.previewSize * this.pileMatrices.length,
-    //   COLORS.GREEN
-    // );
+    const pixels = new Uint8ClampedArray(this.previewsHeight * this.dims * 4);
+    const previewHeight = this.previewSize + this.previewGapSize;
+    const rgbaLen = this.dims * 4;
 
-    // this.previewHeightIndicator.position.set(
-    //   this.x,
-    //   this.y - ((this.previewSize * this.pileMatrices.length) / 2),
-    //   9
-    // );
+    // Make first row of pixels white
+    pixels.fill(0, 0, rgbaLen);
 
     this.clustersAvgMatrices.forEach((matrix, index) => {
-      let y = this.matrixWidthHalf + (this.previewSize * (index + 0.75));
+      const previewMatrixPixels = this.getColAvgPix(matrix);
 
-      for (let i = 0; i < this.dims; i++) {
-        let value = 0;
-
-        for (let j = 0; j < this.dims; j++) {
-          value += matrix[(j * this.dims) + i];
-        }
-
-        if (value < -this.dims * PREVIEW_LOW_QUAL_THRESHOLD) {
-          value = -1;
-        } else {
-          value = cellValue(value / this.dims);
-        }
-
-        let x = (
-          -this.matrixWidthHalf +
-          (this.cellSize * i) +
-          (this.cellSize / 2)
-        );
-
-        // The actual preview
-        addBufferedRect(
-          positions,
-          x,
-          y,
-          this.zLayerHeight * 5, // z
-          this.cellSize,  // width
-          this.previewSize - this.previewSpacing,  // height
-          colors,
-          this.getColor(value, fgmState.showSpecialCells)
+      for (let h = 0; h < this.previewSize; h++) {
+        pixels.set(
+          previewMatrixPixels,
+          ((index * previewHeight) + h + this.previewGapSize) * rgbaLen
         );
       }
-
-      index += 1;
     });
+
+    // Set image data
+    const imageMesh = createImage(pixels, this.dims, this.previewsHeight);
+    imageMesh.position.set(
+      0,
+      (this.matrixWidth / 2) + (this.previewsHeight / 2) + 1,
+      this.zLayerHeight * 5
+    );
+    imageMesh.scale.set(this.cellSize, 1, this.cellSize);
+
+    return imageMesh;
   }
 
   /**
-   * Draw a single matrix
+   * Draw a single matrix.
+   *
+   * @param {array} matrix - If not `undefined` draw the passed matrix instead
+   *   of `this.coverMatrix`.
    */
-  drawMatrix () {
-    const len = this.coverMatrix.length;
+  drawMatrix (matrix) {
+    if (!matrix) {
+      matrix = this.coverMatrix;
+    } else {
+      // `matrix` is a class instance rather than the raw matrix.
+      matrix = matrix.matrix;
+    }
+
+    const len = matrix.length;
     const colorTransformer = this.getMatrixColor(
       this.coverDispMode === MODE_VARIANCE &&
-      this.pileMatrices.length > 1
+      this.pileMatrices.length > 1 &&
+      !this.singleMatrix
     );
 
     // Get pixels
     for (let i = len; i--;) {
       const color = colorTransformer(
-        cellValue(this.coverMatrix[i]), fgmState.showSpecialCells
+        cellValue(matrix[i]), fgmState.showSpecialCells
       );
 
       this.pixels.set(color, i * 4);
     }
 
     // Set image data
-    const imageMesh = createImage(this.pixels, this.dims);
+    const imageMesh = createImage(this.pixels, this.dims, this.dims);
     imageMesh.position.set(0, 0, this.zLayerHeight * 5);
     imageMesh.scale.set(this.cellSize, this.cellSize, this.cellSize);
 
@@ -1024,6 +992,41 @@ export default class Pile {
     // this.matrixFrameHighlight.material.uniforms.opacity.value = 0;
 
     return this;
+  }
+
+  /**
+   * Get pixels of the column average matrix.
+   *
+   * @param {array} matrix - Raw matrix to be averaged.
+   * @return {array} Pixel array.
+   */
+  getColAvgPix (matrix) {
+    const colAvg = [];
+    const lowQualThreshold = -this.dims * PREVIEW_LOW_QUAL_THRESHOLD;
+    let idx;
+
+    for (let i = this.dims; i--;) {
+      colAvg[i] = 0;
+    }
+
+    for (let i = matrix.length; i--;) {
+      idx = i % this.dims;
+
+      colAvg[idx] += Math.max(matrix[i], 0);
+    }
+
+    let ass = [];
+    for (let i = this.dims; i--;) {
+      if (colAvg[i] < lowQualThreshold) {
+        colAvg[i] = -1;
+      } else {
+        colAvg[i] /= this.dims;
+      }
+
+      ass[i] = this.getColorRgba(colAvg[i], fgmState.showSpecialCells);
+    }
+
+    return ass.reduce((flatArr, a) => flatArr.concat(a), []);
   }
 
   /**
