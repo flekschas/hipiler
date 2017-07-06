@@ -446,9 +446,6 @@ export default class Pile {
         return resolve();
       }
 
-      const pileMatrices = this.pileMatrices
-        .map(pileMatrix => pileMatrix.matrix);
-
       this.createWorkerClusterfck()
         .then((worker) => {
           worker.onmessage = (event) => {
@@ -474,13 +471,20 @@ export default class Pile {
 
           worker.postMessage({
             numClusters: PREVIEW_NUM_CLUSTERS,
-            data: pileMatrices
+            data: this.pileMatrices.map((pileMatrix) => {
+              const out = Array.from(pileMatrix.matrix);
+              out.id = pileMatrix.id;
+
+              return out;
+            })
           });
         })
         .catch((error) => {
           this.isMatricesClustered = false;
           logger.error('K-means clustering failed', error);
-          this.clustersAvgMatrices = pileMatrices;
+          this.clustersAvgMatrices = this.pileMatrices.map(
+            pileMatrix => pileMatrix.matrix
+          );
           resolve();
         });
     });
