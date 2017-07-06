@@ -3017,8 +3017,16 @@ export class Fragments {
       const absY = this.relToAbsPositionY(this.mouse.y) + this.scrollTop;
 
       if (absY > y + fgmState.hoveredPile.matrixWidthHalf) {
-        const deltaY = absY - (y + fgmState.hoveredPile.matrixWidthHalf);
-        const index = Math.floor(deltaY / fgmState.hoveredPile.previewSize);
+        const deltaY = (
+          absY - y - fgmState.hoveredPile.matrixWidthHalf -
+          fgmState.hoveredPile.previewGapSize
+        );
+        const index = Math.floor(
+          deltaY / (
+            fgmState.hoveredPile.previewSize +
+            fgmState.hoveredPile.previewGapSize
+          )
+        );
 
         fgmState.hoveredPile.showSingle(
           fgmState.hoveredPile.getMatrixPreview(index)
