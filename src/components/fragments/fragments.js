@@ -497,14 +497,6 @@ export class Fragments {
     return fgmState.plotElDim;
   }
 
-  get previewSize () {
-    return Math.min(2, this.cellSize) * PREVIEW_SIZE;
-  }
-
-  get previewGapSize () {
-    return this.cellSize > 2 ? 2 : 1;
-  }
-
   get rawMatrices () {
     return fgmState.matrices.map(matrix => matrix.matrix);
   }
@@ -3037,15 +3029,17 @@ export class Fragments {
       const absY = this.relToAbsPositionY(this.mouse.y) + this.scrollTop;
 
       if (absY > y + fgmState.hoveredPile.matrixWidthHalf) {
-        const deltaY = (
-          absY - y - fgmState.hoveredPile.matrixWidthHalf -
-          fgmState.hoveredPile.previewGapSize
-        );
-        const index = Math.floor(
-          deltaY / (
-            fgmState.hoveredPile.previewSize +
-            fgmState.hoveredPile.previewGapSize
-          )
+        const hovPilePrevScale =
+          fgmState.previewScale * fgmState.hoveredPile.scale;
+        const hovPileWidHal =
+          fgmState.previewScale * fgmState.hoveredPile.matrixWidthHalf;
+
+        const deltaY = absY - y - hovPileWidHal;
+        const index = (
+          fgmState.hoveredPile.clustersAvgMatrices.length - 1 -
+          Math.max(0, Math.floor(
+            deltaY / ((PREVIEW_SIZE + PREVIEW_GAP_SIZE) * hovPilePrevScale)
+          ))
         );
 
         fgmState.hoveredPile.showSingle(
@@ -4188,20 +4182,6 @@ export class Fragments {
   }
 
   /**
-   * Update preview scaling.
-   */
-  updatePreviewScaling () {
-    // Between 1 and 2 in 0.25 increments
-    fgmState.previewScale = Math.min(
-      2,
-      Math.max(
-        1,
-        1 + (((this.cellSize) - 1) * fgmState.scale / 4)
-      )
-    );
-  }
-
-  /**
    * Handle updating the config.
    *
    * @param {object} newConfig - New config
@@ -4590,6 +4570,20 @@ export class Fragments {
     update.inspection = true;
 
     return Promise.all(ready);
+  }
+
+  /**
+   * Update preview scaling.
+   */
+  updatePreviewScaling () {
+    // Between 1 and 2 in 0.25 increments
+    fgmState.previewScale = Math.min(
+      2,
+      Math.max(
+        1,
+        1 + (((this.cellSize) - 1) * fgmState.scale / 4)
+      )
+    );
   }
 
   /**

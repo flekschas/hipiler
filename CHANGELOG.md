@@ -1,8 +1,9 @@
-v1.0.0-beta8 - 2017-06-??
+v1.0.0-beta8 - 2017-07-??
 
 - Implement removing matrices from piles
 - 5-10x faster snippet rendering
 - Fixed matrix flipping
+- Fixed scroll issue after changing the cell size
 
 v1.0.0-beta7 - 2017-06-09
 
