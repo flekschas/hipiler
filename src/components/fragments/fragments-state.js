@@ -53,6 +53,7 @@ const State = {
   pilesInspection: [],
   pilesIdxInspection: {},
   pilesTrash: [],
+  previewScale: 1,
   previousHoveredPile: undefined,
   scale: 1,
   scene: new Scene(),

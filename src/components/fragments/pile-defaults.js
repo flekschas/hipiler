@@ -51,6 +51,10 @@ export const PREVIEW_LOW_QUAL_THRESHOLD = 0.5;
 
 export const PREVIEW_NUM_CLUSTERS = 8;
 
+export const PREVIEW_GAP_SIZE = 1;
+
+export const PREVIEW_SIZE = 2;
+
 export const VALUE_DOMAIN = [0, 1];
 
 export const STD_MAX = (VALUE_DOMAIN[1] - VALUE_DOMAIN[0]) / 2;

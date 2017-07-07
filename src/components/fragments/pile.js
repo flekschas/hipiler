@@ -13,7 +13,6 @@ import {
   MATRIX_FRAME_THICKNESS,
   MATRIX_FRAME_THICKNESS_MAX,
   MODE_VARIANCE,
-  PREVIEW_SIZE,
   Z_BASE,
   Z_PILE_MAX
 } from 'components/fragments/fragments-defaults';
@@ -30,6 +29,8 @@ import {
   LABEL_MIN_CELL_SIZE,
   PREVIEW_LOW_QUAL_THRESHOLD,
   PREVIEW_NUM_CLUSTERS,
+  PREVIEW_GAP_SIZE,
+  PREVIEW_SIZE,
   STD_MAX
 } from 'components/fragments/pile-defaults';
 
@@ -158,12 +159,8 @@ export default class Pile {
     return this.isTrashed ? fgmState.pileMeshesTrash : fgmState.pileMeshes;
   }
 
-  get previewGapSize () {
-    return this.cellSize > 2 ? 2 : 1;
-  }
-
-  get previewSize () {
-    return this.cellSize * (this.cellSize > 2 ? 1 : PREVIEW_SIZE);
+  get previewsHeightNorm () {
+    return fgmState.previewScale * this.previewsHeight;
   }
 
   get previewSpacing () {
@@ -557,10 +554,10 @@ export default class Pile {
     }
 
     const width = this.cellSize * this.dims;
-    const height = width + this.previewsHeight;
+    const height = width + this.previewsHeightNorm;
 
     this.geometry = new PlaneGeometry(width, height);
-    this.geometry.translate(0, this.previewsHeight / 2, 0);
+    this.geometry.translate(0, this.previewsHeightNorm / 2, 0);
 
     // Create base mesh
     this.mesh = new Mesh(
@@ -595,10 +592,10 @@ export default class Pile {
     this.mesh.add(this.matrixFrame);
 
     this.pileOutline.position.set(
-      0, this.previewsHeight / 2, this.zLayerHeight
+      0, this.previewsHeightNorm / 2, this.zLayerHeight
     );
     this.matrixFrameHighlight.position.set(
-      0, this.previewsHeight / 2, this.zLayerHeight * 2
+      0, this.previewsHeightNorm / 2, this.zLayerHeight * 2
     );
     this.matrixFrame.position.set(
       0, 0, this.zLayerHeight * 4
@@ -704,7 +701,7 @@ export default class Pile {
    */
   drawPreviews () {
     const pixels = new Uint8ClampedArray(this.previewsHeight * this.dims * 4);
-    const previewHeight = this.previewSize + this.previewGapSize;
+    const previewHeight = PREVIEW_SIZE + PREVIEW_GAP_SIZE;
     const rgbaLen = this.dims * 4;
 
     // Make first row of pixels white
@@ -713,10 +710,10 @@ export default class Pile {
     this.clustersAvgMatrices.forEach((matrix, index) => {
       const previewMatrixPixels = this.getColAvgPix(matrix);
 
-      for (let h = 0; h < this.previewSize; h++) {
+      for (let h = 0; h < PREVIEW_SIZE; h++) {
         pixels.set(
           previewMatrixPixels,
-          ((index * previewHeight) + h + this.previewGapSize) * rgbaLen
+          ((index * previewHeight) + h + PREVIEW_GAP_SIZE) * rgbaLen
         );
       }
     });
@@ -725,10 +722,14 @@ export default class Pile {
     const imageMesh = createImage(pixels, this.dims, this.previewsHeight);
     imageMesh.position.set(
       0,
-      (this.matrixWidth / 2) + (this.previewsHeight / 2) + 1,
+      (this.matrixWidth / 2) + (this.previewsHeightNorm / 2) + 1,
       this.zLayerHeight * 5
     );
-    imageMesh.scale.set(this.cellSize, 1, this.cellSize);
+    imageMesh.scale.set(
+      this.cellSize,
+      fgmState.previewScale,
+      1
+    );
 
     return imageMesh;
   }
@@ -884,7 +885,7 @@ export default class Pile {
 
     this.matrixFrameHighlight = createLineFrame(
       this.matrixWidth,
-      this.matrixWidth,
+      this.matrixWidth + this.previewsHeightNorm,
       COLORS.ORANGE,
       this.matrixFrameThickness + 2,
       0
@@ -892,7 +893,7 @@ export default class Pile {
 
     this.pileOutline = createLineFrame(
       this.matrixWidth,
-      this.matrixWidth,
+      this.matrixWidth + this.previewsHeightNorm,
       COLORS.WHITE,
       this.matrixFrameThickness + 2,
       this.alphaSecond
@@ -1181,8 +1182,8 @@ export default class Pile {
   getPreviewHeight () {
     if (this.clustersAvgMatrices.length > 1) {
       this.previewsHeight = (
-        (this.previewSize * this.clustersAvgMatrices.length) +
-        ((this.clustersAvgMatrices.length + 1) * this.previewGapSize)
+        (PREVIEW_SIZE * this.clustersAvgMatrices.length) +
+        ((this.clustersAvgMatrices.length + 1) * PREVIEW_GAP_SIZE)
       );
     } else {
       this.previewsHeight = 0;
@@ -1559,7 +1560,7 @@ export default class Pile {
   updateFrameHighlight (pileHighlight) {
     this.matrixFrameHighlight = createLineFrame(
       this.matrixWidth,
-      this.matrixWidth + this.previewsHeight,
+      this.matrixWidth + this.previewsHeightNorm,
       COLORS.ORANGE,
       this.matrixFrameThickness + 2,
       this.matrixFrameHighlight.material.uniforms.opacity.value
@@ -1572,7 +1573,7 @@ export default class Pile {
   updatePileOutline () {
     this.pileOutline = createLineFrame(
       this.matrixWidth,
-      this.matrixWidth + this.previewsHeight,
+      this.matrixWidth + this.previewsHeightNorm,
       COLORS.WHITE,
       this.matrixFrameThickness + 2,
       this.alphaSecond

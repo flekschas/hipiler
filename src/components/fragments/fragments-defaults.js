@@ -171,8 +171,6 @@ export const PILE_MENU_CLOSING_DELAY = 200;
 
 export const PILES = {};
 
-export const PREVIEW_SIZE = 2;
-
 export const PREVIEW_MAX = 8;
 
 export const SHOW_MATRICES = 1000;

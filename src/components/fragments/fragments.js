@@ -90,7 +90,6 @@ import {
   PILE_AREA_POINTS,
   PILE_LABEL_HEIGHT,
   PREVIEW_MAX,
-  PREVIEW_SIZE,
   WEB_GL_CONFIG,
   Z_BASE,
   Z_DRAG,
@@ -99,6 +98,11 @@ import {
   Z_LASSO,
   Z_STACK_PILE_TARGET
 } from 'components/fragments/fragments-defaults';
+
+import {
+  PREVIEW_SIZE,
+  PREVIEW_GAP_SIZE
+} from 'components/fragments/pile-defaults';
 
 import fgmState from 'components/fragments/fragments-state';
 
@@ -440,9 +444,9 @@ export class Fragments {
   }
 
   get pilePreviewHeight () {
-    return (
-      (PREVIEW_MAX * this.previewSize) +
-      (PREVIEW_MAX * this.previewGapSize)
+    return fgmState.previewScale * (
+      (PREVIEW_MAX * PREVIEW_SIZE) +
+      ((PREVIEW_MAX + 1) * PREVIEW_GAP_SIZE)
     );
   }
 
@@ -494,7 +498,7 @@ export class Fragments {
   }
 
   get previewSize () {
-    return this.cellSize * (this.cellSize > 2 ? 1 : PREVIEW_SIZE);
+    return Math.min(2, this.cellSize) * PREVIEW_SIZE;
   }
 
   get previewGapSize () {
@@ -4172,8 +4176,18 @@ export class Fragments {
 
     fgmState.cellSize = size;
 
+    // Between 1 and 2 in 0.25 increments
+    fgmState.previewScale = Math.min(
+      2,
+      Math.max(
+        1,
+        1 + ((this.cellSize - 1) / 4)
+      )
+    );
+
     update.piles = true;
     update.pileFramesRecreate = true;
+    update.pileFramesUpdate = true;
     update.scrollLimit = true;
     update.scrollToMax = true;
   }
