@@ -160,7 +160,11 @@ export default class Pile {
   }
 
   get previewsHeightNorm () {
-    return fgmState.previewScale * this.previewsHeight;
+    return this.previewScale * this.previewsHeight;
+  }
+
+  get previewScale () {
+    return fgmState.previewScale * this.scale;
   }
 
   get previewSpacing () {
@@ -727,7 +731,7 @@ export default class Pile {
     );
     imageMesh.scale.set(
       this.cellSize,
-      fgmState.previewScale,
+      this.previewScale,
       1
     );
 

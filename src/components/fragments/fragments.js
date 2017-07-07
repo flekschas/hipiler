@@ -4137,6 +4137,8 @@ export class Fragments {
       }
     }
 
+    this.updatePreviewScaling();
+
     update.grid = true;
     update.piles = true;
     update.pileFramesRecreate = true;
@@ -4176,20 +4178,27 @@ export class Fragments {
 
     fgmState.cellSize = size;
 
-    // Between 1 and 2 in 0.25 increments
-    fgmState.previewScale = Math.min(
-      2,
-      Math.max(
-        1,
-        1 + ((this.cellSize - 1) / 4)
-      )
-    );
+    this.updatePreviewScaling();
 
     update.piles = true;
     update.pileFramesRecreate = true;
     update.pileFramesUpdate = true;
     update.scrollLimit = true;
     update.scrollToMax = true;
+  }
+
+  /**
+   * Update preview scaling.
+   */
+  updatePreviewScaling () {
+    // Between 1 and 2 in 0.25 increments
+    fgmState.previewScale = Math.min(
+      2,
+      Math.max(
+        1,
+        1 + (((this.cellSize) - 1) * fgmState.scale / 4)
+      )
+    );
   }
 
   /**
