@@ -54,6 +54,7 @@ import {
 } from 'components/fragments/fragments-actions';
 
 import {
+  API_DOMAINS,
   API_FRAGMENTS,
   ARRANGE_MEASURES,
   CAT_CHROMOSOME,
@@ -2852,11 +2853,20 @@ export class Fragments {
 
     return new Promise((resolve, reject) => {
       let url;
+      let endpoint = API_FRAGMENTS;
 
       const params = {
         precision: config.fragmentsPrecision || FRAGMENT_PRECISION,
         dims: config.fragmentsDims || FRAGMENT_SIZE
       };
+
+      if (config.fragmentsDomains) {
+        endpoint = API_DOMAINS;
+      }
+
+      if (config.fragmentsPadding) {
+        params.padding = config.fragmentsPadding;
+      }
 
       if (config.fragmentsNoCache) {
         params['no-cache'] = 1;
@@ -2872,7 +2882,7 @@ export class Fragments {
       const server = config.fragmentsServer.replace(/\/+$/, '');
 
       try {
-        url = `${server}/${API_FRAGMENTS}/${queryString}`;
+        url = `${server}/${endpoint}/${queryString}`;
       } catch (e) {
         this.hasErrored('Config is broken');
         reject(Error(this.errorMsg));
