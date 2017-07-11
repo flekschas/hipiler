@@ -20,9 +20,12 @@ import {
 import pileColors from 'components/fragments/pile-colors';
 
 import {
+  ALPHA_FADED_OUT,
   ARROW_X,
+  ARROW_X_MATERIALS,
   ARROW_X_REV,
   ARROW_Y,
+  ARROW_Y_MATERIALS,
   ARROW_Y_REV,
   BASE_MATERIAL,
   COLOR_INDICATOR_HEIGHT,
@@ -59,7 +62,6 @@ const logger = LogManager.getLogger('pile');
 export default class Pile {
   constructor (id, scene, scale, dims, maxNumPiles) {
     this.alpha = 1.0;
-    this.alphaSecond = this.alpha;
     this.cellFrame = createRectFrame(
       this.cellSize, this.cellSize, 0xff0000, 1
     );
@@ -121,6 +123,10 @@ export default class Pile {
 
   set coverDispMode (value) {
     this._coverDispMode = value;
+  }
+
+  get isFadedOut () {
+    return this.alpha < 1;
   }
 
   get isLayout1d () {
@@ -570,11 +576,13 @@ export default class Pile {
     );
 
     // Draw matrix
-    this.mesh.add(this.drawMatrix(this.singleMatrix));
+    this.matrixMesh = this.drawMatrix(this.singleMatrix);
+    this.mesh.add(this.matrixMesh);
 
     // Draw previews
     if (this.pileMatrices.length > 1) {
-      this.mesh.add(this.drawPreviews(this.previewing));
+      this.previewsMesh = this.drawPreviews(this.previewing);
+      this.mesh.add(this.previewsMesh);
     }
 
     if (
@@ -614,7 +622,7 @@ export default class Pile {
       !fgmState.isHilbertCurve &&
       !(fgmState.isLayout2d || fgmState.isLayoutMd)
     ) {
-      this.drawStrandArrows(isHovering);
+      this.drawStrandArrows();
     }
 
     this.drawColorIndicator();
@@ -695,7 +703,7 @@ export default class Pile {
       0
     );
     this.label.scale.set(scale, scale, scale);
-    this.label.material.opacity = this.alphaSecond;
+    this.label.material.opacity = this.alpha;
 
     this.mesh.add(this.label);
   }
@@ -736,6 +744,7 @@ export default class Pile {
       this.previewScale,
       1
     );
+    imageMesh.material.opacity = this.alpha;
 
     return imageMesh;
   }
@@ -774,6 +783,7 @@ export default class Pile {
     const imageMesh = createImage(this.pixels, this.dims, this.dims);
     imageMesh.position.set(0, 0, this.zLayerHeight * 5);
     imageMesh.scale.set(this.cellSize, this.cellSize, this.cellSize);
+    imageMesh.material.opacity = this.alpha;
 
     return imageMesh;
   }
@@ -793,10 +803,6 @@ export default class Pile {
       ARROW_X.clone() : ARROW_X_REV.clone();
     this.strandArrowY = this.pileMatrices[0].orientationY === 1 ?
       ARROW_Y.clone() : ARROW_Y_REV.clone();
-
-    // Set opacity
-    this.strandArrowX.material.opacity = 0.25;
-    this.strandArrowY.material.opacity = 0.25;
 
     // Position arrow
     this.strandArrowX.position.set(
@@ -820,6 +826,9 @@ export default class Pile {
     // Add to helper array for ray casting
     this.strandArrows.push(this.strandArrowX);
     this.strandArrows.push(this.strandArrowY);
+
+    // Update material
+    this.updateArrowMaterial();
 
     // Add arow to mesh
     this.mesh.add(this.strandArrowX);
@@ -886,7 +895,7 @@ export default class Pile {
       this.matrixWidth,
       this.matrixFrameColor,
       this.matrixFrameThickness,
-      this.alphaSecond
+      this.alpha
     );
 
     this.matrixFrameHighlight = createLineFrame(
@@ -902,7 +911,7 @@ export default class Pile {
       this.matrixWidth + this.previewsHeightNorm,
       COLORS.WHITE,
       this.matrixFrameThickness + 2,
-      this.alphaSecond
+      this.alpha
     );
 
     return this;
@@ -1547,6 +1556,74 @@ export default class Pile {
   }
 
   /**
+   * Update opacity of the pile.
+   */
+  updateAlpha () {
+    let update = false;
+
+    if (
+      !fgmState.hglSelectionFadeOut ||
+      this.pileMatrices.some(matrix => matrix.isVisibleInSelection)
+    ) {
+      if (this.alpha !== 1.0) {
+        this.alpha = 1.0;
+        update = true;
+      }
+    } else if (this.alpha !== ALPHA_FADED_OUT) {
+      this.alpha = ALPHA_FADED_OUT;
+      update = true;
+    }
+
+    if (update) {
+      // Update matrix
+      this.matrixMesh.material.opacity = this.alpha;
+
+      // Update previews
+      if (this.previewsMesh) {
+        this.previewsMesh.material.opacity = this.alpha;
+      }
+
+      // Update matrix frame and pile outline
+      this.matrixFrame.material.uniforms.opacity.value = this.alpha;
+      this.pileOutline.material.uniforms.opacity.value = this.alpha;
+
+      // Update the Strand arrows
+      this.updateArrowMaterial();
+
+      // Update the label
+      if (this.label) {
+        this.label.material.opacity = this.alpha;
+      }
+    }
+  }
+
+  /**
+   * Update the material of arrows.
+   */
+  updateArrowMaterial () {
+    if (!this.strandArrowX || !this.strandArrowY) { return; }
+
+    let accessorX = 'NORM';
+    let accessorY = 'NORM';
+
+    if (this.pileMatrices[0].orientationX === -1) {
+      accessorX = 'REV';
+    }
+
+    if (this.pileMatrices[0].orientationY === -1) {
+      accessorY = 'REV';
+    }
+
+    if (this.isFadedOut) {
+      accessorX += '_FADED_OUT';
+      accessorY += '_FADED_OUT';
+    }
+
+    this.strandArrowX.material = ARROW_X_MATERIALS[accessorX];
+    this.strandArrowY.material = ARROW_Y_MATERIALS[accessorY];
+  }
+
+  /**
    * Update hovered cell.
    *
    * @return {object} Self.
@@ -1594,52 +1671,7 @@ export default class Pile {
       this.matrixWidth + this.previewsHeightNorm,
       COLORS.WHITE,
       this.matrixFrameThickness + 2,
-      this.alphaSecond
+      this.alpha
     );
-  }
-
-  updateAlpha () {
-    let update = false;
-
-    if (
-      !fgmState.hglSelectionFadeOut ||
-      this.pileMatrices.some(matrix => matrix.isVisibleInSelection)
-    ) {
-      if (this.alpha !== 1.0) {
-        this.alpha = 1.0;
-        this.alphaSecond = 1.0;
-        update = true;
-      }
-    } else if (this.alpha !== 0.25) {
-      this.alpha = 0.25;
-      this.alphaSecond = 0.25;
-      update = true;
-    }
-
-    if (update) {
-      // Update matrix
-      for (let i = this.mesh.geometry.attributes.customColor.count; i--;) {
-        this.mesh.geometry.attributes.customColor.setW(i, this.alpha);
-      }
-
-      this.mesh.geometry.attributes.customColor.needsUpdate = true;
-
-      // Update matrix frame and pile outline
-      this.matrixFrame.material.uniforms.opacity.value = this.alphaSecond;
-      this.pileOutline.material.uniforms.opacity.value = this.alphaSecond;
-
-      // Update the Strand arrows
-      if (this.strandArrowX) {
-        this.strandArrowX.line.material.opacity = this.alphaSecond;
-        this.strandArrowX.cone.material.opacity = this.alphaSecond;
-        this.strandArrowY.line.material.opacity = this.alphaSecond;
-        this.strandArrowY.cone.material.opacity = this.alphaSecond;
-      }
-
-      // Update the label
-      if (this.label) {
-        this.label.material.opacity = this.alphaSecond;
-      }
-    }
   }
 }

@@ -366,7 +366,7 @@ export function createImage (pixels, width, height) {
   texture.minFilter = NearestFilter;
   texture.magFilter = NearestFilter;
 
-  const material = new MeshBasicMaterial({ map: texture });
+  const material = new MeshBasicMaterial({ map: texture, transparent: true });
 
   return new Mesh(
     new PlaneGeometry(canvas.width, canvas.height),
