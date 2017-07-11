@@ -3041,16 +3041,14 @@ export class Fragments {
       if (absY > y + fgmState.hoveredPile.matrixWidthHalf) {
         const hovPilePrevScale =
           fgmState.previewScale * fgmState.hoveredPile.scale;
-        const hovPileWidHal =
-          fgmState.previewScale * fgmState.hoveredPile.matrixWidthHalf;
 
-        const deltaY = absY - y - hovPileWidHal;
-        const index = (
+        const deltaY = absY - y - fgmState.hoveredPile.matrixWidthHalf;
+        const index = Math.max(0, (
           fgmState.hoveredPile.clustersAvgMatrices.length - 1 -
-          Math.max(0, Math.floor(
+          Math.floor(
             deltaY / ((PREVIEW_SIZE + PREVIEW_GAP_SIZE) * hovPilePrevScale)
-          ))
-        );
+          )
+        ));
 
         fgmState.hoveredPile.showSingle(
           fgmState.hoveredPile.getMatrixPreview(index)
