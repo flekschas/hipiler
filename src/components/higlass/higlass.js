@@ -809,10 +809,10 @@ export class Higlass {
     this.config.views
       .filter(view => view.tracks.center.length > 1)
       .forEach((view) => {
-        const last = view.tracks.center.length - 1;
-
-        if (view.tracks.center[last].type === '2d-chromosome-annotations') {
-          view.tracks.center.pop();
+        for (let i = view.tracks.center.length; i--;) {
+          if (view.tracks.center[i].type === '2d-chromosome-annotations') {
+            view.tracks.center.splice(i, 1);
+          }
         }
       });
 
@@ -852,7 +852,9 @@ export class Higlass {
 
     this.fragmentsHighlightColor = matricesColors;
 
-    this.colorLoci(this.loci, matricesColors);
+    if (this.fragmentsHighlight) {
+      this.colorLoci(this.loci, matricesColors);
+    }
 
     update.render = true;
   }
