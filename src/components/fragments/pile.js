@@ -1574,7 +1574,7 @@ export default class Pile {
       update = true;
     }
 
-    if (update) {
+    if (this.isDrawn && update) {
       // Update matrix
       this.matrixMesh.material.opacity = this.alpha;
 

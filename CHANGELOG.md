@@ -1,6 +1,9 @@
-v1.0.0-beta8 - 2017-07-??
+v1.0.0-beta9 - 2017-??-??
 
 - Implement removing matrices from piles
+
+v1.0.0-beta8 - 2017-07-??
+
 - 5-10x faster snippet rendering
 - Highlight hovered preview
 - Fix matrix flipping
