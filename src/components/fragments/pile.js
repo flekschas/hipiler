@@ -574,7 +574,7 @@ export default class Pile {
 
     // Draw previews
     if (this.pileMatrices.length > 1) {
-      this.mesh.add(this.drawPreviews());
+      this.mesh.add(this.drawPreviews(this.previewing));
     }
 
     if (
@@ -703,7 +703,7 @@ export default class Pile {
   /**
    * Draw pile matrix previews.
    */
-  drawPreviews () {
+  drawPreviews (previewing) {
     const pixels = new Uint8ClampedArray(this.previewsHeight * this.dims * 4);
     const previewHeight = PREVIEW_SIZE + PREVIEW_GAP_SIZE;
     const rgbaLen = this.dims * 4;
@@ -712,7 +712,9 @@ export default class Pile {
     pixels.fill(0, 0, rgbaLen);
 
     this.clustersAvgMatrices.forEach((matrix, index) => {
-      const previewMatrixPixels = this.getColAvgPix(matrix);
+      const previewMatrixPixels = this.getColAvgPix(
+        matrix, index === previewing
+      );
 
       for (let h = 0; h < PREVIEW_SIZE; h++) {
         pixels.set(
@@ -1015,10 +1017,16 @@ export default class Pile {
    * @param {array} matrix - Raw matrix to be averaged.
    * @return {array} Pixel array.
    */
-  getColAvgPix (matrix) {
+  getColAvgPix (matrix, previewing) {
     const colAvg = [];
     const lowQualThreshold = -this.dims * PREVIEW_LOW_QUAL_THRESHOLD;
     let idx;
+
+    let color = pileColors.grayRgba;
+
+    if (previewing) {
+      color = pileColors.orangeBlackRgba;
+    }
 
     for (let i = this.dims; i--;) {
       colAvg[i] = 0;
@@ -1030,7 +1038,6 @@ export default class Pile {
       colAvg[idx] += Math.max(matrix[i], 0);
     }
 
-    let ass = [];
     for (let i = this.dims; i--;) {
       if (colAvg[i] < lowQualThreshold) {
         colAvg[i] = -1;
@@ -1038,10 +1045,12 @@ export default class Pile {
         colAvg[i] /= this.dims;
       }
 
-      ass[i] = this.getColorRgba(colAvg[i], fgmState.showSpecialCells);
+      colAvg[i] = this.getColorRgba(
+        colAvg[i], fgmState.showSpecialCells, color
+      );
     }
 
-    return ass.reduce((flatArr, a) => flatArr.concat(a), []);
+    return colAvg.reduce((flatArr, a) => flatArr.concat(a), []);
   }
 
   /**
@@ -1074,7 +1083,7 @@ export default class Pile {
    *   values (e.g., low quality) instead of a color.
    * @return {array} Relative RGB array
    */
-  getColorRgba (value, showSpecialCells) {
+  getColorRgba (value, showSpecialCells, color = pileColors.grayRgba) {
     switch (value) {
       case -1:
         if (showSpecialCells) {
@@ -1084,7 +1093,7 @@ export default class Pile {
         return [255, 255, 255, 255];
 
       default:
-        return pileColors.grayRgba(1 - value);
+        return color(1 - value);
     }
   }
 
@@ -1273,6 +1282,11 @@ export default class Pile {
     this.mesh.position.set(this.x, this.y, this.mesh.position.z);
 
     return this;
+  }
+
+  previewMatrix (index) {
+    this.previewing = index;
+    this.showSingle(this.getMatrixPreview(index));
   }
 
   /**

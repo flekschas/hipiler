@@ -28,6 +28,29 @@ export const grayRgba = (value) => {
   return [scaled, scaled, scaled, 255];
 };
 
+const orangeBlackRgbR = scaleLinear().domain([0, 0.4, 0.66, 1]).range([
+  0, 64, 255, 255
+]);
+const orangeBlackRgbG = scaleLinear().domain([0, 0.4, 0.66, 1]).range([
+  0, 0, 85, 221
+]);
+const orangeBlackRgbB = scaleLinear().domain([0, 0.4, 0.66, 1]).range([
+  0, 0, 0, 204
+]);
+
+/**
+ * Map a value to a relative color array for orange.
+ *
+ * @param {number} value - Domain value, i.e., value to be mapped.
+ * @return {array} Relative color array.
+ */
+export const orangeBlackRgba = value => [
+  orangeBlackRgbR(value),
+  orangeBlackRgbG(value),
+  orangeBlackRgbB(value),
+  255
+];
+
 const whiteOrangeBlackRgbR = scaleLinear().domain([0, 0.4, 0.66, 1]).range([
   255, 255, 64, 0
 ]);
@@ -54,5 +77,6 @@ export const whiteOrangeBlackRgba = value => [
 export default {
   gray,
   grayRgba,
+  orangeBlackRgba,
   whiteOrangeBlackRgba
 };

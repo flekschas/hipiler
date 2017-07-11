@@ -3050,11 +3050,9 @@ export class Fragments {
           )
         ));
 
-        fgmState.hoveredPile.showSingle(
-          fgmState.hoveredPile.getMatrixPreview(index)
-        );
+        fgmState.hoveredPile.previewMatrix(index);
       } else {
-        fgmState.hoveredPile.showSingle();
+        fgmState.hoveredPile.previewMatrix();
       }
     }
 
@@ -3081,7 +3079,7 @@ export class Fragments {
 
     if (fgmState.previousHoveredPile) {
       fgmState.previousHoveredPile.elevateTo();
-      fgmState.previousHoveredPile.showSingle(undefined);
+      fgmState.previousHoveredPile.previewMatrix();
       fgmState.previousHoveredPile.setCoverDispMode(this.coverDispMode);
       this.highlightFrame.visible = false;
       fgmState.previousHoveredPile.draw();
