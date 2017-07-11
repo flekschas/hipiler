@@ -580,7 +580,7 @@ export class Fragments {
 
       if (numMeasures === 1) {
         // Intrinsic measure starting with `_`, e.g., `_cluster_tsne`
-        // Uses t-SNE with on the matrix snippets
+        // Uses t-SNE with the matrix snippets
         this.clusterLayout = this.calcLayoutPositionsTsne(piles, reArrange);
       } else {
         this.clusterLayout = this.calcLayoutPositionsMD(
@@ -990,7 +990,7 @@ export class Fragments {
       fgmState.hoveredPile = undefined;
     } else {
       Object.keys(this.pilesZoomed).forEach((pileId) => {
-        this.pilesIdxState[pileId].setScale().frameCreate().draw();
+        this.pilesIdxState[pileId].elevateTo().setScale().frameCreate().draw();
       });
       this.pilesZoomed = {};
     }
@@ -1139,7 +1139,8 @@ export class Fragments {
           }]
         );
 
-        this.dragPile.elevateTo(Z_BASE);
+        const zoomed = this.pilesZoomed[this.dragPile.id]
+        this.dragPile.elevateTo(zoomed ? Z_HIGHLIGHT : Z_BASE);
       } else {
         // Pile up the two piles
         this.pileUp({ [fgmState.hoveredPile.id]: [this.dragPile.id] });
@@ -3029,7 +3030,8 @@ export class Fragments {
 
     if (fgmState.previousHoveredPile) {
       // Reset elevation
-      fgmState.previousHoveredPile.elevateTo();
+      const zoomed = this.pilesZoomed[fgmState.previousHoveredPile];
+      fgmState.previousHoveredPile.elevateTo(zoomed ? Z_HIGHLIGHT : undefined);
     }
 
     fgmState.hoveredPile.elevateTo(Z_HIGHLIGHT);
@@ -3078,7 +3080,8 @@ export class Fragments {
     fgmState.hoveredPile = undefined;
 
     if (fgmState.previousHoveredPile) {
-      fgmState.previousHoveredPile.elevateTo();
+      const zoomed = this.pilesZoomed[fgmState.previousHoveredPile.id];
+      fgmState.previousHoveredPile.elevateTo(zoomed ? Z_HIGHLIGHT : undefined);
       fgmState.previousHoveredPile.previewMatrix();
       fgmState.previousHoveredPile.setCoverDispMode(this.coverDispMode);
       this.highlightFrame.visible = false;
@@ -3520,8 +3523,14 @@ export class Fragments {
       Math.max(1, pile.scale * (1 + (0.1 * momentum))), 5
     );
 
-    pile.setScale(newScale).frameCreate().draw();
-    this.pilesZoomed[pile.id] = pile;
+    if (newScale > 1) {
+      pile.elevateTo(Z_HIGHLIGHT).setScale(newScale).frameCreate().draw();
+      this.pilesZoomed[pile.id] = pile;
+    } else {
+      pile.elevateTo().setScale().frameCreate().draw();
+      this.pilesZoomed[pile.id] = undefined;
+      delete this.pilesZoomed[pile.id];
+    }
   }
 
   /**
