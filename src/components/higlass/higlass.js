@@ -686,10 +686,10 @@ export class Higlass {
   }
 
   update () {
+    const update = {};
+
     try {
       const state = this.store.getState().present.explore;
-
-      const update = {};
 
       this.checkColumnsDb(state.columns, update);
       this.updateConfig(state.higlass.config, update);
@@ -784,13 +784,14 @@ export class Higlass {
     this.grayscale = grayscale;
 
     this.config.views.forEach((view, index) => {
-      if (grayscale) {
-        view.tracks.center[0].contents[0].options.colorRange =
-          GRAYSCALE_COLORS;
+      const options = view.tracks.center[0].contents[0].options;
+      index -= view.selectionView ? 1 : 0;
+
+      if (this.grayscale) {
+        options.colorRange = GRAYSCALE_COLORS;
       } else {
-        view.tracks.center[0].contents[0].options.colorRange =
-          this.originalConfig.views[index]
-            .tracks.center[0].contents[0].options.colorRange.slice();
+        options.colorRange = this.originalConfig.views[index]
+          .tracks.center[0].contents[0].options.colorRange.slice();
       }
     });
 
