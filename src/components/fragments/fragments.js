@@ -820,9 +820,15 @@ export class Fragments {
     }
 
     // Pull cached results
-    if (this.tsneAttrsPos && !reCalculate) {
-      this.isLoading = false;
-      return Promise.resolve(this.tsneAttrsPos);
+    if (this.tsneAttrsPos) {
+      const equality = arraysEqual(
+        this.tsneAttrsPos.measures,
+        measures
+      );
+      if (equality && !reCalculate) {
+        this.isLoading = false;
+        return Promise.resolve(this.tsneAttrsPos.pos);
+      }
     }
 
     return new Promise((resolve, reject) => {
@@ -853,7 +859,10 @@ export class Fragments {
               resolve(pos);
 
               // Cache results
-              this.tsneAttrsPos = pos;
+              this.tsneAttrsPos = {
+                pos,
+                measures: measures.slice()
+              };
               this.cachePileSetup();
             }
           };

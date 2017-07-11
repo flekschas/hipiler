@@ -6,6 +6,9 @@ v1.0.0-beta8 - 2017-07-??
 - Fix matrix flipping
 - Fix scroll issue after changing the cell size
 - Fix dialog during exploration
+- Fix t-SNE based arrangements by measures / attributes
+- Fix bug when switching between grey scale and colored colormaps
+- Fix bug when toggling between showing snippet locations
 
 v1.0.0-beta7 - 2017-06-09
 
