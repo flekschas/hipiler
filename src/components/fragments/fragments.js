@@ -378,6 +378,15 @@ export class Fragments {
     return gridSize * (fgmState.trashIsActive ? 1 : fgmState.scale);
   }
 
+  get isClustered () {
+    return (
+      (
+        this.arrangeMeasures.length === 1 && this.arrangeMeasures[0][0] === '_'
+      ) ||
+      (this.arrangeMeasures.length > 2)
+    ) && !fgmState.trashIsActive;
+  }
+
   get isDataClustered () {
     return (
       this.arrangeMeasures.length && this.arrangeMeasures[0][0] === '_'
@@ -865,6 +874,12 @@ export class Fragments {
     });
   }
 
+  /**
+   * Cache pile config.
+   *
+   * @param {object} pilesConfig - Config to ber cached.
+   * @param {array} piles - Piles for which the config should be cached.
+   */
   cachePileSetup (pilesConfig = this.pilesNormalConfigs, piles = this.piles) {
     this.pilesConfigCached = pilesConfig;
 
@@ -1242,6 +1257,7 @@ export class Fragments {
       } else {
         // Unset cache
         this.pilesConfigCached = {};
+        this.tsneDataPos = undefined;
         this.store.dispatch(setArrangeMeasures([]));
       }
     } else {
@@ -1451,13 +1467,21 @@ export class Fragments {
     this.dispersePilesHandler(this.piles);
   }
 
+  /**
+   * Check if piles have been created before clustering.
+   *
+   * @param {array} piles - Piles to be checked.
+   * @return {boolean} If `true`
+   */
   checkPiledBeforeCluster (piles) {
     if (!this.tsneDataPos && !this.tsneAttrsPos) { return; }
 
-    return !piles
+    const pileMatrices = piles
       .map(pile => pile.pileMatrices)
-      .reduce((acc, value) => acc.concat(value), [])
-      .every(pileMatrix => this.pilesConfigCached[pileMatrix.id]);
+      .reduce((acc, value) => acc.concat(value), []);
+
+    return !pileMatrices
+      .every(pileMatrix => this.pilesConfigCached[pileMatrix.id].length > 0);
   }
 
   /**
@@ -1466,7 +1490,7 @@ export class Fragments {
    * @param {object} piles - A list of piles to be dispersed.
    */
   dispersePilesHandler (piles) {
-    if (this.checkPiledBeforeCluster(piles)) {
+    if (this.isClustered && this.checkPiledBeforeCluster(piles)) {
       this.dialogPromise = new Promise((resolve, reject) => {
         this.dialogDeferred = { resolve, reject };
       });

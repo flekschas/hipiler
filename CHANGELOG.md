@@ -2,8 +2,10 @@ v1.0.0-beta8 - 2017-07-??
 
 - Implement removing matrices from piles
 - 5-10x faster snippet rendering
-- Fixed matrix flipping
-- Fixed scroll issue after changing the cell size
+- Highlight hovered preview
+- Fix matrix flipping
+- Fix scroll issue after changing the cell size
+- Fix dialog during exploration
 
 v1.0.0-beta7 - 2017-06-09
 
