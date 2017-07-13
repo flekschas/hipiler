@@ -8,6 +8,7 @@ import wiki from 'text!../../assets/wiki/wiki.html';  // eslint-disable-line imp
 
 // Utils etc.
 import debounce from 'utils/debounce';
+import scrollToAnchor from 'utils/scroll-to-anchor';
 
 
 @inject(EventAggregator)
@@ -25,11 +26,24 @@ export class Docs {
 
   /* ----------------------- Aurelia-specific methods ----------------------- */
 
+  activate (urlParams) {
+    const anchor1 = urlParams.anchor ? urlParams.anchor : '';
+    const anchor2 = urlParams.anchor2 ? `/${urlParams.anchor2}` : '';
+
+    if (anchor1) {
+      this.anchor = `/docs/${anchor1}${anchor2}`;
+    }
+  }
+
   attached () {
     this.sidebarOffsetTop = this.sidebarEl.getBoundingClientRect().top -
       document.body.getBoundingClientRect().top;
 
     this.initEventListeners();
+
+    if (this.anchor) {
+      scrollToAnchor(this.anchor);
+    }
   }
 
   detached () {
