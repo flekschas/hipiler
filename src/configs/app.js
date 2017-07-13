@@ -9,7 +9,8 @@ export const routes = [
     nav: false
   },
   {
-    route: 'about',
+    route: 'about/:anchor?',
+    href: '#about',
     name: 'about',
     title: 'About',
     moduleId: 'views/about',
@@ -17,7 +18,8 @@ export const routes = [
     icon: 'info'
   },
   {
-    route: 'docs',
+    route: 'docs/:anchor?/:anchor2?',
+    href: '#docs',
     name: 'docs',
     title: 'Documentation',
     moduleId: 'views/docs',
