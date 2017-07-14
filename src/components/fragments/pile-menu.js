@@ -12,7 +12,10 @@ import commands from 'components/fragments/pile-menu-commands';
 
 import fgmState from 'components/fragments/fragments-state';
 
-// import debounce from 'utils/debounce';
+import {
+  MODE_AVERAGE,
+  MODE_VARIANCE
+} from 'components/fragments/fragments-defaults';
 
 const logger = LogManager.getLogger('pile-menu');
 
@@ -61,7 +64,25 @@ export class PileMenu {
 
   /* ---------------------------- Custom Methods ---------------------------- */
 
-  isVisible (command) {
+  isActiveCmd (command) {
+    if (!this.pile) {
+      return false;
+    }
+
+    console.log('isActiveCmd', this.pile.coverDispMode);
+
+    if (command.isActiveAvgCover && this.pile.coverDispMode === MODE_AVERAGE) {
+      return true;
+    }
+
+    if (command.isActiveVarCover && this.pile.coverDispMode === MODE_VARIANCE) {
+      return true;
+    }
+
+    return false;
+  }
+
+  isVisibleCmd (command) {
     if (!this.pile) {
       return false;
     }
@@ -132,11 +153,13 @@ export class PileMenu {
   updateMenu () {
     if (this.pile) {
       this.commands.forEach((command) => {
-        command.isVisible = this.isVisible(command);
+        command.isActive = this.isActiveCmd(command);
+        console.log(command.isActive);
+        command.isVisible = this.isVisibleCmd(command);
         command.pile = this.pile;
 
         command.buttons.forEach((button) => {
-          button.isVisible = this.isVisible(button);
+          button.isVisible = this.isVisibleCmd(button);
         });
       });
 

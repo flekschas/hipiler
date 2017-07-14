@@ -110,21 +110,23 @@ export const COVER_AVERAGE = {
     name: 'Average cover',
     trigger (pile) {
       event.publish('explore.fgm.coverDispMode', { mode: MODE_AVERAGE, pile });
+      event.publish('explore.fgm.pileMenuUpdate');
     }
   }],
-  stackedPileOnly: true
+  stackedPileOnly: true,
+  isActiveAvgCover: true
 };
 
 export const COVER_VARIANCE = {
   buttons: [{
     name: 'Variance cover',
     trigger (pile) {
-      event.publish(
-        'explore.fgm.coverDispMode', { mode: MODE_VARIANCE, pile }
-      );
+      event.publish('explore.fgm.coverDispMode', { mode: MODE_VARIANCE, pile });
+      event.publish('explore.fgm.pileMenuUpdate');
     }
   }],
-  stackedPileOnly: true
+  stackedPileOnly: true,
+  isActiveVarCover: true
 };
 
 export const DISPERSE = {
