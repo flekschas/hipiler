@@ -1399,8 +1399,6 @@ export default class Pile {
     if (this.coverDispMode !== mode) {
       this._coverDispMode = mode;
       this.calculateCoverMatrix();
-    } else {
-      this._coverDispMode = undefined;
     }
 
     return this;
