@@ -2974,6 +2974,45 @@ export class Fragments {
   }
 
   /**
+   * Determine which matrix changed their color.
+   *
+   * @param {object} oldMatrices - Old matrix color config.
+   * @param {object} newMatrices - New matrix color config.
+   * @return {array} Array with matrix IDs of changed matrices.
+   */
+  matrixColorChanged (oldMatrices, newMatrices) {
+    const changed = [];
+
+    if (!oldMatrices) {
+      oldMatrices = {};
+    }
+
+    try {
+      Object.keys(oldMatrices).forEach((id) => {
+        if (!newMatrices[id]) {
+          changed.push(id);
+        } else if (oldMatrices[id] !== newMatrices[id]) {
+          changed.push(id);
+        }
+      });
+    } catch (e) {
+      // Nothing
+    }
+
+    try {
+      Object.keys(newMatrices).forEach((id) => {
+        if (!oldMatrices[id]) {
+          changed.push(id);
+        }
+      });
+    } catch (e) {
+      // Nothing
+    }
+
+    return changed;
+  }
+
+  /**
    * Matrix frame encoding change handler.
    *
    * @param {object} event - Event object.
@@ -4081,6 +4120,19 @@ export class Fragments {
       this.redrawPiles();
     }
 
+    if (update.matrixColors && !(update.piles || update.drawPilesAfter)) {
+      const pilesToRedraw = {};
+      update.matrixColors.forEach((matrixId) => {
+        const pile = fgmState.matrices[matrixId].pile;
+
+        pilesToRedraw[pile.id] = pile;
+      });
+
+      Object.keys(pilesToRedraw).forEach(
+        pileId => pilesToRedraw[pileId].draw()
+      );
+    }
+
     if (update.layout) {
       window.requestAnimationFrame(() => {
         this.updateLayout(
@@ -4445,6 +4497,11 @@ export class Fragments {
       !force
     ) { return Promise.resolve(); }
 
+    const changedMatrix = this.matrixColorChanged(
+      this.matricesColors,
+      matricesColors
+    );
+
     this.matricesColors = matricesColors;
 
     const colorsUsedTmp = {};
@@ -4471,7 +4528,7 @@ export class Fragments {
     this.colorsUsed = Object.keys(colorsUsedTmp)
       .map(color => ({ id: color, name: this.wurstCaseToNice(color) }));
 
-    update.piles = true;
+    update.matrixColors = changedMatrix;
     update.pileMenu = true;
 
     return Promise.resolve();
