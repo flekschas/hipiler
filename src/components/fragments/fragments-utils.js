@@ -397,3 +397,23 @@ export function createMarker (x, y, z, color) {
   return m;
 }
 
+export function updateImageTexture (mesh, pixels) {
+  // Set image data
+  const canvas = document.createElement('canvas');
+  canvas.width = mesh.material.map.image.width;
+  canvas.height = mesh.material.map.image.height;
+
+  const image = new ImageData(pixels, canvas.width, canvas.height);
+
+  const context = canvas.getContext('2d');
+  context.putImageData(image, 0, 0);
+
+  // canvas contents will be used for a texture
+  const texture = new Texture(canvas);
+  texture.needsUpdate = true;
+  texture.minFilter = NearestFilter;
+  texture.magFilter = NearestFilter;
+
+  mesh.material.map = texture;
+  mesh.material.map.needsUpdate = true;
+}

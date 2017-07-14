@@ -3564,9 +3564,7 @@ export class Fragments {
   }
 
   /**
-   * [render description]
-   *
-   * @return {[type]} [description]
+   * Render scene
    */
   render () {
     this.renderer.render(fgmState.scene, this.camera);
@@ -4120,17 +4118,23 @@ export class Fragments {
       this.redrawPiles();
     }
 
-    if (update.matrixColors && !(update.piles || update.drawPilesAfter)) {
-      const pilesToRedraw = {};
-      update.matrixColors.forEach((matrixId) => {
-        const pile = fgmState.matrices[matrixId].pile;
+    if (!(update.piles || update.drawPilesAfter)) {
+      if (update.matrixColors) {
+        const pilesToRedraw = {};
+        update.matrixColors.forEach((matrixId) => {
+          const pile = fgmState.matrices[matrixId].pile;
 
-        pilesToRedraw[pile.id] = pile;
-      });
+          pilesToRedraw[pile.id] = pile;
+        });
 
-      Object.keys(pilesToRedraw).forEach(
-        pileId => pilesToRedraw[pileId].draw()
-      );
+        Object.keys(pilesToRedraw).forEach(
+          pileId => pilesToRedraw[pileId].draw()
+        );
+      }
+
+      if (update.specialCells) {
+        this.piles.forEach(pile => pile.toggleSpecialCells());
+      }
     }
 
     if (update.layout) {
@@ -4717,7 +4721,7 @@ export class Fragments {
 
     fgmState.showSpecialCells = showSpecialCells;
 
-    update.piles = true;
+    update.specialCells = true;
 
     return Promise.resolve();
   }

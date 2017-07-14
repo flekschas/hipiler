@@ -46,7 +46,8 @@ import {
   createRect,
   createRectFrame,
   createText,
-  frameValue
+  frameValue,
+  updateImageTexture
 } from 'components/fragments/fragments-utils';
 
 import arraysEqual from 'utils/arrays-equal';
@@ -1485,6 +1486,43 @@ export default class Pile {
     }
 
     return this;
+  }
+
+  /**
+   * Draw a single matrix.
+   *
+   * @param {array} matrix - If not `undefined` draw the passed matrix instead
+   *   of `this.coverMatrix`.
+   */
+  toggleSpecialCells (matrix) {
+    if (!matrix) {
+      matrix = this.coverMatrix;
+    } else {
+      // `matrix` is a class instance rather than the raw matrix.
+      matrix = matrix.matrix;
+    }
+
+    const len = matrix.length;
+    const colorTransformer = this.getMatrixColor(
+      this.coverDispMode === MODE_VARIANCE &&
+      this.pileMatrices.length > 1 &&
+      !this.singleMatrix
+    );
+
+    // Get pixels
+    for (let i = len; i--;) {
+      const value = cellValue(matrix[i]);
+
+      if (value === -1) {
+        const color = colorTransformer(
+          cellValue(matrix[i]), fgmState.showSpecialCells
+        );
+
+        this.pixels.set(color, i * 4);
+      }
+    }
+
+    updateImageTexture(this.matrixMesh, this.pixels);
   }
 
   /**
