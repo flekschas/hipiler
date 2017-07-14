@@ -4350,6 +4350,7 @@ export class Fragments {
     update.layout = true;
     update.pileFramesRecreate = true;
     update.scrollLimit = true;
+    update.scrollToTop = true;
 
     return Promise.resolve();
   }
