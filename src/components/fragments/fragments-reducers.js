@@ -393,6 +393,7 @@ export function piles (state = PILES, action) {
       const newState = copyPilesState(state);
 
       action.payload.piles
+        .filter(pileId => pileId.length > 0 && pileId[0] !== '_')
         .forEach((pileId) => {
           newState[`_${pileId}`] = [...newState[pileId]];
           newState[pileId] = undefined;
