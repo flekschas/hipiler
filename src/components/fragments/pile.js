@@ -1540,7 +1540,9 @@ export default class Pile {
     }
 
     this.unsetHoverState();
-    this.geometry.dispose();
+    if (this.geometry) {
+      this.geometry.dispose();
+    }
     this.isDrawn = false;
     fgmState.scene.remove(this.mesh);
 
