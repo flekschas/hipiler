@@ -4193,7 +4193,7 @@ export class Fragments {
    * Update the arrange measures.
    *
    * @param {array} arrangeMeasures - Array of measure IDs.
-   * @param {object} update - Update object to bve updated in-place.
+   * @param {object} update - Update object.
    */
   updateArrangeMeasures (arrangeMeasures, update) {
     const _arrangeMeasures = arrangeMeasures || ARRANGE_MEASURES;
@@ -4248,7 +4248,7 @@ export class Fragments {
    * Update the display mode of all piles.
    *
    * @param {number} coverDispMode - Display mode number.
-   * @param {object} update - Update object to bve updated in-place.
+   * @param {object} update - Update object.
    */
   updateCoverDispMode (coverDispMode, update) {
     if (this.coverDispMode === coverDispMode) {
@@ -4267,7 +4267,7 @@ export class Fragments {
    * Update the cell size.
    *
    * @param {number} size - New cell size.
-   * @param {object} update - Update object to bve updated in-place.
+   * @param {object} update - Update object.
    */
   updateCellSize (size, update) {
     if (fgmState.cellSize === size) { return Promise.resolve(); }
@@ -4304,7 +4304,7 @@ export class Fragments {
    * Update the grid cell size.
    *
    * @param {number} newSize - New grid size.
-   * @param {object} update - Update object to be updated in-place.
+   * @param {object} update - Update object.
    */
   updateGridSize (size, update) {
     if (fgmState.gridSize === size) { return Promise.resolve(); }
@@ -4323,6 +4323,7 @@ export class Fragments {
    *
    * @param {boolean} gridCellSizeLock - If `true` grid size is locked to the
    *   cell size.
+   * @param {object} update - Update object.
    */
   updateGridCellSizeLock (gridCellSizeLock, update) {
     this.gridCellSizeLock = gridCellSizeLock;
@@ -4334,7 +4335,7 @@ export class Fragments {
    * Update hilbert curve status.
    *
    * @param {boolean} isHilbertCurve - If `true` order in 1D by Hilbert curve.
-   * @param {object} update - Update object to be updated in-place.
+   * @param {object} update - Update object.
    */
   updateHilbertCurve (isHilbertCurve, update) {
     if (fgmState.isHilbertCurve === isHilbertCurve) {
@@ -4372,6 +4373,7 @@ export class Fragments {
    * Check if HiGlass has a selection view.
    *
    * @param {object} hglConfig - HiGLass config.
+   * @param {object} update - Update object.
    */
   updateHglSelectionViewDomains (domains, update) {
     if (
@@ -4390,6 +4392,12 @@ export class Fragments {
     return Promise.resolve();
   }
 
+  /**
+   * Update HiGlass fade out mode.
+   *
+   * @param {boolean} fadeOut - If `true` fade snippets out.
+   * @param {object} update - Update object.
+   */
   updateHglSelectionFadeOut (fadeOut, update) {
     if (fgmState.hglSelectionFadeOut === fadeOut) {
       return Promise.resolve();
@@ -4407,6 +4415,7 @@ export class Fragments {
    *
    * @param {boolean} higlassSubSelection - If `true` piles are selected based
    *   on a HiGlass view.
+   * @param {object} update - Update object.
    */
   updateHglSubSelection (higlassSubSelection, update) {
     if (this.higlassSubSelection === higlassSubSelection) {
@@ -4488,7 +4497,7 @@ export class Fragments {
    * Update matrices colors.
    *
    * @param {object} matricesColors - Matrix color configurations.
-   * @param {object} update - Update object to bve updated in-place.
+   * @param {object} update - Update object.
    * @param {boolean} force - If `true` force update.
    */
   updateMatrixColors (matricesColors, update, force) {
@@ -4538,7 +4547,7 @@ export class Fragments {
    * Update the matrix frame encoding of all matrices.
    *
    * @param {string} encoding - Matrix measure.
-   * @param {object} update - Update object to bve updated in-place.
+   * @param {object} update - Update object.
    * @param {boolean} force - If `true` force update.
    */
   updateMatrixFrameEncoding (encoding, update, force) {
@@ -4558,7 +4567,7 @@ export class Fragments {
    * Update the orientation of all matrices.
    *
    * @param {number} orientation - Matrix orientation number.
-   * @param {object} update - Update object to bve updated in-place.
+   * @param {object} update - Update object.
    */
   updateMatrixOrientation (orientation, update) {
     if (fgmState.matrixOrientation === orientation) {
@@ -4576,7 +4585,7 @@ export class Fragments {
    * Update piles.
    *
    * @param {object} pilesConfigs - Config object
-   * @param {object} update - Update object to be updated in-place.
+   * @param {object} update - Update object.
    * @param {boolean} force - If `true` force update
    */
   updatePiles (pilesConfigs, update, force) {
@@ -4619,7 +4628,7 @@ export class Fragments {
    * Update the config of pile inspection.
    *
    * @param {object} pilesInspectionConfigs - Piles inspection config object.
-   * @param {object} update - Update object to be updated in-place.
+   * @param {object} update - Update object.
    * @param {boolean} force - If `true` force update
    */
   updatePilesInspection (pilesInspectionConfigs, update, force) {
@@ -4698,7 +4707,7 @@ export class Fragments {
    * Update piles when special cells are shown or hidden
    *
    * @param {boolean} showSpecialCells - If `true` show special cells.
-   * @param {object} update - Update object to bve updated in-place.
+   * @param {object} update - Update object.
    */
   updateShowSpecialCells (showSpecialCells, update) {
     if (fgmState.showSpecialCells === showSpecialCells) {
