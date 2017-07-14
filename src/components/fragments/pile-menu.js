@@ -2,8 +2,11 @@
 import {
   bindable,
   bindingMode,
+  inject,
   LogManager
 } from 'aurelia-framework';
+
+import { EventAggregator } from 'aurelia-event-aggregator';
 
 import commands from 'components/fragments/pile-menu-commands';
 
@@ -13,6 +16,7 @@ import fgmState from 'components/fragments/fragments-state';
 
 const logger = LogManager.getLogger('pile-menu');
 
+@inject(EventAggregator)
 export class PileMenu {
   @bindable({ defaultBindingMode: bindingMode.oneWay }) isActive = false;
   @bindable({ defaultBindingMode: bindingMode.oneWay }) isAlignLeft = false;
@@ -20,33 +24,42 @@ export class PileMenu {
   @bindable({ defaultBindingMode: bindingMode.oneWay }) pile;
   @bindable({ defaultBindingMode: bindingMode.oneWay }) position = {};
 
+
+  /* ----------------------- Aurelia-specific methods ----------------------- */
+
+  /**
+   * Called once the component is atached.
+   */
+  attached () {
+    this.subscriptions = [];
+    this.subscribeEventListeners();
+  }
+
+  /**
+   * Called once the component is detached.
+   */
+  detached () {
+    this.unsubscribeEventListeners();
+  }
+
   positionChanged () {
     this.setCss();
   }
 
-  constructor () {
+  constructor (event) {
     this.commands = commands;
     this.css = {};
+    this.event = event;
 
     this.setCss();
   }
 
   pileChanged () {
-    if (this.pile) {
-      this.commands.forEach((command) => {
-        command.isVisible = this.isVisible(command);
-        command.pile = this.pile;
-
-        command.buttons.forEach((button) => {
-          button.isVisible = this.isVisible(button);
-        });
-      });
-
-      // Somtimes isActive is not properly recognized. This seems to be a bug
-      // in Aurelia
-      this.isActive = true;
-    }
+    this.updateMenu();
   }
+
+
+  /* ---------------------------- Custom Methods ---------------------------- */
 
   isVisible (command) {
     if (!this.pile) {
@@ -98,6 +111,38 @@ export class PileMenu {
 
     if (button.closeOnClick) {
       this.isActive = false;
+    }
+  }
+
+  subscribeEventListeners () {
+    this.subscriptions.push(
+      this.event.subscribe(
+        'explore.fgm.pileMenuUpdate', this.updateMenu.bind(this)
+      )
+    );
+  }
+
+  unsubscribeEventListeners () {
+    this.subscriptions.forEach((subscription) => {
+      subscription.dispose();
+    });
+    this.subscriptions = undefined;
+  }
+
+  updateMenu () {
+    if (this.pile) {
+      this.commands.forEach((command) => {
+        command.isVisible = this.isVisible(command);
+        command.pile = this.pile;
+
+        command.buttons.forEach((button) => {
+          button.isVisible = this.isVisible(button);
+        });
+      });
+
+      // Somtimes isActive is not properly recognized. This seems to be a bug
+      // in Aurelia
+      this.isActive = true;
     }
   }
 }

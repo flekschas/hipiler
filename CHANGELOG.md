@@ -6,12 +6,14 @@ v1.0.0-beta8 - 2017-07-??
 
 - 5-10x faster snippet rendering
 - Highlight hovered preview
+- Update pile menu instantly
 - Fix matrix flipping
 - Fix scroll issue after changing the cell size
 - Fix dialog during exploration
 - Fix t-SNE based arrangements by measures / attributes
 - Fix bug when switching between grey scale and colored colormaps
 - Fix bug when toggling between showing snippet locations
+- Fix dialog
 
 v1.0.0-beta7 - 2017-06-09
 

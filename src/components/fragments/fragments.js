@@ -330,7 +330,6 @@ export class Fragments {
   /**
    * Called once the component is attached.
    */
-
   attached () {
     window.addResizeListener(this.baseEl, this.resizeHandler.bind(this));
 
@@ -530,7 +529,6 @@ export class Fragments {
 
 
   /* ---------------------------- Custom Methods ---------------------------- */
-
 
   /**
    * Handles changes of animation
@@ -4121,6 +4119,10 @@ export class Fragments {
       this.scrollToMax();
     }
 
+    if (update.pileMenu) {
+      this.event.publish('explore.fgm.pileMenuUpdate');
+    }
+
     this.render();
   }
 
@@ -4470,6 +4472,7 @@ export class Fragments {
       .map(color => ({ id: color, name: this.wurstCaseToNice(color) }));
 
     update.piles = true;
+    update.pileMenu = true;
 
     return Promise.resolve();
   }
