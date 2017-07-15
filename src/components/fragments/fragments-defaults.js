@@ -183,6 +183,14 @@ export const SHOW_SPECIAL_CELLS = false;
 
 export const TIMELINE_HEIGHT = 130;
 
+export const TSNE_PERPLEXITY = 20.0;
+
+export const TSNE_EARLY_EXAGGERATION = 4.0;
+
+export const TSNE_LEARNING_RATE = 100.0;
+
+export const TSNE_ITERATIONS = 500;
+
 /**
  * Three.js's WebGL config
  *

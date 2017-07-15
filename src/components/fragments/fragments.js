@@ -11,12 +11,9 @@ import { EventAggregator } from 'aurelia-event-aggregator';
 import { json, queue, scaleLinear, text } from 'd3';
 import hull from 'hull';
 import {
-  DoubleSide,
   Mesh,
-  NormalBlending,
   OrthographicCamera,
   Raycaster,
-  ShaderMaterial,
   Vector2,
   Vector3,
   WebGLRenderer
@@ -94,6 +91,10 @@ import {
   PILE_AREA_POINTS,
   PILE_LABEL_HEIGHT,
   PREVIEW_MAX,
+  TSNE_PERPLEXITY,
+  TSNE_EARLY_EXAGGERATION,
+  TSNE_LEARNING_RATE,
+  TSNE_ITERATIONS,
   WEB_GL_CONFIG,
   Z_BASE,
   Z_DRAG,
@@ -220,6 +221,11 @@ export class Fragments {
     this.mouseClickCounter = 0;
 
     this.subscriptions = [];
+
+    this.tsnePerplexity = TSNE_PERPLEXITY;
+    this.tsneEarlyExaggeration = TSNE_EARLY_EXAGGERATION;
+    this.tsneLearningRate = TSNE_LEARNING_RATE;
+    this.tsneIterations = TSNE_ITERATIONS;
 
     this.arrangeMeasuresAccessPath = [
       'explore', 'fragments', 'arrangeMeasures'
@@ -869,12 +875,12 @@ export class Fragments {
           };
 
           worker.postMessage({
-            nIter: 500,
-            // dim: 2,
-            perplexity: 20.0,
-            // earlyExaggeration: 4.0,
-            // learningRate: 100.0,
-            // metric: 'euclidean',
+            nIter: this.tsneIterations,
+            dim: 2,
+            perplexity: this.tsnePerplexity,
+            earlyExaggeration: this.tsneEarlyExaggeration,
+            learningRate: this.tsneLearningRate,
+            metric: 'euclidean',
             data: pileMeasures
           });
         })
@@ -946,11 +952,11 @@ export class Fragments {
           };
 
           worker.postMessage({
-            nIter: 500,
+            nIter: this.tsneIterations,
             dim: 2,
-            perplexity: 20.0,
-            // earlyExaggeration: 4.0,
-            // learningRate: 100.0,
+            perplexity: this.tsnePerplexity,
+            earlyExaggeration: this.tsneEarlyExaggeration,
+            learningRate: this.tsneLearningRate,
             metric: 'euclidean',
             // The t-SNE implementation doesn't understand typed arrays...
             data: this.piles.map(pile => Array.from(pile.coverMatrix))
@@ -2421,7 +2427,6 @@ export class Fragments {
     this.getPlotElDim();
 
     this.initPlotWindow();
-    this.initShader();
     this.initWebGl();
     this.initEventListeners();
 
@@ -2723,28 +2728,6 @@ export class Fragments {
     this.plotWindowCss = {
       height: `${this.plotElDim.height}px`
     };
-  }
-
-  /**
-   * Initialize shader material.
-   */
-  initShader () {
-    try {
-      fgmState.shaderMaterial = new ShaderMaterial({
-        vertexShader: document.querySelector('#shader-vertex').textContent,
-        fragmentShader: document.querySelector('#shader-fragment').textContent,
-        blending: NormalBlending,
-        depthTest: true,
-        transparent: true,
-        side: DoubleSide,
-        linewidth: 2
-      });
-    } catch (error) {
-      this.isErrored = true;
-      this.errorMsg = 'Failed to initialize shader.';
-
-      logger.error('Failed to initialize shader.', error);
-    }
   }
 
   /**
