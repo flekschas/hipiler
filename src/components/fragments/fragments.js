@@ -2828,6 +2828,11 @@ export class Fragments {
   keyUpHandler (event) {
     if (!this.lastWasModifier) {
       switch (event.keyCode) {
+        case 27:  // ESC
+          this.closePilesInspectionHandler();
+          this.hideTrash();
+          break;
+
         case 67:  // C == Cover Mode
           this.toggleCoverDispMode();
           break;
@@ -3896,6 +3901,8 @@ export class Fragments {
    * Hide trashed piles
    */
   hideTrash () {
+    if (!fgmState.trashIsActive) { return; }
+
     this.piles.forEach(pile => pile.hide());
 
     fgmState.trashIsActive = false;
