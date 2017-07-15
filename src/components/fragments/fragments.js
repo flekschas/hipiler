@@ -4675,9 +4675,11 @@ export class Fragments {
       this.showInspection();
     }
 
+    const ignore = { __source: true };
+
     const numPilesInspecting = Object
       .keys(pilesConfig)
-      .filter(pileId => pileId !== '__source')
+      .filter(pileId => !ignore[pileId])
       .map(pileId => pilesConfig[pileId].length)
       .reduce((a, b) => a + b, 0);
 
@@ -4685,10 +4687,7 @@ export class Fragments {
       update.closeInspection = true;
     }
 
-    const ready = this.setPilesFromConfig(
-      pilesConfig,
-      { __source: true }
-    );
+    const ready = this.setPilesFromConfig(pilesConfig, ignore);
 
     if (this.fromDisperse) {
       update.removePileArea = true;
