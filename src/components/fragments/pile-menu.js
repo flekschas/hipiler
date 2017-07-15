@@ -69,8 +69,6 @@ export class PileMenu {
       return false;
     }
 
-    console.log('isActiveCmd', this.pile.coverDispMode);
-
     if (command.isActiveAvgCover && this.pile.coverDispMode === MODE_AVERAGE) {
       return true;
     }
@@ -154,7 +152,6 @@ export class PileMenu {
     if (this.pile) {
       this.commands.forEach((command) => {
         command.isActive = this.isActiveCmd(command);
-        console.log(command.isActive);
         command.isVisible = this.isVisibleCmd(command);
         command.pile = this.pile;
 
