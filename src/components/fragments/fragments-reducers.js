@@ -296,14 +296,18 @@ export function pilesInspection (state = PILES_INSPECTION, action) {
     case REMOVE_PILES_INSPECTION: {
       // Create copy of old state
       const newState = [...state];
-      const pilesConfig = copyPilesState(newState[newState.length - 1]);
+      const times = action.payload.recursive ? newState.length : 1;
 
-      Object.keys(action.payload.piles)
-        .forEach((pileId) => {
-          pilesConfig[pileId] = [];
-        });
+      for (let i = 0; i < times; i++) {
+        const pilesConfig = copyPilesState(newState[newState.length - (i + 1)]);
 
-      newState[newState.length - 1] = pilesConfig;
+        Object.keys(action.payload.piles)
+          .forEach((pileId) => {
+            pilesConfig[pileId] = [];
+          });
+
+        newState[newState.length - (i + 1)] = pilesConfig;
+      }
 
       return newState;
     }

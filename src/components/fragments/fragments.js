@@ -50,7 +50,9 @@ import {
   setShowSpecialCells,
   splitPilesInspection,
   stackPiles,
-  stackPilesInspection
+  stackPilesInspection,
+  trashPiles,
+  trashPilesInspection
 } from 'components/fragments/fragments-actions';
 
 import {
@@ -2573,6 +2575,11 @@ export class Fragments {
       'explore.fgm.removeFromPile',
       this.removeFromPile.bind(this)
     ));
+
+    this.subscriptions.push(this.event.subscribe(
+      'explore.fgm.trashPile',
+      this.trashPile.bind(this)
+    ));
   }
 
   /**
@@ -3969,6 +3976,42 @@ export class Fragments {
    */
   toggleZoomPan () {
     this.isZoomPan = !this.isLayout1d ? !this.isZoomPan : false;
+  }
+
+  /**
+   * Trash pile.
+   *
+   * @param {object} pile - Pile to be trashed.
+   */
+  trashPile (pile) {
+    if (!fgmState.isPilesInspection) {
+      this.store.dispatch(trashPiles([pile.id]));
+      return;
+    }
+
+    const configGlobal = [];
+    const configInspection = {};
+    const matrixIds = pile.pileMatrices.map(matrix => matrix.id);
+
+    configGlobal.push(...matrixIds);
+    configInspection[pile.id] = matrixIds;
+
+    const source = this.pilesInspectionConfigs[
+      this.pilesInspectionConfigs.length - 1
+    ].__source;
+
+    if (source.length > 1) {
+      logger.info(
+        'Trashing multiple piles from more than one pile is not yet supported.'
+      );
+      return;
+    }
+
+    const sourcePileId = source[0];
+
+    this.store.dispatch(trashPilesInspection(
+      sourcePileId, configGlobal, configInspection
+    ));
   }
 
   /**

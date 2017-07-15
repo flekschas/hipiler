@@ -43,9 +43,9 @@ export const recoverPiles = piles => ({
 
 export const REMOVE_PILES_INSPECTION = 'REMOVE_PILES_INSPECTION';
 
-export const removePilesInspection = piles => ({
+export const removePilesInspection = (piles, recursive) => ({
   type: REMOVE_PILES_INSPECTION,
-  payload: { piles }
+  payload: { piles, recursive }
 });
 
 export const SET_ANIMATION = 'SET_ANIMATION';
@@ -172,7 +172,6 @@ export const splitPiles = piles => ({
 
 export const SPLIT_PILES_INSPECTION = 'SPLIT_PILES_INSPECTION';
 
-
 export const splitPilesInspection = (
   sourcePile, matrices, piles
 ) => {
@@ -205,6 +204,21 @@ export const trashPiles = piles => ({
   type: TRASH_PILES,
   payload: { piles }
 });
+
+export const TRASH_PILES_INSPECTION = 'TRASH_PILES_INSPECTION';
+
+export const trashPilesInspection = (
+  sourcePile, matrices, piles
+) => {
+  const obj = {};
+  obj[sourcePile] = matrices;
+
+  return batchActions([
+    splitPiles(obj),
+    removePilesInspection(piles, true),
+    trashPiles(matrices.map(matrixId => `${matrixId}`))
+  ]);
+};
 
 export const UPDATE_FGM_CONFIG = 'UPDATE_FGM_CONFIG';
 

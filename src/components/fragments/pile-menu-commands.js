@@ -5,8 +5,7 @@ import { EventAggregator } from 'aurelia-event-aggregator';
 import States from 'services/states';
 
 import {
-  recoverPiles,
-  trashPiles
+  recoverPiles
 } from 'components/fragments/fragments-actions';
 
 import {
@@ -173,6 +172,9 @@ export const REMOVE = {
     name: 'Remove from pile',
     trigger (pile) {
       event.publish('explore.fgm.removeFromPile', [pile]);
+      event.publish('explore.fgm.pileMouseLeave');
+      event.publish('explore.fgm.pileUnhighlight');
+      event.publish('explore.fgm.removePileArea');
     },
     closeOnClick: true
   }],
@@ -197,7 +199,7 @@ export const TRASH = {
   buttons: [{
     name: 'Move to trash',
     trigger (pile) {
-      store.dispatch(trashPiles([pile.id]));
+      event.publish('explore.fgm.trashPile', pile);
       event.publish('explore.fgm.pileMouseLeave');
       event.publish('explore.fgm.pileUnhighlight');
       event.publish('explore.fgm.removePileArea');
