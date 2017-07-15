@@ -2380,6 +2380,28 @@ export class Fragments {
   }
 
   /**
+   * Display help for t-SNE settings
+   */
+  helpTsneSettings () {
+    this.dialogPromise = new Promise((resolve, reject) => {
+      this.dialogDeferred = { resolve, reject };
+    });
+    this.dialogIsOpen = true;
+    this.dialogMessage =
+      'HiPiler uses t-SNE for dimensionality reduction when the number of ' +
+      'chosen measures for arranging snippets is higher than 2 or when ' +
+      'directly clicking on <em>Cluster</em>. While t-SNE works very well ' +
+      'with default settings most of the time you might want to tweak the ' +
+      'parameters to your liking. To better understand the impact of some ' +
+      'parameters please read this <a href="' +
+      'http://distill.pub/2016/misread-tsne/" target="_blank">excellent ' +
+      'article by Wattenberg et al.</a> and also make sure to have a look ' +
+      'at the <a href="https://github.com/scienceai/tsne-js#model-' +
+      'parameters" target="_blank">project page</a> of the JavaScript ' +
+      'implementation';
+  }
+
+  /**
    * Handle and disptach Hilber curve changes.
    */
   hilbertCurveChangeHandler () {
@@ -4018,6 +4040,168 @@ export class Fragments {
     this.store.dispatch(trashPilesInspection(
       sourcePileId, configGlobal, configInspection
     ));
+  }
+
+  /**
+   * t-SNE early exaggeration changed handler.
+   *
+   * @param {object} event - Chaneg event object.
+   */
+  tsneEarlyExaggerationChangeHandler (event) {
+    this.store.dispatch(
+      setTsneEarlyExaggeration(parseInt(event.target.value, 10))
+    );
+  }
+
+  /**
+   * t-SNE early exaggeration input handler.
+   *
+   * @param {object} event - Chaneg event object.
+   */
+  tsneEarlyExaggerationInputHandler (event) {
+    this.tsneEarlyExaggerationTmp = parseInt(event.target.value, 10);
+  }
+
+  /**
+   * t-SNE early exaggeration mouse down handler.
+   *
+   * @param {object} event - Mouse down event object.
+   */
+  tsneEarlyExaggerationMousedownHandler (event) {
+    this.tsneEarlyExaggerationTmp = parseInt(event.target.value, 10);
+
+    return true;
+  }
+
+  /**
+   * t-SNE early exaggeration mouse up handler.
+   *
+   * @param {object} event - Mouse up event object.
+   */
+  tsneEarlyExaggerationMouseupHandler (event) {
+    this.tsneEarlyExaggerationTmp = undefined;
+
+    return true;
+  }
+
+  /**
+   * t-SNE iterations changed handler.
+   *
+   * @param {object} event - Chaneg event object.
+   */
+  tsneIterationsChangeHandler (event) {
+    this.store.dispatch(setTsneIterations(parseInt(event.target.value, 10)));
+  }
+
+  /**
+   * t-SNE iterations input handler.
+   *
+   * @param {object} event - Chaneg event object.
+   */
+  tsneIterationsInputHandler (event) {
+    this.tsneIterationsTmp = parseInt(event.target.value, 10);
+  }
+
+  /**
+   * t-SNE iterations mouse down handler.
+   *
+   * @param {object} event - Mouse down event object.
+   */
+  tsneIterationsMousedownHandler (event) {
+    this.tsneIterationsTmp = parseInt(event.target.value, 10);
+
+    return true;
+  }
+
+  /**
+   * t-SNE iterations mouse up handler.
+   *
+   * @param {object} event - Mouse up event object.
+   */
+  tsneIterationsMouseupHandler (event) {
+    this.tsneIterationsTmp = undefined;
+
+    return true;
+  }
+
+  /**
+   * t-SNE learning rate changed handler.
+   *
+   * @param {object} event - Chaneg event object.
+   */
+  tsneLearningRateChangeHandler (event) {
+    this.store.dispatch(setTsneLearningRate(parseInt(event.target.value, 10)));
+  }
+
+  /**
+   * t-SNE learning rate input handler.
+   *
+   * @param {object} event - Chaneg event object.
+   */
+  tsneLearningRateInputHandler (event) {
+    this.tsneLearningRateTmp = parseInt(event.target.value, 10);
+  }
+
+  /**
+   * t-SNE learning rate mouse down handler.
+   *
+   * @param {object} event - Mouse down event object.
+   */
+  tsneLearningRateMousedownHandler (event) {
+    this.tsneLearningRateTmp = parseInt(event.target.value, 10);
+
+    return true;
+  }
+
+  /**
+   * t-SNE learning rate mouse up handler.
+   *
+   * @param {object} event - Mouse up event object.
+   */
+  tsneLearningRateMouseupHandler (event) {
+    this.tsneLearningRateTmp = undefined;
+
+    return true;
+  }
+
+  /**
+   * t-SNE perplexity changed handler.
+   *
+   * @param {object} event - Chaneg event object.
+   */
+  tsnePerplexityChangeHandler (event) {
+    this.store.dispatch(setTsnePerplexity(parseInt(event.target.value, 10)));
+  }
+
+  /**
+   * t-SNE perplexity input handler.
+   *
+   * @param {object} event - Chaneg event object.
+   */
+  tsnePerplexityInputHandler (event) {
+    this.tsnePerplexityTmp = parseInt(event.target.value, 10);
+  }
+
+  /**
+   * t-SNE perplexity mouse down handler.
+   *
+   * @param {object} event - Mouse down event object.
+   */
+  tsnePerplexityMousedownHandler (event) {
+    this.tsnePerplexityTmp = parseInt(event.target.value, 10);
+
+    return true;
+  }
+
+  /**
+   * t-SNE perplexity mouse up handler.
+   *
+   * @param {object} event - Mouse up event object.
+   */
+  tsnePerplexityMouseupHandler (event) {
+    this.tsnePerplexityTmp = undefined;
+
+    return true;
   }
 
   /**
