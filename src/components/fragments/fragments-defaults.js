@@ -97,6 +97,8 @@ export const LASSO_MATERIAL = new THREE.ShaderMaterial(LASSO_SHADER);
 
 export const LETTER_SPACE = 6;
 
+export const LOG_TRANSFORM = false;
+
 export const MARGIN_BOTTOM = 2;
 
 export const MARGIN_LEFT = 2;

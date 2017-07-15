@@ -3,6 +3,7 @@ import { Scene } from 'three';
 import {
   CELL_SIZE,
   GRID_SIZE,
+  LOG_TRANSFORM,
   MATRIX_ORIENTATION_INITIAL,
   MODE_AVERAGE
 } from 'components/fragments/fragments-defaults';
@@ -33,6 +34,7 @@ const State = {
   hoveredTool: undefined,
   isLayout2d: false,
   lassoObject: undefined,
+  logTransform: LOG_TRANSFORM,
   matrices: [],
   matricesIdx: {},
   matricesPileIndex: [],

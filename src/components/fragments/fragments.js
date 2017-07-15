@@ -43,6 +43,7 @@ import {
   setHilbertCurve,
   setHiglassSubSelection,
   setLassoIsRound,
+  setLogTransform,
   setMatricesColors,
   setMatrixFrameEncoding,
   setMatrixOrientation,
@@ -3880,12 +3881,23 @@ export class Fragments {
   }
 
   /**
-   * Change handler for showing special cells
+   * Change handler for showing special cells.
    *
    * @return {boolean} `True` to not keep the event form bubbling up.
    */
   showSpecialCellsChangeHandler () {
     this.store.dispatch(setShowSpecialCells(!fgmState.showSpecialCells));
+
+    return true;
+  }
+
+  /**
+   * Change handler for log transform.
+   *
+   * @return {boolean} `True` to not keep the event form bubbling up.
+   */
+  logTransformChangeHandler () {
+    this.store.dispatch(setLogTransform(!fgmState.logTransform));
 
     return true;
   }
@@ -4081,6 +4093,7 @@ export class Fragments {
         stateFgm.higlassSubSelection, update
       ));
       ready.push(this.updateLassoIsRound(stateFgm.lassoIsRound));
+      ready.push(this.updateLogTransform(stateFgm.logTransform, update));
       ready.push(this.updateMatrixColors(stateFgm.matricesColors, update));
       ready.push(this.updateMatrixFrameEncoding(
         stateFgm.matrixFrameEncoding, update, init
@@ -4544,6 +4557,22 @@ export class Fragments {
           reject(error);
         });
     });
+  }
+
+  /**
+   * Update log transform.
+   *
+   * @param {object} update - Update object.
+   * @param {boolean} logTransform - If `true` snippets are log transformed.
+   */
+  updateLogTransform (logTransform, update) {
+    if (fgmState.logTransform === logTransform) { return; }
+
+    fgmState.logTransform = logTransform;
+
+    update.piles = true;
+
+    return Promise.resolve();
   }
 
   /**

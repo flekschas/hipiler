@@ -1,9 +1,10 @@
-v1.0.0-beta8 - 2017-07-14
+v1.0.0-beta8 - 2017-07-15
 
 - 5-10x faster snippet rendering
 - Implement removing matrices from piles
 - Highlight hovered preview
 - Update pile menu instantly
+- Added ability to log transform snippets
 - Fix matrix flipping
 - Fix scroll issue after changing the cell size
 - Fix dialog during exploration

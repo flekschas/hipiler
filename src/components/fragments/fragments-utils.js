@@ -1,4 +1,4 @@
-import { scaleLinear } from 'd3';
+import { scaleLinear, scaleLog } from 'd3';
 
 import {
   BufferAttribute,
@@ -67,6 +67,12 @@ export function calculateDistances (matrices) {
 }
 
 export const cellValue = scaleLinear().range([0, 1]).nice();
+
+export const cellValueLogNorm = scaleLinear().domain([0, 1]).range([1, 10]);
+export const cellValueLogTransform = scaleLog().nice();
+export const cellValueLog = value => (value === -1 ? -1 : cellValueLogTransform(
+  cellValueLogNorm(value)
+));
 
 export const frameValue = scaleLinear().range([0.1, 0.9]).nice();
 

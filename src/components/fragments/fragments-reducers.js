@@ -17,6 +17,7 @@ import {
   SET_HILBERT_CURVE,
   SET_HIGLASS_SUB_SELECTION,
   SET_LASSO_IS_ROUND,
+  SET_LOG_TRANSFORM,
   SET_MATRICES_COLORS,
   SET_MATRIX_FRAME_ENCODING,
   SET_MATRIX_ORIENTATION,
@@ -39,6 +40,7 @@ import {
   HILBERT_CURVE,
   HIGLASS_SUB_SELECTION,
   LASSO_IS_ROUND,
+  LOG_TRANSFORM,
   MATRICES_COLORS,
   MATRIX_FRAME_ENCODING,
   MATRIX_ORIENTATION_INITIAL,
@@ -200,6 +202,16 @@ export function lassoIsRound (state = LASSO_IS_ROUND, action) {
   switch (action.type) {
     case SET_LASSO_IS_ROUND:
       return action.payload.lassoIsRound;
+
+    default:
+      return state;
+  }
+}
+
+export function logTransform (state = LOG_TRANSFORM, action) {
+  switch (action.type) {
+    case SET_LOG_TRANSFORM:
+      return action.payload.logTransform;
 
     default:
       return state;
@@ -436,6 +448,7 @@ export default combineReducers({
   hilbertCurve,
   higlassSubSelection,
   lassoIsRound,
+  logTransform,
   matricesColors,
   matrixFrameEncoding,
   matrixOrientation,

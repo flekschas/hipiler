@@ -291,6 +291,14 @@
                 click.delegate="showSpecialCellsChangeHandler()">
             </li>
             <li class="flex-c flex-d-c">
+              <label for="settings-fgm-log">Log</label>
+              <input
+                type="checkbox"
+                id="settings-fgm-log"
+                checked.bind="state.logTransform"
+                click.delegate="logTransformChangeHandler()">
+            </li>
+            <li class="flex-c flex-d-c">
               <label
                 for="settings-fgm-matrix-frame-encoding"
                 title="Frame encoding">Frame Enc.</label>

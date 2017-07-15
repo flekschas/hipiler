@@ -41,6 +41,7 @@ import fgmState from 'components/fragments/fragments-state';
 
 import {
   cellValue,
+  cellValueLog,
   createImage,
   createLineFrame,
   createRect,
@@ -499,6 +500,16 @@ export default class Pile {
   }
 
   /**
+   * Helper method to get the cell / bin value.
+   *
+   * @param {number} value - Value to be transformed
+   * @return {number} Transformed value.
+   */
+  cellValue (value) {
+    return fgmState.logTransform ? cellValueLog(value) : cellValue(value);
+  }
+
+  /**
    * Returns whether this pile contains that matrix object
    *
    * @param {object} matrix - Matrix to be checked.
@@ -774,7 +785,7 @@ export default class Pile {
     // Get pixels
     for (let i = len; i--;) {
       const color = colorTransformer(
-        cellValue(matrix[i]), fgmState.showSpecialCells
+        this.cellValue(matrix[i]), fgmState.showSpecialCells
       );
 
       this.pixels.set(color, i * 4);
@@ -1509,11 +1520,11 @@ export default class Pile {
 
     // Get pixels
     for (let i = len; i--;) {
-      const value = cellValue(matrix[i]);
+      const value = this.cellValue(matrix[i]);
 
       if (value === -1) {
         const color = colorTransformer(
-          cellValue(matrix[i]), fgmState.showSpecialCells
+          this.cellValue(matrix[i]), fgmState.showSpecialCells
         );
 
         this.pixels.set(color, i * 4);

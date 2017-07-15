@@ -121,6 +121,13 @@ export const setLassoIsRound = lassoIsRound => ({
   payload: { lassoIsRound }
 });
 
+export const SET_LOG_TRANSFORM = 'SET_LOG_TRANSFORM';
+
+export const setLogTransform = logTransform => ({
+  type: SET_LOG_TRANSFORM,
+  payload: { logTransform }
+});
+
 export const SET_MATRICES_COLORS = 'SET_MATRICES_COLORS';
 
 export const setMatricesColors = matricesColors => ({
