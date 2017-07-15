@@ -552,11 +552,11 @@ export default class Pile {
 
     // UPDATE COVER MATRIX CELLS + PILE PREVIEWS
     if (this.mesh && this.mesh.children.length) {
-      this.pileMeshes.splice(
-        this.pileMeshes.indexOf(this.mesh),
-        1
-      );
-      fgmState.scene.remove(this.mesh);
+      const idx = this.pileMeshes.indexOf(this.mesh);
+      if (idx >= 0) {
+        this.pileMeshes.splice(idx, 1);
+        fgmState.scene.remove(this.mesh);
+      }
     }
 
     // Calculate the preview height first

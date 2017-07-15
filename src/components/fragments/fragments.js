@@ -3787,10 +3787,6 @@ export class Fragments {
           if (pile.isTrashed && pile.isDrawn) {
             pile.hide();
           }
-
-          if (!this.trashSize) {
-            this.hideTrash();
-          }
         } else if (pileId[0] === '_') {
           pile.trash();
         } else if (pile.isTrashed) {
@@ -3893,15 +3889,11 @@ export class Fragments {
    * Hide trashed piles
    */
   hideTrash () {
-    this.piles.forEach((pile) => {
-      pile.hide();
-    });
+    this.piles.forEach(pile => pile.hide());
 
     fgmState.trashIsActive = false;
 
-    this.piles.forEach((pile) => {
-      pile.show().frameUpdate().frameCreate().draw();
-    });
+    this.piles.forEach(pile => pile.draw());
 
     // Reset last scroll pos
     if (typeof this.lastScrollPos !== 'undefined') {
@@ -3920,15 +3912,11 @@ export class Fragments {
    * Show trashed piles
    */
   showTrash () {
-    this.piles.forEach((pile) => {
-      pile.hide();
-    });
+    this.piles.forEach(pile => pile.hide());
 
     fgmState.trashIsActive = true;
 
-    this.piles.forEach((pile) => {
-      pile.frameUpdate().frameCreate().draw();
-    });
+    this.piles.forEach(pile => pile.frameUpdate().frameCreate().draw());
 
     // Save last scroll position
     this.lastScrollPos = this.scrollTop;
@@ -4185,6 +4173,10 @@ export class Fragments {
 
     if (update.closeInspection) {
       this.closePilesInspectionHandler();
+    }
+
+    if (update.hideTrash) {
+      this.hideTrash();
     }
   }
 
@@ -4626,6 +4618,10 @@ export class Fragments {
 
     if (!fgmState.trashIsActive) {
       this.assessMeasuresMax();
+    }
+
+    if (fgmState.trashIsActive && !this.trashSize) {
+      update.hideTrash = true;
     }
 
     update.layout = true;
