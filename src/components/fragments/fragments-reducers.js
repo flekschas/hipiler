@@ -23,6 +23,10 @@ import {
   SET_MATRIX_ORIENTATION,
   SET_PILES,
   SET_SHOW_SPECIAL_CELLS,
+  SET_TSNE_EARLY_EXAGGERATION,
+  SET_TSNE_ITERATIONS,
+  SET_TSNE_LEARNING_RATE,
+  SET_TSNE_PERPLEXITY,
   SPLIT_PILES,
   STACK_PILES,
   STACK_PILES_INSPECTION,
@@ -47,7 +51,11 @@ import {
   MODE_AVERAGE,
   PILES_INSPECTION,
   PILES,
-  SHOW_SPECIAL_CELLS
+  SHOW_SPECIAL_CELLS,
+  TSNE_EARLY_EXAGGERATION,
+  TSNE_ITERATIONS,
+  TSNE_LEARNING_RATE,
+  TSNE_PERPLEXITY
 } from 'components/fragments/fragments-defaults';
 
 import deepClone from 'utils/deep-clone';
@@ -437,6 +445,48 @@ export function showSpecialCells (state = SHOW_SPECIAL_CELLS, action) {
   }
 }
 
+export function tsneEarlyExaggeration (
+  state = TSNE_EARLY_EXAGGERATION, action
+) {
+  switch (action.type) {
+    case SET_TSNE_EARLY_EXAGGERATION:
+      return action.payload.earlyExaggeration;
+
+    default:
+      return state;
+  }
+}
+
+export function tsneIterations (state = TSNE_ITERATIONS, action) {
+  switch (action.type) {
+    case SET_TSNE_ITERATIONS:
+      return action.payload.iterations;
+
+    default:
+      return state;
+  }
+}
+
+export function tsneLearningRate (state = TSNE_LEARNING_RATE, action) {
+  switch (action.type) {
+    case SET_TSNE_LEARNING_RATE:
+      return action.payload.learningRate;
+
+    default:
+      return state;
+  }
+}
+
+export function tsnePerplexity (state = TSNE_PERPLEXITY, action) {
+  switch (action.type) {
+    case SET_TSNE_PERPLEXITY:
+      return action.payload.perplexity;
+
+    default:
+      return state;
+  }
+}
+
 export default combineReducers({
   animation,
   arrangeMeasures,
@@ -454,5 +504,9 @@ export default combineReducers({
   matrixOrientation,
   piles,
   pilesInspection,
-  showSpecialCells
+  showSpecialCells,
+  tsneEarlyExaggeration,
+  tsneIterations,
+  tsneLearningRate,
+  tsnePerplexity
 });

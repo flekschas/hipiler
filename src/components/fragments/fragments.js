@@ -46,6 +46,10 @@ import {
   setMatrixOrientation,
   setPiles,
   setShowSpecialCells,
+  setTsneEarlyExaggeration,
+  setTsneIterations,
+  setTsneLearningRate,
+  setTsnePerplexity,
   splitPilesInspection,
   stackPiles,
   stackPilesInspection,
@@ -4049,7 +4053,7 @@ export class Fragments {
    */
   tsneEarlyExaggerationChangeHandler (event) {
     this.store.dispatch(
-      setTsneEarlyExaggeration(parseInt(event.target.value, 10))
+      setTsneEarlyExaggeration(parseFloat(event.target.value))
     );
   }
 
@@ -4059,7 +4063,7 @@ export class Fragments {
    * @param {object} event - Chaneg event object.
    */
   tsneEarlyExaggerationInputHandler (event) {
-    this.tsneEarlyExaggerationTmp = parseInt(event.target.value, 10);
+    this.tsneEarlyExaggerationTmp = parseFloat(event.target.value);
   }
 
   /**
@@ -4068,7 +4072,7 @@ export class Fragments {
    * @param {object} event - Mouse down event object.
    */
   tsneEarlyExaggerationMousedownHandler (event) {
-    this.tsneEarlyExaggerationTmp = parseInt(event.target.value, 10);
+    this.tsneEarlyExaggerationTmp = parseFloat(event.target.value);
 
     return true;
   }
@@ -4277,6 +4281,18 @@ export class Fragments {
       ready.push(this.updateShowSpecialCells(
         stateFgm.showSpecialCells, update
       ));
+      ready.push(this.updateTsneEarlyExaggeration(
+        stateFgm.tsneEarlyExaggeration, update
+      ));
+      ready.push(this.updateTsneIterations(
+        stateFgm.tsneIterations, update
+      ));
+      ready.push(this.updateTsneLearningRate(
+        stateFgm.tsneLearningRate, update
+      ));
+      ready.push(this.updateTsnePerplexity(
+        stateFgm.tsnePerplexity, update
+      ));
 
       Promise.all([this.isInitFully, ...ready]).finally(() => {
         if (!noRendering) {
@@ -4359,6 +4375,10 @@ export class Fragments {
       if (update.specialCells) {
         this.piles.forEach(pile => pile.toggleSpecialCells());
       }
+    }
+
+    if (update.clustering) {
+      this.clusterTsne(true);
     }
 
     if (update.layout) {
@@ -4970,22 +4990,80 @@ export class Fragments {
   }
 
   /**
-   * Update piles when special cells are shown or hidden
+   * Update piles when special cells are shown or hidden.
    *
    * @param {boolean} showSpecialCells - If `true` show special cells.
    * @param {object} update - Update object.
    */
   updateShowSpecialCells (showSpecialCells, update) {
-    if (fgmState.showSpecialCells === showSpecialCells) {
-      return Promise.resolve();
+    if (fgmState.showSpecialCells !== showSpecialCells) {
+      fgmState.showSpecialCells = showSpecialCells;
+      update.specialCells = true;
     }
-
-    fgmState.showSpecialCells = showSpecialCells;
-
-    update.specialCells = true;
 
     return Promise.resolve();
   }
+
+  /**
+   * Update t-SNE early exaggeration.
+   *
+   * @param {boolean} tsneEarlyExaggeration - t-SNE parameter.
+   * @param {object} update - Update object.
+   */
+  updateTsneEarlyExaggeration (tsneEarlyExaggeration, update) {
+    if (this.tsneEarlyExaggeration !== tsneEarlyExaggeration) {
+      this.tsneEarlyExaggeration = tsneEarlyExaggeration;
+      update.clustering = this.isDataClustered;
+    }
+
+    return Promise.resolve();
+  }
+
+  /**
+   * Update t-SNE max iterations.
+   *
+   * @param {boolean} tsneIterations - t-SNE parameter.
+   * @param {object} update - Update object.
+   */
+  updateTsneIterations (tsneIterations, update) {
+    if (this.tsneIterations !== tsneIterations) {
+      this.tsneIterations = tsneIterations;
+      update.clustering = this.isDataClustered;
+    }
+
+    return Promise.resolve();
+  }
+
+  /**
+   * Update t-SNE learning rate.
+   *
+   * @param {boolean} tsneLearningRate - t-SNE parameter.
+   * @param {object} update - Update object.
+   */
+  updateTsneLearningRate (tsneLearningRate, update) {
+    if (this.tsneLearningRate !== tsneLearningRate) {
+      this.tsneLearningRate = tsneLearningRate;
+      update.clustering = this.isDataClustered;
+    }
+
+    return Promise.resolve();
+  }
+
+  /**
+   * Update t-SNE perplexity.
+   *
+   * @param {boolean} tsnePerplexity - t-SNE parameter.
+   * @param {object} update - Update object.
+   */
+  updateTsnePerplexity (tsnePerplexity, update) {
+    if (this.tsnePerplexity !== tsnePerplexity) {
+      this.tsnePerplexity = tsnePerplexity;
+      update.clustering = this.isDataClustered;
+    }
+
+    return Promise.resolve();
+  }
+
 
   /**
    * Initialize the canvas container.

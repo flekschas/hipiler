@@ -170,6 +170,34 @@ export const setShowSpecialCells = showSpecialCells => ({
   payload: { showSpecialCells }
 });
 
+export const SET_TSNE_EARLY_EXAGGERATION = 'SET_TSNE_EARLY_EXAGGERATION';
+
+export const setTsneEarlyExaggeration = earlyExaggeration => ({
+  type: SET_TSNE_EARLY_EXAGGERATION,
+  payload: { earlyExaggeration }
+});
+
+export const SET_TSNE_ITERATIONS = 'SET_TSNE_ITERATIONS';
+
+export const setTsneIterations = iterations => ({
+  type: SET_TSNE_ITERATIONS,
+  payload: { iterations }
+});
+
+export const SET_TSNE_LEARNING_RATE = 'SET_TSNE_LEARNING_RATE';
+
+export const setTsneLearningRate = learningRate => ({
+  type: SET_TSNE_LEARNING_RATE,
+  payload: { learningRate }
+});
+
+export const SET_TSNE_PERPLEXITY = 'SET_TSNE_PERPLEXITY';
+
+export const setTsnePerplexity = perplexity => ({
+  type: SET_TSNE_PERPLEXITY,
+  payload: { perplexity }
+});
+
 export const SPLIT_PILES = 'SPLIT_PILES';
 
 export const splitPiles = piles => ({
