@@ -2838,6 +2838,10 @@ export class Fragments {
           this.toggleCoverDispMode();
           break;
 
+        case 76:  // L == Log transform
+          this.logTransformChangeHandler();
+          break;
+
         case 83:  // S == Selection (rect lasso or swiping)
           this.lassoIsRoundChangeHandler();
           break;
