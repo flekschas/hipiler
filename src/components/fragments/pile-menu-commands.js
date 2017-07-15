@@ -137,7 +137,8 @@ export const DISPERSE = {
     },
     closeOnClick: true
   }],
-  stackedPileOnly: true
+  stackedPileOnly: true,
+  notInTrash: true
 };
 
 export const INSPECT = {
@@ -149,7 +150,8 @@ export const INSPECT = {
     },
     closeOnClick: true
   }],
-  stackedPileOnly: true
+  stackedPileOnly: true,
+  notInTrash: true
 };
 
 export const RECOVER = {
@@ -208,6 +210,7 @@ export const TRASH = {
 export default [
   INSPECT,
   DISPERSE,
+  RECOVER,
   REMOVE,
   SEPARATOR,
   SHOW_IN_MATRIX,
@@ -215,7 +218,6 @@ export default [
   COLOR,
   SEPARATOR,
   TRASH,
-  RECOVER,
   SEPARATOR,
   COVER_AVERAGE,
   COVER_VARIANCE
