@@ -383,9 +383,7 @@ export default class Pile {
       }
     } else {
       // Copy first pile matrix
-      sourceMatrices[0].matrix.forEach((cell, index) => {
-        targetMatrix[index] = cell;
-      });
+      targetMatrix.set(sourceMatrices[0].matrix);
     }
 
     this.isAvgCalced = false;
