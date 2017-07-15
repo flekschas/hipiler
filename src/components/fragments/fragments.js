@@ -1010,7 +1010,7 @@ export class Fragments {
    */
   canvasDblClickHandler () {
     if (fgmState.hoveredPile) {
-      this.dispersePilesHandler([fgmState.hoveredPile]);
+      this.inspectPilesHandler([fgmState.hoveredPile]);
       fgmState.hoveredPile = undefined;
     } else {
       Object.keys(this.pilesZoomed).forEach((pileId) => {
