@@ -103,9 +103,9 @@
           <ul class="flex-c settings-list settings-list-buttons-only">
             <li class="flex-c button-group">
               <button
-                class="flex-c flex-jc-c flex-a-c rel button ${isDataClustered && !state.isPilesInspection ? 'is-active' : ''}"
+                class="flex-c flex-jc-c flex-a-c rel button ${isDataClustered && !state.isPilesInspection ? 'is-active' : ''} ${state.trashIsActive ? 'is-disabled' : ''}"
                 click.delegate="clusterTsne()"
-                disabled.bind="state.isPilesInspection">
+                disabled.bind="state.trashIsActive || state.isPilesInspection">
                 Cluster${isDataClustered ? 'ed' : ''}
               </button>
               <button
