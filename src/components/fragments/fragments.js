@@ -3535,22 +3535,14 @@ export class Fragments {
       logger.info(
         'Removing multiple piles from more than one pile is not yet supported.'
       );
-      // return;
+      return;
     }
 
-    // const sourcePileId = source[0];
+    const sourcePileId = source[0];
 
-    // console.log(sourcePileId, configGlobal, configInspection);
-
-    // this.store.dispatch(splitPilesInspection(
-    //   sourcePileId, sourcePileId, configInspection
-    // ));
-
-    // if (fgmState.isPilesInspection) {
-    //   this.store.dispatch(stackPilesInspection(config));
-    // } else {
-    //   this.store.dispatch(stackPiles(config));
-    // }
+    this.store.dispatch(splitPilesInspection(
+      sourcePileId, configGlobal, configInspection
+    ));
   }
 
   /**
@@ -3750,18 +3742,18 @@ export class Fragments {
    * @param {object} ignore - Object with keys to be ignored.
    * @return {array} List of promises.
    */
-  setPilesFromConfig (pilesConfig, ignore) {
+  setPilesFromConfig (pilesConfig, ignore = {}) {
     const ready = [];
 
     Object.keys(pilesConfig).forEach((pileId) => {
-      if (ignore && ignore[pileId]) { return; }
+      if (ignore[pileId]) { return; }
 
       const matrixIds = pilesConfig[pileId];
 
       let pile = this.pilesIdxState[pileId];
 
       if (matrixIds.length) {
-        // Gte or create pile
+        // Get or create pile
         if (!pile) {
           pile = this.pileCreate(pileId, fgmState.matrices.length);
           this.destroyAltPile(pileId);
@@ -4043,16 +4035,26 @@ export class Fragments {
       ready.push(this.updateCellSize(stateFgm.cellSize, update));
       ready.push(this.updateConfig(stateFgm.config));
       ready.push(this.updateGridSize(stateFgm.gridSize, update));
-      ready.push(this.updateGridCellSizeLock(stateFgm.gridCellSizeLock, update));
+      ready.push(this.updateGridCellSizeLock(
+        stateFgm.gridCellSizeLock, update
+      ));
       ready.push(this.updateHilbertCurve(stateFgm.hilbertCurve, update));
-      ready.push(this.updateHglSubSelection(stateFgm.higlassSubSelection, update));
+      ready.push(this.updateHglSubSelection(
+        stateFgm.higlassSubSelection, update
+      ));
       ready.push(this.updateLassoIsRound(stateFgm.lassoIsRound));
       ready.push(this.updateMatrixColors(stateFgm.matricesColors, update));
-      ready.push(this.updateMatrixFrameEncoding(stateFgm.matrixFrameEncoding, update, init));
-      ready.push(this.updateMatrixOrientation(stateFgm.matrixOrientation, update));
+      ready.push(this.updateMatrixFrameEncoding(
+        stateFgm.matrixFrameEncoding, update, init
+      ));
+      ready.push(this.updateMatrixOrientation(
+        stateFgm.matrixOrientation, update
+      ));
       ready.push(this.updatePilesInspection(stateFgm.pilesInspection, update));
       ready.push(this.updatePiles(stateFgm.piles, update));
-      ready.push(this.updateShowSpecialCells(stateFgm.showSpecialCells, update));
+      ready.push(this.updateShowSpecialCells(
+        stateFgm.showSpecialCells, update
+      ));
 
       Promise.all([this.isInitFully, ...ready]).finally(() => {
         if (!noRendering) {
@@ -4180,6 +4182,10 @@ export class Fragments {
     }
 
     this.render();
+
+    if (update.closeInspection) {
+      this.closePilesInspectionHandler();
+    }
   }
 
   /**
@@ -4667,6 +4673,16 @@ export class Fragments {
 
     if (newInspection) {
       this.showInspection();
+    }
+
+    const numPilesInspecting = Object
+      .keys(pilesConfig)
+      .filter(pileId => pileId !== '__source')
+      .map(pileId => pilesConfig[pileId].length)
+      .reduce((a, b) => a + b, 0);
+
+    if (numPilesInspecting < 2) {
+      update.closeInspection = true;
     }
 
     const ready = this.setPilesFromConfig(

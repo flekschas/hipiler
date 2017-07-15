@@ -295,13 +295,15 @@ export function pilesInspection (state = PILES_INSPECTION, action) {
 
     case REMOVE_PILES_INSPECTION: {
       // Create copy of old state
-      const newState = copyPilesState(state);
+      const newState = [...state];
+      const pilesConfig = copyPilesState(newState[newState.length - 1]);
 
-      action.payload.piles
+      Object.keys(action.payload.piles)
         .forEach((pileId) => {
-          newState[pileId] = undefined;
-          delete newState[pileId];
+          pilesConfig[pileId] = [];
         });
+
+      newState[newState.length - 1] = pilesConfig;
 
       return newState;
     }
@@ -346,10 +348,11 @@ export function piles (state = PILES, action) {
           const newPileIds = action.payload.piles[sourcePileId];
 
           if (pile.length > 1) {
-            newPileIds.forEach((pileIds) => {
-
+            newPileIds.forEach((pileId) => {
               const idx = pile.indexOf(pileId);
 
+              // If the index is zero we need to "rename" the pile since the
+              // first matrix of a pile defines the pile's ID.
               if (idx === 0) {
                 sourcePileId = pile[1];
                 newState[sourcePileId] = pile.slice(1);
