@@ -1,3 +1,7 @@
+v1.0.1 - 2017-07-??
+
+- Add link to HiGlass.io
+
 v1.0.0 - 2017-07-16
 
 - 5-10x faster snippet rendering
