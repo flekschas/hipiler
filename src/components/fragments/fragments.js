@@ -4351,6 +4351,10 @@ export class Fragments {
       this.piles.forEach(pile => pile.frameCreate());
     }
 
+    if (update.pileCover) {
+      this.piles.forEach(pile => pile.calculateCoverMatrix());
+    }
+
     if (
       (update.piles || update.pileFramesRecreate) &&
       !update.drawPilesAfter
@@ -4507,14 +4511,13 @@ export class Fragments {
    * @param {object} update - Update object.
    */
   updateCoverDispMode (coverDispMode, update) {
-    if (this.coverDispMode === coverDispMode) {
-      return Promise.resolve();
+    if (this.coverDispMode !== coverDispMode) {
+      this.coverDispMode = coverDispMode;
+
+      // update.grid = true;
+      update.piles = true;
+      update.pileCover = true;
     }
-
-    this.coverDispMode = coverDispMode;
-
-    update.grid = true;
-    update.piles = true;
 
     return Promise.resolve();
   }
