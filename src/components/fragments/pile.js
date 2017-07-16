@@ -632,7 +632,8 @@ export default class Pile {
 
     if (
       !fgmState.isHilbertCurve &&
-      !(fgmState.isLayout2d || fgmState.isLayoutMd)
+      !(fgmState.isLayout2d || fgmState.isLayoutMd) &&
+      this.pileMatrices.length === 1
     ) {
       this.drawStrandArrows();
     }
