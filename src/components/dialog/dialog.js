@@ -7,6 +7,7 @@ import {
 
 import { EventAggregator } from 'aurelia-event-aggregator';  // eslint-disable-line
 
+
 @inject(EventAggregator)
 export class Dialog {
   @bindable({ defaultBindingMode: bindingMode.twoWay }) deferred = {};  // eslint-disable-line

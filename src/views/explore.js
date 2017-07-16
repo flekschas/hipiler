@@ -18,6 +18,7 @@ import { requestNextAnimationFrame } from 'utils/request-animation-frame';
 import { updateWidth } from 'views/explore-actions';
 import { COLUMNS, COLUMN_NAMES } from 'views/explore-defaults';
 
+
 const logger = LogManager.getLogger('explore');
 
 
