@@ -13,10 +13,26 @@ export default class Matrix {
   }
 
   /**
-   * Flip the raw matix's x axis in-place.
+   * Flip the raw matix's x and y axis in-place.
+   */
+  flip () {
+    Matrix.flip(this.matrix);
+    this.orientationX *= -1;
+    this.orientationY *= -1;
+  }
+
+  /**
+   * Flip the raw 1D matix's x and y axis in-place.
    *
-   * @param {array} matrix - 2D matrix to be flipped.
-   * @return {number} Orientation.
+   * @param {array} matrix - 1D matrix to be flipped.
+   */
+  static flip (matrix) {
+    Matrix.flipX(matrix);
+    Matrix.flipY(matrix);
+  }
+
+  /**
+   * Flip the raw matix's x axis in-place.
    */
   flipX () {
     Matrix.flipX(this.matrix);
@@ -27,7 +43,6 @@ export default class Matrix {
    * Flip the raw 1D matix's x axis in-place.
    *
    * @param {array} matrix - 1D matrix to be flipped.
-   * @return {number} Orientation.
    */
   static flipX (matrix) {
     const dims = Math.round(Math.sqrt(matrix.length));
@@ -40,10 +55,7 @@ export default class Matrix {
   }
 
   /**
-   * Flip the raw matix's x axis in-place.
-   *
-   * @param {array} matrix - 2D matrix to be flipped.
-   * @return {number} Orientation.
+   * Flip the raw matix's y axis in-place.
    */
   flipY () {
     Matrix.flipY(this.matrix);
@@ -54,9 +66,8 @@ export default class Matrix {
    * Flip the raw 1D matix's y axis in-place.
    *
    * @param {array} matrix - 1D-array Matrix to be flipped.
-   * @return {object} Orientation.
    */
-  static flipY (matrix, dim) {
+  static flipY (matrix) {
     const dims = Math.round(Math.sqrt(matrix.length));
     const flippedMatrix = new Float32Array(matrix.length);
 
@@ -71,10 +82,33 @@ export default class Matrix {
   }
 
   /**
+   * Orient matrix to either 5' > 3' or 3' > 5'.
+   *
+   * @param {boolean} reverse - If `true` orient matrix in 3' to 5' direction.
+   */
+  orient5To3 (reverse) {
+    if (reverse) {
+      if (this.orientationX === 1) {
+        this.flipX();
+      }
+      if (this.orientationY === 1) {
+        this.flipY();
+      }
+    } else {
+      if (this.orientationX === -1) {
+        this.flipX();
+      }
+      if (this.orientationY === -1) {
+        this.flipY();
+      }
+    }
+  }
+
+  /**
    * Convert a 2D classic array into a 1D Float32Array.
    *
    * @param {array} matrix2d - 2D array to be converted into 1D.
-   * @return  {[type]} 1D Floast32Array
+   * @return {array} 1D Float32Array.
    */
   static to1d (matrix2d) {
     return Float32Array.from(

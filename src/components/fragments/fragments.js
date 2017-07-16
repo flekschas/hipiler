@@ -477,10 +477,6 @@ export class Fragments {
       return fgmState.pilesTrash;
     }
 
-    if (this.subSelectingPiles) {
-      return this.pilesState;
-    }
-
     return this.pilesState;
   }
 
@@ -994,6 +990,7 @@ export class Fragments {
       this.hoveredStrandArrow.userData.pile.flipMatrix(
         this.hoveredStrandArrow.userData.axis
       ).draw();
+      this.store.dispatch(setMatrixOrientation(MATRIX_ORIENTATION_UNDEF));
     }
 
     if (fgmState.hoveredPile) {
@@ -2085,23 +2082,6 @@ export class Fragments {
   }
 
   /**
-   * Niceify numeric measure
-   *
-   * @param {number} measure - Measure to be nicefied.
-   * @return {number} Niceified value.
-   */
-  nicefyMeasure (measure) {
-    let nicefied = measure;
-
-    if (parseInt(measure, 10) !== measure) {
-      // Float
-      nicefied = Math.round(measure * 1000) / 1000;
-    }
-
-    return nicefied;
-  }
-
-  /**
    * Get matrices of piles
    *
    * @param {array} piles - Piles.
@@ -2796,6 +2776,35 @@ export class Fragments {
   }
 
   /**
+   * Hide inspection mode.
+   */
+  inspectionHide () {
+    this.inspectionReset();
+    fgmState.piles.forEach((pile) => {
+      pile.show();
+    });
+  }
+
+  /**
+   * Destroy inspected piles and reset the index.
+   */
+  inspectionReset () {
+    this.destroyPiles(fgmState.pilesInspection);
+    fgmState.pilesInspection = [];
+  }
+
+  /**
+   * Hide normal piles and reset the inspected piles
+   */
+  inspectionShow () {
+    fgmState.piles.forEach((pile) => {
+      pile.hide();
+    });
+
+    this.inspectionReset();
+  }
+
+  /**
    * Inspect piles.
    *
    * @param {object} piles - Piles to be inspected.
@@ -3256,6 +3265,74 @@ export class Fragments {
 
       window.requestAnimationFrame(animate);
     });
+  }
+
+  /**
+   * Niceify numeric measure
+   *
+   * @param {number} measure - Measure to be nicefied.
+   * @return {number} Niceified value.
+   */
+  nicefyMeasure (measure) {
+    let nicefied = measure;
+
+    if (parseInt(measure, 10) !== measure) {
+      // Float
+      nicefied = Math.round(measure * 1000) / 1000;
+    }
+
+    return nicefied;
+  }
+
+  /**
+   * Orient all matrices.
+   */
+  orientMatrices () {
+    switch (fgmState.matrixOrientation) {
+      case MATRIX_ORIENTATION_INITIAL:
+        fgmState.matrices.forEach((matrix) => {
+          if (
+            (
+              matrix.orientation.strand1 === 'coding' &&
+              matrix.orientationX === -1
+            ) ||
+            (
+              matrix.orientation.strand1 !== 'coding' &&
+              matrix.orientationX === 1
+            )
+          ) {
+            matrix.flipX();
+          }
+          if (
+            (
+              matrix.orientation.strand2 === 'coding' &&
+              matrix.orientationY === -1
+            ) ||
+            (
+              matrix.orientation.strand2 !== 'coding' &&
+              matrix.orientationY === 1
+            )
+          ) {
+            matrix.flipY();
+          }
+        });
+        this.piles.forEach(pile => pile.calculateCoverMatrix());
+        break;
+
+      case MATRIX_ORIENTATION_5_TO_3:
+        fgmState.matrices.forEach(matrix => matrix.orient5To3());
+        this.piles.forEach(pile => pile.calculateCoverMatrix());
+        break;
+
+      case MATRIX_ORIENTATION_3_TO_5:
+        fgmState.matrices.forEach(matrix => matrix.orient5To3(true));
+        this.piles.forEach(pile => pile.calculateCoverMatrix());
+        break;
+
+      case MATRIX_ORIENTATION_UNDEF:
+      default:
+        // Nothing
+    }
   }
 
   /**
@@ -4274,7 +4351,7 @@ export class Fragments {
         stateFgm.matrixFrameEncoding, update, init
       ));
       ready.push(this.updateMatrixOrientation(
-        stateFgm.matrixOrientation, update
+        stateFgm.matrixOrientation, update, init
       ));
       ready.push(this.updatePilesInspection(stateFgm.pilesInspection, update));
       ready.push(this.updatePiles(stateFgm.piles, update));
@@ -4305,35 +4382,6 @@ export class Fragments {
   }
 
   /**
-   * Hide inspection mode.
-   */
-  hideInspection () {
-    this.resetInspection();
-    fgmState.piles.forEach((pile) => {
-      pile.show();
-    });
-  }
-
-  /**
-   * Destroy inspected piles and reset the index.
-   */
-  resetInspection () {
-    this.destroyPiles(fgmState.pilesInspection);
-    fgmState.pilesInspection = [];
-  }
-
-  /**
-   * Hide normal piles and reset the inspected piles
-   */
-  showInspection () {
-    fgmState.piles.forEach((pile) => {
-      pile.hide();
-    });
-
-    this.resetInspection();
-  }
-
-  /**
    * Handler rendering after updates.
    *
    * @param {object} update - Object that states what to update
@@ -4341,6 +4389,10 @@ export class Fragments {
   updateRendering (update) {
     if (update.grid) {
       this.calcGrid();
+    }
+
+    if (update.orientMatrices) {
+      this.orientMatrices();
     }
 
     if (update.pileFrames) {
@@ -4844,15 +4896,14 @@ export class Fragments {
    *
    * @param {number} orientation - Matrix orientation number.
    * @param {object} update - Update object.
+   * @param {boolean} force - If `true` force update.
    */
-  updateMatrixOrientation (orientation, update) {
-    if (fgmState.matrixOrientation === orientation) {
-      return Promise.resolve();
+  updateMatrixOrientation (orientation, update, force) {
+    if (fgmState.matrixOrientation !== orientation || force) {
+      fgmState.matrixOrientation = orientation;
+      update.orientMatrices = true;
+      update.piles = true;
     }
-
-    fgmState.matrixOrientation = orientation;
-
-    update.piles = true;
 
     return Promise.resolve();
   }
@@ -4928,7 +4979,7 @@ export class Fragments {
 
     if (!this.pilesInspectionConfigs.length) {
       update.pilesForce = fgmState.isPilesInspection;
-      this.hideInspection();
+      this.inspectionHide();
       fgmState.isPilesInspection = false;
       return Promise.resolve();
     }
@@ -4941,7 +4992,7 @@ export class Fragments {
     fgmState.isPilesInspection = true;
 
     if (newInspection) {
-      this.showInspection();
+      this.inspectionShow();
     }
 
     const ignore = { __source: true };
