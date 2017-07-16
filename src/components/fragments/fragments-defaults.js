@@ -3,10 +3,11 @@ import threeLine2d from 'three-line-2d';
 import threeLine2dShader from 'three-line-2d-shader';
 
 import COLORS from 'configs/colors';
-import pileColors from 'components/fragments/pile-colors';
 
 
 export const ANIMATION = true;
+
+export const API_DOMAINS = 'domains_by_loci';
 
 export const API_FRAGMENTS = 'fragments_by_loci';
 
@@ -96,6 +97,8 @@ export const LASSO_MATERIAL = new THREE.ShaderMaterial(LASSO_SHADER);
 
 export const LETTER_SPACE = 6;
 
+export const LOG_TRANSFORM = false;
+
 export const MARGIN_BOTTOM = 2;
 
 export const MARGIN_LEFT = 2;
@@ -172,21 +175,21 @@ export const PILE_MENU_CLOSING_DELAY = 200;
 
 export const PILES = {};
 
-export const PILE_COLORS_CATEGORICAL = pileColors.categorical.length;
-
-export const PREVIEW_SIZE = 2;
-
 export const PREVIEW_MAX = 8;
-
-export const SHADER_ATTRIBUTES = {
-  customColor: { type: 'c', value: [] }
-};
 
 export const SHOW_MATRICES = 1000;
 
 export const SHOW_SPECIAL_CELLS = false;
 
 export const TIMELINE_HEIGHT = 130;
+
+export const TSNE_PERPLEXITY = 20.0;
+
+export const TSNE_EARLY_EXAGGERATION = 4.0;
+
+export const TSNE_LEARNING_RATE = 100.0;
+
+export const TSNE_ITERATIONS = 500;
 
 /**
  * Three.js's WebGL config

@@ -1,4 +1,4 @@
-import { scaleLinear } from 'd3';
+import { scaleLinear, scaleLog } from 'd3';
 
 import {
   BufferAttribute,
@@ -10,11 +10,13 @@ import {
   LinePieces,
   Mesh,
   MeshBasicMaterial,
+  NearestFilter,
   PlaneBufferGeometry,
+  PlaneGeometry,
   ShaderMaterial,
   Shape,
   ShapeGeometry,
-  TextGeometry,
+  Texture,
   Vector3
 } from 'three';
 
@@ -23,8 +25,6 @@ import {
   LINE_SHADER,
   SHADER_ATTRIBUTES
 } from 'components/fragments/fragments-defaults';
-
-import fgmState from './fragments-state';
 
 
 export function calculateClusterPiling (
@@ -67,6 +67,12 @@ export function calculateDistances (matrices) {
 }
 
 export const cellValue = scaleLinear().range([0, 1]).nice();
+
+export const cellValueLogNorm = scaleLinear().domain([0, 1]).range([1, 10]);
+export const cellValueLogTransform = scaleLog().nice();
+export const cellValueLog = value => (value === -1 ? -1 : cellValueLogTransform(
+  cellValueLogNorm(value)
+));
 
 export const frameValue = scaleLinear().range([0.1, 0.9]).nice();
 
@@ -323,27 +329,55 @@ export function createRect (w, h, color) {
   return new Mesh(geom, m);
 }
 
-export function createText (string, x, y, z, size, color, weight) {
-  const textGeom = new TextGeometry(string, {
-    size: size || 8,
-    height: 1,
-    weight: weight || 'normal',
-    curveSegments: 1,
-    font: fgmState.font,
-    bevelEnabled: false
+export function createText (label) {
+  const canvas = document.createElement('canvas');
+  canvas.width = 64;
+  canvas.height = 16;
+  const context = canvas.getContext('2d');
+  context.font = '12px Rubik';
+  context.fillStyle = 'rgba(0, 0, 0, 0.25)';
+  context.fillText(label, 0, 12);
+
+  // canvas contents will be used for a texture
+  const texture = new Texture(canvas);
+  texture.needsUpdate = true;
+
+  const material = new MeshBasicMaterial({
+    map: texture,
+    side: DoubleSide
   });
 
-  const textMaterial = new MeshBasicMaterial({
-    color: color || 0xff0000,
-    transparent: true,
-    opacity: 1
-  });
+  material.transparent = true;
 
-  const label = new Mesh(textGeom, textMaterial);
+  return new Mesh(
+    new PlaneGeometry(canvas.width, canvas.height),
+    material
+  );
+}
 
-  label.position.set(x, y, z);
+export function createImage (pixels, width, height) {
+  // Set image data
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
 
-  return label;
+  const image = new ImageData(pixels, canvas.width, canvas.height);
+
+  const context = canvas.getContext('2d');
+  context.putImageData(image, 0, 0);
+
+  // canvas contents will be used for a texture
+  const texture = new Texture(canvas);
+  texture.needsUpdate = true;
+  texture.minFilter = NearestFilter;
+  texture.magFilter = NearestFilter;
+
+  const material = new MeshBasicMaterial({ map: texture, transparent: true });
+
+  return new Mesh(
+    new PlaneGeometry(canvas.width, canvas.height),
+    material
+  );
 }
 
 export function createMarker (x, y, z, color) {
@@ -369,3 +403,23 @@ export function createMarker (x, y, z, color) {
   return m;
 }
 
+export function updateImageTexture (mesh, pixels) {
+  // Set image data
+  const canvas = document.createElement('canvas');
+  canvas.width = mesh.material.map.image.width;
+  canvas.height = mesh.material.map.image.height;
+
+  const image = new ImageData(pixels, canvas.width, canvas.height);
+
+  const context = canvas.getContext('2d');
+  context.putImageData(image, 0, 0);
+
+  // canvas contents will be used for a texture
+  const texture = new Texture(canvas);
+  texture.needsUpdate = true;
+  texture.minFilter = NearestFilter;
+  texture.magFilter = NearestFilter;
+
+  mesh.material.map = texture;
+  mesh.material.map.needsUpdate = true;
+}

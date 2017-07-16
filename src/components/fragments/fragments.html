@@ -1,4 +1,5 @@
 `<template>
+  <require from="components/dialog/dialog"></require>
   <require from="components/fragments/pile-menu"></require>
   <require from="components/multi-select/multi-select"></require>
   <require from="components/svg-icon/svg-icon"></require>
@@ -10,11 +11,18 @@
       <span>${errorMsg}</span>
     </div>
   </div>
+
   <div class="flex-c flex-a-c flex-jc-c full-dim loading-indicator ${isLoading ? 'is-active' : ''}">
     <div class="flex-c flex-a-c flex-jc-c spinner-bg">
       <spinner if.bind="isLoading"></spinner>
     </div>
   </div>
+
+  <dialog
+    class="flex-c flex-a-c flex-jc-c full-dim ${dialogIsOpen ? 'is-active' : ''}"
+    deferred.bind="dialogDeferred"
+    is-open.bind="dialogIsOpen"
+    message.bind="dialogMessage"></dialog>
 
   <pile-menu
     pile.bind="pileMenuPile"
@@ -93,11 +101,11 @@
             placeholder="Choose measures…"></multi-select>
 
           <ul class="flex-c settings-list settings-list-buttons-only">
-            <li class="flex-c ${isDataClustered ? 'button-group' : ''}">
+            <li class="flex-c button-group">
               <button
-                class="flex-c flex-jc-c flex-a-c rel button ${isDataClustered && !state.isPilesInspection ? 'is-active' : ''}"
+                class="flex-c flex-jc-c flex-a-c rel button ${isDataClustered && !state.isPilesInspection ? 'is-active' : ''} ${state.trashIsActive ? 'is-disabled' : ''}"
                 click.delegate="clusterTsne()"
-                disabled.bind="state.isPilesInspection">
+                disabled.bind="state.trashIsActive || state.isPilesInspection">
                 Cluster${isDataClustered ? 'ed' : ''}
               </button>
               <button
@@ -283,6 +291,14 @@
                 click.delegate="showSpecialCellsChangeHandler()">
             </li>
             <li class="flex-c flex-d-c">
+              <label for="settings-fgm-log">Log</label>
+              <input
+                type="checkbox"
+                id="settings-fgm-log"
+                checked.bind="state.logTransform"
+                click.delegate="logTransformChangeHandler()">
+            </li>
+            <li class="flex-c flex-d-c">
               <label
                 for="settings-fgm-matrix-frame-encoding"
                 title="Frame encoding">Frame Enc.</label>
@@ -303,6 +319,88 @@
                 class="flex-c flex-jc-c flex-a-c rel button ${!state.trashIsActive ? 'is-enabled' : 'is-disabled'}"
                 click.delegate="decolorAll()">
                 Decolor All
+              </button>
+            </li>
+          </ul>
+        </div>
+
+        <div class="flex-c settings-row">
+          <h4>t-SNE</h4>
+
+          <ul class="flex-c settings-list settings-list">
+            <li class="flex-c flex-d-c">
+              <label for="settings-fgm-tsne-perplexity">
+                Perplexity
+                <span class="value ${tsnePerplexityTmp && tsnePerplexityTmp !== tsnePerplexity ? 'new' : ''}">: <em>${tsnePerplexityTmp ? tsnePerplexityTmp : tsnePerplexity}</em></span>
+              </label>
+              <input
+                id="settings-fgm-tsne-perplexity"
+                type="range"
+                min="1"
+                max="100"
+                step="1"
+                value.one-way="tsnePerplexity"
+                mousedown.delegate="tsnePerplexityMousedownHandler($event)"
+                mouseup.delegate="tsnePerplexityMouseupHandler($event)"
+                input.delegate="tsnePerplexityInputHandler($event)"
+                change.delegate="tsnePerplexityChangeHandler($event)">
+            </li>
+            <li class="flex-c flex-d-c">
+              <label for="settings-fgm-tsne-early-exaggeration">
+                Early Exaggeration
+                <span class="value ${tsneEarlyExaggerationTmp && tsneEarlyExaggerationTmp !== tsneEarlyExaggeration ? 'new' : ''}">: <em>${tsneEarlyExaggerationTmp ? tsneEarlyExaggerationTmp : tsneEarlyExaggeration}</em></span>
+              </label>
+              <input
+                id="settings-fgm-tsne-early-exaggeration"
+                type="range"
+                min="1.0"
+                max="10.0"
+                step="0.1"
+                value.one-way="tsneEarlyExaggeration"
+                mousedown.delegate="tsneEarlyExaggerationMousedownHandler($event)"
+                mouseup.delegate="tsneEarlyExaggerationMouseupHandler($event)"
+                input.delegate="tsneEarlyExaggerationInputHandler($event)"
+                change.delegate="tsneEarlyExaggerationChangeHandler($event)">
+            </li>
+            <li class="flex-c flex-d-c">
+              <label for="settings-fgm-tsne-learning-rate">
+                Learning Rate
+                <span class="value ${tsneLearningRateTmp &&tsneLearningRateTmp !== tsneLearningRate ? 'new' : ''}">: <em>${tsneLearningRateTmp ? tsneLearningRateTmp : tsneLearningRate}</em></span>
+              </label>
+              <input
+                id="settings-fgm-tsne-learning-rate"
+                type="range"
+                min="1"
+                max="1000"
+                step="1"
+                value.one-way="tsneLearningRate"
+                mousedown.delegate="tsneLearningRateMousedownHandler($event)"
+                mouseup.delegate="tsneLearningRateMouseupHandler($event)"
+                input.delegate="tsneLearningRateInputHandler($event)"
+                change.delegate="tsneLearningRateChangeHandler($event)">
+            </li>
+            <li class="flex-c flex-d-c">
+              <label for="settings-fgm-tsne-iterations">
+                Max Iterations
+                <span class="value ${tsneIterationsTmp && tsneIterationsTmp !== tsneIterations ? 'new' : ''}">: <em>${tsneIterationsTmp ? tsneIterationsTmp : tsneIterations}</em></span>
+              </label>
+              <input
+                id="settings-fgm-tsne-iterations"
+                type="range"
+                min="100"
+                max="5000"
+                step="10"
+                value.one-way="tsneIterations"
+                mousedown.delegate="tsneIterationsMousedownHandler($event)"
+                mouseup.delegate="tsneIterationsMouseupHandler($event)"
+                input.delegate="tsneIterationsInputHandler($event)"
+                change.delegate="tsneIterationsChangeHandler($event)">
+            </li>
+            <li>
+              <button
+                class="flex-c flex-jc-c flex-a-c rel button"
+                click.delegate="helpTsneSettings()">
+                <svg-icon icon-id="help"></svg-icon>
               </button>
             </li>
           </ul>
@@ -341,20 +439,4 @@
       </button>
     </footer>
   </div>
-
-  <script type="x-shader/x-vertex" id="shader-vertex">
-    attribute vec4 customColor;
-    varying vec4 vColor;
-    void main() {
-      vColor = customColor;
-      gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
-    }
-  </script>
-
-  <script type="x-shader/x-fragment" id="shader-fragment">
-    varying vec4 vColor;
-    void main() {
-      gl_FragColor = vec4( vColor );
-    }
-  </script>
 </template>

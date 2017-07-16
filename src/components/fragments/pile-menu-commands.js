@@ -5,16 +5,17 @@ import { EventAggregator } from 'aurelia-event-aggregator';
 import States from 'services/states';
 
 import {
-  recoverPiles,
-  trashPiles
+  recoverPiles
 } from 'components/fragments/fragments-actions';
 
 import {
   MODE_AVERAGE, MODE_VARIANCE
 } from 'components/fragments/fragments-defaults';
 
+
 const store = Container.instance.get(States).store;
 const event = Container.instance.get(EventAggregator);
+
 
 export const COLOR = {
   buttons: [
@@ -110,21 +111,23 @@ export const COVER_AVERAGE = {
     name: 'Average cover',
     trigger (pile) {
       event.publish('explore.fgm.coverDispMode', { mode: MODE_AVERAGE, pile });
+      event.publish('explore.fgm.pileMenuUpdate');
     }
   }],
-  stackedPileOnly: true
+  stackedPileOnly: true,
+  isActiveAvgCover: true
 };
 
 export const COVER_VARIANCE = {
   buttons: [{
     name: 'Variance cover',
     trigger (pile) {
-      event.publish(
-        'explore.fgm.coverDispMode', { mode: MODE_VARIANCE, pile }
-      );
+      event.publish('explore.fgm.coverDispMode', { mode: MODE_VARIANCE, pile });
+      event.publish('explore.fgm.pileMenuUpdate');
     }
   }],
-  stackedPileOnly: true
+  stackedPileOnly: true,
+  isActiveVarCover: true
 };
 
 export const DISPERSE = {
@@ -135,7 +138,8 @@ export const DISPERSE = {
     },
     closeOnClick: true
   }],
-  stackedPileOnly: true
+  stackedPileOnly: true,
+  notInTrash: true
 };
 
 export const INSPECT = {
@@ -147,7 +151,8 @@ export const INSPECT = {
     },
     closeOnClick: true
   }],
-  stackedPileOnly: true
+  stackedPileOnly: true,
+  notInTrash: true
 };
 
 export const RECOVER = {
@@ -166,9 +171,12 @@ export const RECOVER = {
 
 export const REMOVE = {
   buttons: [{
-    name: 'Remove',
+    name: 'Remove from pile',
     trigger (pile) {
       event.publish('explore.fgm.removeFromPile', [pile]);
+      event.publish('explore.fgm.pileMouseLeave');
+      event.publish('explore.fgm.pileUnhighlight');
+      event.publish('explore.fgm.removePileArea');
     },
     closeOnClick: true
   }],
@@ -193,7 +201,7 @@ export const TRASH = {
   buttons: [{
     name: 'Move to trash',
     trigger (pile) {
-      store.dispatch(trashPiles([pile.id]));
+      event.publish('explore.fgm.trashPile', pile);
       event.publish('explore.fgm.pileMouseLeave');
       event.publish('explore.fgm.pileUnhighlight');
       event.publish('explore.fgm.removePileArea');
@@ -206,6 +214,7 @@ export const TRASH = {
 export default [
   INSPECT,
   DISPERSE,
+  RECOVER,
   REMOVE,
   SEPARATOR,
   SHOW_IN_MATRIX,
@@ -213,7 +222,6 @@ export default [
   COLOR,
   SEPARATOR,
   TRASH,
-  RECOVER,
   SEPARATOR,
   COVER_AVERAGE,
   COVER_VARIANCE

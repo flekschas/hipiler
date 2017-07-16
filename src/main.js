@@ -1,3 +1,6 @@
+import { LogManager } from 'aurelia-framework';
+import { ConsoleAppender } from 'aurelia-logging-console';
+
 //Configure Bluebird Promises.
 if (Promise.config) {
   Promise.config({
@@ -17,7 +20,8 @@ export function configure (aurelia) {
   }
 
   if (window.hipilerConfig.debug) {
-    aurelia.use.developmentLogging();
+    LogManager.addAppender(new ConsoleAppender());
+    LogManager.setLevel(LogManager.logLevel.debug);
   }
 
   if (window.hipilerConfig.testing) {

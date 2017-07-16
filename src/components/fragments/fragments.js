@@ -1,31 +1,27 @@
 // Aurelia
 import {
   bindable,
-  inject,
+  inject,  // eslint-disable-line
   LogManager
 } from 'aurelia-framework';
 
-import { EventAggregator } from 'aurelia-event-aggregator';
+import { EventAggregator } from 'aurelia-event-aggregator';  // eslint-disable-line
 
 // Third party
 import { json, queue, scaleLinear, text } from 'd3';
 import hull from 'hull';
 import {
-  DoubleSide,
-  FontLoader,
   Mesh,
-  NormalBlending,
   OrthographicCamera,
   Raycaster,
-  ShaderMaterial,
   Vector2,
   Vector3,
   WebGLRenderer
 } from 'three';
 
 // Injectables
-import ChromInfo from 'services/chrom-info';
-import States from 'services/states';
+import ChromInfo from 'services/chrom-info';  // eslint-disable-line
+import States from 'services/states';  // eslint-disable-line
 
 // Utils etc.
 import {
@@ -44,16 +40,25 @@ import {
   setHilbertCurve,
   setHiglassSubSelection,
   setLassoIsRound,
+  setLogTransform,
   setMatricesColors,
   setMatrixFrameEncoding,
   setMatrixOrientation,
   setPiles,
   setShowSpecialCells,
+  setTsneEarlyExaggeration,
+  setTsneIterations,
+  setTsneLearningRate,
+  setTsnePerplexity,
+  splitPilesInspection,
   stackPiles,
-  stackPilesInspection
+  stackPilesInspection,
+  trashPiles,
+  trashPilesInspection
 } from 'components/fragments/fragments-actions';
 
 import {
+  API_DOMAINS,
   API_FRAGMENTS,
   ARRANGE_MEASURES,
   CAT_CHROMOSOME,
@@ -64,7 +69,6 @@ import {
   CLUSTER_TSNE,
   DBL_CLICK_DELAY_TIME,
   DURATION,
-  FONT_URL,
   FRAGMENTS_BASE_RES,
   FRAGMENT_PRECISION,
   FRAGMENT_SIZE,
@@ -91,7 +95,10 @@ import {
   PILE_AREA_POINTS,
   PILE_LABEL_HEIGHT,
   PREVIEW_MAX,
-  PREVIEW_SIZE,
+  TSNE_PERPLEXITY,
+  TSNE_EARLY_EXAGGERATION,
+  TSNE_LEARNING_RATE,
+  TSNE_ITERATIONS,
   WEB_GL_CONFIG,
   Z_BASE,
   Z_DRAG,
@@ -101,14 +108,18 @@ import {
   Z_STACK_PILE_TARGET
 } from 'components/fragments/fragments-defaults';
 
-import fgmState from 'components/fragments/fragments-state';
+import {
+  PREVIEW_SIZE,
+  PREVIEW_GAP_SIZE
+} from 'components/fragments/pile-defaults';
+
+import FgmState from 'components/fragments/fragments-state';
 
 import Pile from 'components/fragments/pile';
 
 import Matrix from 'components/fragments/matrix';
 
 import {
-  calculateDistances,
   createChMap,
   createRectFrame,
   is2d
@@ -121,6 +132,7 @@ import COLORS from 'configs/colors';
 import arraysEqual from 'utils/arrays-equal';
 import hilbertCurve from 'utils/hilbert-curve';
 import { requestNextAnimationFrame } from 'utils/request-animation-frame';
+
 
 const logger = LogManager.getLogger('fragments');
 
@@ -157,9 +169,12 @@ const sortAsc = (a, b) => {
   return 1;
 };
 
+let fgmState = FgmState.get();
+
+
 @inject(ChromInfo, EventAggregator, States)
 export class Fragments {
-  @bindable baseElIsInit = false;
+  @bindable baseElIsInit = false;  // eslint-disable-line
 
   constructor (chromInfo, event, states) {
     this.event = event;
@@ -175,26 +190,17 @@ export class Fragments {
     this.colorsMatrixIdx = {};
     this.colorsUsed = [];
     this.maxDistance = 0;
-    this.pilingMethod = 'clustered';
     this.matrixStrings = '';
     this.matrixPos = []; // index of pile in layout array
     this.matrices = []; // contains all matrices
     this.matricesPileIndex = []; // contains pile index for each matrix.
     this.selectedMatrices = [];
     this.dragActive = false;
-    this.openedPileMatrices = [];
     this.pilesZoomed = {};
     this.plotWindowCss = {};
     this.scrollTop = 0;
     this.shiftDown = false;
-    this.allPileOrdering = [];
-     // Array containing the orderings for all piles, when not all nodes are
-     // focused on.
-    this.focusNodeAllPileOrdering = [];
     this.dataMeasures = {};
-
-    this.nodes = [];
-    this.focusNodes = [];  // currently visible nodes (changed by the user)
 
     this._isLoadedSession = false;
     this._isSavedSession = false;
@@ -209,15 +215,7 @@ export class Fragments {
     this.fragDims = 0;  // Fragment dimensions
     this.scale = 1;
 
-    // If the user changes the focus nodes, matrix similarity must be recalculated
-    // before automatic piling. Distance calculation is performed on the server.
-    this.dMat = [];
-    this.pdMat = [];  // contains similarity between piles
-    this.pdMax = 0;
-
     this.keyAltDownTime = 0;
-
-    this.pilingAnimations = [];
 
     this.mouseIsDown = false;
     this.lassoIsActive = false;
@@ -231,6 +229,11 @@ export class Fragments {
     this.mouseClickCounter = 0;
 
     this.subscriptions = [];
+
+    this.tsnePerplexity = TSNE_PERPLEXITY;
+    this.tsneEarlyExaggeration = TSNE_EARLY_EXAGGERATION;
+    this.tsneLearningRate = TSNE_LEARNING_RATE;
+    this.tsneIterations = TSNE_ITERATIONS;
 
     this.arrangeMeasuresAccessPath = [
       'explore', 'fragments', 'arrangeMeasures'
@@ -294,11 +297,6 @@ export class Fragments {
       this.reject.isDataLoaded = reject;
     });
 
-    this.isFontLoaded = new Promise((resolve, reject) => {
-      this.resolve.isFontLoaded = resolve;
-      this.reject.isFontLoaded = reject;
-    });
-
     this.isInitBase = new Promise((resolve, reject) => {
       this.resolve.isInitBase = resolve;
       this.reject.isInitBase = reject;
@@ -309,8 +307,7 @@ export class Fragments {
       this.reject.isInitFully = reject;
     });
 
-    this.update();
-    this.loadFont();
+    this.update(false, true);
 
     Promise
       .all([this.isAttached, this.isBaseElInit])
@@ -320,7 +317,7 @@ export class Fragments {
       });
 
     Promise
-      .all([this.isDataLoaded, this.isFontLoaded, this.isInitBase])
+      .all([this.isDataLoaded, this.isInitBase])
       .then((results) => { this.initPlot(results[0]); })
       .catch((error) => {
         logger.error('Failed to initialize the fragment plot', error);
@@ -350,8 +347,9 @@ export class Fragments {
   /**
    * Called once the component is attached.
    */
-
   attached () {
+    fgmState = FgmState.get();
+
     window.addResizeListener(this.baseEl, this.resizeHandler.bind(this));
 
     this.resolve.isAttached();
@@ -380,6 +378,14 @@ export class Fragments {
     return this.chromInfo.get();
   }
 
+  get coverDispMode () {
+    return fgmState.coverDispMode;
+  }
+
+  set coverDispMode (value) {
+    fgmState.coverDispMode = value;
+  }
+
   get gridSize () {
     let gridSize = fgmState.gridSize;
 
@@ -388,6 +394,15 @@ export class Fragments {
     }
 
     return gridSize * (fgmState.trashIsActive ? 1 : fgmState.scale);
+  }
+
+  get isClustered () {
+    return (
+      (
+        this.arrangeMeasures.length === 1 && this.arrangeMeasures[0][0] === '_'
+      ) ||
+      (this.arrangeMeasures.length > 2)
+    ) && !fgmState.trashIsActive;
   }
 
   get isDataClustered () {
@@ -457,16 +472,15 @@ export class Fragments {
   }
 
   get pilePreviewHeight () {
-    return PREVIEW_MAX * this.previewSize;
+    return fgmState.previewScale * (
+      (PREVIEW_MAX * PREVIEW_SIZE) +
+      ((PREVIEW_MAX + 1) * PREVIEW_GAP_SIZE)
+    );
   }
 
   get piles () {
     if (fgmState.trashIsActive) {
       return fgmState.pilesTrash;
-    }
-
-    if (this.subSelectingPiles) {
-      return this.pilesState;
     }
 
     return this.pilesState;
@@ -499,15 +513,12 @@ export class Fragments {
   }
 
   get pileMeshes () {
-    return fgmState.trashIsActive ? fgmState.pileMeshesTrash : fgmState.pileMeshes;
+    return fgmState.trashIsActive ?
+      fgmState.pileMeshesTrash : fgmState.pileMeshes;
   }
 
   get plotElDim () {
     return fgmState.plotElDim;
-  }
-
-  get previewSize () {
-    return this.cellSize * (this.cellSize > 2 ? 1 : PREVIEW_SIZE);
   }
 
   get rawMatrices () {
@@ -518,9 +529,9 @@ export class Fragments {
     return fgmState;
   }
 
-  get strandArrowRects () {
+  get strandArrows () {
     return this.isTrashed ?
-      fgmState.strandArrowRectsTrash : fgmState.strandArrowRects;
+      fgmState.strandArrowsTrash : fgmState.strandArrows;
   }
 
   get subSelectingPiles () {
@@ -533,7 +544,6 @@ export class Fragments {
 
 
   /* ---------------------------- Custom Methods ---------------------------- */
-
 
   /**
    * Handles changes of animation
@@ -592,7 +602,7 @@ export class Fragments {
 
       if (numMeasures === 1) {
         // Intrinsic measure starting with `_`, e.g., `_cluster_tsne`
-        // Uses t-SNE with on the matrix snippets
+        // Uses t-SNE with the matrix snippets
         this.clusterLayout = this.calcLayoutPositionsTsne(piles, reArrange);
       } else {
         this.clusterLayout = this.calcLayoutPositionsMD(
@@ -667,20 +677,6 @@ export class Fragments {
           measure.value
         );
       });
-  }
-
-  /**
-   * [calculateDistanceMatrix description]
-   *
-   * @return {[type]} [description]
-   */
-  calculateDistanceMatrix () {
-    const data = calculateDistances(this.rawMatrices);
-
-    this.dMat = data.distanceMatrix;
-    this.pdMat = data.distanceMatrix;
-    this.maxDistance = data.maxDistance;
-    this.pdMax = this.maxDistance;
   }
 
   /**
@@ -837,9 +833,15 @@ export class Fragments {
     }
 
     // Pull cached results
-    if (this.tsneAttrsPos && !reCalculate) {
-      this.isLoading = false;
-      return Promise.resolve(this.tsneAttrsPos);
+    if (this.tsneAttrsPos) {
+      const equality = arraysEqual(
+        this.tsneAttrsPos.measures,
+        measures
+      );
+      if (equality && !reCalculate) {
+        this.isLoading = false;
+        return Promise.resolve(this.tsneAttrsPos.pos);
+      }
     }
 
     return new Promise((resolve, reject) => {
@@ -870,18 +872,21 @@ export class Fragments {
               resolve(pos);
 
               // Cache results
-              this.tsneAttrsPos = pos;
+              this.tsneAttrsPos = {
+                pos,
+                measures: measures.slice()
+              };
               this.cachePileSetup();
             }
           };
 
           worker.postMessage({
-            nIter: 500,
-            // dim: 2,
-            perplexity: 20.0,
-            // earlyExaggeration: 4.0,
-            // learningRate: 100.0,
-            // metric: 'euclidean',
+            nIter: this.tsneIterations,
+            dim: 2,
+            perplexity: this.tsnePerplexity,
+            earlyExaggeration: this.tsneEarlyExaggeration,
+            learningRate: this.tsneLearningRate,
+            metric: 'euclidean',
             data: pileMeasures
           });
         })
@@ -891,6 +896,12 @@ export class Fragments {
     });
   }
 
+  /**
+   * Cache pile config.
+   *
+   * @param {object} pilesConfig - Config to ber cached.
+   * @param {array} piles - Piles for which the config should be cached.
+   */
   cachePileSetup (pilesConfig = this.pilesNormalConfigs, piles = this.piles) {
     this.pilesConfigCached = pilesConfig;
 
@@ -947,14 +958,14 @@ export class Fragments {
           };
 
           worker.postMessage({
-            nIter: 500,
+            nIter: this.tsneIterations,
             dim: 2,
-            perplexity: 20.0,
-            // earlyExaggeration: 4.0,
-            // learningRate: 100.0,
+            perplexity: this.tsnePerplexity,
+            earlyExaggeration: this.tsneEarlyExaggeration,
+            learningRate: this.tsneLearningRate,
             metric: 'euclidean',
             // The t-SNE implementation doesn't understand typed arrays...
-            data: this.piles.map(pile => Array.from(pile.avgMatrix))
+            data: this.piles.map(pile => Array.from(pile.coverMatrix))
           });
         })
         .catch((error) => {
@@ -981,13 +992,11 @@ export class Fragments {
       this.render();
 
       this.hoveredTool = undefined;
-    } else if (fgmState.hoveredGapPile) {
-      this.pileBackwards(fgmState.hoveredGapPile);
-      fgmState.hoveredGapPile = undefined;
     } else if (this.hoveredStrandArrow) {
       this.hoveredStrandArrow.userData.pile.flipMatrix(
         this.hoveredStrandArrow.userData.axis
       ).draw();
+      this.store.dispatch(setMatrixOrientation(MATRIX_ORIENTATION_UNDEF));
     }
 
     if (fgmState.hoveredPile) {
@@ -1015,11 +1024,11 @@ export class Fragments {
    */
   canvasDblClickHandler () {
     if (fgmState.hoveredPile) {
-      this.dispersePilesHandler([fgmState.hoveredPile]);
+      this.inspectPilesHandler([fgmState.hoveredPile]);
       fgmState.hoveredPile = undefined;
     } else {
       Object.keys(this.pilesZoomed).forEach((pileId) => {
-        this.pilesIdxState[pileId].setScale().frameCreate().draw();
+        this.pilesIdxState[pileId].elevateTo().setScale().frameCreate().draw();
       });
       this.pilesZoomed = {};
     }
@@ -1168,7 +1177,8 @@ export class Fragments {
           }]
         );
 
-        this.dragPile.elevateTo(Z_BASE);
+        const zoomed = this.pilesZoomed[this.dragPile.id];
+        this.dragPile.elevateTo(zoomed ? Z_HIGHLIGHT : Z_BASE);
       } else {
         // Pile up the two piles
         this.pileUp({ [fgmState.hoveredPile.id]: [this.dragPile.id] });
@@ -1181,7 +1191,7 @@ export class Fragments {
       );
     } else if (this.isLassoRoundActive && this.lassoRoundMinMove) {
       pilesSelected = this.getLassoRoundSelection();
-    } else {
+    } else if (event.type === 'mouseup') {
       this.canvasMouseClickHandler(event);
     }
 
@@ -1270,6 +1280,7 @@ export class Fragments {
       } else {
         // Unset cache
         this.pilesConfigCached = {};
+        this.tsneDataPos = undefined;
         this.store.dispatch(setArrangeMeasures([]));
       }
     } else {
@@ -1382,7 +1393,7 @@ export class Fragments {
    * @param {object} event - Event object.
    */
   changeCoverDispMode (event) {
-    event.pile.setCoverMatrixMode(event.mode).draw();
+    event.pile.setCoverDispMode(event.mode).draw();
 
     this.render();
   }
@@ -1479,13 +1490,21 @@ export class Fragments {
     this.dispersePilesHandler(this.piles);
   }
 
+  /**
+   * Check if piles have been created before clustering.
+   *
+   * @param {array} piles - Piles to be checked.
+   * @return {boolean} If `true`
+   */
   checkPiledBeforeCluster (piles) {
     if (!this.tsneDataPos && !this.tsneAttrsPos) { return; }
 
-    return !piles
+    const pileMatrices = piles
       .map(pile => pile.pileMatrices)
-      .reduce((acc, value) => acc.concat(value), [])
-      .every(pileMatrix => this.pilesConfigCached[pileMatrix.id]);
+      .reduce((acc, value) => acc.concat(value), []);
+
+    return !pileMatrices
+      .every(pileMatrix => this.pilesConfigCached[pileMatrix.id].length > 0);
   }
 
   /**
@@ -1494,7 +1513,7 @@ export class Fragments {
    * @param {object} piles - A list of piles to be dispersed.
    */
   dispersePilesHandler (piles) {
-    if (this.checkPiledBeforeCluster(piles)) {
+    if (this.isClustered && this.checkPiledBeforeCluster(piles)) {
       this.dialogPromise = new Promise((resolve, reject) => {
         this.dialogDeferred = { resolve, reject };
       });
@@ -2069,23 +2088,6 @@ export class Fragments {
   }
 
   /**
-   * Niceify numeric measure
-   *
-   * @param {number} measure - Measure to be nicefied.
-   * @return {number} Niceified value.
-   */
-  nicefyMeasure (measure) {
-    let nicefied = measure;
-
-    if (parseInt(measure, 10) !== measure) {
-      // Float
-      nicefied = Math.round(measure * 1000) / 1000;
-    }
-
-    return nicefied;
-  }
-
-  /**
    * Get matrices of piles
    *
    * @param {array} piles - Piles.
@@ -2231,8 +2233,8 @@ export class Fragments {
       }
 
       return this.calcDistanceEucl(
-        Matrix.flatten(_piles[index - 1].avgMatrix),
-        Matrix.flatten(_piles[index].avgMatrix)
+        _piles[index - 1].coverMatrix,
+        _piles[index].coverMatrix
       );
     });
 
@@ -2368,6 +2370,28 @@ export class Fragments {
   }
 
   /**
+   * Display help for t-SNE settings
+   */
+  helpTsneSettings () {
+    this.dialogPromise = new Promise((resolve, reject) => {
+      this.dialogDeferred = { resolve, reject };
+    });
+    this.dialogIsOpen = true;
+    this.dialogMessage =
+      'HiPiler uses t-SNE for dimensionality reduction when the number of ' +
+      'chosen measures for arranging snippets is higher than 2 or when ' +
+      'directly clicking on <em>Cluster</em>. While t-SNE works very well ' +
+      'with default settings most of the time you might want to tweak the ' +
+      'parameters to your liking. To better understand the impact of some ' +
+      'parameters please read this <a href="' +
+      'http://distill.pub/2016/misread-tsne/" target="_blank">excellent ' +
+      'article by Wattenberg et al.</a> and also make sure to have a look ' +
+      'at the <a href="https://github.com/scienceai/tsne-js#model-' +
+      'parameters" target="_blank">project page</a> of the JavaScript ' +
+      'implementation';
+  }
+
+  /**
    * Handle and disptach Hilber curve changes.
    */
   hilbertCurveChangeHandler () {
@@ -2415,7 +2439,6 @@ export class Fragments {
     this.getPlotElDim();
 
     this.initPlotWindow();
-    this.initShader();
     this.initWebGl();
     this.initEventListeners();
 
@@ -2570,6 +2593,11 @@ export class Fragments {
       'explore.fgm.removeFromPile',
       this.removeFromPile.bind(this)
     ));
+
+    this.subscriptions.push(this.event.subscribe(
+      'explore.fgm.trashPile',
+      this.trashPile.bind(this)
+    ));
   }
 
   /**
@@ -2715,28 +2743,6 @@ export class Fragments {
   }
 
   /**
-   * Initialize shader material.
-   */
-  initShader () {
-    try {
-      fgmState.shaderMaterial = new ShaderMaterial({
-        vertexShader: document.querySelector('#shader-vertex').textContent,
-        fragmentShader: document.querySelector('#shader-fragment').textContent,
-        blending: NormalBlending,
-        depthTest: true,
-        transparent: true,
-        side: DoubleSide,
-        linewidth: 2
-      });
-    } catch (error) {
-      this.isErrored = true;
-      this.errorMsg = 'Failed to initialize shader.';
-
-      logger.error('Failed to initialize shader.', error);
-    }
-  }
-
-  /**
    * Initialize the canvas container.
    */
   initWebGl () {
@@ -2773,6 +2779,35 @@ export class Fragments {
     this.raycaster = new Raycaster();
 
     fgmState.scene.add(this.camera);
+  }
+
+  /**
+   * Hide inspection mode.
+   */
+  inspectionHide () {
+    this.inspectionReset();
+    fgmState.piles.forEach((pile) => {
+      pile.show();
+    });
+  }
+
+  /**
+   * Destroy inspected piles and reset the index.
+   */
+  inspectionReset () {
+    this.destroyPiles(fgmState.pilesInspection);
+    fgmState.pilesInspection = [];
+  }
+
+  /**
+   * Hide normal piles and reset the inspected piles
+   */
+  inspectionShow () {
+    fgmState.piles.forEach((pile) => {
+      pile.hide();
+    });
+
+    this.inspectionReset();
   }
 
   /**
@@ -2816,10 +2851,19 @@ export class Fragments {
    * @param {object} event - Key up event object.
    */
   keyUpHandler (event) {
-    if (!this.isModifierKeyDown) {
+    if (!this.lastWasModifier) {
       switch (event.keyCode) {
+        case 27:  // ESC
+          this.closePilesInspectionHandler();
+          this.hideTrash();
+          break;
+
         case 67:  // C == Cover Mode
           this.toggleCoverDispMode();
+          break;
+
+        case 76:  // L == Log transform
+          this.logTransformChangeHandler();
           break;
 
         case 83:  // S == Selection (rect lasso or swiping)
@@ -2838,6 +2882,14 @@ export class Fragments {
           // Nothing
           break;
       }
+    }
+
+    if (this.lastWasModifier) {
+      this.lastWasModifier = false;
+    }
+
+    if (this.isModifierKeyDown) {
+      this.lastWasModifier = true;
     }
 
     if (event.code === 'AltLeft') {
@@ -2874,11 +2926,20 @@ export class Fragments {
 
     return new Promise((resolve, reject) => {
       let url;
+      let endpoint = API_FRAGMENTS;
 
       const params = {
         precision: config.fragmentsPrecision || FRAGMENT_PRECISION,
         dims: config.fragmentsDims || FRAGMENT_SIZE
       };
+
+      if (config.fragmentsDomains) {
+        endpoint = API_DOMAINS;
+      }
+
+      if (config.fragmentsPadding) {
+        params.padding = config.fragmentsPadding;
+      }
 
       if (config.fragmentsNoCache) {
         params['no-cache'] = 1;
@@ -2894,7 +2955,7 @@ export class Fragments {
       const server = config.fragmentsServer.replace(/\/+$/, '');
 
       try {
-        url = `${server}/${API_FRAGMENTS}/${queryString}`;
+        url = `${server}/${endpoint}/${queryString}`;
       } catch (e) {
         this.hasErrored('Config is broken');
         reject(Error(this.errorMsg));
@@ -2920,18 +2981,6 @@ export class Fragments {
 
           this.resolve.isDataLoaded(finalResults);
         });
-    });
-  }
-
-  /**
-   * Three JS font loader.
-   */
-  loadFont () {
-    const fontLoader = new FontLoader();
-
-    fontLoader.load(FONT_URL, (font) => {
-      fgmState.font = font;
-      this.resolve.isFontLoaded();
     });
   }
 
@@ -2963,6 +3012,45 @@ export class Fragments {
     });
 
     this.matricesGlobalPosCalced = true;
+  }
+
+  /**
+   * Determine which matrix changed their color.
+   *
+   * @param {object} oldMatrices - Old matrix color config.
+   * @param {object} newMatrices - New matrix color config.
+   * @return {array} Array with matrix IDs of changed matrices.
+   */
+  matrixColorChanged (oldMatrices, newMatrices) {
+    const changed = [];
+
+    if (!oldMatrices) {
+      oldMatrices = {};
+    }
+
+    try {
+      Object.keys(oldMatrices).forEach((id) => {
+        if (!newMatrices[id]) {
+          changed.push(id);
+        } else if (oldMatrices[id] !== newMatrices[id]) {
+          changed.push(id);
+        }
+      });
+    } catch (e) {
+      // Nothing
+    }
+
+    try {
+      Object.keys(newMatrices).forEach((id) => {
+        if (!oldMatrices[id]) {
+          changed.push(id);
+        }
+      });
+    } catch (e) {
+      // Nothing
+    }
+
+    return changed;
   }
 
   /**
@@ -3007,7 +3095,7 @@ export class Fragments {
     this.raycaster.setFromCamera(this.mouse, this.camera);
 
     // Check if the user mouses over a strand arrow
-    this.intersects = this.raycaster.intersectObjects(this.strandArrowRects);
+    this.intersects = this.raycaster.intersectObjects(this.strandArrows);
 
     if (this.intersects.length) {
       this.hoveredStrandArrow = this.intersects[0].object;
@@ -3053,7 +3141,8 @@ export class Fragments {
 
     if (fgmState.previousHoveredPile) {
       // Reset elevation
-      fgmState.previousHoveredPile.elevateTo();
+      const zoomed = this.pilesZoomed[fgmState.previousHoveredPile];
+      fgmState.previousHoveredPile.elevateTo(zoomed ? Z_HIGHLIGHT : undefined);
     }
 
     fgmState.hoveredPile.elevateTo(Z_HIGHLIGHT);
@@ -3063,18 +3152,22 @@ export class Fragments {
       const absY = this.relToAbsPositionY(this.mouse.y) + this.scrollTop;
 
       if (absY > y + fgmState.hoveredPile.matrixWidthHalf) {
-        const deltaY = absY - (y + fgmState.hoveredPile.matrixWidthHalf);
-        const index = Math.floor(deltaY / fgmState.hoveredPile.previewSize);
+        const hovPilePrevScale =
+          fgmState.previewScale * fgmState.hoveredPile.scale;
 
-        fgmState.hoveredPile.showSingle(
-          fgmState.hoveredPile.getMatrixPreview(index)
-        );
+        const deltaY = absY - y - fgmState.hoveredPile.matrixWidthHalf;
+        const index = Math.max(0, (
+          fgmState.hoveredPile.clustersAvgMatrices.length - 1 -
+          Math.floor(
+            deltaY / ((PREVIEW_SIZE + PREVIEW_GAP_SIZE) * hovPilePrevScale)
+          )
+        ));
+
+        fgmState.hoveredPile.previewMatrix(index);
       } else {
-        fgmState.hoveredPile.showSingle();
+        fgmState.hoveredPile.previewMatrix();
       }
     }
-
-    fgmState.hoveredPile.updateLabels();
 
     // Hovering over a new pile
     if (
@@ -3098,9 +3191,10 @@ export class Fragments {
     fgmState.hoveredPile = undefined;
 
     if (fgmState.previousHoveredPile) {
-      fgmState.previousHoveredPile.elevateTo();
-      fgmState.previousHoveredPile.showSingle(undefined);
-      fgmState.previousHoveredPile.setCoverMatrixMode(this.coverDispMode);
+      const zoomed = this.pilesZoomed[fgmState.previousHoveredPile.id];
+      fgmState.previousHoveredPile.elevateTo(zoomed ? Z_HIGHLIGHT : undefined);
+      fgmState.previousHoveredPile.previewMatrix();
+      fgmState.previousHoveredPile.setCoverDispMode(this.coverDispMode);
       this.highlightFrame.visible = false;
       fgmState.previousHoveredPile.draw();
       fgmState.previousHoveredPile = undefined;
@@ -3177,6 +3271,74 @@ export class Fragments {
 
       window.requestAnimationFrame(animate);
     });
+  }
+
+  /**
+   * Niceify numeric measure
+   *
+   * @param {number} measure - Measure to be nicefied.
+   * @return {number} Niceified value.
+   */
+  nicefyMeasure (measure) {
+    let nicefied = measure;
+
+    if (parseInt(measure, 10) !== measure) {
+      // Float
+      nicefied = Math.round(measure * 1000) / 1000;
+    }
+
+    return nicefied;
+  }
+
+  /**
+   * Orient all matrices.
+   */
+  orientMatrices () {
+    switch (fgmState.matrixOrientation) {
+      case MATRIX_ORIENTATION_INITIAL:
+        fgmState.matrices.forEach((matrix) => {
+          if (
+            (
+              matrix.orientation.strand1 === 'coding' &&
+              matrix.orientationX === -1
+            ) ||
+            (
+              matrix.orientation.strand1 !== 'coding' &&
+              matrix.orientationX === 1
+            )
+          ) {
+            matrix.flipX();
+          }
+          if (
+            (
+              matrix.orientation.strand2 === 'coding' &&
+              matrix.orientationY === -1
+            ) ||
+            (
+              matrix.orientation.strand2 !== 'coding' &&
+              matrix.orientationY === 1
+            )
+          ) {
+            matrix.flipY();
+          }
+        });
+        this.piles.forEach(pile => pile.calculateCoverMatrix());
+        break;
+
+      case MATRIX_ORIENTATION_5_TO_3:
+        fgmState.matrices.forEach(matrix => matrix.orient5To3());
+        this.piles.forEach(pile => pile.calculateCoverMatrix());
+        break;
+
+      case MATRIX_ORIENTATION_3_TO_5:
+        fgmState.matrices.forEach(matrix => matrix.orient5To3(true));
+        this.piles.forEach(pile => pile.calculateCoverMatrix());
+        break;
+
+      case MATRIX_ORIENTATION_UNDEF:
+      default:
+        // Nothing
+    }
   }
 
   /**
@@ -3456,21 +3618,40 @@ export class Fragments {
     });
   }
 
+  /**
+   * Remove piles from an inspected pile.
+   *
+   * @param {array} piles - Piles to be removed from inspected pile.
+   */
   removeFromPile (piles) {
     if (!fgmState.isPilesInspection) { return; }
 
-    const config = {};
+    const configGlobal = [];
+    const configInspection = {};
 
     piles.forEach((pile) => {
-      config[pile.id] = pile.pileMatrices.map(matrix => matrix.id);
+      const matrixIds = pile.pileMatrices.map(matrix => matrix.id);
+
+      configGlobal.push(...matrixIds);
+      configInspection[pile.id] = matrixIds;
     });
 
+    const source = this.pilesInspectionConfigs[
+      this.pilesInspectionConfigs.length - 1
+    ].__source;
 
-    // if (fgmState.isPilesInspection) {
-    //   this.store.dispatch(stackPilesInspection(config));
-    // } else {
-    //   this.store.dispatch(stackPiles(config));
-    // }
+    if (source.length > 1) {
+      logger.info(
+        'Removing multiple piles from more than one pile is not yet supported.'
+      );
+      return;
+    }
+
+    const sourcePileId = source[0];
+
+    this.store.dispatch(splitPilesInspection(
+      sourcePileId, configGlobal, configInspection
+    ));
   }
 
   /**
@@ -3484,9 +3665,7 @@ export class Fragments {
   }
 
   /**
-   * [render description]
-   *
-   * @return {[type]} [description]
+   * Render scene
    */
   render () {
     this.renderer.render(fgmState.scene, this.camera);
@@ -3513,8 +3692,14 @@ export class Fragments {
       Math.max(1, pile.scale * (1 + (0.1 * momentum))), 5
     );
 
-    pile.setScale(newScale).frameCreate().draw();
-    this.pilesZoomed[pile.id] = pile;
+    if (newScale > 1) {
+      pile.elevateTo(Z_HIGHLIGHT).setScale(newScale).frameCreate().draw();
+      this.pilesZoomed[pile.id] = pile;
+    } else {
+      pile.elevateTo().setScale().frameCreate().draw();
+      this.pilesZoomed[pile.id] = undefined;
+      delete this.pilesZoomed[pile.id];
+    }
   }
 
   /**
@@ -3572,6 +3757,13 @@ export class Fragments {
    */
   scrollToTop () {
     this.scrollView(Infinity);
+  }
+
+  /**
+   * Helper method to scroll to the top.
+   */
+  scrollToMax () {
+    this.scrollView(0);
   }
 
   /**
@@ -3653,34 +3845,24 @@ export class Fragments {
   }
 
   /**
-   * Set pile cover mode.
-   *
-   * @param {number} mode - Number defines the cover matrix mode.
-   * @param {array} piles - Piles for which to set the cover matrix mode.
-   */
-  setPileCoverMode (mode, piles) {
-    piles.forEach((pile) => { pile.setCoverMatrixMode(mode); });
-  }
-
-  /**
    * Setup piles from pile config
    *
    * @param {object} pilesConfig - Piles config.
    * @param {object} ignore - Object with keys to be ignored.
    * @return {array} List of promises.
    */
-  setPilesFromConfig (pilesConfig, ignore) {
+  setPilesFromConfig (pilesConfig, ignore = {}) {
     const ready = [];
 
     Object.keys(pilesConfig).forEach((pileId) => {
-      if (ignore && ignore[pileId]) { return; }
+      if (ignore[pileId]) { return; }
 
       const matrixIds = pilesConfig[pileId];
 
       let pile = this.pilesIdxState[pileId];
 
       if (matrixIds.length) {
-        // Gte or create pile
+        // Get or create pile
         if (!pile) {
           pile = this.pileCreate(pileId, fgmState.matrices.length);
           this.destroyAltPile(pileId);
@@ -3714,10 +3896,6 @@ export class Fragments {
           if (pile.isTrashed && pile.isDrawn) {
             pile.hide();
           }
-
-          if (!this.trashSize) {
-            this.hideTrash();
-          }
         } else if (pileId[0] === '_') {
           pile.trash();
         } else if (pile.isTrashed) {
@@ -3744,15 +3922,6 @@ export class Fragments {
   }
 
   /**
-   * [setPilingMethod description]
-   *
-   * @param {[type]} method - [description]
-   */
-  // setPilingMethod (method) {
-  //   this.pilingMethod = method;
-  // }
-
-  /**
    * Set the scroll bottom limiit
    *
    * @param {number} numFragments - Number of fragmets.
@@ -3775,27 +3944,6 @@ export class Fragments {
    */
   showGrid () {
     this.isGridShown = true;
-  }
-
-  /**
-   * [showMatrixSimilarity description]
-   *
-   * @description
-   * Takes a seed pile and shows how similarall the other piles / matrices are.
-   * The similarity between two piles is themean of the distances between all
-   * matrices from p1 to all matrices to p2 (bigraph).
-   *
-   * @param {[type]} pile - [description]
-   * @return {[type]} [description]
-   */
-  showMatrixSimilarity (pile) {
-    let pileIndex = this.piles.indexOf(pile);
-
-    this.piles.forEach((otherPile, index) => {
-      otherPile.showSimilarity(
-        this.pileDistanceColor(this.pdMat[pileIndex][index])
-      );
-    });
   }
 
   /**
@@ -3829,12 +3977,23 @@ export class Fragments {
   }
 
   /**
-   * Change handler for showing special cells
+   * Change handler for showing special cells.
    *
    * @return {boolean} `True` to not keep the event form bubbling up.
    */
   showSpecialCellsChangeHandler () {
     this.store.dispatch(setShowSpecialCells(!fgmState.showSpecialCells));
+
+    return true;
+  }
+
+  /**
+   * Change handler for log transform.
+   *
+   * @return {boolean} `True` to not keep the event form bubbling up.
+   */
+  logTransformChangeHandler () {
+    this.store.dispatch(setLogTransform(!fgmState.logTransform));
 
     return true;
   }
@@ -3850,15 +4009,13 @@ export class Fragments {
    * Hide trashed piles
    */
   hideTrash () {
-    this.piles.forEach((pile) => {
-      pile.hide();
-    });
+    if (!fgmState.trashIsActive) { return; }
+
+    this.piles.forEach(pile => pile.hide());
 
     fgmState.trashIsActive = false;
 
-    this.piles.forEach((pile) => {
-      pile.show().frameUpdate().frameCreate().draw();
-    });
+    this.piles.forEach(pile => pile.draw());
 
     // Reset last scroll pos
     if (typeof this.lastScrollPos !== 'undefined') {
@@ -3877,15 +4034,11 @@ export class Fragments {
    * Show trashed piles
    */
   showTrash () {
-    this.piles.forEach((pile) => {
-      pile.hide();
-    });
+    this.piles.forEach(pile => pile.hide());
 
     fgmState.trashIsActive = true;
 
-    this.piles.forEach((pile) => {
-      pile.frameUpdate().frameCreate().draw();
-    });
+    this.piles.forEach(pile => pile.frameUpdate().frameCreate().draw());
 
     // Save last scroll position
     this.lastScrollPos = this.scrollTop;
@@ -3933,17 +4086,209 @@ export class Fragments {
     }
   }
 
+  /**
+   * Toggle between zoom+pan and scaling.
+   */
   toggleZoomPan () {
-    this.isZoomPan = !this.isZoomPan;
+    this.isZoomPan = !this.isLayout1d ? !this.isZoomPan : false;
   }
 
   /**
-   * [unshowMatrixSimilarity description]
+   * Trash pile.
    *
-   * @return {[type]} [description]
+   * @param {object} pile - Pile to be trashed.
    */
-  unshowMatrixSimilarity () {
-    this.piles.forEach(pile => pile.resetSimilarity());
+  trashPile (pile) {
+    if (!fgmState.isPilesInspection) {
+      this.store.dispatch(trashPiles([pile.id]));
+      return;
+    }
+
+    const configGlobal = [];
+    const configInspection = {};
+    const matrixIds = pile.pileMatrices.map(matrix => matrix.id);
+
+    configGlobal.push(...matrixIds);
+    configInspection[pile.id] = matrixIds;
+
+    const source = this.pilesInspectionConfigs[
+      this.pilesInspectionConfigs.length - 1
+    ].__source;
+
+    if (source.length > 1) {
+      logger.info(
+        'Trashing multiple piles from more than one pile is not yet supported.'
+      );
+      return;
+    }
+
+    const sourcePileId = source[0];
+
+    this.store.dispatch(trashPilesInspection(
+      sourcePileId, configGlobal, configInspection
+    ));
+  }
+
+  /**
+   * t-SNE early exaggeration changed handler.
+   *
+   * @param {object} event - Chaneg event object.
+   */
+  tsneEarlyExaggerationChangeHandler (event) {
+    this.store.dispatch(
+      setTsneEarlyExaggeration(parseFloat(event.target.value))
+    );
+  }
+
+  /**
+   * t-SNE early exaggeration input handler.
+   *
+   * @param {object} event - Chaneg event object.
+   */
+  tsneEarlyExaggerationInputHandler (event) {
+    this.tsneEarlyExaggerationTmp = parseFloat(event.target.value);
+  }
+
+  /**
+   * t-SNE early exaggeration mouse down handler.
+   *
+   * @param {object} event - Mouse down event object.
+   */
+  tsneEarlyExaggerationMousedownHandler (event) {
+    this.tsneEarlyExaggerationTmp = parseFloat(event.target.value);
+
+    return true;
+  }
+
+  /**
+   * t-SNE early exaggeration mouse up handler.
+   *
+   * @param {object} event - Mouse up event object.
+   */
+  tsneEarlyExaggerationMouseupHandler (event) {
+    this.tsneEarlyExaggerationTmp = undefined;
+
+    return true;
+  }
+
+  /**
+   * t-SNE iterations changed handler.
+   *
+   * @param {object} event - Chaneg event object.
+   */
+  tsneIterationsChangeHandler (event) {
+    this.store.dispatch(setTsneIterations(parseInt(event.target.value, 10)));
+  }
+
+  /**
+   * t-SNE iterations input handler.
+   *
+   * @param {object} event - Chaneg event object.
+   */
+  tsneIterationsInputHandler (event) {
+    this.tsneIterationsTmp = parseInt(event.target.value, 10);
+  }
+
+  /**
+   * t-SNE iterations mouse down handler.
+   *
+   * @param {object} event - Mouse down event object.
+   */
+  tsneIterationsMousedownHandler (event) {
+    this.tsneIterationsTmp = parseInt(event.target.value, 10);
+
+    return true;
+  }
+
+  /**
+   * t-SNE iterations mouse up handler.
+   *
+   * @param {object} event - Mouse up event object.
+   */
+  tsneIterationsMouseupHandler (event) {
+    this.tsneIterationsTmp = undefined;
+
+    return true;
+  }
+
+  /**
+   * t-SNE learning rate changed handler.
+   *
+   * @param {object} event - Chaneg event object.
+   */
+  tsneLearningRateChangeHandler (event) {
+    this.store.dispatch(setTsneLearningRate(parseInt(event.target.value, 10)));
+  }
+
+  /**
+   * t-SNE learning rate input handler.
+   *
+   * @param {object} event - Chaneg event object.
+   */
+  tsneLearningRateInputHandler (event) {
+    this.tsneLearningRateTmp = parseInt(event.target.value, 10);
+  }
+
+  /**
+   * t-SNE learning rate mouse down handler.
+   *
+   * @param {object} event - Mouse down event object.
+   */
+  tsneLearningRateMousedownHandler (event) {
+    this.tsneLearningRateTmp = parseInt(event.target.value, 10);
+
+    return true;
+  }
+
+  /**
+   * t-SNE learning rate mouse up handler.
+   *
+   * @param {object} event - Mouse up event object.
+   */
+  tsneLearningRateMouseupHandler (event) {
+    this.tsneLearningRateTmp = undefined;
+
+    return true;
+  }
+
+  /**
+   * t-SNE perplexity changed handler.
+   *
+   * @param {object} event - Chaneg event object.
+   */
+  tsnePerplexityChangeHandler (event) {
+    this.store.dispatch(setTsnePerplexity(parseInt(event.target.value, 10)));
+  }
+
+  /**
+   * t-SNE perplexity input handler.
+   *
+   * @param {object} event - Chaneg event object.
+   */
+  tsnePerplexityInputHandler (event) {
+    this.tsnePerplexityTmp = parseInt(event.target.value, 10);
+  }
+
+  /**
+   * t-SNE perplexity mouse down handler.
+   *
+   * @param {object} event - Mouse down event object.
+   */
+  tsnePerplexityMousedownHandler (event) {
+    this.tsnePerplexityTmp = parseInt(event.target.value, 10);
+
+    return true;
+  }
+
+  /**
+   * t-SNE perplexity mouse up handler.
+   *
+   * @param {object} event - Mouse up event object.
+   */
+  tsnePerplexityMouseupHandler (event) {
+    this.tsnePerplexityTmp = undefined;
+
+    return true;
   }
 
   /**
@@ -3972,9 +4317,10 @@ export class Fragments {
   /**
    * Root state update handler
    *
-   * @param {boolean} init - If `true` it's part of the init cycle.
+   * @param {boolean} init - If `true` it's part of the init rendering cycle.
+   * @param {boolean} noRendering - If `true` it's part of the init setup.
    */
-  update (init) {
+  update (init, noRendering) {
     try {
       const state = this.store.getState().present.explore;
       const stateFgm = state.fragments;
@@ -3997,52 +4343,48 @@ export class Fragments {
       ready.push(this.updateCellSize(stateFgm.cellSize, update));
       ready.push(this.updateConfig(stateFgm.config));
       ready.push(this.updateGridSize(stateFgm.gridSize, update));
-      ready.push(this.updateGridCellSizeLock(stateFgm.gridCellSizeLock, update));
+      ready.push(this.updateGridCellSizeLock(
+        stateFgm.gridCellSizeLock, update
+      ));
       ready.push(this.updateHilbertCurve(stateFgm.hilbertCurve, update));
-      ready.push(this.updateHglSubSelection(stateFgm.higlassSubSelection, update));
+      ready.push(this.updateHglSubSelection(
+        stateFgm.higlassSubSelection, update
+      ));
       ready.push(this.updateLassoIsRound(stateFgm.lassoIsRound));
+      ready.push(this.updateLogTransform(stateFgm.logTransform, update));
       ready.push(this.updateMatrixColors(stateFgm.matricesColors, update));
-      ready.push(this.updateMatrixFrameEncoding(stateFgm.matrixFrameEncoding, update, init));
-      ready.push(this.updateMatrixOrientation(stateFgm.matrixOrientation, update));
+      ready.push(this.updateMatrixFrameEncoding(
+        stateFgm.matrixFrameEncoding, update, init
+      ));
+      ready.push(this.updateMatrixOrientation(
+        stateFgm.matrixOrientation, update, init
+      ));
       ready.push(this.updatePilesInspection(stateFgm.pilesInspection, update));
       ready.push(this.updatePiles(stateFgm.piles, update));
-      ready.push(this.updateShowSpecialCells(stateFgm.showSpecialCells, update));
+      ready.push(this.updateShowSpecialCells(
+        stateFgm.showSpecialCells, update
+      ));
+      ready.push(this.updateTsneEarlyExaggeration(
+        stateFgm.tsneEarlyExaggeration, update
+      ));
+      ready.push(this.updateTsneIterations(
+        stateFgm.tsneIterations, update
+      ));
+      ready.push(this.updateTsneLearningRate(
+        stateFgm.tsneLearningRate, update
+      ));
+      ready.push(this.updateTsnePerplexity(
+        stateFgm.tsnePerplexity, update
+      ));
 
       Promise.all([this.isInitFully, ...ready]).finally(() => {
-        this.updateRendering(update);
+        if (!noRendering) {
+          this.updateRendering(update);
+        }
       });
     } catch (error) {
       logger.error('State is invalid', error);
     }
-  }
-
-  /**
-   * Hide inspection mode.
-   */
-  hideInspection () {
-    this.resetInspection();
-    fgmState.piles.forEach((pile) => {
-      pile.show();
-    });
-  }
-
-  /**
-   * Destroy inspected piles and reset the index.
-   */
-  resetInspection () {
-    this.destroyPiles(fgmState.pilesInspection);
-    fgmState.pilesInspection = [];
-  }
-
-  /**
-   * Hide normal piles and reset the inspected piles
-   */
-  showInspection () {
-    fgmState.piles.forEach((pile) => {
-      pile.hide();
-    });
-
-    this.resetInspection();
   }
 
   /**
@@ -4055,12 +4397,20 @@ export class Fragments {
       this.calcGrid();
     }
 
+    if (update.orientMatrices) {
+      this.orientMatrices();
+    }
+
     if (update.pileFrames) {
       this.piles.forEach(pile => pile.frameUpdate());
     }
 
     if (update.pileFramesRecreate) {
       this.piles.forEach(pile => pile.frameCreate());
+    }
+
+    if (update.pileCover) {
+      this.piles.forEach(pile => pile.calculateCoverMatrix());
     }
 
     if (
@@ -4070,8 +4420,27 @@ export class Fragments {
       this.redrawPiles();
     }
 
-    if (update.scrollLimit) {
-      this.setScrollLimit();
+    if (!(update.piles || update.drawPilesAfter)) {
+      if (update.matrixColors) {
+        const pilesToRedraw = {};
+        update.matrixColors.forEach((matrixId) => {
+          const pile = fgmState.matrices[matrixId].pile;
+
+          pilesToRedraw[pile.id] = pile;
+        });
+
+        Object.keys(pilesToRedraw).forEach(
+          pileId => pilesToRedraw[pileId].draw()
+        );
+      }
+
+      if (update.specialCells) {
+        this.piles.forEach(pile => pile.toggleSpecialCells());
+      }
+    }
+
+    if (update.clustering) {
+      this.clusterTsne(true);
     }
 
     if (update.layout) {
@@ -4100,11 +4469,31 @@ export class Fragments {
       this.piles.forEach(pile => pile.updateAlpha());
     }
 
+    if (update.scrollLimit) {
+      this.setScrollLimit();
+    }
+
     if (update.scrollToTop) {
       this.scrollToTop();
     }
 
+    if (update.scrollToMax) {
+      this.scrollToMax();
+    }
+
+    if (update.pileMenu) {
+      this.event.publish('explore.fgm.pileMenuUpdate');
+    }
+
     this.render();
+
+    if (update.closeInspection) {
+      this.closePilesInspectionHandler();
+    }
+
+    if (update.hideTrash) {
+      this.hideTrash();
+    }
   }
 
   /**
@@ -4122,7 +4511,7 @@ export class Fragments {
    * Update the arrange measures.
    *
    * @param {array} arrangeMeasures - Array of measure IDs.
-   * @param {object} update - Update object to bve updated in-place.
+   * @param {object} update - Update object.
    */
   updateArrangeMeasures (arrangeMeasures, update) {
     const _arrangeMeasures = arrangeMeasures || ARRANGE_MEASURES;
@@ -4162,6 +4551,8 @@ export class Fragments {
       }
     }
 
+    this.updatePreviewScaling();
+
     update.grid = true;
     update.piles = true;
     update.pileFramesRecreate = true;
@@ -4175,20 +4566,15 @@ export class Fragments {
    * Update the display mode of all piles.
    *
    * @param {number} coverDispMode - Display mode number.
-   * @param {object} update - Update object to bve updated in-place.
+   * @param {object} update - Update object.
    */
   updateCoverDispMode (coverDispMode, update) {
-    if (this.coverDispMode === coverDispMode) {
-      return Promise.resolve();
-    }
+    if (this.coverDispMode !== coverDispMode) {
+      this.coverDispMode = coverDispMode;
 
-    this.coverDispMode = coverDispMode;
-
-    update.grid = true;
-    update.piles = true;
-
-    if (this.isInitialized) {
-      this.setPileCoverMode(this.coverDispMode, this.piles);
+      // update.grid = true;
+      update.piles = true;
+      update.pileCover = true;
     }
 
     return Promise.resolve();
@@ -4198,15 +4584,20 @@ export class Fragments {
    * Update the cell size.
    *
    * @param {number} size - New cell size.
-   * @param {object} update - Update object to bve updated in-place.
+   * @param {object} update - Update object.
    */
   updateCellSize (size, update) {
     if (fgmState.cellSize === size) { return Promise.resolve(); }
 
     fgmState.cellSize = size;
 
+    this.updatePreviewScaling();
+
     update.piles = true;
     update.pileFramesRecreate = true;
+    update.pileFramesUpdate = true;
+    update.scrollLimit = true;
+    update.scrollToMax = true;
   }
 
   /**
@@ -4230,7 +4621,7 @@ export class Fragments {
    * Update the grid cell size.
    *
    * @param {number} newSize - New grid size.
-   * @param {object} update - Update object to be updated in-place.
+   * @param {object} update - Update object.
    */
   updateGridSize (size, update) {
     if (fgmState.gridSize === size) { return Promise.resolve(); }
@@ -4249,6 +4640,7 @@ export class Fragments {
    *
    * @param {boolean} gridCellSizeLock - If `true` grid size is locked to the
    *   cell size.
+   * @param {object} update - Update object.
    */
   updateGridCellSizeLock (gridCellSizeLock, update) {
     this.gridCellSizeLock = gridCellSizeLock;
@@ -4260,7 +4652,7 @@ export class Fragments {
    * Update hilbert curve status.
    *
    * @param {boolean} isHilbertCurve - If `true` order in 1D by Hilbert curve.
-   * @param {object} update - Update object to be updated in-place.
+   * @param {object} update - Update object.
    */
   updateHilbertCurve (isHilbertCurve, update) {
     if (fgmState.isHilbertCurve === isHilbertCurve) {
@@ -4275,6 +4667,7 @@ export class Fragments {
     update.layout = true;
     update.pileFramesRecreate = true;
     update.scrollLimit = true;
+    update.scrollToTop = true;
 
     return Promise.resolve();
   }
@@ -4298,6 +4691,7 @@ export class Fragments {
    * Check if HiGlass has a selection view.
    *
    * @param {object} hglConfig - HiGLass config.
+   * @param {object} update - Update object.
    */
   updateHglSelectionViewDomains (domains, update) {
     if (
@@ -4316,6 +4710,12 @@ export class Fragments {
     return Promise.resolve();
   }
 
+  /**
+   * Update HiGlass fade out mode.
+   *
+   * @param {boolean} fadeOut - If `true` fade snippets out.
+   * @param {object} update - Update object.
+   */
   updateHglSelectionFadeOut (fadeOut, update) {
     if (fgmState.hglSelectionFadeOut === fadeOut) {
       return Promise.resolve();
@@ -4333,6 +4733,7 @@ export class Fragments {
    *
    * @param {boolean} higlassSubSelection - If `true` piles are selected based
    *   on a HiGlass view.
+   * @param {object} update - Update object.
    */
   updateHglSubSelection (higlassSubSelection, update) {
     if (this.higlassSubSelection === higlassSubSelection) {
@@ -4411,10 +4812,26 @@ export class Fragments {
   }
 
   /**
+   * Update log transform.
+   *
+   * @param {object} update - Update object.
+   * @param {boolean} logTransform - If `true` snippets are log transformed.
+   */
+  updateLogTransform (logTransform, update) {
+    if (fgmState.logTransform === logTransform) { return; }
+
+    fgmState.logTransform = logTransform;
+
+    update.piles = true;
+
+    return Promise.resolve();
+  }
+
+  /**
    * Update matrices colors.
    *
    * @param {object} matricesColors - Matrix color configurations.
-   * @param {object} update - Update object to bve updated in-place.
+   * @param {object} update - Update object.
    * @param {boolean} force - If `true` force update.
    */
   updateMatrixColors (matricesColors, update, force) {
@@ -4422,6 +4839,11 @@ export class Fragments {
       (this.matricesColors === matricesColors || !this.isInitialized) &&
       !force
     ) { return Promise.resolve(); }
+
+    const changedMatrix = this.matrixColorChanged(
+      this.matricesColors,
+      matricesColors
+    );
 
     this.matricesColors = matricesColors;
 
@@ -4449,7 +4871,8 @@ export class Fragments {
     this.colorsUsed = Object.keys(colorsUsedTmp)
       .map(color => ({ id: color, name: this.wurstCaseToNice(color) }));
 
-    update.piles = true;
+    update.matrixColors = changedMatrix;
+    update.pileMenu = true;
 
     return Promise.resolve();
   }
@@ -4458,7 +4881,7 @@ export class Fragments {
    * Update the matrix frame encoding of all matrices.
    *
    * @param {string} encoding - Matrix measure.
-   * @param {object} update - Update object to bve updated in-place.
+   * @param {object} update - Update object.
    * @param {boolean} force - If `true` force update.
    */
   updateMatrixFrameEncoding (encoding, update, force) {
@@ -4478,16 +4901,15 @@ export class Fragments {
    * Update the orientation of all matrices.
    *
    * @param {number} orientation - Matrix orientation number.
-   * @param {object} update - Update object to bve updated in-place.
+   * @param {object} update - Update object.
+   * @param {boolean} force - If `true` force update.
    */
-  updateMatrixOrientation (orientation, update) {
-    if (fgmState.matrixOrientation === orientation) {
-      return Promise.resolve();
+  updateMatrixOrientation (orientation, update, force) {
+    if (fgmState.matrixOrientation !== orientation || force) {
+      fgmState.matrixOrientation = orientation;
+      update.orientMatrices = true;
+      update.piles = true;
     }
-
-    fgmState.matrixOrientation = orientation;
-
-    update.piles = true;
 
     return Promise.resolve();
   }
@@ -4496,7 +4918,7 @@ export class Fragments {
    * Update piles.
    *
    * @param {object} pilesConfigs - Config object
-   * @param {object} update - Update object to be updated in-place.
+   * @param {object} update - Update object.
    * @param {boolean} force - If `true` force update
    */
   updatePiles (pilesConfigs, update, force) {
@@ -4528,6 +4950,10 @@ export class Fragments {
       this.assessMeasuresMax();
     }
 
+    if (fgmState.trashIsActive && !this.trashSize) {
+      update.hideTrash = true;
+    }
+
     update.layout = true;
     update.scrollLimit = true;
     update.drawPilesAfter = true;
@@ -4539,7 +4965,7 @@ export class Fragments {
    * Update the config of pile inspection.
    *
    * @param {object} pilesInspectionConfigs - Piles inspection config object.
-   * @param {object} update - Update object to be updated in-place.
+   * @param {object} update - Update object.
    * @param {boolean} force - If `true` force update
    */
   updatePilesInspection (pilesInspectionConfigs, update, force) {
@@ -4559,7 +4985,7 @@ export class Fragments {
 
     if (!this.pilesInspectionConfigs.length) {
       update.pilesForce = fgmState.isPilesInspection;
-      this.hideInspection();
+      this.inspectionHide();
       fgmState.isPilesInspection = false;
       return Promise.resolve();
     }
@@ -4572,13 +4998,22 @@ export class Fragments {
     fgmState.isPilesInspection = true;
 
     if (newInspection) {
-      this.showInspection();
+      this.inspectionShow();
     }
 
-    const ready = this.setPilesFromConfig(
-      pilesConfig,
-      { __source: true }
-    );
+    const ignore = { __source: true };
+
+    const numPilesInspecting = Object
+      .keys(pilesConfig)
+      .filter(pileId => !ignore[pileId])
+      .map(pileId => pilesConfig[pileId].length)
+      .reduce((a, b) => a + b, 0);
+
+    if (numPilesInspecting < 2) {
+      update.closeInspection = true;
+    }
+
+    const ready = this.setPilesFromConfig(pilesConfig, ignore);
 
     if (this.fromDisperse) {
       update.removePileArea = true;
@@ -4601,22 +5036,94 @@ export class Fragments {
   }
 
   /**
-   * Update piles when special cells are shown or hidden
+   * Update preview scaling.
+   */
+  updatePreviewScaling () {
+    // Between 1 and 2 in 0.25 increments
+    fgmState.previewScale = Math.min(
+      2,
+      Math.max(
+        1,
+        1 + (((this.cellSize) - 1) * fgmState.scale / 4)
+      )
+    );
+  }
+
+  /**
+   * Update piles when special cells are shown or hidden.
    *
    * @param {boolean} showSpecialCells - If `true` show special cells.
-   * @param {object} update - Update object to bve updated in-place.
+   * @param {object} update - Update object.
    */
   updateShowSpecialCells (showSpecialCells, update) {
-    if (fgmState.showSpecialCells === showSpecialCells) {
-      return Promise.resolve();
+    if (fgmState.showSpecialCells !== showSpecialCells) {
+      fgmState.showSpecialCells = showSpecialCells;
+      update.specialCells = true;
     }
-
-    fgmState.showSpecialCells = showSpecialCells;
-
-    update.piles = true;
 
     return Promise.resolve();
   }
+
+  /**
+   * Update t-SNE early exaggeration.
+   *
+   * @param {boolean} tsneEarlyExaggeration - t-SNE parameter.
+   * @param {object} update - Update object.
+   */
+  updateTsneEarlyExaggeration (tsneEarlyExaggeration, update) {
+    if (this.tsneEarlyExaggeration !== tsneEarlyExaggeration) {
+      this.tsneEarlyExaggeration = tsneEarlyExaggeration;
+      update.clustering = this.isDataClustered;
+    }
+
+    return Promise.resolve();
+  }
+
+  /**
+   * Update t-SNE max iterations.
+   *
+   * @param {boolean} tsneIterations - t-SNE parameter.
+   * @param {object} update - Update object.
+   */
+  updateTsneIterations (tsneIterations, update) {
+    if (this.tsneIterations !== tsneIterations) {
+      this.tsneIterations = tsneIterations;
+      update.clustering = this.isDataClustered;
+    }
+
+    return Promise.resolve();
+  }
+
+  /**
+   * Update t-SNE learning rate.
+   *
+   * @param {boolean} tsneLearningRate - t-SNE parameter.
+   * @param {object} update - Update object.
+   */
+  updateTsneLearningRate (tsneLearningRate, update) {
+    if (this.tsneLearningRate !== tsneLearningRate) {
+      this.tsneLearningRate = tsneLearningRate;
+      update.clustering = this.isDataClustered;
+    }
+
+    return Promise.resolve();
+  }
+
+  /**
+   * Update t-SNE perplexity.
+   *
+   * @param {boolean} tsnePerplexity - t-SNE parameter.
+   * @param {object} update - Update object.
+   */
+  updateTsnePerplexity (tsnePerplexity, update) {
+    if (this.tsnePerplexity !== tsnePerplexity) {
+      this.tsnePerplexity = tsnePerplexity;
+      update.clustering = this.isDataClustered;
+    }
+
+    return Promise.resolve();
+  }
+
 
   /**
    * Initialize the canvas container.

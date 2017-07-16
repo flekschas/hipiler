@@ -4,21 +4,15 @@ import { LogManager } from 'aurelia-framework';
 // Third party
 import { queue, text } from 'd3';
 import {
-  ArrowHelper,
-  BufferAttribute,
-  BufferGeometry,
+  PlaneGeometry,
   Color,
-  Mesh,
-  Vector3
+  Mesh
 } from 'three';
 
 import {
   MATRIX_FRAME_THICKNESS,
   MATRIX_FRAME_THICKNESS_MAX,
-  MODE_AVERAGE,
   MODE_VARIANCE,
-  PREVIEW_SIZE,
-  SHADER_ATTRIBUTES,
   Z_BASE,
   Z_PILE_MAX
 } from 'components/fragments/fragments-defaults';
@@ -26,29 +20,35 @@ import {
 import pileColors from 'components/fragments/pile-colors';
 
 import {
+  ALPHA_FADED_OUT,
+  ARROW_X,
+  ARROW_X_MATERIALS,
+  ARROW_X_REV,
+  ARROW_Y,
+  ARROW_Y_MATERIALS,
+  ARROW_Y_REV,
+  BASE_MATERIAL,
   COLOR_INDICATOR_HEIGHT,
   LABEL_MIN_CELL_SIZE,
   PREVIEW_LOW_QUAL_THRESHOLD,
   PREVIEW_NUM_CLUSTERS,
-  STD_MAX,
-  STRAND_ARROW_LENGTH,
-  STRAND_ARROW_HEAD_LENGTH,
-  STRAND_ARROW_HEAD_WIDTH
+  PREVIEW_GAP_SIZE,
+  PREVIEW_SIZE,
+  STD_MAX
 } from 'components/fragments/pile-defaults';
 
-import fgmState from 'components/fragments/fragments-state';
+import FgmState from 'components/fragments/fragments-state';
 
 import {
-  add2dSqrtBuffRect,
-  addBufferedRect,
   cellValue,
+  cellValueLog,
+  createImage,
   createLineFrame,
   createRect,
   createRectFrame,
   createText,
   frameValue,
-  makeBuffer3f,
-  makeRgbaBuffer
+  updateImageTexture
 } from 'components/fragments/fragments-utils';
 
 import arraysEqual from 'utils/arrays-equal';
@@ -58,25 +58,23 @@ import Matrix from 'components/fragments/matrix';
 import COLORS from 'configs/colors';
 
 
+let fgmState = FgmState.get();
 const logger = LogManager.getLogger('pile');
 
 
 export default class Pile {
   constructor (id, scene, scale, dims, maxNumPiles) {
+    fgmState = FgmState.get();
+
     this.alpha = 1.0;
-    this.alphaSecond = this.alpha;
-    this.avgMatrix = new Float32Array(dims ** 2);
     this.cellFrame = createRectFrame(
       this.cellSize, this.cellSize, 0xff0000, 1
     );
     this.clustersAvgMatrices = [];
-    this.color = pileColors.gray;
     this.colored = false;
     this.colorIndicator = {};
     this.coverMatrix = new Float32Array(dims ** 2);
-    this.coverMatrixMode = MODE_AVERAGE;
     this.dims = dims;
-    this.geometry = new BufferGeometry({ attributes: SHADER_ATTRIBUTES });
     this.highlighted = false;
     this.id = id;
     this.idNumeric = parseInt(`${id}`.replace('_', ''), 10);
@@ -86,6 +84,7 @@ export default class Pile {
     this.matrixFrameColor = COLORS.GRAY_LIGHT;
     this.measures = {};
     this.pileMatrices = [];
+    this.pixels = new Uint8ClampedArray((dims ** 2) * 4);
     this.previewsHeight = 0;
     this.rank = this.id;
     this.scale = 1;
@@ -105,6 +104,11 @@ export default class Pile {
     this.pilesIdxState[this.id] = this;
 
     this.frameCreate();
+
+    // Just to avoid re-calculation of fixed values
+    this.singleDrawingX = -this.matrixWidthHalf + (this.cellSize / 2);
+    this.singleDrawingY = this.matrixWidthHalf - (this.cellSize / 2);
+    this.singleDrawingZ = this.zLayerHeight * 5;
   }
 
   /****************************** Getter / Setter *****************************/
@@ -115,6 +119,19 @@ export default class Pile {
       (fgmState.trashIsActive ? 1 : fgmState.scale) *
       this.scale
     );
+  }
+
+  get coverDispMode () {
+    return typeof this._coverDispMode === 'undefined' ?
+      fgmState.coverDispMode : this._coverDispMode;
+  }
+
+  set coverDispMode (value) {
+    this._coverDispMode = value;
+  }
+
+  get isFadedOut () {
+    return this.alpha < 1;
   }
 
   get isLayout1d () {
@@ -153,8 +170,12 @@ export default class Pile {
     return this.isTrashed ? fgmState.pileMeshesTrash : fgmState.pileMeshes;
   }
 
-  get previewSize () {
-    return this.cellSize * (this.cellSize > 2 ? 1 : PREVIEW_SIZE);
+  get previewsHeightNorm () {
+    return this.previewScale * this.previewsHeight;
+  }
+
+  get previewScale () {
+    return fgmState.previewScale * this.scale;
   }
 
   get previewSpacing () {
@@ -182,9 +203,9 @@ export default class Pile {
     return this.pileMatrices.length;
   }
 
-  get strandArrowRects () {
+  get strandArrows () {
     return this.isTrashed ?
-      fgmState.strandArrowRectsTrash : fgmState.strandArrowRects;
+      fgmState.strandArrowsTrash : fgmState.strandArrows;
   }
 
 
@@ -232,6 +253,7 @@ export default class Pile {
     this.frameUpdate(fgmState.matrixFrameEncoding);
     this.calculateCoverMatrix();
     this.matrixClusters = this.calculateKMeansCluster();
+    this.numPileMatsChanged = true;
 
     return this.matrixClusters;
   }
@@ -278,10 +300,7 @@ export default class Pile {
         );
       }
     } else {
-      // Copy first pile matrix
-      sourceMatrices[0].matrix.forEach((cell, index) => {
-        targetMatrix[index] = cell;
-      });
+      targetMatrix.set(sourceMatrices[0].matrix);
     }
 
     this.isAvgCalced = true;
@@ -328,9 +347,9 @@ export default class Pile {
   calculateCellStd (targetMatrix, sourceMatrices, i, numMatrices) {
     targetMatrix[i] = Math.sqrt(
       sourceMatrices
-        .map(matrix => matrix.matrix[i])
+        .map(matrix => Math.max(0, matrix.matrix[i]))
         .reduce(
-          (a, b) => a + ((b - targetMatrix[i]) ** 2), 0
+          (a, b) => a + ((b - Math.max(0, targetMatrix[i])) ** 2), 0
         ) / sourceMatrices.length / STD_MAX
     );
   }
@@ -356,8 +375,7 @@ export default class Pile {
     const numMatrices = sourceMatrices.length;
 
     if (numMatrices > 1) {
-      const d2 = this.dims ** 2;
-      for (let i = 0; i < d2; i++) {
+      for (let i = 0; i < targetMatrix.length; i++) {
         this.calculateCellStd(
           targetMatrix,
           sourceMatrices,
@@ -367,9 +385,7 @@ export default class Pile {
       }
     } else {
       // Copy first pile matrix
-      sourceMatrices[0].matrix.forEach((cell, index) => {
-        targetMatrix[index] = cell;
-      });
+      targetMatrix.set(sourceMatrices[0].matrix);
     }
 
     this.isAvgCalced = false;
@@ -383,69 +399,13 @@ export default class Pile {
    * @return {object} Self.
    */
   calculateCoverMatrix () {
-    if (this.coverMatrixMode === MODE_VARIANCE) {
+    if (this.coverDispMode === MODE_VARIANCE) {
       this.calculateVariance();
     } else {
       this.calculateAverage();
     }
 
-    // if (numMatrices > 1) {
-    //   // Create empty this.dims x this.dims matrix
-    //   this.coverMatrix = this.coverMatrix
-    //     .map(row => new Float32Array(this.dims));
-
-    //   if (this.coverMatrixMode === MODE_STD) {
-    //     for (let i = 0; i < this.dims; i++) {
-    //       for (let j = 0; j < this.dims; j++) {
-    //         switch (this.coverMatrixMode) {
-    //           case MODE_MAD:
-    //             this.calculateCellMad(
-    //               this.coverMatrix,
-    //               this.clustersAvgMatrices,
-    //               i,
-    //               j,
-    //               numMatrices
-    //             );
-    //             break;
-
-    //           case MODE_STD:
-    //             this.calculateCellStd(
-    //               this.coverMatrix,
-    //               this.clustersAvgMatrices,
-    //               i,
-    //               j,
-    //               numMatrices
-    //             );
-    //             break;
-
-    //           default:
-    //             // Nothing
-    //             break;
-    //         }
-    //       }
-    //     }
-    //   } else {
-    //     this.coverMatrix = this.calculateAverage();
-    //     // Copy the average matrix from `this.avgMatrix`.
-    //     for (let i = 0; i < this.dims; i++) {
-    //       this.coverMatrix[i] = this.avgMatrix.slice(
-    //         i * this.dims, (i + 1) * this.dims
-    //       );
-    //     }
-    //   }
-    // } else {
-    //   // Copy the matrix from the first pileMatrix.
-    //   this.coverMatrix = this.pileMatrices[0].matrix.slice();
-    // }
-
     return this;
-  }
-
-  convertPileMatrixToMatrix (pileMatrix) {
-    const matrix = Matrix.flatten(pileMatrix.matrix);
-    matrix.id = pileMatrix.id;
-
-    return matrix;
   }
 
   createWorkerClusterfck () {
@@ -495,10 +455,6 @@ export default class Pile {
         return resolve();
       }
 
-      const pileMatrices = this.pileMatrices.map(
-        pileMatrix => this.convertPileMatrixToMatrix(pileMatrix)
-      );
-
       this.createWorkerClusterfck()
         .then((worker) => {
           worker.onmessage = (event) => {
@@ -524,7 +480,12 @@ export default class Pile {
 
           worker.postMessage({
             numClusters: PREVIEW_NUM_CLUSTERS,
-            data: pileMatrices
+            data: this.pileMatrices.map((pileMatrix) => {
+              const out = Array.from(pileMatrix.matrix);
+              out.id = pileMatrix.id;
+
+              return out;
+            })
           });
         })
         .catch((error) => {
@@ -536,6 +497,16 @@ export default class Pile {
           resolve();
         });
     });
+  }
+
+  /**
+   * Helper method to get the cell / bin value.
+   *
+   * @param {number} value - Value to be transformed
+   * @return {number} Transformed value.
+   */
+  cellValue (value) {
+    return fgmState.logTransform ? cellValueLog(value) : cellValue(value);
   }
 
   /**
@@ -560,7 +531,7 @@ export default class Pile {
     const meshIndex = this.pileMeshes.indexOf(this.mesh);
 
     if (meshIndex >= 0) {
-      this.pileMeshes.splice(this.pileMeshes.indexOf(this.mesh), 1);
+      this.pileMeshes.splice(meshIndex, 1);
     }
 
     this.geometry.dispose();
@@ -586,50 +557,45 @@ export default class Pile {
    * @return {object} Self.
    */
   draw () {
-    const positions = [];
-    const colors = [];
     const isHovering = this === fgmState.hoveredPile;
 
     this.isColored = this.pileMatrices.some(matrix => matrix.color);
 
     // UPDATE COVER MATRIX CELLS + PILE PREVIEWS
-    if (this.mesh) {
-      this.pileMeshes.splice(this.pileMeshes.indexOf(this.mesh), 1);
-      fgmState.scene.remove(this.mesh);
+    if (this.mesh && this.mesh.children.length) {
+      const idx = this.pileMeshes.indexOf(this.mesh);
+      if (idx >= 0) {
+        this.pileMeshes.splice(idx, 1);
+        fgmState.scene.remove(this.mesh);
+      }
     }
 
-    this.geometry = new BufferGeometry({
-      attributes: SHADER_ATTRIBUTES
-    });
-
-    if (this.singleMatrix) {
-      this.drawSingleMatrix(
-        this.singleMatrix.matrix,
-        positions,
-        colors
-      );
-    } else {
-      this.drawMultipleMatrices(positions, colors);
+    // Calculate the preview height first
+    if (this.numPileMatsChanged) {
+      this.getPreviewHeight();
     }
 
+    const width = this.cellSize * this.dims;
+    const height = width + this.previewsHeightNorm;
+
+    this.geometry = new PlaneGeometry(width, height);
+    this.geometry.translate(0, this.previewsHeightNorm / 2, 0);
+
+    // Create base mesh
+    this.mesh = new Mesh(
+      this.geometry,
+      BASE_MATERIAL
+    );
+
+    // Draw matrix
+    this.matrixMesh = this.drawMatrix(this.singleMatrix);
+    this.mesh.add(this.matrixMesh);
+
+    // Draw previews
     if (this.pileMatrices.length > 1) {
-      this.drawPreviews(positions, colors);
-      this.updateFrameHighlight();
-      this.updatePileOutline();
+      this.previewsMesh = this.drawPreviews(this.previewing);
+      this.mesh.add(this.previewsMesh);
     }
-
-    // CREATE + ADD MESH
-    this.geometry.addAttribute(
-      'position',
-      new BufferAttribute(makeBuffer3f(positions), 3)
-    );
-
-    this.geometry.addAttribute(
-      'customColor',
-      new BufferAttribute(makeRgbaBuffer(colors, this.alpha), 4)
-    );
-
-    this.mesh = new Mesh(this.geometry, fgmState.shaderMaterial);
 
     if (
       !(fgmState.isHilbertCurve) &&
@@ -639,16 +605,22 @@ export default class Pile {
       this.drawPileLabel(isHovering);
     }
 
-    // Add frames
+    // Update and add frames
+    if (this.numPileMatsChanged) {
+      this.updateFrameHighlight();
+      this.updatePileOutline();
+    }
+
     this.mesh.add(this.pileOutline);
-    this.pileOutline.position.set(
-      0, this.previewsHeight / 2, this.zLayerHeight
-    );
     this.mesh.add(this.matrixFrameHighlight);
-    this.matrixFrameHighlight.position.set(
-      0, this.previewsHeight / 2, this.zLayerHeight * 2
-    );
     this.mesh.add(this.matrixFrame);
+
+    this.pileOutline.position.set(
+      0, this.previewsHeightNorm / 2, this.zLayerHeight
+    );
+    this.matrixFrameHighlight.position.set(
+      0, this.previewsHeightNorm / 2, this.zLayerHeight * 2
+    );
     this.matrixFrame.position.set(
       0, 0, this.zLayerHeight * 4
     );
@@ -660,14 +632,16 @@ export default class Pile {
 
     if (
       !fgmState.isHilbertCurve &&
-      !(fgmState.isLayout2d || fgmState.isLayoutMd)
+      !(fgmState.isLayout2d || fgmState.isLayoutMd) &&
+      this.pileMatrices.length === 1
     ) {
-      this.drawStrandArrows(isHovering);
+      this.drawStrandArrows();
     }
 
     this.drawColorIndicator();
 
     this.isDrawn = true;
+    this.numPileMatsChanged = false;
 
     return this;
   }
@@ -709,46 +683,6 @@ export default class Pile {
   }
 
   /**
-   * Draw multiple matrices.
-   *
-   * @param {array} positions - Positions array to be changed in-place.
-   * @param {array} colors - Colors array to be changed in-place.
-   */
-  drawMultipleMatrices (positions, colors) {
-    // Show cover matrix
-    for (let i = 0; i < this.dims; i++) {
-      let x = (
-        -this.matrixWidthHalf +
-        (this.cellSize / 2) +
-        (i * this.cellSize)
-      );
-
-      for (let j = 0; j < this.dims; j++) {
-        let y = (
-          this.matrixWidthHalf -
-          (this.cellSize / 2) -
-          (j * this.cellSize)
-        );
-
-        const value = this.coverMatrix[(i * this.dims) + j];
-        const color = this.coverMatrixMode === MODE_VARIANCE ?
-          pileColors.whiteOrangeBlack(value) :
-          this.getColor(value, fgmState.showSpecialCells);
-
-        add2dSqrtBuffRect(
-          positions,
-          -y,
-          -x,
-          this.zLayerHeight * 5,
-          this.cellSize,
-          colors,
-          color
-        );
-      }
-    }
-  }
-
-  /**
    * Draw pile label.
    *
    * @param {array} isHovering - If `true` user is currently hovering this pile.
@@ -769,227 +703,147 @@ export default class Pile {
 
     if (this.labelText !== labelText) {
       this.labelText = labelText;
-
-      this.label = createText(
-        this.labelText,
-        -this.matrixWidthHalf - 2,
-        -this.matrixWidthHalf - 13 - extraOffset,
-        0,
-        8,
-        isHovering ? COLORS.GRAY_DARK : COLORS.GRAY_LIGHT
-      );
+      this.label = createText(this.labelText);
     } else {
       this.label.material.color.setHex(
         isHovering ? COLORS.GRAY_DARK : COLORS.GRAY_LIGHT
       );
-      this.label.position.set(
-        -this.matrixWidthHalf - 2,
-        -this.matrixWidthHalf - 13 - extraOffset,
-        0
-      );
     }
 
+    this.label.position.set(
+      -this.matrixWidthHalf + 32,
+      -this.matrixWidthHalf - 10 - extraOffset,
+      0
+    );
     this.label.scale.set(scale, scale, scale);
-    this.label.material.opacity = this.alphaSecond;
+    this.label.material.opacity = this.alpha;
 
     this.mesh.add(this.label);
   }
 
   /**
    * Draw pile matrix previews.
-   *
-   * @param {array} positions - Positions array to be changed in-place.
-   * @param {array} colors - Colors array to be changed in-place.
    */
-  drawPreviews (positions, colors) {
-    this.previewsHeight = this.previewSize * this.clustersAvgMatrices.length;
+  drawPreviews (previewing) {
+    const pixels = new Uint8ClampedArray(this.previewsHeight * this.dims * 4);
+    const previewHeight = PREVIEW_SIZE + PREVIEW_GAP_SIZE;
+    const rgbaLen = this.dims * 4;
 
-    // Background
-    addBufferedRect(
-      positions,
-      0,
-      this.matrixWidthHalf + (this.previewsHeight / 2),
-      this.zLayerHeight * 3,
-      this.matrixWidth,
-      this.previewsHeight,
-      colors,
-      [1, 1, 1]
-    );
-
-    // Create preview
-    // this.previewHeightIndicator = createRect(
-    //   this.matrixWidth,
-    //   this.previewSize * this.pileMatrices.length,
-    //   COLORS.GREEN
-    // );
-
-    // this.previewHeightIndicator.position.set(
-    //   this.x,
-    //   this.y - ((this.previewSize * this.pileMatrices.length) / 2),
-    //   9
-    // );
+    // Make first row of pixels white
+    pixels.fill(0, 0, rgbaLen);
 
     this.clustersAvgMatrices.forEach((matrix, index) => {
-      let y = this.matrixWidthHalf + (this.previewSize * (index + 0.75));
+      const previewMatrixPixels = this.getColAvgPix(
+        matrix, index === previewing
+      );
 
-      for (let i = 0; i < this.dims; i++) {
-        let value = 0;
-
-        for (let j = 0; j < this.dims; j++) {
-          value += matrix[(j * this.dims) + i];
-        }
-
-        if (value < -this.dims * PREVIEW_LOW_QUAL_THRESHOLD) {
-          value = -1;
-        } else {
-          value = cellValue(value / this.dims);
-        }
-
-        let x = (
-          -this.matrixWidthHalf +
-          (this.cellSize * i) +
-          (this.cellSize / 2)
-        );
-
-        // The actual preview
-        addBufferedRect(
-          positions,
-          x,
-          y,
-          this.zLayerHeight * 5, // z
-          this.cellSize,  // width
-          this.previewSize - this.previewSpacing,  // height
-          colors,
-          this.getColor(value, fgmState.showSpecialCells)
+      for (let h = 0; h < PREVIEW_SIZE; h++) {
+        pixels.set(
+          previewMatrixPixels,
+          ((index * previewHeight) + h + PREVIEW_GAP_SIZE) * rgbaLen
         );
       }
-
-      index += 1;
     });
+
+    // Set image data
+    const imageMesh = createImage(pixels, this.dims, this.previewsHeight);
+    imageMesh.position.set(
+      0,
+      (this.matrixWidth / 2) + (this.previewsHeightNorm / 2) + 1,
+      this.zLayerHeight * 5
+    );
+    imageMesh.scale.set(
+      this.cellSize,
+      this.previewScale,
+      1
+    );
+    imageMesh.material.opacity = this.alpha;
+
+    return imageMesh;
   }
 
   /**
-   * Draw a single matrix
+   * Draw a single matrix.
    *
-   * @param {array} matrix - Matrix to be drawn.
-   * @param {array} positions - Positions array to be changed in-place.
-   * @param {array} colors - Colors array to be changed in-place.
+   * @param {array} matrix - If not `undefined` draw the passed matrix instead
+   *   of `this.coverMatrix`.
    */
-  drawSingleMatrix (matrix, positions, colors) {
-    for (let i = 0; i < this.dims; i++) {
-      let x = (
-        -this.matrixWidthHalf +
-        (this.cellSize / 2) +
-        (i * this.cellSize)
+  drawMatrix (matrix) {
+    if (!matrix) {
+      matrix = this.coverMatrix;
+    } else {
+      // `matrix` is a class instance rather than the raw matrix.
+      matrix = matrix.matrix;
+    }
+
+    const len = matrix.length;
+    const colorTransformer = this.getMatrixColor(
+      this.coverDispMode === MODE_VARIANCE &&
+      this.pileMatrices.length > 1 &&
+      !this.singleMatrix
+    );
+
+    // Get pixels
+    for (let i = len; i--;) {
+      const color = colorTransformer(
+        this.cellValue(matrix[i]), fgmState.showSpecialCells
       );
 
-      for (let j = 0; j < this.dims; j++) {
-        let y = (
-          this.matrixWidthHalf -
-          (this.cellSize / 2) -
-          (j * this.cellSize)
-        );
-
-        add2dSqrtBuffRect(
-          positions,
-          -y,
-          -x,
-          this.zLayerHeight * 5,
-          this.cellSize,
-          colors,
-          this.getColor(
-            cellValue(matrix[(i * this.dims) + j]),
-            fgmState.showSpecialCells
-          )
-        );
-      }
+      this.pixels.set(color, i * 4);
     }
+
+    // Set image data
+    const imageMesh = createImage(this.pixels, this.dims, this.dims);
+    imageMesh.position.set(0, 0, this.zLayerHeight * 5);
+    imageMesh.scale.set(this.cellSize, this.cellSize, this.cellSize);
+    imageMesh.material.opacity = this.alpha;
+
+    return imageMesh;
   }
 
   /**
    * Draw strand arrows for both axis.
-   *
-   * @param {array} isHovering - If `true` user is currently hovering this pile.
    */
-  drawStrandArrows (isHovering) {
-    const offsetX = this.pileMatrices[0].orientationX === -1 ? 10 : 0;
-    const offsetY = this.pileMatrices[0].orientationY === -1 ? 10 : 0;
+  drawStrandArrows () {
     const extraOffset = this.isColored ? COLOR_INDICATOR_HEIGHT + 2 : 0;
 
-    this.strandArrowX = new ArrowHelper(
-      new Vector3(this.pileMatrices[0].orientationX * 1, 0, 0),
-      new Vector3(
-        this.matrixWidthHalf - 13 + offsetX,
-        -this.matrixWidthHalf - 9 - extraOffset,
-        0
-      ),
-      STRAND_ARROW_LENGTH,
-      isHovering ? COLORS.GRAY_DARK : COLORS.GRAY_LIGHTER,
-      STRAND_ARROW_HEAD_LENGTH,
-      STRAND_ARROW_HEAD_WIDTH
-    );
-    this.strandArrowX.cone.material.transparent = true;
-    this.strandArrowX.line.material.transparent = true;
-    this.strandArrowX.line.material.opacity = this.alphaSecond;
-    this.strandArrowX.cone.material.opacity = this.alphaSecond;
+    // Remove previous sprites
+    fgmState.scene.remove(this.strandArrowX);
+    fgmState.scene.remove(this.strandArrowY);
 
-    this.strandArrowY = new ArrowHelper(
-      new Vector3(0, this.pileMatrices[0].orientationY * -1, 0),
-      new Vector3(
-        this.matrixWidthHalf - 20,
-        -this.matrixWidthHalf - 4 - offsetY - extraOffset,
-        0
-      ),
-      STRAND_ARROW_LENGTH,
-      isHovering ? COLORS.GRAY_DARK : COLORS.GRAY_LIGHTER,
-      STRAND_ARROW_HEAD_LENGTH,
-      STRAND_ARROW_HEAD_WIDTH
-    );
-    this.strandArrowY.cone.material.transparent = true;
-    this.strandArrowY.line.material.transparent = true;
-    this.strandArrowY.line.material.opacity = this.alphaSecond;
-    this.strandArrowY.cone.material.opacity = this.alphaSecond;
+    // Clone sprite
+    this.strandArrowX = this.pileMatrices[0].orientationX === 1 ?
+      ARROW_X.clone() : ARROW_X_REV.clone();
+    this.strandArrowY = this.pileMatrices[0].orientationY === 1 ?
+      ARROW_Y.clone() : ARROW_Y_REV.clone();
 
-    // Remove previous rects
-    if (this.strandArrowRectX) {
-      this.strandArrowRects.splice(
-        this.strandArrowRects.indexOf(this.strandArrowRectX), 1
-      );
-      fgmState.scene.remove(this.strandArrowRectX);
-    }
-
-    if (this.strandArrowRectY) {
-      this.strandArrowRects.splice(
-        this.strandArrowRects.indexOf(this.strandArrowRectY), 1
-      );
-      fgmState.scene.remove(this.strandArrowRectY);
-    }
-
-    // Create new rects
-    this.strandArrowRectX = createRect(10, 10, COLORS.WHITE);
-    this.strandArrowRectX.position.set(
+    // Position arrow
+    this.strandArrowX.position.set(
       this.matrixWidthHalf - 7,
       -this.matrixWidthHalf - 9 - extraOffset,
-      -1
+      0
     );
-    this.strandArrowRectX.userData.pile = this;
-    this.strandArrowRectX.userData.axis = 'x';
 
-    this.strandArrowRectY = createRect(10, 10, COLORS.WHITE);
-    this.strandArrowRectY.position.set(
+    this.strandArrowY.position.set(
       this.matrixWidthHalf - 20,
       -this.matrixWidthHalf - 9 - extraOffset,
-      -1
-    );
-    this.strandArrowRectY.userData.pile = this;
-    this.strandArrowRectY.userData.axis = 'y';
-
-    this.strandArrowRects.push(
-      this.strandArrowRectX, this.strandArrowRectY
+      0
     );
 
-    this.mesh.add(this.strandArrowRectX);
-    this.mesh.add(this.strandArrowRectY);
+    // Associate pile
+    this.strandArrowX.userData.pile = this;
+    this.strandArrowX.userData.axis = 'x';
+    this.strandArrowY.userData.pile = this;
+    this.strandArrowY.userData.axis = 'y';
+
+    // Add to helper array for ray casting
+    this.strandArrows.push(this.strandArrowX);
+    this.strandArrows.push(this.strandArrowY);
+
+    // Update material
+    this.updateArrowMaterial();
+
+    // Add arow to mesh
     this.mesh.add(this.strandArrowX);
     this.mesh.add(this.strandArrowY);
   }
@@ -1023,22 +877,18 @@ export default class Pile {
       switch (axis) {
         case 'x':
           this.pileMatrices[0].flipX();
-          Matrix.flipX(this.avgMatrix, '1D');
-          Matrix.flipX(this.coverMatrix, '2D');
+          Matrix.flipX(this.coverMatrix);
           break;
 
         case 'y':
           this.pileMatrices[0].flipY();
-          Matrix.flipY(this.avgMatrix, '1D');
-          Matrix.flipY(this.coverMatrix, '2D');
+          Matrix.flipY(this.coverMatrix);
           break;
 
         default:
           this.pileMatrices[0].flipX();
-          Matrix.flipX(this.avgMatrix);
           Matrix.flipX(this.coverMatrix);
           this.pileMatrices[0].flipY();
-          Matrix.flipY(this.avgMatrix);
           Matrix.flipY(this.coverMatrix);
           break;
       }
@@ -1058,12 +908,12 @@ export default class Pile {
       this.matrixWidth,
       this.matrixFrameColor,
       this.matrixFrameThickness,
-      this.alphaSecond
+      this.alpha
     );
 
     this.matrixFrameHighlight = createLineFrame(
       this.matrixWidth,
-      this.matrixWidth,
+      this.matrixWidth + this.previewsHeightNorm,
       COLORS.ORANGE,
       this.matrixFrameThickness + 2,
       0
@@ -1071,10 +921,10 @@ export default class Pile {
 
     this.pileOutline = createLineFrame(
       this.matrixWidth,
-      this.matrixWidth,
+      this.matrixWidth + this.previewsHeightNorm,
       COLORS.WHITE,
       this.matrixFrameThickness + 2,
-      this.alphaSecond
+      this.alpha
     );
 
     return this;
@@ -1184,6 +1034,48 @@ export default class Pile {
   }
 
   /**
+   * Get pixels of the column average matrix.
+   *
+   * @param {array} matrix - Raw matrix to be averaged.
+   * @return {array} Pixel array.
+   */
+  getColAvgPix (matrix, previewing) {
+    const colAvg = [];
+    const lowQualThreshold = -this.dims * PREVIEW_LOW_QUAL_THRESHOLD;
+    let idx;
+
+    let color = pileColors.grayRgba;
+
+    if (previewing) {
+      color = pileColors.orangeBlackRgba;
+    }
+
+    for (let i = this.dims; i--;) {
+      colAvg[i] = 0;
+    }
+
+    for (let i = matrix.length; i--;) {
+      idx = i % this.dims;
+
+      colAvg[idx] += Math.max(matrix[i], 0);
+    }
+
+    for (let i = this.dims; i--;) {
+      if (colAvg[i] < lowQualThreshold) {
+        colAvg[i] = -1;
+      } else {
+        colAvg[i] /= this.dims;
+      }
+
+      colAvg[i] = this.getColorRgba(
+        colAvg[i], fgmState.showSpecialCells, color
+      );
+    }
+
+    return colAvg.reduce((flatArr, a) => flatArr.concat(a), []);
+  }
+
+  /**
    * Get gray tone color from value.
    *
    * @param {number} value - Valuer of the cell.
@@ -1202,6 +1094,28 @@ export default class Pile {
 
       default:
         return pileColors.gray(1 - value);
+    }
+  }
+
+  /**
+   * Get gray tone color from value.
+   *
+   * @param {number} value - Valuer of the cell.
+   * @param {boolean} showSpecialCells - If `true` return white for special
+   *   values (e.g., low quality) instead of a color.
+   * @return {array} Relative RGB array
+   */
+  getColorRgba (value, showSpecialCells, color = pileColors.grayRgba) {
+    switch (value) {
+      case -1:
+        if (showSpecialCells) {
+          return COLORS.LOW_QUALITY_BLUE_RGBA;
+        }
+
+        return [255, 255, 255, 255];
+
+      default:
+        return color(1 - value);
     }
   }
 
@@ -1243,6 +1157,22 @@ export default class Pile {
   }
 
   /**
+   * Factory function returning a [0-1] value into RGBA.
+   *
+   * @param {boolean} varianceMode - If `true` returns a transform function for
+   *   white-orange-black otherwise a white-black.
+   * @return {function} Color transform function.
+   */
+  getMatrixColor (varianceMode) {
+    const transformer = varianceMode ?
+      pileColors.whiteOrangeBlackRgba : this.getColorRgba;
+
+    return function (value, specialCells) {
+      return transformer(value, specialCells);
+    };
+  }
+
+  /**
    * Get a preview matrix.
    *
    * @param {number} index - Index.
@@ -1279,6 +1209,22 @@ export default class Pile {
    */
   getPos () {
     return this.mesh.position;
+  }
+
+  /**
+   * Calculate the preview height.
+   */
+  getPreviewHeight () {
+    if (this.clustersAvgMatrices.length > 1) {
+      this.previewsHeight = (
+        (PREVIEW_SIZE * this.clustersAvgMatrices.length) +
+        ((this.clustersAvgMatrices.length + 1) * PREVIEW_GAP_SIZE)
+      );
+    } else {
+      this.previewsHeight = 0;
+    }
+
+    return this.previewsHeight;
   }
 
   /**
@@ -1360,6 +1306,11 @@ export default class Pile {
     return this;
   }
 
+  previewMatrix (index) {
+    this.previewing = index;
+    this.showSingle(this.getMatrixPreview(index));
+  }
+
   /**
    * Recover pile from trash.
    *
@@ -1417,6 +1368,7 @@ export default class Pile {
     this.frameUpdate(fgmState.matrixFrameEncoding);
     this.calculateCoverMatrix();
     this.matrixClusters = this.calculateKMeansCluster();
+    this.numPileMatsChanged = true;
 
     return this.matrixClusters;
   }
@@ -1450,14 +1402,14 @@ export default class Pile {
   }
 
   /**
-   * Set cover matrix.
+   * Set individual cover display mode.
    *
    * @param {number} mode - Cover display mode number.
    * @return {object} Self.
    */
-  setCoverMatrixMode (mode) {
-    if (this.coverMatrixMode !== mode) {
-      this.coverMatrixMode = mode;
+  setCoverDispMode (mode) {
+    if (this.coverDispMode !== mode) {
+      this._coverDispMode = mode;
       this.calculateCoverMatrix();
     }
 
@@ -1483,6 +1435,7 @@ export default class Pile {
     this.frameUpdate(fgmState.matrixFrameEncoding);
     this.calculateCoverMatrix();
     this.matrixClusters = this.calculateKMeansCluster();
+    this.numPileMatsChanged = true;
 
     return this.matrixClusters;
   }
@@ -1546,6 +1499,43 @@ export default class Pile {
   }
 
   /**
+   * Draw a single matrix.
+   *
+   * @param {array} matrix - If not `undefined` draw the passed matrix instead
+   *   of `this.coverMatrix`.
+   */
+  toggleSpecialCells (matrix) {
+    if (!matrix) {
+      matrix = this.coverMatrix;
+    } else {
+      // `matrix` is a class instance rather than the raw matrix.
+      matrix = matrix.matrix;
+    }
+
+    const len = matrix.length;
+    const colorTransformer = this.getMatrixColor(
+      this.coverDispMode === MODE_VARIANCE &&
+      this.pileMatrices.length > 1 &&
+      !this.singleMatrix
+    );
+
+    // Get pixels
+    for (let i = len; i--;) {
+      const value = this.cellValue(matrix[i]);
+
+      if (value === -1) {
+        const color = colorTransformer(
+          this.cellValue(matrix[i]), fgmState.showSpecialCells
+        );
+
+        this.pixels.set(color, i * 4);
+      }
+    }
+
+    updateImageTexture(this.matrixMesh, this.pixels);
+  }
+
+  /**
    * Trash this instance.
    *
    * @description
@@ -1560,7 +1550,9 @@ export default class Pile {
     }
 
     this.unsetHoverState();
-    this.geometry.dispose();
+    if (this.geometry) {
+      this.geometry.dispose();
+    }
     this.isDrawn = false;
     fgmState.scene.remove(this.mesh);
 
@@ -1614,6 +1606,74 @@ export default class Pile {
   }
 
   /**
+   * Update opacity of the pile.
+   */
+  updateAlpha () {
+    let update = false;
+
+    if (
+      !fgmState.hglSelectionFadeOut ||
+      this.pileMatrices.some(matrix => matrix.isVisibleInSelection)
+    ) {
+      if (this.alpha !== 1.0) {
+        this.alpha = 1.0;
+        update = true;
+      }
+    } else if (this.alpha !== ALPHA_FADED_OUT) {
+      this.alpha = ALPHA_FADED_OUT;
+      update = true;
+    }
+
+    if (this.isDrawn && update) {
+      // Update matrix
+      this.matrixMesh.material.opacity = this.alpha;
+
+      // Update previews
+      if (this.previewsMesh) {
+        this.previewsMesh.material.opacity = this.alpha;
+      }
+
+      // Update matrix frame and pile outline
+      this.matrixFrame.material.uniforms.opacity.value = this.alpha;
+      this.pileOutline.material.uniforms.opacity.value = this.alpha;
+
+      // Update the Strand arrows
+      this.updateArrowMaterial();
+
+      // Update the label
+      if (this.label) {
+        this.label.material.opacity = this.alpha;
+      }
+    }
+  }
+
+  /**
+   * Update the material of arrows.
+   */
+  updateArrowMaterial () {
+    if (!this.strandArrowX || !this.strandArrowY) { return; }
+
+    let accessorX = 'NORM';
+    let accessorY = 'NORM';
+
+    if (this.pileMatrices[0].orientationX === -1) {
+      accessorX = 'REV';
+    }
+
+    if (this.pileMatrices[0].orientationY === -1) {
+      accessorY = 'REV';
+    }
+
+    if (this.isFadedOut) {
+      accessorX += '_FADED_OUT';
+      accessorY += '_FADED_OUT';
+    }
+
+    this.strandArrowX.material = ARROW_X_MATERIALS[accessorX];
+    this.strandArrowY.material = ARROW_Y_MATERIALS[accessorY];
+  }
+
+  /**
    * Update hovered cell.
    *
    * @return {object} Self.
@@ -1640,77 +1700,12 @@ export default class Pile {
   }
 
   /**
-   * Update label.
-   *
-   * @return {object} Self.
-   */
-  updateLabels () {
-    if (fgmState.hoveredCell) {
-      const x = (
-        -this.matrixWidthHalf +
-        (this.cellSize * fgmState.hoveredCell.col) +
-        (this.cellSize / 2)
-      );
-      const y = (
-        this.matrixWidthHalf -
-        (this.cellSize * fgmState.overedCell.row) -
-        (this.cellSize / 2)
-      );
-
-      let sCol = fgmState.nodes[fgmState.focusNodes[fgmState.hoveredCell.col]].name;
-      let rCol = createRect(10 * sCol.length, 12, 0xffffff);
-
-      rCol.position.set(
-        x + (10 * sCol.length / 2) - 3,
-        this.matrixWidthHalf + 10,
-        2
-      );
-
-      this.mesh.add(rCol);
-      let colLabel = createText(
-        sCol,
-        x,
-        this.matrixWidthHalf + 5,
-        2,
-        9,
-        0x000000
-      );
-
-      this.mesh.add(colLabel);
-
-      let sRow = fgmState.nodes[fgmState.focusNodes[fgmState.hoveredCell.row]].name;
-      let rRow = createRect(10 * sRow.length, 12, 0xffffff);
-
-      rRow.position.set(
-        this.matrixWidthHalf + 4 + (10 * sRow.length / 2),
-        y + 4,
-        2
-      );
-
-      this.mesh.add(rRow);
-
-      let rowLabel = createText(
-        sRow,
-        +this.matrixWidthHalf + 5,
-        y,
-        2,
-        9,
-        0x000000
-      );
-
-      this.mesh.add(rowLabel);
-    }
-
-    return this;
-  }
-
-  /**
    * Update the pile outline.
    */
   updateFrameHighlight (pileHighlight) {
     this.matrixFrameHighlight = createLineFrame(
       this.matrixWidth,
-      this.matrixWidth + this.previewsHeight,
+      this.matrixWidth + this.previewsHeightNorm,
       COLORS.ORANGE,
       this.matrixFrameThickness + 2,
       this.matrixFrameHighlight.material.uniforms.opacity.value
@@ -1723,55 +1718,10 @@ export default class Pile {
   updatePileOutline () {
     this.pileOutline = createLineFrame(
       this.matrixWidth,
-      this.matrixWidth + this.previewsHeight,
+      this.matrixWidth + this.previewsHeightNorm,
       COLORS.WHITE,
       this.matrixFrameThickness + 2,
-      this.alphaSecond
+      this.alpha
     );
-  }
-
-  updateAlpha () {
-    let update = false;
-
-    if (
-      !fgmState.hglSelectionFadeOut ||
-      this.pileMatrices.some(matrix => matrix.isVisibleInSelection)
-    ) {
-      if (this.alpha !== 1.0) {
-        this.alpha = 1.0;
-        this.alphaSecond = 1.0;
-        update = true;
-      }
-    } else if (this.alpha !== 0.25) {
-      this.alpha = 0.25;
-      this.alphaSecond = 0.25;
-      update = true;
-    }
-
-    if (update) {
-      // Update matrix
-      for (let i = this.mesh.geometry.attributes.customColor.count; i--;) {
-        this.mesh.geometry.attributes.customColor.setW(i, this.alpha);
-      }
-
-      this.mesh.geometry.attributes.customColor.needsUpdate = true;
-
-      // Update matrix frame and pile outline
-      this.matrixFrame.material.uniforms.opacity.value = this.alphaSecond;
-      this.pileOutline.material.uniforms.opacity.value = this.alphaSecond;
-
-      // Update the Strand arrows
-      if (this.strandArrowX) {
-        this.strandArrowX.line.material.opacity = this.alphaSecond;
-        this.strandArrowX.cone.material.opacity = this.alphaSecond;
-        this.strandArrowY.line.material.opacity = this.alphaSecond;
-        this.strandArrowY.cone.material.opacity = this.alphaSecond;
-      }
-
-      // Update the label
-      if (this.label) {
-        this.label.material.opacity = this.alphaSecond;
-      }
-    }
   }
 }

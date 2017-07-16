@@ -55,6 +55,11 @@
     border-bottom: 1px solid $gray-lightest;
   }
 
+  .hidden-anchor svg-icon svg {
+    width: 100%;
+    height: 100%;
+  }
+
   .publication-title,
   #author-list h3 {
     margin-bottom: 0.5rem;

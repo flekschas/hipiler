@@ -8,6 +8,10 @@ dialog {
   background: transparentize($black, 1);
   transition: background $transition-very-fast $ease-in-out-cubic;
 
+  &.full-dim {
+    position: fixed;
+  }
+
   &.is-active {
     height: auto;
     background: transparentize($black, 0.5);

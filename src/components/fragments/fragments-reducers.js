@@ -7,7 +7,7 @@ import {
   DISPERSE_PILES_INSPECTION,
   INSPECT_PILES,
   RECOVER_PILES,
-  REMOVE_PILES,
+  REMOVE_PILES_INSPECTION,
   SET_ANIMATION,
   SET_ARRANGE_MEASURES,
   SET_CELL_SIZE,
@@ -17,11 +17,17 @@ import {
   SET_HILBERT_CURVE,
   SET_HIGLASS_SUB_SELECTION,
   SET_LASSO_IS_ROUND,
+  SET_LOG_TRANSFORM,
   SET_MATRICES_COLORS,
   SET_MATRIX_FRAME_ENCODING,
   SET_MATRIX_ORIENTATION,
   SET_PILES,
   SET_SHOW_SPECIAL_CELLS,
+  SET_TSNE_EARLY_EXAGGERATION,
+  SET_TSNE_ITERATIONS,
+  SET_TSNE_LEARNING_RATE,
+  SET_TSNE_PERPLEXITY,
+  SPLIT_PILES,
   STACK_PILES,
   STACK_PILES_INSPECTION,
   TRASH_PILES,
@@ -38,13 +44,18 @@ import {
   HILBERT_CURVE,
   HIGLASS_SUB_SELECTION,
   LASSO_IS_ROUND,
+  LOG_TRANSFORM,
   MATRICES_COLORS,
   MATRIX_FRAME_ENCODING,
   MATRIX_ORIENTATION_INITIAL,
   MODE_AVERAGE,
   PILES_INSPECTION,
   PILES,
-  SHOW_SPECIAL_CELLS
+  SHOW_SPECIAL_CELLS,
+  TSNE_EARLY_EXAGGERATION,
+  TSNE_ITERATIONS,
+  TSNE_LEARNING_RATE,
+  TSNE_PERPLEXITY
 } from 'components/fragments/fragments-defaults';
 
 import deepClone from 'utils/deep-clone';
@@ -205,6 +216,16 @@ export function lassoIsRound (state = LASSO_IS_ROUND, action) {
   }
 }
 
+export function logTransform (state = LOG_TRANSFORM, action) {
+  switch (action.type) {
+    case SET_LOG_TRANSFORM:
+      return action.payload.logTransform;
+
+    default:
+      return state;
+  }
+}
+
 export function matricesColors (state = MATRICES_COLORS, action) {
   switch (action.type) {
     case SET_MATRICES_COLORS: {
@@ -292,6 +313,25 @@ export function pilesInspection (state = PILES_INSPECTION, action) {
       return newState;
     }
 
+    case REMOVE_PILES_INSPECTION: {
+      // Create copy of old state
+      const newState = [...state];
+      const times = action.payload.recursive ? newState.length : 1;
+
+      for (let i = 0; i < times; i++) {
+        const pilesConfig = copyPilesState(newState[newState.length - (i + 1)]);
+
+        Object.keys(action.payload.piles)
+          .forEach((pileId) => {
+            pilesConfig[pileId] = [];
+          });
+
+        newState[newState.length - (i + 1)] = pilesConfig;
+      }
+
+      return newState;
+    }
+
     case STACK_PILES_INSPECTION: {
       const newState = [...state];
       const pilesConfig = copyPilesState(newState[newState.length - 1]);
@@ -322,14 +362,33 @@ export function piles (state = PILES, action) {
     case DISPERSE_PILES:
       return disperse(action.payload.piles, copyPilesState(state));
 
-    case REMOVE_PILES: {
+    case SPLIT_PILES: {
       // Create copy of old state
       const newState = copyPilesState(state);
 
-      action.payload.piles
-        .forEach((pileId) => {
-          newState[`__${pileId}`] = [...newState[pileId]];
-          newState[pileId] = [];
+      Object.keys(action.payload.piles)
+        .forEach((sourcePileId) => {
+          const pile = newState[sourcePileId];
+          const newPileIds = action.payload.piles[sourcePileId];
+
+          if (pile.length > 1) {
+            newPileIds.forEach((pileId) => {
+              const idx = pile.indexOf(pileId);
+
+              // If the index is zero we need to "rename" the pile since the
+              // first matrix of a pile defines the pile's ID.
+              if (idx === 0) {
+                sourcePileId = pile[1];
+                newState[sourcePileId] = pile.slice(1);
+                newState[pileId] = [pileId];
+              }
+
+              if (idx > 0) {
+                pile.splice(idx, 1);
+                newState[pileId] = [pileId];
+              }
+            });
+          }
         });
 
       return newState;
@@ -361,6 +420,7 @@ export function piles (state = PILES, action) {
       const newState = copyPilesState(state);
 
       action.payload.piles
+        .filter(pileId => pileId.length > 0 && pileId[0] !== '_')
         .forEach((pileId) => {
           newState[`_${pileId}`] = [...newState[pileId]];
           newState[pileId] = undefined;
@@ -385,6 +445,48 @@ export function showSpecialCells (state = SHOW_SPECIAL_CELLS, action) {
   }
 }
 
+export function tsneEarlyExaggeration (
+  state = TSNE_EARLY_EXAGGERATION, action
+) {
+  switch (action.type) {
+    case SET_TSNE_EARLY_EXAGGERATION:
+      return action.payload.earlyExaggeration;
+
+    default:
+      return state;
+  }
+}
+
+export function tsneIterations (state = TSNE_ITERATIONS, action) {
+  switch (action.type) {
+    case SET_TSNE_ITERATIONS:
+      return action.payload.iterations;
+
+    default:
+      return state;
+  }
+}
+
+export function tsneLearningRate (state = TSNE_LEARNING_RATE, action) {
+  switch (action.type) {
+    case SET_TSNE_LEARNING_RATE:
+      return action.payload.learningRate;
+
+    default:
+      return state;
+  }
+}
+
+export function tsnePerplexity (state = TSNE_PERPLEXITY, action) {
+  switch (action.type) {
+    case SET_TSNE_PERPLEXITY:
+      return action.payload.perplexity;
+
+    default:
+      return state;
+  }
+}
+
 export default combineReducers({
   animation,
   arrangeMeasures,
@@ -396,10 +498,15 @@ export default combineReducers({
   hilbertCurve,
   higlassSubSelection,
   lassoIsRound,
+  logTransform,
   matricesColors,
   matrixFrameEncoding,
   matrixOrientation,
   piles,
   pilesInspection,
-  showSpecialCells
+  showSpecialCells,
+  tsneEarlyExaggeration,
+  tsneIterations,
+  tsneLearningRate,
+  tsnePerplexity
 });

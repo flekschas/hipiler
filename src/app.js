@@ -1,22 +1,28 @@
 // Aurelia
-import { inject, LogManager } from 'aurelia-framework';
-import { EventAggregator } from 'aurelia-event-aggregator';
+import {
+  inject,  // eslint-disable-line
+  LogManager
+} from 'aurelia-framework';
+import { EventAggregator } from 'aurelia-event-aggregator';  // eslint-disable-line
 
 // Injectable
-import Font from 'services/font';
-import States from 'services/states';
+import Font from 'services/font';  // eslint-disable-line
+import States from 'services/states';  // eslint-disable-line
 
 // Utils
 import { updateConfigs } from 'app-actions';
 import { ERROR_DURATION } from 'app-defaults';
 import { name, routes } from 'configs/app';
 import { externalLinks } from 'configs/nav';
+import FgmState from 'components/fragments/fragments-state';
 import $ from 'utils/dom-el';
 import dragDrop from 'utils/drag-drop';
 import readJsonFile from 'utils/read-json-file';
 import validateConfig from 'utils/validate-config';
 
+
 const logger = LogManager.getLogger('app');
+
 
 @inject(EventAggregator, Font, States)
 export default class App {
@@ -44,7 +50,8 @@ export default class App {
     this.swag = [
       [66, 79, 67, 75, 87, 85, 82, 83, 84],
       [67, 79, 80, 82, 69, 83, 83, 79],
-      [72, 69, 76, 80]
+      [72, 69, 76, 80],
+      [67, 79, 79, 76]
     ];
     this.swagI = 0;
     this.swagJ = 0;
@@ -230,6 +237,36 @@ export default class App {
           'yourself a nice cup of ☕️';
       }
 
+      switch (this.swagI) {
+        case 0:
+        case 1:
+          this.dialogMessage =
+            'May the bockwurst be with you my young compression lover.' +
+            '<br/>Learn more about Compresso\'s awesome bockwurst-guided ' +
+            'compression for segmentation data by clicking <strong>Okay' +
+            '</strong>.';
+          break;
+        case 2:
+          this.dialogMessage =
+            'We hear you! You are not alone, help is on it\'s way.<br/>' +
+            'Meanwhile have a look at our extensive <a href="">documentation' +
+            '</a>, get yourself a nice cup of ☕️ , and ping us on <a ' +
+            'href="https://twitter.com/flekschas" target="_blank">Twitter</a>';
+          break;
+        case 3:
+          this.dialogMessage =
+            'Exactly! HiPiler is a <strong>cool</strong> piece of software. ' +
+            'If you want to go more low-level and play with those Hi-C maps ' +
+            'directly we highly recommend checking out ' +
+            '<a href="https://github.com/mirnylab/cooler" target="_blank"> ' +
+            '<strong>Cooler</strong></a>. Cooler is a fine piece of digital ' +
+            'craftmanship for smart storing and outragously efficient ' +
+            'querying of Hi-C maps, provided by the smart folks at Mirnylab.';
+          break;
+        default:
+          // Nothing
+      }
+
       this.dialogPromise
         .then(() => {
           if (this.swagI < 2) {
@@ -272,11 +309,13 @@ export default class App {
 
     this.dialogIsOpen = true;
     this.dialogMessage =
-      'Are you sure you want to reset your current session? This cannot be undone.';
+      'Are you sure you want to reset your current session? This cannot be ' +
+      'undone.';
 
     this.dialogPromise
       .then(() => {
         this.reset();
+        FgmState.reset();
         this.exploreIsReady = false;
         this.router.navigateToRoute('home');
       })

@@ -59,6 +59,13 @@
     }
   }
 
+  li.is-active button,
+  li.is-active button:hover,
+  li.is-active button:active {
+    color: $primary;
+    background: lighten($primary, 40%);
+  }
+
   label {
     color: $gray;
     text-align: right;
