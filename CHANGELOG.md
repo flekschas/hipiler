@@ -1,10 +1,11 @@
-v1.0.0-beta8 - 2017-07-15
+v1.0.0 - 2017-07-16
 
 - 5-10x faster snippet rendering
 - Implement removing matrices from piles
 - Highlight hovered preview
 - Update pile menu instantly
-- Added ability to log transform snippets
+- Add log transform for snippets
+- Add config options for t-SNE
 - Fix matrix flipping
 - Fix scroll issue after changing the cell size
 - Fix dialog during exploration
@@ -12,6 +13,8 @@ v1.0.0-beta8 - 2017-07-15
 - Fix bug when switching between grey scale and colored colormaps
 - Fix bug when toggling between showing snippet locations
 - Fix dialog
+- Fix orientation
+- Fix state reset (truly working this time!)
 
 v1.0.0-beta7 - 2017-06-09
 
