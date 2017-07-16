@@ -349,7 +349,7 @@ export default class Pile {
       sourceMatrices
         .map(matrix => Math.max(0, matrix.matrix[i]))
         .reduce(
-          (a, b) => a + ((b - targetMatrix[i]) ** 2), 0
+          (a, b) => a + ((b - Math.max(0, targetMatrix[i])) ** 2), 0
         ) / sourceMatrices.length / STD_MAX
     );
   }
