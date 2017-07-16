@@ -2378,7 +2378,8 @@ export class Fragments {
     });
     this.dialogIsOpen = true;
     this.dialogMessage =
-      'HiPiler uses t-SNE for dimensionality reduction when the number of ' +
+      'HiPiler uses <strong>t-SNE</strong> for dimensionality reduction when ' +
+      'the number of ' +
       'chosen measures for arranging snippets is higher than 2 or when ' +
       'directly clicking on <em>Cluster</em>. While t-SNE works very well ' +
       'with default settings most of the time you might want to tweak the ' +
@@ -2389,6 +2390,10 @@ export class Fragments {
       'at the <a href="https://github.com/scienceai/tsne-js#model-' +
       'parameters" target="_blank">project page</a> of the JavaScript ' +
       'implementation';
+
+    this.dialogPromise.catch(() => {
+      //Nothing
+    });
   }
 
   /**
