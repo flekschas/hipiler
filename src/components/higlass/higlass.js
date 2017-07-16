@@ -1,13 +1,16 @@
 // Aurelia
-import { inject, LogManager } from 'aurelia-framework';
-import { EventAggregator } from 'aurelia-event-aggregator';
+import {
+  inject,  // eslint-disable-line
+  LogManager
+} from 'aurelia-framework';
+import { EventAggregator } from 'aurelia-event-aggregator';  // eslint-disable-line
 
 // Third party
 import { color as d3Color, json } from 'd3';
 
 // Injectables
-import ChromInfo from 'services/chrom-info';
-import States from 'services/states';
+import ChromInfo from 'services/chrom-info';  // eslint-disable-line
+import States from 'services/states';  // eslint-disable-line
 
 // Utils etc.
 import $ from 'utils/dom-el';

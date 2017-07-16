@@ -7,7 +7,7 @@ import {
 import icons from 'configs/icons';
 
 export class SvgIcon {
-  @bindable({ defaultBindingMode: bindingMode.oneWay }) iconId;
+  @bindable({ defaultBindingMode: bindingMode.oneWay }) iconId;  // eslint-disable-line
 
   constructor () {
     this.icon = {

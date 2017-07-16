@@ -1,10 +1,13 @@
 // Aurelia
-import { inject, LogManager } from 'aurelia-framework';
-import { EventAggregator } from 'aurelia-event-aggregator';
+import {
+  inject,  // eslint-disable-line
+  LogManager
+} from 'aurelia-framework';
+import { EventAggregator } from 'aurelia-event-aggregator';  // eslint-disable-line
 
 // Injectable
-import Font from 'services/font';
-import States from 'services/states';
+import Font from 'services/font';  // eslint-disable-line
+import States from 'services/states';  // eslint-disable-line
 
 // Utils
 import { updateConfigs } from 'app-actions';

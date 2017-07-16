@@ -1,13 +1,16 @@
 // Aurelia
-import { inject, LogManager } from 'aurelia-framework';
-import { Router } from 'aurelia-router';
-import { EventAggregator } from 'aurelia-event-aggregator';
+import {
+  inject,  // eslint-disable-line
+  LogManager
+} from 'aurelia-framework';  // eslint-disable-line
+import { Router } from 'aurelia-router';  // eslint-disable-line
+import { EventAggregator } from 'aurelia-event-aggregator';  // eslint-disable-line
 
 // Third party
 import { json } from 'd3';
 
 // Injectable
-import States from 'services/states';
+import States from 'services/states';  // eslint-disable-line
 
 // Utils
 import examples from 'configs/examples';

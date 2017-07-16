@@ -2,12 +2,12 @@
 import {
   bindable,
   bindingMode,
-  inject
+  inject  // eslint-disable-line
 } from 'aurelia-framework';
-import { EventAggregator } from 'aurelia-event-aggregator';
+import { EventAggregator } from 'aurelia-event-aggregator';  // eslint-disable-line
 
 // Injectables
-import States from 'services/states';
+import States from 'services/states';  // eslint-disable-line
 
 import { EVENT_BASE_NAME } from 'components/multi-select/multi-select-defaults';
 
@@ -19,12 +19,12 @@ import queryObj from 'utils/query-obj';
 
 @inject(EventAggregator, States)
 export class MultiSelect {
-  @bindable({ defaultBindingMode: bindingMode.oneWay }) bottomUp = false;
-  @bindable({ defaultBindingMode: bindingMode.oneWay }) eventId;
-  @bindable options = [];
-  @bindable({ defaultBindingMode: bindingMode.oneWay }) placeholder;
-  @bindable({ defaultBindingMode: bindingMode.oneWay }) stateQuery;
-  @bindable({ defaultBindingMode: bindingMode.oneWay }) disabled = false;
+  @bindable({ defaultBindingMode: bindingMode.oneWay }) bottomUp = false;  // eslint-disable-line
+  @bindable({ defaultBindingMode: bindingMode.oneWay }) eventId;  // eslint-disable-line
+  @bindable options = [];  // eslint-disable-line
+  @bindable({ defaultBindingMode: bindingMode.oneWay }) placeholder;  // eslint-disable-line
+  @bindable({ defaultBindingMode: bindingMode.oneWay }) stateQuery;  // eslint-disable-line
+  @bindable({ defaultBindingMode: bindingMode.oneWay }) disabled = false;  // eslint-disable-line
 
   constructor (eventAggregator, states) {
     this.event = eventAggregator;

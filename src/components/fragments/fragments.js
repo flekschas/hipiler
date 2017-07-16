@@ -1,11 +1,11 @@
 // Aurelia
 import {
   bindable,
-  inject,
+  inject,  // eslint-disable-line
   LogManager
 } from 'aurelia-framework';
 
-import { EventAggregator } from 'aurelia-event-aggregator';
+import { EventAggregator } from 'aurelia-event-aggregator';  // eslint-disable-line
 
 // Third party
 import { json, queue, scaleLinear, text } from 'd3';
@@ -20,8 +20,8 @@ import {
 } from 'three';
 
 // Injectables
-import ChromInfo from 'services/chrom-info';
-import States from 'services/states';
+import ChromInfo from 'services/chrom-info';  // eslint-disable-line
+import States from 'services/states';  // eslint-disable-line
 
 // Utils etc.
 import {
@@ -174,7 +174,7 @@ let fgmState = FgmState.get();
 
 @inject(ChromInfo, EventAggregator, States)
 export class Fragments {
-  @bindable baseElIsInit = false;
+  @bindable baseElIsInit = false;  // eslint-disable-line
 
   constructor (chromInfo, event, states) {
     this.event = event;

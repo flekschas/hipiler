@@ -2,11 +2,11 @@
 import {
   bindable,
   bindingMode,
-  inject,
+  inject,  // eslint-disable-line
   LogManager
 } from 'aurelia-framework';
 
-import { EventAggregator } from 'aurelia-event-aggregator';
+import { EventAggregator } from 'aurelia-event-aggregator';  // eslint-disable-line
 
 import commands from 'components/fragments/pile-menu-commands';
 
@@ -23,11 +23,11 @@ const logger = LogManager.getLogger('pile-menu');
 
 @inject(EventAggregator)
 export class PileMenu {
-  @bindable({ defaultBindingMode: bindingMode.oneWay }) isActive = false;
-  @bindable({ defaultBindingMode: bindingMode.oneWay }) isAlignLeft = false;
-  @bindable({ defaultBindingMode: bindingMode.oneWay }) isBottomUp = false;
-  @bindable({ defaultBindingMode: bindingMode.oneWay }) pile;
-  @bindable({ defaultBindingMode: bindingMode.oneWay }) position = {};
+  @bindable({ defaultBindingMode: bindingMode.oneWay }) isActive = false;  // eslint-disable-line
+  @bindable({ defaultBindingMode: bindingMode.oneWay }) isAlignLeft = false;  // eslint-disable-line
+  @bindable({ defaultBindingMode: bindingMode.oneWay }) isBottomUp = false;  // eslint-disable-line
+  @bindable({ defaultBindingMode: bindingMode.oneWay }) pile;  // eslint-disable-line
+  @bindable({ defaultBindingMode: bindingMode.oneWay }) position = {};  // eslint-disable-line
 
 
   /* ----------------------- Aurelia-specific methods ----------------------- */

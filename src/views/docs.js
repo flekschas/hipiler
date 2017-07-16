@@ -1,6 +1,9 @@
 // Aurelia
-import { inject, InlineViewStrategy } from 'aurelia-framework';
-import { EventAggregator } from 'aurelia-event-aggregator';
+import {
+  inject,  // eslint-disable-line
+  InlineViewStrategy
+} from 'aurelia-framework';
+import { EventAggregator } from 'aurelia-event-aggregator';  // eslint-disable-line
 
 // Docs
 import sidebar from 'text!../../assets/wiki/sidebar.html';  // eslint-disable-line import/no-webpack-loader-syntax
