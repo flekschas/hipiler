@@ -1,3 +1,5 @@
+import { batchActions } from 'redux-batched-actions';
+
 export const ADD_PILES = 'ADD_PILES';
 
 export const addPiles = piles => ({
@@ -39,11 +41,11 @@ export const recoverPiles = piles => ({
   payload: { piles }
 });
 
-export const REMOVE_PILES = 'REMOVE_PILES';
+export const REMOVE_PILES_INSPECTION = 'REMOVE_PILES_INSPECTION';
 
-export const removePiles = piles => ({
-  type: REMOVE_PILES,
-  payload: { piles }
+export const removePilesInspection = (piles, recursive) => ({
+  type: REMOVE_PILES_INSPECTION,
+  payload: { piles, recursive }
 });
 
 export const SET_ANIMATION = 'SET_ANIMATION';
@@ -67,10 +69,10 @@ export const setCellSize = cellSize => ({
   payload: { cellSize }
 });
 
-export const setCellAndGridSize = size => (dispath) => {
-  dispath(setCellSize(size));
-  dispath(setGridSize(size));
-};
+export const setCellAndGridSize = size => batchActions([
+  setCellSize(size),
+  setGridSize(size)
+]);
 
 export const SET_COVER_DISP_MODE = 'SET_COVER_DISP_MODE';
 
@@ -86,10 +88,10 @@ export const setGridCellSizeLock = gridCellSizeLock => ({
   payload: { gridCellSizeLock }
 });
 
-export const setGridCellSizeLockAndGridSize = config => (dispath) => {
-  dispath(setGridCellSizeLock(config.gridCellSizeLock));
-  dispath(setGridSize(config.gridSize));
-};
+export const setGridCellSizeLockAndGridSize = config => batchActions([
+  setGridCellSizeLock(config.gridCellSizeLock),
+  setGridSize(config.gridSize)
+]);
 
 export const SET_GRID_SIZE = 'SET_GRID_SIZE';
 
@@ -117,6 +119,13 @@ export const SET_LASSO_IS_ROUND = 'SET_LASSO_IS_ROUND';
 export const setLassoIsRound = lassoIsRound => ({
   type: SET_LASSO_IS_ROUND,
   payload: { lassoIsRound }
+});
+
+export const SET_LOG_TRANSFORM = 'SET_LOG_TRANSFORM';
+
+export const setLogTransform = logTransform => ({
+  type: SET_LOG_TRANSFORM,
+  payload: { logTransform }
 });
 
 export const SET_MATRICES_COLORS = 'SET_MATRICES_COLORS';
@@ -161,6 +170,55 @@ export const setShowSpecialCells = showSpecialCells => ({
   payload: { showSpecialCells }
 });
 
+export const SET_TSNE_EARLY_EXAGGERATION = 'SET_TSNE_EARLY_EXAGGERATION';
+
+export const setTsneEarlyExaggeration = earlyExaggeration => ({
+  type: SET_TSNE_EARLY_EXAGGERATION,
+  payload: { earlyExaggeration }
+});
+
+export const SET_TSNE_ITERATIONS = 'SET_TSNE_ITERATIONS';
+
+export const setTsneIterations = iterations => ({
+  type: SET_TSNE_ITERATIONS,
+  payload: { iterations }
+});
+
+export const SET_TSNE_LEARNING_RATE = 'SET_TSNE_LEARNING_RATE';
+
+export const setTsneLearningRate = learningRate => ({
+  type: SET_TSNE_LEARNING_RATE,
+  payload: { learningRate }
+});
+
+export const SET_TSNE_PERPLEXITY = 'SET_TSNE_PERPLEXITY';
+
+export const setTsnePerplexity = perplexity => ({
+  type: SET_TSNE_PERPLEXITY,
+  payload: { perplexity }
+});
+
+export const SPLIT_PILES = 'SPLIT_PILES';
+
+export const splitPiles = piles => ({
+  type: SPLIT_PILES,
+  payload: { piles }
+});
+
+export const SPLIT_PILES_INSPECTION = 'SPLIT_PILES_INSPECTION';
+
+export const splitPilesInspection = (
+  sourcePile, matrices, piles
+) => {
+  const obj = {};
+  obj[sourcePile] = matrices;
+
+  return batchActions([
+    splitPiles(obj),
+    removePilesInspection(piles)
+  ]);
+};
+
 export const STACK_PILES = 'STACK_PILES';
 
 export const stackPiles = pileStacks => ({
@@ -181,6 +239,21 @@ export const trashPiles = piles => ({
   type: TRASH_PILES,
   payload: { piles }
 });
+
+export const TRASH_PILES_INSPECTION = 'TRASH_PILES_INSPECTION';
+
+export const trashPilesInspection = (
+  sourcePile, matrices, piles
+) => {
+  const obj = {};
+  obj[sourcePile] = matrices;
+
+  return batchActions([
+    splitPiles(obj),
+    removePilesInspection(piles, true),
+    trashPiles(matrices.map(matrixId => `${matrixId}`))
+  ]);
+};
 
 export const UPDATE_FGM_CONFIG = 'UPDATE_FGM_CONFIG';
 

@@ -3,27 +3,24 @@ import { Scene } from 'three';
 import {
   CELL_SIZE,
   GRID_SIZE,
-  MATRIX_ORIENTATION_INITIAL
+  LOG_TRANSFORM,
+  MATRIX_ORIENTATION_INITIAL,
+  MODE_AVERAGE
 } from 'components/fragments/fragments-defaults';
 
-import pilesColors from 'components/fragments/pile-colors';
+import deepClone from 'utils/deep-clone';
 
-
-const State = {
-  activeMatrixInPileIndex: undefined,
-  activePile: undefined,
+const DEFAULT_STATE = {
   adjacentDistances: undefined,
   cellSize: CELL_SIZE,
   gridSize: GRID_SIZE,
   colorsIdx: {},
-  colorsAvailable: pilesColors.categorical.map((color, index) => index),
+  coverDispMode: MODE_AVERAGE,
   dataMeasuresMax: {},
   dataMeasuresMin: {},
   dragActive: false,
   draggingMatrix: undefined,
   dragPile: undefined,
-  dynamicdata: undefined,
-  focusNodes: [],
   font: undefined,
   graphMatrices: [],
   gridCellHeightInclSpacing: 0,
@@ -38,6 +35,7 @@ const State = {
   hoveredTool: undefined,
   isLayout2d: false,
   lassoObject: undefined,
+  logTransform: LOG_TRANSFORM,
   matrices: [],
   matricesIdx: {},
   matricesPileIndex: [],
@@ -51,9 +49,6 @@ const State = {
   maxDistance: 0,
   measures: [],
   mouse: undefined,
-  nodes: [],
-  openedPileMatrices: [],
-  openedPileRoot: undefined,
   pileMeshes: [],
   pileMeshesTrash: [],
   piles: [],
@@ -61,17 +56,32 @@ const State = {
   pilesInspection: [],
   pilesIdxInspection: {},
   pilesTrash: [],
-  pilingMethod: 'clustered',
+  previewScale: 1,
   previousHoveredPile: undefined,
   scale: 1,
-  scene: new Scene(),
   selectedMatrices: [],
-  strandArrowRects: [],
-  strandArrowRectsTrash: [],
+  strandArrows: [],
+  strandArrowsTrash: [],
   trashIsActive: false,
   workerClusterfck: undefined
 };
 
-const state = Object.create(State);
+
+class State {
+  constructor () {
+    this.reset();
+  }
+
+  get () {
+    return this.state;
+  }
+
+  reset () {
+    this.state = deepClone(DEFAULT_STATE);
+    this.state.scene = new Scene();
+  }
+}
+
+const state = new State();
 
 export default state;

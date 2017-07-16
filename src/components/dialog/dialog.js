@@ -2,16 +2,17 @@
 import {
   bindable,
   bindingMode,
-  inject
+  inject  // eslint-disable-line
 } from 'aurelia-framework';
 
-import { EventAggregator } from 'aurelia-event-aggregator';
+import { EventAggregator } from 'aurelia-event-aggregator';  // eslint-disable-line
+
 
 @inject(EventAggregator)
 export class Dialog {
-  @bindable({ defaultBindingMode: bindingMode.twoWay }) deferred = {};
-  @bindable({ defaultBindingMode: bindingMode.twoWay }) isOpen = false;
-  @bindable({ defaultBindingMode: bindingMode.oneWay }) message = '';
+  @bindable({ defaultBindingMode: bindingMode.twoWay }) deferred = {};  // eslint-disable-line
+  @bindable({ defaultBindingMode: bindingMode.twoWay }) isOpen = false;  // eslint-disable-line
+  @bindable({ defaultBindingMode: bindingMode.oneWay }) message = '';  // eslint-disable-line
 
   constructor (event) {
     this.event = event;

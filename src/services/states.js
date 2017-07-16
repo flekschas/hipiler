@@ -6,6 +6,7 @@ import createCompressor from 'redux-persist-transform-compress';
 import thunk from 'redux-thunk';
 // import freeze from 'redux-freeze';
 import undoable, { ActionCreators } from 'redux-undo';
+import { enableBatching } from 'redux-batched-actions';
 
 import { resetState } from 'app-actions';
 import appReducer from 'app-reducer';
@@ -22,7 +23,7 @@ const CONFIG = {
 export default class States {
   constructor () {
     this.store = createStore(
-      undoable(appReducer, {
+      undoable(enableBatching(appReducer), {
         limit: 50
       }),
       undefined,

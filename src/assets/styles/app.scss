@@ -219,14 +219,9 @@
   }
 
   .button-group {
-    .button
-    .button:first-child,
-    .button:last-child {
-      box-shadow: inset 0 0 0 1px $gray-lightest;
-
-      &.is-active {
-        box-shadow: inset 0 0 0 1px $primary;
-      }
+    .button {
+      box-shadow: inset 0 -1px 0 0 $gray-lightest,
+                  inset 0  1px 0 0 $gray-lightest;
     }
 
     .button {
@@ -235,10 +230,26 @@
 
     .button:first-child {
       border-radius: 0.25rem 0 0 0.25rem;
+      box-shadow: inset 0 0 0 1px $gray-lightest;
     }
 
     .button:last-child {
       border-radius: 0 0.25rem 0.25rem 0;
+      box-shadow: inset -1px 0 0 0 $gray-lightest,
+                  inset 0 -1px 0 0 $gray-lightest,
+                  inset 0  1px 0 0 $gray-lightest;
+    }
+
+    .button:first-child:last-child {
+      border-radius: 0.25rem;
+      box-shadow: inset 0 0 0 1px $gray-lightest;
+    }
+
+    .button.is-active,
+    .button.is-active:first-child,
+    .button.is-active:last-child,
+    .button.is-active:first-child:last-child {
+      box-shadow: inset 0 0 0 1px lighten($primary, 40%);
     }
   }
 

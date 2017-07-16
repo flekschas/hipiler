@@ -1,10 +1,13 @@
 // Aurelia
-import { inject, LogManager } from 'aurelia-framework';
-import { EventAggregator } from 'aurelia-event-aggregator';
+import {
+  inject,  // eslint-disable-line
+  LogManager
+} from 'aurelia-framework';
+import { EventAggregator } from 'aurelia-event-aggregator';  // eslint-disable-line
 
 // Injectables
-import Font from 'services/font';
-import States from 'services/states';
+import Font from 'services/font';  // eslint-disable-line
+import States from 'services/states';  // eslint-disable-line
 
 // Utils etc.
 import $ from 'utils/dom-el';
@@ -14,6 +17,7 @@ import { transition } from 'configs/app';
 import { requestNextAnimationFrame } from 'utils/request-animation-frame';
 import { updateWidth } from 'views/explore-actions';
 import { COLUMNS, COLUMN_NAMES } from 'views/explore-defaults';
+
 
 const logger = LogManager.getLogger('explore');
 

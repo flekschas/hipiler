@@ -1,19 +1,22 @@
 // Aurelia
-import { inject, LogManager } from 'aurelia-framework';
-import { EventAggregator } from 'aurelia-event-aggregator';
+import {
+  inject,  // eslint-disable-line
+  LogManager
+} from 'aurelia-framework';
+import { EventAggregator } from 'aurelia-event-aggregator';  // eslint-disable-line
 
 // Third party
 import { color as d3Color, json } from 'd3';
 
 // Injectables
-import ChromInfo from 'services/chrom-info';
-import States from 'services/states';
+import ChromInfo from 'services/chrom-info';  // eslint-disable-line
+import States from 'services/states';  // eslint-disable-line
 
 // Utils etc.
 import $ from 'utils/dom-el';
 import debounce from 'utils/debounce';
 import ping from 'utils/ping';
-import { createHgComponent as hg } from 'hglib';
+// import { createHgComponent as hg } from 'hglib';
 import { requestNextAnimationFrame } from 'utils/request-animation-frame';
 import {
   setGrayscale,
@@ -686,10 +689,10 @@ export class Higlass {
   }
 
   update () {
+    const update = {};
+
     try {
       const state = this.store.getState().present.explore;
-
-      const update = {};
 
       this.checkColumnsDb(state.columns, update);
       this.updateConfig(state.higlass.config, update);
@@ -784,13 +787,14 @@ export class Higlass {
     this.grayscale = grayscale;
 
     this.config.views.forEach((view, index) => {
-      if (grayscale) {
-        view.tracks.center[0].contents[0].options.colorRange =
-          GRAYSCALE_COLORS;
+      const options = view.tracks.center[0].contents[0].options;
+      index -= view.selectionView ? 1 : 0;
+
+      if (this.grayscale) {
+        options.colorRange = GRAYSCALE_COLORS;
       } else {
-        view.tracks.center[0].contents[0].options.colorRange =
-          this.originalConfig.views[index]
-            .tracks.center[0].contents[0].options.colorRange.slice();
+        options.colorRange = this.originalConfig.views[index]
+          .tracks.center[0].contents[0].options.colorRange.slice();
       }
     });
 
@@ -808,10 +812,10 @@ export class Higlass {
     this.config.views
       .filter(view => view.tracks.center.length > 1)
       .forEach((view) => {
-        const last = view.tracks.center.length - 1;
-
-        if (view.tracks.center[last].type === '2d-chromosome-annotations') {
-          view.tracks.center.pop();
+        for (let i = view.tracks.center.length; i--;) {
+          if (view.tracks.center[i].type === '2d-chromosome-annotations') {
+            view.tracks.center.splice(i, 1);
+          }
         }
       });
 
@@ -851,7 +855,9 @@ export class Higlass {
 
     this.fragmentsHighlightColor = matricesColors;
 
-    this.colorLoci(this.loci, matricesColors);
+    if (this.fragmentsHighlight) {
+      this.colorLoci(this.loci, matricesColors);
+    }
 
     update.render = true;
   }
@@ -904,7 +910,7 @@ export class Higlass {
   render (config) {
     Promise.all([this.isServersAvailable, this.isAttached])
       .then(() => {
-        hg(
+        window.hglib.createHgComponent(
           this.plotEl,
           deepClone(config),
           OPTIONS,
