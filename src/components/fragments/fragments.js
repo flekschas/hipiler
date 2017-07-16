@@ -1177,7 +1177,7 @@ export class Fragments {
           }]
         );
 
-        const zoomed = this.pilesZoomed[this.dragPile.id]
+        const zoomed = this.pilesZoomed[this.dragPile.id];
         this.dragPile.elevateTo(zoomed ? Z_HIGHLIGHT : Z_BASE);
       } else {
         // Pile up the two piles

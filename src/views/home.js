@@ -20,7 +20,6 @@ const logger = LogManager.getLogger('home');
 
 @inject(EventAggregator, Router, States)
 export class Home {
-  inputConfigFile;
 
   constructor (event, router, states) {
     this.event = event;
