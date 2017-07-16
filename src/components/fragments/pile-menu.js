@@ -10,13 +10,15 @@ import { EventAggregator } from 'aurelia-event-aggregator';
 
 import commands from 'components/fragments/pile-menu-commands';
 
-import fgmState from 'components/fragments/fragments-state';
+import FgmState from 'components/fragments/fragments-state';
 
 import {
   MODE_AVERAGE,
   MODE_VARIANCE
 } from 'components/fragments/fragments-defaults';
 
+
+let fgmState = FgmState.get();
 const logger = LogManager.getLogger('pile-menu');
 
 @inject(EventAggregator)
@@ -34,6 +36,8 @@ export class PileMenu {
    * Called once the component is atached.
    */
   attached () {
+    fgmState = FgmState.get();
+
     this.subscriptions = [];
     this.subscribeEventListeners();
   }

@@ -113,7 +113,7 @@ import {
   PREVIEW_GAP_SIZE
 } from 'components/fragments/pile-defaults';
 
-import fgmState from 'components/fragments/fragments-state';
+import FgmState from 'components/fragments/fragments-state';
 
 import Pile from 'components/fragments/pile';
 
@@ -132,6 +132,7 @@ import COLORS from 'configs/colors';
 import arraysEqual from 'utils/arrays-equal';
 import hilbertCurve from 'utils/hilbert-curve';
 import { requestNextAnimationFrame } from 'utils/request-animation-frame';
+
 
 const logger = LogManager.getLogger('fragments');
 
@@ -167,6 +168,9 @@ const sortAsc = (a, b) => {
 
   return 1;
 };
+
+let fgmState = FgmState.get();
+
 
 @inject(ChromInfo, EventAggregator, States)
 export class Fragments {
@@ -344,6 +348,8 @@ export class Fragments {
    * Called once the component is attached.
    */
   attached () {
+    fgmState = FgmState.get();
+
     window.addResizeListener(this.baseEl, this.resizeHandler.bind(this));
 
     this.resolve.isAttached();

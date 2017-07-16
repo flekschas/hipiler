@@ -11,12 +11,15 @@ import { updateConfigs } from 'app-actions';
 import { ERROR_DURATION } from 'app-defaults';
 import { name, routes } from 'configs/app';
 import { externalLinks } from 'configs/nav';
+import FgmState from 'components/fragments/fragments-state';
 import $ from 'utils/dom-el';
 import dragDrop from 'utils/drag-drop';
 import readJsonFile from 'utils/read-json-file';
 import validateConfig from 'utils/validate-config';
 
+
 const logger = LogManager.getLogger('app');
+
 
 @inject(EventAggregator, Font, States)
 export default class App {
@@ -303,11 +306,13 @@ export default class App {
 
     this.dialogIsOpen = true;
     this.dialogMessage =
-      'Are you sure you want to reset your current session? This cannot be undone.';
+      'Are you sure you want to reset your current session? This cannot be ' +
+      'undone.';
 
     this.dialogPromise
       .then(() => {
         this.reset();
+        FgmState.reset();
         this.exploreIsReady = false;
         this.router.navigateToRoute('home');
       })

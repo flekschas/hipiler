@@ -12,8 +12,10 @@ import {
   MODE_AVERAGE, MODE_VARIANCE
 } from 'components/fragments/fragments-defaults';
 
+
 const store = Container.instance.get(States).store;
 const event = Container.instance.get(EventAggregator);
+
 
 export const COLOR = {
   buttons: [

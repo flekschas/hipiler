@@ -8,8 +8,9 @@ import {
   MODE_AVERAGE
 } from 'components/fragments/fragments-defaults';
 
+import deepClone from 'utils/deep-clone';
 
-const State = {
+const DEFAULT_STATE = {
   adjacentDistances: undefined,
   cellSize: CELL_SIZE,
   gridSize: GRID_SIZE,
@@ -58,7 +59,6 @@ const State = {
   previewScale: 1,
   previousHoveredPile: undefined,
   scale: 1,
-  scene: new Scene(),
   selectedMatrices: [],
   strandArrows: [],
   strandArrowsTrash: [],
@@ -66,6 +66,22 @@ const State = {
   workerClusterfck: undefined
 };
 
-const state = Object.create(State);
+
+class State {
+  constructor () {
+    this.reset();
+  }
+
+  get () {
+    return this.state;
+  }
+
+  reset () {
+    this.state = deepClone(DEFAULT_STATE);
+    this.state.scene = new Scene();
+  }
+}
+
+const state = new State();
 
 export default state;

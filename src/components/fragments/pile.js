@@ -37,7 +37,7 @@ import {
   STD_MAX
 } from 'components/fragments/pile-defaults';
 
-import fgmState from 'components/fragments/fragments-state';
+import FgmState from 'components/fragments/fragments-state';
 
 import {
   cellValue,
@@ -58,11 +58,14 @@ import Matrix from 'components/fragments/matrix';
 import COLORS from 'configs/colors';
 
 
+let fgmState = FgmState.get();
 const logger = LogManager.getLogger('pile');
 
 
 export default class Pile {
   constructor (id, scene, scale, dims, maxNumPiles) {
+    fgmState = FgmState.get();
+
     this.alpha = 1.0;
     this.cellFrame = createRectFrame(
       this.cellSize, this.cellSize, 0xff0000, 1
