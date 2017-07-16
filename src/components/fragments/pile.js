@@ -344,7 +344,7 @@ export default class Pile {
   calculateCellStd (targetMatrix, sourceMatrices, i, numMatrices) {
     targetMatrix[i] = Math.sqrt(
       sourceMatrices
-        .map(matrix => matrix.matrix[i])
+        .map(matrix => Math.max(0, matrix.matrix[i]))
         .reduce(
           (a, b) => a + ((b - targetMatrix[i]) ** 2), 0
         ) / sourceMatrices.length / STD_MAX
@@ -372,8 +372,7 @@ export default class Pile {
     const numMatrices = sourceMatrices.length;
 
     if (numMatrices > 1) {
-      const d2 = this.dims ** 2;
-      for (let i = 0; i < d2; i++) {
+      for (let i = 0; i < targetMatrix.length; i++) {
         this.calculateCellStd(
           targetMatrix,
           sourceMatrices,
@@ -1399,7 +1398,7 @@ export default class Pile {
   }
 
   /**
-   * Set cover display mode.
+   * Set individual cover display mode.
    *
    * @param {number} mode - Cover display mode number.
    * @return {object} Self.
