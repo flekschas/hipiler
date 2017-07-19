@@ -2961,7 +2961,11 @@ export class Fragments {
       const queryString = this.prepareQueryString(params);
 
       // Remove trailing slashes
-      const server = config.fragmentsServer.replace(/\/+$/, '');
+      let server = config.fragmentsServer.replace(/\/+$/, '');
+
+      if (server.slice(-7) !== '/api/v1') {
+        server += '/api/v1';
+      }
 
       try {
         url = `${server}/${endpoint}/${queryString}`;
