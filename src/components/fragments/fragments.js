@@ -2634,8 +2634,6 @@ export class Fragments {
         measures[measure] = fragment[this.dataMeasures[measure]];
       });
 
-      console.log('initMatrices', fragment[this.dataIdxStrand1]);
-
       const matrix = new Matrix(
         index,
         fragment[this.dataIdxMatrix],
