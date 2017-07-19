@@ -1811,7 +1811,7 @@ export class Fragments {
    * @return {array} API ready loci list
    */
   extractLoci (config) {
-    const header = config.fragments[0];
+    const header = config.fragments[0].map(entry => entry.toLowerCase());
 
     const chrom1 = header.indexOf('chrom1');
     const start1 = header.indexOf('start1');
@@ -1820,7 +1820,7 @@ export class Fragments {
     const start2 = header.indexOf('start2');
     const end2 = header.indexOf('end2');
     const dataset = header.indexOf('dataset');
-    const zoomOutLevel = header.indexOf('zoomOutLevel');
+    const zoomOutLevel = header.indexOf('zoomoutlevel');
 
     if (-1 in [
       chrom1, start1, end1, chrom2, start2, end2, dataset, zoomOutLevel
@@ -2462,7 +2462,9 @@ export class Fragments {
    * @return {object} Object with the config and combined raw matrices.
    */
   initData (config, rawMatrices) {
-    const header = ['matrix', ...config.fragments[0]];
+    const header = [
+      'matrix', ...config.fragments[0].map(entry => entry.toLowerCase())
+    ];
     const fragments = config.fragments.slice(1).map(
       (fragment, index) => [rawMatrices[index], ...fragment]
     );
@@ -2477,7 +2479,7 @@ export class Fragments {
     this.dataIdxEnd2 = header.indexOf('end2');
     this.dataIdxStrand2 = header.indexOf('strand2');
     this.dataIdxDataset = header.indexOf('dataset');
-    this.dataIdxZoomOutLevel = header.indexOf('zoomOutLevel');
+    this.dataIdxZoomOutLevel = header.indexOf('zoomoutlevel');
 
     const usedIdx = [
       this.dataIdxMatrix,
@@ -2631,6 +2633,8 @@ export class Fragments {
       Object.keys(this.dataMeasures).forEach((measure) => {
         measures[measure] = fragment[this.dataMeasures[measure]];
       });
+
+      console.log('initMatrices', fragment[this.dataIdxStrand1]);
 
       const matrix = new Matrix(
         index,
@@ -3304,11 +3308,11 @@ export class Fragments {
         fgmState.matrices.forEach((matrix) => {
           if (
             (
-              matrix.orientation.strand1 === 'coding' &&
+              Matrix.isCodingStrand(matrix.orientation.strand1) &&
               matrix.orientationX === -1
             ) ||
             (
-              matrix.orientation.strand1 !== 'coding' &&
+              !Matrix.isCodingStrand(matrix.orientation.strand1) &&
               matrix.orientationX === 1
             )
           ) {
@@ -3316,11 +3320,11 @@ export class Fragments {
           }
           if (
             (
-              matrix.orientation.strand2 === 'coding' &&
+              Matrix.isCodingStrand(matrix.orientation.strand2) &&
               matrix.orientationY === -1
             ) ||
             (
-              matrix.orientation.strand2 !== 'coding' &&
+              !Matrix.isCodingStrand(matrix.orientation.strand2) &&
               matrix.orientationY === 1
             )
           ) {

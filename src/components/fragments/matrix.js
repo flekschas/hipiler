@@ -6,8 +6,10 @@ export default class Matrix {
     this.matrix = Matrix.to1d(matrix);
     this.measures = measures;
     this.orientation = orientation;
-    this.orientationX = this.orientation.strand1 === 'coding' ? 1 : -1;
-    this.orientationY = this.orientation.strand2 === 'coding' ? 1 : -1;
+    this.orientationX = Matrix.isCodingStrand(this.orientation.strand1) ?
+      1 : -1;
+    this.orientationY = Matrix.isCodingStrand(this.orientation.strand2) ?
+      1 : -1;
     this.visible = true;
     this.resolution = resolution;
   }
@@ -79,6 +81,25 @@ export default class Matrix {
     }
 
     matrix.set(flippedMatrix);
+  }
+
+  /**
+   * Check if orientation is coding or non-coding.
+   *
+   * @param {string} orientation - Orientation string to be checked.
+   * @return {Boolean} If `true` strand is coding.
+   */
+  static isCodingStrand (orientation) {
+    switch (orientation) {
+      case '-':
+      case 'minus':
+      case 'noncoding':
+      case 'non-coding':
+        return false;
+
+      default:
+        return true;
+    }
   }
 
   /**
