@@ -185,28 +185,40 @@ export function makeRgbaBuffer (array, alpha = 1.0) {
   return buffer;
 }
 
+const FRAME_GEOMETRY = LINE(
+  [[-0.5, -0.5], [-0.5, 0.5], [0.5, 0.5], [0.5, -0.5]], { closed: true }
+);
+
+const FRAME_GEOMETRY_BASE_POS = FRAME_GEOMETRY
+  .attributes.position.array.slice(0);
+
 export function createLineFrame (width, height, color, lineWidth, opacity) {
-  const wh = width / 2;
-  const hh = height / 2;
+  const frame = new Mesh(
+    FRAME_GEOMETRY.clone(),
+    new ShaderMaterial(LINE_SHADER({
+      side: DoubleSide,
+      diffuse: color,
+      thickness: lineWidth,
+      transparent: true,
+      opacity: typeof opacity === 'undefined' ? 1 : opacity
+    }))
+  );
 
-  const coordinates = [
-    [-wh, -hh],
-    [-wh, hh],
-    [wh, hh],
-    [wh, -hh]
-  ];
+  frame.geometry.scale(width, height, 1);
 
-  const geometry = LINE(coordinates, { closed: true });
+  return frame;
+}
 
-  const material = new ShaderMaterial(LINE_SHADER({
-    side: DoubleSide,
-    diffuse: color,
-    thickness: lineWidth,
-    transparent: true,
-    opacity: typeof opacity === 'undefined' ? 1 : opacity
-  }));
+export function scaleLineFrame (frame, x, y, z = 1) {
+  const len = frame.geometry.attributes.position.array.length / 3;
+  for (let i = 0; i < len; i++) {
+    const idx = i * 3;
+    frame.geometry.attributes.position.array[idx] = x * FRAME_GEOMETRY_BASE_POS[idx];
+    frame.geometry.attributes.position.array[idx + 1] = y * FRAME_GEOMETRY_BASE_POS[idx + 1];
+    frame.geometry.attributes.position.array[idx + 2] = z * FRAME_GEOMETRY_BASE_POS[idx + 2];
+  }
 
-  return new Mesh(geometry, material);
+  frame.geometry.attributes.position.needsUpdate = true;
 }
 
 export function createChMap (

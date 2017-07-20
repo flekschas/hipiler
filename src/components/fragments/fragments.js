@@ -4488,22 +4488,19 @@ export class Fragments {
       this.orientMatrices();
     }
 
-    if (update.pileFrames) {
-      this.piles.forEach(pile => pile.frameUpdate());
+    if (update.pileFrameStyles) {
+      this.piles.forEach(pile => pile.frameUpdateStyle());
     }
 
-    if (update.pileFramesRecreate) {
-      this.piles.forEach(pile => pile.frameCreate());
+    if (update.pileFramesScale) {
+      this.piles.forEach(pile => pile.frameUpdateScale());
     }
 
     if (update.pileCover) {
       this.piles.forEach(pile => pile.calculateCoverMatrix());
     }
 
-    if (
-      (update.piles || update.pileFramesRecreate) &&
-      !update.drawPilesAfter
-    ) {
+    if (update.piles && !update.drawPilesAfter) {
       this.redrawPiles();
     }
 
@@ -4642,7 +4639,7 @@ export class Fragments {
 
     update.grid = true;
     update.piles = true;
-    update.pileFramesRecreate = true;
+    update.pileFramesScale = true;
     update.layout = true;
     update.scrollLimit = true;
 
@@ -4681,7 +4678,7 @@ export class Fragments {
     this.updatePreviewScaling();
 
     update.piles = true;
-    update.pileFramesRecreate = true;
+    update.pileFramesScale = true;
     update.pileFramesUpdate = true;
     update.scrollLimit = true;
     update.scrollToMax = true;
@@ -4752,7 +4749,7 @@ export class Fragments {
 
     update.grid = true;
     update.layout = true;
-    update.pileFramesRecreate = true;
+    update.pileFramesScale = true;
     update.scrollLimit = true;
     update.scrollToTop = true;
 
@@ -4830,7 +4827,7 @@ export class Fragments {
     this.higlassSubSelection = higlassSubSelection;
 
     update.piles = true;
-    update.pileFrames = true;
+    update.pileFrameStyles = true;
     update.layout = true;
     update.scrollLimit = true;
 
@@ -4979,7 +4976,7 @@ export class Fragments {
 
     fgmState.matrixFrameEncoding = encoding;
 
-    update.pileFrames = true;
+    update.pileFrameStyles = true;
 
     return Promise.resolve();
   }

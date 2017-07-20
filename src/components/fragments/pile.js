@@ -48,6 +48,7 @@ import {
   createRectFrame,
   createText,
   frameValue,
+  scaleLineFrame,
   updateImageTexture
 } from 'components/fragments/fragments-utils';
 
@@ -940,8 +941,6 @@ export default class Pile {
     this.pileOutline.material.uniforms.thickness.value =
       this.matrixFrameThickness + 4;
 
-    // this.showPreviewHeight();
-
     return this;
   }
 
@@ -993,11 +992,54 @@ export default class Pile {
   }
 
   /**
-   * Frame requires update after matrix size has changed through filtering.
+   * Update the entire matrix frame.
    *
    * @return {object} Self.
    */
-  frameUpdate (encoding = fgmState.matrixFrameEncoding) {
+  frameUpdate () {
+    this.frameUpdateScale();
+    this.frameUpdateStyle();
+
+    return this;
+  }
+
+  /**
+   * Update the matrix frame scale, i.e., with and height.
+   *
+   * @return {object} Self.
+   */
+  frameUpdateScale () {
+    scaleLineFrame(
+      this.matrixFrame,
+      this.matrixWidth,
+      this.matrixWidth
+    );
+    scaleLineFrame(
+      this.matrixFrameHighlight,
+      this.matrixWidth,
+      this.matrixWidth
+    );
+    scaleLineFrame(
+      this.pileOutline,
+      this.matrixWidth,
+      this.matrixWidth
+    );
+
+    return this;
+  }
+
+  /**
+   * Update the matrix frame styling, i.e., thickness, color, and opacity.
+   *
+   * @return {object} Self.
+   */
+  frameUpdateStyle (encoding = fgmState.matrixFrameEncoding) {
+    scaleLineFrame(
+      this.matrixFrame,
+      this.matrixWidth,
+      this.matrixWidth
+    );
+
     if (encoding === null) {
       this.matrixFrameThickness = MATRIX_FRAME_THICKNESS;
       this.matrixFrameColor = COLORS.GRAY_LIGHT;
@@ -1702,26 +1744,27 @@ export default class Pile {
   /**
    * Update the pile outline.
    */
-  updateFrameHighlight (pileHighlight) {
-    this.matrixFrameHighlight = createLineFrame(
+  updateFrameHighlight () {
+    scaleLineFrame(
+      this.matrixFrameHighlight,
       this.matrixWidth,
-      this.matrixWidth + this.previewsHeightNorm,
-      COLORS.ORANGE,
-      this.matrixFrameThickness + 2,
-      this.matrixFrameHighlight.material.uniforms.opacity.value
+      this.matrixWidth + this.previewsHeightNorm
     );
+    this.matrixFrameHighlight.material.uniforms.thickness.value =
+      this.matrixFrameThickness + 2;
   }
 
   /**
    * Update the pile outline.
    */
   updatePileOutline () {
-    this.pileOutline = createLineFrame(
+    scaleLineFrame(
+      this.pileOutline,
       this.matrixWidth,
-      this.matrixWidth + this.previewsHeightNorm,
-      COLORS.WHITE,
-      this.matrixFrameThickness + 2,
-      this.alpha
+      this.matrixWidth + this.previewsHeightNorm
     );
+    this.pileOutline.material.uniforms.thickness.value =
+      this.matrixFrameThickness + 2;
+    this.pileOutline.material.uniforms.opacity.value = this.alpha;
   }
 }
