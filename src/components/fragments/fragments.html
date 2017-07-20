@@ -239,9 +239,9 @@
                       repeat.for="option of colorsUsed"
                       value.one-way="option.id"
                       selected.bind="option.id === categoryForGrouping">${option.name}</option>
-                    <option disabled if.bind="attrsCatOther.length">──────────</option>
+                    <option disabled if.bind="userSpecificCategories.length">──────────</option>
                     <option
-                      repeat.for="option of attrsCatOther"
+                      repeat.for="option of userSpecificCategories"
                       value.one-way="option.id"
                       selected.bind="option.id === categoryForGrouping">${option.name}</option>
                   </select>

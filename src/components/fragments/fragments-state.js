@@ -63,6 +63,7 @@ const DEFAULT_STATE = {
   strandArrows: [],
   strandArrowsTrash: [],
   trashIsActive: false,
+  userSpecificCategories: [],
   workerClusterfck: undefined
 };
 
