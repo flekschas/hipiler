@@ -4492,7 +4492,7 @@ export class Fragments {
       this.piles.forEach(pile => pile.frameUpdateStyle());
     }
 
-    if (update.pileFramesScale) {
+    if (update.pileFrameScales) {
       this.piles.forEach(pile => pile.frameUpdateScale());
     }
 
@@ -4502,6 +4502,10 @@ export class Fragments {
 
     if (update.piles && !update.drawPilesAfter) {
       this.redrawPiles();
+    }
+
+    if (update.pileScales) {
+      this.piles.forEach(pile => pile.updateScale());
     }
 
     if (!(update.piles || update.drawPilesAfter)) {
@@ -4639,7 +4643,8 @@ export class Fragments {
 
     update.grid = true;
     update.piles = true;
-    update.pileFramesScale = true;
+    update.pileScales = true;
+    update.pileFrameScales = true;
     update.layout = true;
     update.scrollLimit = true;
 
@@ -4678,8 +4683,8 @@ export class Fragments {
     this.updatePreviewScaling();
 
     update.piles = true;
-    update.pileFramesScale = true;
-    update.pileFramesUpdate = true;
+    update.pileScales = true;
+    update.pileFrameScales = true;
     update.scrollLimit = true;
     update.scrollToMax = true;
   }
@@ -4749,7 +4754,8 @@ export class Fragments {
 
     update.grid = true;
     update.layout = true;
-    update.pileFramesScale = true;
+    update.pileScales = true;
+    update.pileFrameScales = true;
     update.scrollLimit = true;
     update.scrollToTop = true;
 
