@@ -1570,8 +1570,8 @@ export class Fragments {
     }
 
     this.dragPile.moveTo(
-      this.relToAbsPositionX(this.mouse.x),
-      this.relToAbsPositionY(this.mouse.y),
+      this.relToAbsPositionX(this.mouse.x) + this.dragPileCenterOffset.x,
+      this.relToAbsPositionY(this.mouse.y) + this.dragPileCenterOffset.y,
       true
     );
   }
@@ -1583,9 +1583,13 @@ export class Fragments {
     // Don't do raycasting. "Freeze" the current state of
     // highlighte items and move matrix with cursor.
     this.dragPile = fgmState.hoveredPile;
-    this.dragPile.moveTo(
+    this.dragPileCenterOffset = this.dragPile.centerOffSet(
       this.relToAbsPositionX(this.mouse.x),
-      this.relToAbsPositionY(this.mouse.y),
+      this.relToAbsPositionY(this.mouse.y)
+    );
+    this.dragPile.moveTo(
+      this.relToAbsPositionX(this.mouse.x) + this.dragPileCenterOffset.x,
+      this.relToAbsPositionY(this.mouse.y) + this.dragPileCenterOffset.y,
       true
     );
     this.dragPile.elevateTo(Z_DRAG);

@@ -1276,6 +1276,17 @@ export default class Pile {
   }
 
   /**
+   * Calculate the offset from the center of the pile
+   *
+   * @param {number} x - Mouse coordinate.
+   * @param {number} y - Mouse coordinate.
+   * @return  {object} Object with x and y offset of the cursor to the center.
+   */
+  centerOffSet (x, y) {
+    return { x: this.x - x, y: this.y - y };
+  }
+
+  /**
    * Move mesh.
    *
    * @param {number} x - X position.
@@ -1289,13 +1300,11 @@ export default class Pile {
     this.y = y;
 
     if (!abs) {
-      if (fgmState.isLayout1d) {
-        this.x += fgmState.gridCellWidthInclSpacingHalf;
-        this.y = -this.y - fgmState.gridCellHeightInclSpacingHalf;
-      } else {
-        this.x += this.matrixWidthHalf;
-        this.y = -this.y - this.matrixWidthHalf;
-      }
+      const matrixWidth = fgmState.isLayout1d ?
+        fgmState.gridCellWidthInclSpacingHalf : this.matrixWidthHalf;
+
+      this.x += matrixWidth;
+      this.y = -this.y - matrixWidth;
     }
 
     this.mesh.position.set(this.x, this.y, this.mesh.position.z);
