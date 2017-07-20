@@ -232,6 +232,11 @@
             "main": "localforage"
           },
           {
+            "name": "normalize-wheel",
+            "path": "../node_modules/normalize-wheel/src",
+            "main": "normalizeWheel"
+          },
+          {
             "name": "object-assign",
             "path": "../node_modules/object-assign",
             "main": "index"

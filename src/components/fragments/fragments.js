@@ -18,6 +18,7 @@ import {
   Vector3,
   WebGLRenderer
 } from 'three';
+import normalizeWheel from 'normalize-wheel';
 
 // Injectables
 import ChromInfo from 'services/chrom-info';  // eslint-disable-line
@@ -185,7 +186,7 @@ export class Fragments {
     this.unsubscribeStore = this.store.subscribe(this.update.bind(this));
 
     this.arrangeMeasures = [];
-    this.attrsCatOther = [];
+    this.userSpecificCategories = [];
     this.clusterPos = {};
     this.colorsMatrixIdx = {};
     this.colorsUsed = [];
@@ -1218,15 +1219,16 @@ export class Fragments {
    */
   canvasMouseWheelHandler (event) {
     event.preventDefault();
+    const normalizedDeltaY = -1 * normalizeWheel(event).pixelY;
 
     if (!this.isLayout1d) {
       if (this.isZoomPan) {
         this.scalePlot(event);
       } else if (fgmState.hoveredPile) {
-        this.scalePile(fgmState.hoveredPile, event.wheelDelta);
+        this.scalePile(fgmState.hoveredPile, normalizedDeltaY);
       }
     } else {
-      this.scrollView(event.wheelDelta);
+      this.scrollView(normalizedDeltaY);
     }
 
     this.render();
@@ -2123,9 +2125,33 @@ export class Fragments {
   }
 
   groupByCategory (category = this.categoryForGrouping) {
-    if (this.colorsUsed.some(cat => cat.id === category)) {
-      // Group by color
+    if (category[0] === '_') {
+      // // Group by user-specified category
+      // category = category.slice(1);
 
+      // const piles = this.getPilesFromMatrices(this.colorsMatrixIdx[category]);
+      // const batchPileStacking = {
+      //   [Object.keys(piles)[0]]: Object.keys(piles).slice(1)
+      // };
+
+      // this.piles.forEach((pile) => {
+      //   const cats = pile.pileMatrices
+      //     .map(matrix => matrix.categories[category]);
+
+      //   let cat;
+      //   if (cats.length) {
+      //     cat = pile.pileMatrices
+      //       .map(matrix => matrix.categories[category])
+      //       .reduce((a, b) => (a === b ? a : NaN));
+      //     cat = isNaN(cat) ? undefined : cat;
+      //   }
+
+      //   return cat;
+      // });
+
+      // this.pileUp(batchPileStacking);
+    } else if (this.colorsUsed.some(cat => cat.id === category)) {
+      // Group by color
       const piles = this.getPilesFromMatrices(this.colorsMatrixIdx[category]);
       const batchPileStacking = {
         [Object.keys(piles)[0]]: Object.keys(piles).slice(1)
@@ -2134,6 +2160,14 @@ export class Fragments {
       this.pileUp(batchPileStacking);
     } else {
       switch (category) {
+        case CAT_CHROMOSOME:
+          logger.error('Piling by chromosome not supported yet');
+          break;
+
+        case CAT_DATASET:
+          logger.error('Piling by dataset not supported yet');
+          break;
+
         case CAT_LOCATION: {
           const batchPileStacking = {};
           const pilesByLocation = {};
@@ -2163,6 +2197,10 @@ export class Fragments {
           this.pileUp(batchPileStacking);
           break;
         }
+
+        case CAT_ZOOMOUT_LEVEL:
+          logger.error('Piling by zoomout level not supported yet');
+          break;
 
         default:
           // Nothing
@@ -2455,6 +2493,23 @@ export class Fragments {
   }
 
   /**
+   * Initialize categorical columns.
+   *
+   * @param {array} header - Data header that contains the measures.
+   */
+  initCategories (header) {
+    header.forEach((field, index) => {
+      if (field[0] === '_') {
+        this.userSpecificCategories.push({
+          id: field,
+          idx: index,
+          name: this.wurstCaseToNice(field)
+        });
+      }
+    });
+  }
+
+  /**
    * Combine the config and raw matrix to the final data model
    *
    * @param {object} config - Fragment config.
@@ -2503,6 +2558,9 @@ export class Fragments {
     // Extract measures
     this.initMeasures(header, usedIdx);
 
+    // Extract categorical columns
+    this.initCategories(header);
+
     this.selectMeasure(this.arrangeMeasures, fgmState.measures);
 
     // Let the multi/select component know
@@ -2548,7 +2606,7 @@ export class Fragments {
     );
 
     this.canvas.addEventListener(
-      'mousewheel', this.canvasMouseWheelHandler.bind(this), false
+      'wheel', this.canvasMouseWheelHandler.bind(this), false
     );
 
     this.subscriptions.push(this.event.subscribe(
@@ -2629,9 +2687,14 @@ export class Fragments {
 
     fragments.forEach((fragment, index) => {
       const measures = {};
+      const categories = {};
 
       Object.keys(this.dataMeasures).forEach((measure) => {
         measures[measure] = fragment[this.dataMeasures[measure]];
+      });
+
+      this.userSpecificCategories.forEach((cat) => {
+        categories[cat.slice(1)] = fragment[cat.idx];
       });
 
       const matrix = new Matrix(
@@ -2650,7 +2713,8 @@ export class Fragments {
           strand1: fragment[this.dataIdxStrand1],
           strand2: fragment[this.dataIdxStrand2]
         },
-        measures
+        measures,
+        categories
       );
 
       fgmState.matrices.push(matrix);
@@ -2954,6 +3018,18 @@ export class Fragments {
 
       if (config.fragmentsNoBalance) {
         params['no-balance'] = 1;
+      }
+
+      if (config.fragmentsPercentile) {
+        params.percentile = Math.max(
+          0, Math.min(100, parseInt(config.fragmentsPercentile, 10))
+        );
+      }
+
+      if (config.fragmentsIgnoreDiags) {
+        params['ignore-diags'] = Math.max(
+          0, Math.min(3, parseInt(config.fragmentsIgnoreDiags, 10))
+        );
       }
 
       const queryString = this.prepareQueryString(params);
@@ -5175,6 +5251,7 @@ export class Fragments {
    * @return {string} Nicefied string.
    */
   wurstCaseToNice (str) {
+    str = str.replace(/^_+/, '').replace(/_+$/, '');
     return `${str[0].toUpperCase()}${str.slice(1).replace(/[-_]/g, ' ')}`;
   }
 }
