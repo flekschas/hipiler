@@ -15,7 +15,6 @@ import { ERROR_DURATION } from 'app-defaults';
 import { name, routes } from 'configs/app';
 import { externalLinks } from 'configs/nav';
 import FgmState from 'components/fragments/fragments-state';
-import $ from 'utils/dom-el';
 import dragDrop from 'utils/drag-drop';
 import readJsonFile from 'utils/read-json-file';
 import validateConfig from 'utils/validate-config';
@@ -140,7 +139,6 @@ export default class App {
   hideGlobalError () {
     this.corruptConfig = false;
     this.globalErrorMsg = undefined;
-    $(this.baseEl).removeClass('is-global-error');
   }
 
   /**
@@ -368,8 +366,6 @@ export default class App {
 
     this.globalError = true;
     this.globalErrorMsg = msg;
-
-    $(this.baseEl).addClass('is-global-error');
 
     this.globalErrorDisplay = setTimeout(
       this.hideGlobalError.bind(this), duration
