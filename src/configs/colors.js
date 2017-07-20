@@ -10,12 +10,19 @@ export const GRAY_DARKER = 0x444444;
 export const GRAY_DARKEST = 0x222222;
 
 export const CYAN = 0x3ae0e5;
+export const CYAN_RGBA = [58, 224, 229, 255];
 export const GREEN = 0x40bf00;
+export const GREEN_RGBA = [64, 191, 0, 255];
 export const ORANGE = 0xff5500;
+export const ORANGE_RGBA = [255, 85, 0, 255];
 export const PINK = 0xec3bb6;
+export const PINK_RGBA = [236, 59, 182, 255];
 export const RED = 0xf60029;
+export const RED_RGBA = [246, 0, 41, 255];
 export const YELLOW = 0xffcc00;
+export const YELLOW_RGBA = [255, 204, 0, 255];
 export const BLUE = 0x4e40ff;
+export const BLUE_RGBA = [78, 64, 255, 255];
 
 export const PRIMARY = ORANGE;
 export const SECONDARY = BLUE;
@@ -38,12 +45,19 @@ export default {
   GRAY_DARKER,
   GRAY_DARKEST,
   CYAN,
+  CYAN_RGBA,
   GREEN,
+  GREEN_RGBA,
   ORANGE,
+  ORANGE_RGBA,
   PINK,
+  PINK_RGBA,
   RED,
+  RED_RGBA,
   YELLOW,
+  YELLOW_RGBA,
   BLUE,
+  BLUE_RGBA,
   PRIMARY,
   SECONDARY,
   LOW_QUALITY_BLUE,
