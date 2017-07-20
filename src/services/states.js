@@ -2,7 +2,6 @@
 import localforage from 'localForage';
 import { applyMiddleware, compose, createStore } from 'redux';
 import { autoRehydrate, persistStore, purgeStoredState } from 'redux-persist';
-import createCompressor from 'redux-persist-transform-compress';
 import thunk from 'redux-thunk';
 // import freeze from 'redux-freeze';
 import undoable, { ActionCreators } from 'redux-undo';
@@ -11,20 +10,17 @@ import { enableBatching } from 'redux-batched-actions';
 import { resetState } from 'app-actions';
 import appReducer from 'app-reducer';
 
-const compressor = createCompressor();
-
 const CONFIG = {
   storage: localforage,
   debounce: 25,
-  keyPrefix: 'hipiler.',
-  transforms: [compressor]
+  keyPrefix: 'hipiler.'
 };
 
 export default class States {
   constructor () {
     this.store = createStore(
       undoable(enableBatching(appReducer), {
-        limit: 50
+        limit: 25
       }),
       undefined,
       compose(

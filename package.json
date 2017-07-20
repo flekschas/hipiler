@@ -27,7 +27,6 @@
     "redux": "3.7.2",
     "redux-batched-actions": "0.2.0",
     "redux-persist": "4.8.2",
-    "redux-persist-transform-compress": "4.2.0",
     "redux-thunk": "2.2.0",
     "redux-undo": "1.0.0-beta9-9-6",
     "requirejs": "2.3.3",

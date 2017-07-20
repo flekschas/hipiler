@@ -270,11 +270,6 @@
             "main": "redux-persist"
           },
           {
-            "name": "redux-persist-transform-compress",
-            "path": "../node_modules/redux-persist-transform-compress/lib",
-            "main": "index"
-          },
-          {
             "name": "redux-thunk",
             "path": "../node_modules/redux-thunk/dist",
             "main": "redux-thunk"
