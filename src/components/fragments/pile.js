@@ -678,7 +678,6 @@ export default class Pile {
   drawLabel (isHovering) {
     const numPiles = this.pileMatrices.length;
     const idReadible = this.idNumeric + 1;
-    const scale = 1 / this.scale;
     let labelText;
 
     if (numPiles === 1) {
@@ -686,8 +685,6 @@ export default class Pile {
     } else {
       labelText = `${idReadible} (${numPiles})`;
     }
-
-    const extraOffset = this.isColored ? COLOR_INDICATOR_HEIGHT : 0;
 
     if (this.labelText !== labelText) {
       this.labelText = labelText;
@@ -698,12 +695,7 @@ export default class Pile {
       );
     }
 
-    this.label.position.set(
-      -this.matrixWidthHalf + 32,
-      -this.matrixWidthHalf - 10 - extraOffset,
-      0
-    );
-    this.label.scale.set(scale, scale, scale);
+    this.updateLabelPosScale();
     this.label.material.opacity = this.alpha;
 
     this.mesh.add(this.label);
@@ -781,8 +773,6 @@ export default class Pile {
    * Draw strand arrows for both axis.
    */
   drawStrandArrows () {
-    const extraOffset = this.isColored ? COLOR_INDICATOR_HEIGHT + 2 : 0;
-
     // Remove previous sprites
     fgmState.scene.remove(this.strandArrowX);
     fgmState.scene.remove(this.strandArrowY);
@@ -794,17 +784,7 @@ export default class Pile {
       ARROW_Y.clone() : ARROW_Y_REV.clone();
 
     // Position arrow
-    this.strandArrowX.position.set(
-      this.matrixWidthHalf - 7,
-      -this.matrixWidthHalf - 9 - extraOffset,
-      0
-    );
-
-    this.strandArrowY.position.set(
-      this.matrixWidthHalf - 20,
-      -this.matrixWidthHalf - 9 - extraOffset,
-      0
-    );
+    this.updateArrowPos();
 
     // Associate pile
     this.strandArrowX.userData.pile = this;
@@ -1744,53 +1724,82 @@ export default class Pile {
   }
 
   /**
+   * Update array position.
+   */
+  updateArrowPos () {
+    const extraOffset = this.isColored ? COLOR_INDICATOR_HEIGHT + 2 : 0;
+
+    this.strandArrowX.position.set(
+      this.matrixWidthHalf - 7,
+      -this.matrixWidthHalf - 9 - extraOffset,
+      0
+    );
+
+    this.strandArrowY.position.set(
+      this.matrixWidthHalf - 20,
+      -this.matrixWidthHalf - 9 - extraOffset,
+      0
+    );
+  }
+
+  /**
    * Update arrow visibility.
    */
   updateArrowVisibility () {
+    fgmState.scene.remove(this.strandArrowX);
+    fgmState.scene.remove(this.strandArrowY);
+    this.mesh.remove(this.strandArrowX);
+    this.mesh.remove(this.strandArrowY);
+
     if (
       !fgmState.isHilbertCurve &&
       !(fgmState.isLayout2d || fgmState.isLayoutMd) &&
       this.pileMatrices.length === 1
     ) {
       if (this.strandArrowX) {
+        this.updateArrowPos();
+
+        fgmState.scene.add(this.strandArrowX);
+        fgmState.scene.add(this.strandArrowY);
         this.mesh.add(this.strandArrowX);
         this.mesh.add(this.strandArrowY);
       } else {
         this.drawStrandArrows();
       }
-    } else if (this.mesh && this.mesh.children.length) {
-      const idxX = this.mesh.children.indexOf(this.strandArrowX);
-      const idxY = this.mesh.children.indexOf(this.strandArrowY);
-
-      if (idxX >= 0) {
-        this.mesh.children.splice(idxX, 1);
-      }
-
-      if (idxY >= 0) {
-        this.mesh.children.splice(idxY, 1);
-      }
     }
+  }
+
+  /**
+   * Update label position and scale.
+   */
+  updateLabelPosScale () {
+    const scale = 1 / this.scale;
+    const extraOffset = this.isColored ? COLOR_INDICATOR_HEIGHT : 0;
+
+    this.label.position.set(
+      -this.matrixWidthHalf + 32,
+      -this.matrixWidthHalf - 10 - extraOffset,
+      0
+    );
+    this.label.scale.set(scale, scale, scale);
   }
 
   /**
    * Update label visibility.
    */
   updateLabelVisibility () {
+    this.mesh.remove(this.label);
+
     if (
       !(fgmState.isHilbertCurve) &&
       !(fgmState.isLayout2d || fgmState.isLayoutMd) &&
       !(this.matrixWidth < LABEL_MIN_PILE_SIZE)
     ) {
       if (this.label) {
+        this.updateLabelPosScale();
         this.mesh.add(this.label);
       } else {
         this.drawLabel();
-      }
-    } else if (this.mesh && this.mesh.children.length) {
-      const idx = this.mesh.children.indexOf(this.label);
-
-      if (idx >= 0) {
-        this.mesh.children.splice(idx, 1);
       }
     }
   }
@@ -1801,7 +1810,9 @@ export default class Pile {
    * @return {object} Self.
    */
   updateScale () {
-    // this.updateArrowVisibility();
+    if (!this.mesh) { return; }
+
+    this.updateArrowVisibility();
     this.updateLabelVisibility();
     this.updateScaleGeometry();
     this.updateScaleMatrix();
@@ -1812,7 +1823,7 @@ export default class Pile {
   }
 
   /**
-   * Update the scale for re-rendering.
+   * Update the position and scale of the color indicator.
    */
   updateScaleColorIndicator (mesh = this.colorIndicatorMesh) {
     if (mesh) {
@@ -1855,7 +1866,7 @@ export default class Pile {
   }
 
   /**
-   * Update the scale for re-rendering.
+   * Update the opacity, position, and scale of matrix.
    */
   updateScaleMatrix (mesh = this.matrixMesh) {
     if (mesh) {
@@ -1866,7 +1877,7 @@ export default class Pile {
   }
 
   /**
-   * Update the scale for re-rendering.
+   * Update the opacity, position, and scale of previews.
    */
   updateScalePreviews (mesh = this.previewsMesh) {
     if (mesh) {

@@ -4642,7 +4642,7 @@ export class Fragments {
     this.updatePreviewScaling();
 
     update.grid = true;
-    update.piles = true;
+    // update.piles = true;
     update.pileScales = true;
     update.pileFrameScales = true;
     update.layout = true;
@@ -4682,7 +4682,7 @@ export class Fragments {
 
     this.updatePreviewScaling();
 
-    update.piles = true;
+    // update.piles = true;
     update.pileScales = true;
     update.pileFrameScales = true;
     update.scrollLimit = true;
@@ -4832,10 +4832,11 @@ export class Fragments {
 
     this.higlassSubSelection = higlassSubSelection;
 
-    update.piles = true;
-    update.pileFrameStyles = true;
-    update.layout = true;
-    update.scrollLimit = true;
+    // Seems to be dead code?!
+    // update.pileOpacities = true;
+    // update.pileFrameStyles = true;
+    // update.layout = true;
+    // update.scrollLimit = true;
 
     return Promise.resolve();
   }
