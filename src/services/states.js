@@ -1,3 +1,6 @@
+// Aurelia
+import { LogManager } from 'aurelia-framework';
+
 // Third party
 import localforage from 'localForage';
 import { applyMiddleware, compose, createStore } from 'redux';
@@ -10,11 +13,22 @@ import { enableBatching } from 'redux-batched-actions';
 import { resetState } from 'app-actions';
 import appReducer from 'app-reducer';
 
-const CONFIG = {
+import logger from 'utils/redux-logger';
+
+const config = {
   storage: localforage,
   debounce: 25,
   keyPrefix: 'hipiler.'
 };
+
+const debug = LogManager.getLevel() === LogManager.logLevel.debug;
+
+const middlewares = [autoRehydrate(), applyMiddleware(thunk)];
+
+if (debug) {
+  middlewares.push(applyMiddleware(logger));
+  // middleware.push(applyMiddleware(freeze));
+}
 
 export default class States {
   constructor () {
@@ -23,14 +37,10 @@ export default class States {
         limit: 25
       }),
       undefined,
-      compose(
-        autoRehydrate(),
-        applyMiddleware(thunk),
-        // applyMiddleware(freeze)
-      )
+      compose(...middlewares)
     );
 
-    persistStore(this.store, CONFIG, (err, state) => {
+    persistStore(this.store, config, (err, state) => {
       // Rehydration is done
       this.isRehydrated = Object.keys(true).length > 0;
     });
@@ -52,6 +62,6 @@ export default class States {
     this.store.dispatch(ActionCreators.clearHistory());
 
     // Purge persistent store
-    return purgeStoredState(CONFIG);
+    return purgeStoredState(config);
   }
 }
