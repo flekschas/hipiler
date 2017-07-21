@@ -132,6 +132,7 @@ import COLORS from 'configs/colors';
 
 import arraysEqual from 'utils/arrays-equal';
 import hilbertCurve from 'utils/hilbert-curve';
+import objValsToStr from 'utils/object-values-to-string';
 import { requestNextAnimationFrame } from 'utils/request-animation-frame';
 
 
@@ -2148,92 +2149,81 @@ export class Fragments {
   groupByCategory (category = this.categoryForGrouping) {
     const batchPileStacking = {};
     const pilesByCats = {};
+    let mapper;
 
-    if (category[0] === '_') {
-      // Pile by user-specified category
-      // Note: only piles with a unique category are actually piled up.
-      category = category.slice(1);
-
-      this.piles
-        .forEach((pile) => {
-          const cats = pile.pileMatrices
-            .map(matrix => matrix.categories[category]);
-
-          let cat;
-          if (cats.length) {
-            cat = pile.pileMatrices
-              .map(matrix => matrix.categories[category])
-              .reduce((a, b) => (a === b ? a : NaN));
-            cat = isNaN(cat) ? undefined : cat;
-
-            if (isNaN(cat)) {
-              logger.info(
-                'The pile contains matrices which are part of different ' +
-                'categories. Therefore, this pile is ignore during this ' +
-                'piling process. The categories of this pile are as follows:',
-                pile.pileMatrices.map(matrix => matrix.categories[category])
-              );
-            }
-          }
-
-          if (pilesByCats[cat]) {
-            pilesByCats[cat].push(pile.id);
-          } else {
-            pilesByCats[cat] = [pile.id];
-          }
-        });
-
-      // this.pileUp(batchPileStacking);
-    } else if (this.colorsUsed.some(cat => cat.id === category)) {
-      // Group by color
+    if (this.colorsUsed.some(cat => cat.id === category)) {
+      // Group by color:
+      // Grouping by color is done differently as colors are always associated
+      // to an entire stack
       const piles = this.getPilesFromMatrices(this.colorsMatrixIdx[category]);
       batchPileStacking[Object.keys(piles)[0]] = Object.keys(piles).slice(1);
     } else {
-      switch (category) {
-        case CAT_CHROMOSOME:
-          logger.error('Piling by chromosome not supported yet');
-          break;
+      // Piling by matrix-specific categories
+      // Note: only piles with a unique category are actually piled up.
+      if (category[0] === '_') {
+        // Pile by user-specified category
+        category = category.slice(1);
 
-        case CAT_DATASET:
-          logger.error('Piling by dataset not supported yet');
-          break;
+        mapper = matrix => matrix.categories[category];
+      } else {
+        switch (category) {
+          case CAT_CHROMOSOME:
+            mapper = matrix => `${matrix.locus.chrom1}${matrix.locus.chrom2}`;
+            break;
 
-        case CAT_LOCATION: {
-          const pilesByLocation = {};
+          case CAT_DATASET:
+            mapper = matrix => matrix.dataset;
+            break;
 
-          this.piles.forEach((pile) => {
-            if (pile.pileMatrices.length === 1) {
-              const matrix = pile.pileMatrices[0];
-              const locus = Object.keys(matrix.locus)
-                .map(key => matrix.locus[key])
-                .reduce((str, value) => str.concat(value), '');
+          case CAT_LOCATION: {
+            mapper = matrix => objValsToStr(matrix.locus);
+            break;
+          }
 
-              if (pilesByLocation[locus]) {
-                pilesByLocation[locus].push(pile.id);
-              } else {
-                pilesByLocation[locus] = [pile.id];
-              }
-            }
-          });
-          break;
+          case CAT_ZOOMOUT_LEVEL:
+            mapper = matrix => matrix.resolution;
+            break;
+
+          default:
+            // Nothing
+            break;
+        }
+      }
+
+      // Group by category
+      this.piles.forEach((pile) => {
+        const cats = pile.pileMatrices.map(mapper);
+
+        let cat;
+        if (cats.length) {
+          cat = cats.reduce((a, b) => (a === b ? a : NaN));
+          cat = Number.isNaN(cat) ? undefined : cat;
+
+          if (typeof cat === 'undefined') {
+            logger.info(
+              'The pile contains matrices which are part of different ' +
+              'categories. Therefore, this pile is ignore during this ' +
+              'piling process. The categories of this pile are as follows:',
+              cats
+            );
+          }
         }
 
-        case CAT_ZOOMOUT_LEVEL:
-          logger.error('Piling by zoomout level not supported yet');
-          break;
+        if (pilesByCats[cat]) {
+          pilesByCats[cat].push(pile.id);
+        } else {
+          pilesByCats[cat] = [pile.id];
+        }
+      });
 
-        default:
-          // Nothing
-          break;
-      }
+      // Create batch piling object
+      Object.keys(pilesByCats).forEach((cat) => {
+        if (cat !== 'undefined' && pilesByCats[cat].length > 1) {
+          batchPileStacking[pilesByCats[cat][0]] =
+            pilesByCats[cat].slice(1);
+        }
+      });
     }
-
-    Object.keys(pilesByCats).forEach((cat) => {
-      if (cat !== 'undefined' && pilesByCats[cat].length > 1) {
-        batchPileStacking[pilesByCats[cat][0]] =
-          pilesByCats[cat].slice(1);
-      }
-    });
 
     logger.info('groupByCategory():', batchPileStacking);
 
@@ -2741,6 +2731,7 @@ export class Fragments {
           start2: fragment[this.dataIdxStart2],
           end2: fragment[this.dataIdxEnd2]
         },
+        fragment[this.dataIdxDataset],
         baseRes * (2 ** fragment[this.dataIdxZoomOutLevel]),
         {
           strand1: fragment[this.dataIdxStrand1],

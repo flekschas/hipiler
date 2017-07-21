@@ -1,9 +1,10 @@
 export default class Matrix {
   constructor (
-    id, matrix, locus, resolution, orientation, measures, categories
+    id, matrix, locus, dataset, resolution, orientation, measures, categories
   ) {
     this.dim = matrix.length;
     this.id = id;
+    this.dataset = dataset;
     this.locus = locus;
     this.matrix = Matrix.to1d(matrix);
     this.measures = measures;
