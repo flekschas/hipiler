@@ -201,9 +201,7 @@
           "aurelia-task-queue",
           "aurelia-templating",
           "aurelia-templating-binding",
-          "deep-freeze-strict",
           "json-stringify-safe",
-          "lz-string",
           "text",
           {
             "name": "aurelia-templating-resources",
@@ -219,6 +217,12 @@
             "name": "aurelia-testing",
             "path": "../node_modules/aurelia-testing/dist/amd",
             "main": "aurelia-testing",
+            "env": "dev"
+          },
+          {
+            "name": "deep-freeze-strict",
+            "path": "../node_modules/deep-freeze-strict",
+            "main": "index",
             "env": "dev"
           },
           {
