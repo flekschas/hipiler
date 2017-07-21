@@ -3955,17 +3955,17 @@ export class Fragments {
       if (matrixIds.length) {
         // Get or create pile
         if (!pile) {
+          if (fgmState.matricesIdx[pileId].pile) {
+            this.fromDisperse = this.fromDisperse || {};
+            this.fromDisperse[pileId] = fgmState.matricesIdx[pileId].pile;
+          }
           pile = this.pileCreate(pileId, fgmState.matrices.length);
           this.destroyAltPile(pileId);
         }
 
         // Add matrices onto pile
         ready.push(pile.setMatrices(
-          matrixIds
-            .map(matrixId => fgmState.matrices[matrixId])
-            // This causes an issue when snippets are faded out. I also forgot
-            // why I added this.
-            // .filter(matrix => matrix.visible)
+          matrixIds.map(matrixId => fgmState.matrices[matrixId])
         ));
 
         // Check if there is a pile that is dispersable
