@@ -2094,6 +2094,21 @@ export class Fragments {
   }
 
   /**
+   * Get piles instances of matrices.
+   *
+   * @param {array} matrices - List of matrices for which a unique list of piles
+   *   is to be obtained.
+   * @return {object} Object holding the unique set of piles for the matrices.
+   */
+  getPilesFromMatrices (matrices) {
+    return matrices.reduce((piles, matrix) => {
+      piles[matrix.pile.id] = true;
+
+      return piles;
+    }, {});
+  }
+
+  /**
    * Get matrices of piles
    *
    * @param {array} piles - Piles.
@@ -2116,52 +2131,63 @@ export class Fragments {
     return this.plotElDim;
   }
 
+  /**
+   * Group by category change event handler.
+   *
+   * @param {object} event - CHange event object.
+   */
   groupByCategorySelectChangeHandler (event) {
     this.categoryForGrouping = event.target.value;
   }
 
-  getPilesFromMatrices (matrices) {
-    return matrices.reduce((piles, matrix) => {
-      piles[matrix.pile.id] = true;
-
-      return piles;
-    }, {});
-  }
-
+  /**
+   * Pile snippets (and piles) automatically by category.
+   *
+   * @param {string} category - Category ID.
+   */
   groupByCategory (category = this.categoryForGrouping) {
+    const batchPileStacking = {};
+    const pilesByCats = {};
+
     if (category[0] === '_') {
-      // // Group by user-specified category
-      // category = category.slice(1);
+      // Pile by user-specified category
+      // Note: only piles with a unique category are actually piled up.
+      category = category.slice(1);
 
-      // const piles = this.getPilesFromMatrices(this.colorsMatrixIdx[category]);
-      // const batchPileStacking = {
-      //   [Object.keys(piles)[0]]: Object.keys(piles).slice(1)
-      // };
+      this.piles
+        .forEach((pile) => {
+          const cats = pile.pileMatrices
+            .map(matrix => matrix.categories[category]);
 
-      // this.piles.forEach((pile) => {
-      //   const cats = pile.pileMatrices
-      //     .map(matrix => matrix.categories[category]);
+          let cat;
+          if (cats.length) {
+            cat = pile.pileMatrices
+              .map(matrix => matrix.categories[category])
+              .reduce((a, b) => (a === b ? a : NaN));
+            cat = isNaN(cat) ? undefined : cat;
 
-      //   let cat;
-      //   if (cats.length) {
-      //     cat = pile.pileMatrices
-      //       .map(matrix => matrix.categories[category])
-      //       .reduce((a, b) => (a === b ? a : NaN));
-      //     cat = isNaN(cat) ? undefined : cat;
-      //   }
+            if (isNaN(cat)) {
+              logger.info(
+                'The pile contains matrices which are part of different ' +
+                'categories. Therefore, this pile is ignore during this ' +
+                'piling process. The categories of this pile are as follows:',
+                pile.pileMatrices.map(matrix => matrix.categories[category])
+              );
+            }
+          }
 
-      //   return cat;
-      // });
+          if (pilesByCats[cat]) {
+            pilesByCats[cat].push(pile.id);
+          } else {
+            pilesByCats[cat] = [pile.id];
+          }
+        });
 
       // this.pileUp(batchPileStacking);
     } else if (this.colorsUsed.some(cat => cat.id === category)) {
       // Group by color
       const piles = this.getPilesFromMatrices(this.colorsMatrixIdx[category]);
-      const batchPileStacking = {
-        [Object.keys(piles)[0]]: Object.keys(piles).slice(1)
-      };
-
-      this.pileUp(batchPileStacking);
+      batchPileStacking[Object.keys(piles)[0]] = Object.keys(piles).slice(1);
     } else {
       switch (category) {
         case CAT_CHROMOSOME:
@@ -2173,7 +2199,6 @@ export class Fragments {
           break;
 
         case CAT_LOCATION: {
-          const batchPileStacking = {};
           const pilesByLocation = {};
 
           this.piles.forEach((pile) => {
@@ -2184,21 +2209,12 @@ export class Fragments {
                 .reduce((str, value) => str.concat(value), '');
 
               if (pilesByLocation[locus]) {
-                pilesByLocation[locus].push(pile);
+                pilesByLocation[locus].push(pile.id);
               } else {
-                pilesByLocation[locus] = [pile];
+                pilesByLocation[locus] = [pile.id];
               }
             }
           });
-
-          Object.keys(pilesByLocation).forEach((locus) => {
-            if (pilesByLocation[locus].length > 1) {
-              batchPileStacking[pilesByLocation[locus][0].id] =
-                pilesByLocation[locus].slice(1).map(matrix => matrix.id);
-            }
-          });
-
-          this.pileUp(batchPileStacking);
           break;
         }
 
@@ -2210,6 +2226,19 @@ export class Fragments {
           // Nothing
           break;
       }
+    }
+
+    Object.keys(pilesByCats).forEach((cat) => {
+      if (cat !== 'undefined' && pilesByCats[cat].length > 1) {
+        batchPileStacking[pilesByCats[cat][0]] =
+          pilesByCats[cat].slice(1);
+      }
+    });
+
+    logger.info('groupByCategory():', batchPileStacking);
+
+    if (Object.keys(batchPileStacking).length) {
+      this.pileUp(batchPileStacking);
     }
   }
 
@@ -2698,7 +2727,7 @@ export class Fragments {
       });
 
       this.userSpecificCategories.forEach((cat) => {
-        categories[cat.slice(1)] = fragment[cat.idx];
+        categories[cat.id.slice(1)] = fragment[cat.idx];
       });
 
       const matrix = new Matrix(
