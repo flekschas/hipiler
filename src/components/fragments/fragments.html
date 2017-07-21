@@ -164,7 +164,7 @@
               <input
                 type="checkbox"
                 id="settings-fgm-grid-to-snippet-size"
-                checked.bind="gridCellSizeLock"
+                checked.one-way="gridCellSizeLock"
                 click.delegate="gridCellSizeLockChangeHandler()">
             </li>
             <li class="flex-c flex-d-c ${gridCellSizeLock ? 'is-disabled' : ''}">
@@ -190,7 +190,7 @@
               <input
                 type="checkbox"
                 id="settings-fgm-hilbert-curve"
-                checked.bind="state.isHilbertCurve"
+                checked.one-way="state.isHilbertCurve"
                 click.delegate="hilbertCurveChangeHandler()">
             </li>
           </ul>
@@ -287,7 +287,7 @@
               <input
                 type="checkbox"
                 id="settings-fgm-show-low-quality"
-                checked.bind="state.showSpecialCells"
+                checked.one-way="state.showSpecialCells"
                 click.delegate="showSpecialCellsChangeHandler()">
             </li>
             <li class="flex-c flex-d-c">
@@ -295,7 +295,7 @@
               <input
                 type="checkbox"
                 id="settings-fgm-log"
-                checked.bind="state.logTransform"
+                checked.one-way="state.logTransform"
                 click.delegate="logTransformChangeHandler()">
             </li>
             <li class="flex-c flex-d-c">
@@ -432,7 +432,7 @@
                 <input
                   type="checkbox"
                   id="settings-fgm-round-lasso"
-                  checked.bind="lassoIsRound"
+                  checked.one-way="lassoIsRound"
                   click.delegate="lassoIsRoundChangeHandler()">
               </li>
             </ul>

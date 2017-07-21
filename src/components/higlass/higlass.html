@@ -33,7 +33,7 @@
           <input
             type="checkbox"
             id="settings-hg-grayscale"
-            checked.bind="!!grayscale"
+            checked.one-way="!!grayscale"
             click.delegate="grayscaleChangeHandler()">
         </li>
         <li class="flex-c flex-d-c">
@@ -43,7 +43,7 @@
           <input
             type="checkbox"
             id="settings-hg-highlight-fragments"
-            checked.bind="fragmentsHighlight"
+            checked.one-way="fragmentsHighlight"
             click.delegate="fragmentsHighlightChangeHandler()">
         </li>
         <li class="flex-c flex-d-c">
@@ -53,7 +53,7 @@
           <input
             type="checkbox"
             id="settings-fgm-selection"
-            checked.bind="fragmentsSelection"
+            checked.one-way="fragmentsSelection"
             click.delegate="fragmentsSelectionChangeHandler()">
         </li>
         <li class="flex-c flex-d-c">
@@ -64,7 +64,7 @@
             type="checkbox"
             id="settings-fgm-selection-fadeout"
             disabled.bind="!fragmentsSelection"
-            checked.bind="fragmentsSelectionFadeOut"
+            checked.one-way="fragmentsSelectionFadeOut"
             click.delegate="fragmentsSelectionFadeOutChangeHandler()">
         </li>
 <!--         <li if.bind="currentRoute !== 'matrix'">
