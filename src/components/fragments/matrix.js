@@ -1,10 +1,13 @@
 export default class Matrix {
-  constructor (id, matrix, locus, resolution, orientation, measures) {
+  constructor (
+    id, matrix, locus, resolution, orientation, measures, categories
+  ) {
     this.dim = matrix.length;
     this.id = id;
     this.locus = locus;
     this.matrix = Matrix.to1d(matrix);
     this.measures = measures;
+    this.categories = categories;
     this.orientation = orientation;
     this.orientationX = Matrix.isCodingStrand(this.orientation.strand1) ?
       1 : -1;
