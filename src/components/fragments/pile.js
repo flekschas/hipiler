@@ -1860,16 +1860,24 @@ export default class Pile {
     const height = width + this.previewsHeightNorm;
 
     if (geometry) {
-      const scaleX = Math.abs(width / 2 / geometry.vertices[0].x);
-      const scaleY = Math.abs(height / 2 / geometry.vertices[0].y);
+      const wh = width / 2;
+      const hh = height / 2;
+      const ph = this.previewsHeightNorm / 2;
 
-      geometry.scale(scaleX, scaleY, 1);
+      geometry.vertices[0].x = -wh;
+      geometry.vertices[0].y = hh + ph;
+      geometry.vertices[1].x = wh;
+      geometry.vertices[1].y = hh + ph;
+      geometry.vertices[2].x = -wh;
+      geometry.vertices[2].y = -hh + ph;
+      geometry.vertices[3].x = wh;
+      geometry.vertices[3].y = -hh + ph;
+
       geometry.verticesNeedUpdate = true;
     } else {
       geometry = new PlaneGeometry(width, height);
+      geometry.translate(0, (this.previewsHeightNorm / 2), 0);
     }
-
-    geometry.translate(0, this.previewsHeightNorm / 2, 0);
 
     return geometry;
   }
