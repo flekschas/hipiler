@@ -132,6 +132,7 @@ import { EVENT_BASE_NAME } from 'components/multi-select/multi-select-defaults';
 import COLORS from 'configs/colors';
 
 import arraysEqual from 'utils/arrays-equal';
+import downloadAsJson from 'utils/download-as-json';
 import hilbertCurve from 'utils/hilbert-curve';
 import objValsToStr from 'utils/object-values-to-string';
 import { requestNextAnimationFrame } from 'utils/request-animation-frame';
@@ -1849,6 +1850,8 @@ export class Fragments {
           return 0;
         });
       });
+
+      downloadAsJson(output);
     } catch (e) {
       logger.error('Could not export state', e);
     }
