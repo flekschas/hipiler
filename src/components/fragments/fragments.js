@@ -22,6 +22,7 @@ import normalizeWheel from 'normalize-wheel';
 
 // Injectables
 import ChromInfo from 'services/chrom-info';  // eslint-disable-line
+import Export from 'services/export';  // eslint-disable-line
 import States from 'services/states';  // eslint-disable-line
 
 // Utils etc.
@@ -174,11 +175,11 @@ const sortAsc = (a, b) => {
 let fgmState = FgmState.get();
 
 
-@inject(ChromInfo, EventAggregator, States)
+@inject(ChromInfo, EventAggregator, Export, States)
 export class Fragments {
   @bindable baseElIsInit = false;  // eslint-disable-line
 
-  constructor (chromInfo, event, states) {
+  constructor (chromInfo, event, exportData, states) {
     this.event = event;
     this.chromInfo = chromInfo;
 
@@ -341,6 +342,8 @@ export class Fragments {
     this.checkBaseElIsInit();
 
     fgmState.render = this.render;
+
+    exportData.register('piles', this.exportPiles.bind(this));
   }
 
 
@@ -1809,6 +1812,48 @@ export class Fragments {
     });
 
     return [minPoint, maxPoint];
+  }
+
+  /**
+   * Export state of piling
+   *
+   * @return {object} Export.
+   */
+  exportPiles () {
+    const output = [];
+
+    try {
+      const state = this.store.getState().present.explore.fragments;
+
+      Object.keys(state.piles).forEach((matrixId) => {
+        const trashed = matrixId[0] === '_';
+        const id = parseInt(trashed ? matrixId.slice(1) : matrixId, 10);
+        const color = state.matricesColors[id];
+
+        let pile = id;
+        if (!state.piles[matrixId].length) {
+          // Pile as been piled
+          pile = fgmState.matricesIdx[id].pile.idNumeric;
+        }
+
+        output.push({
+          id,
+          pile,
+          color,
+          trashed
+        });
+
+        output.sort((x, y) => {
+          if (x.id < y.id) { return -1; }
+          if (x.id > y.id) { return 1; }
+          return 0;
+        });
+      });
+    } catch (e) {
+      logger.error('Could not export state', e);
+    }
+
+    return output;
   }
 
   /**
@@ -3975,7 +4020,9 @@ export class Fragments {
       if (matrixIds.length) {
         // Get or create pile
         if (!pile) {
-          if (fgmState.matricesIdx[pileId].pile) {
+          if (
+            fgmState.matricesIdx[pileId] && fgmState.matricesIdx[pileId].pile
+          ) {
             this.fromDisperse = this.fromDisperse || {};
             this.fromDisperse[pileId] = fgmState.matricesIdx[pileId].pile;
           }

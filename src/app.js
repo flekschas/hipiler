@@ -6,6 +6,7 @@ import {
 import { EventAggregator } from 'aurelia-event-aggregator';  // eslint-disable-line
 
 // Injectable
+import Export from 'services/export';  // eslint-disable-line
 import Font from 'services/font';  // eslint-disable-line
 import States from 'services/states';  // eslint-disable-line
 
@@ -23,10 +24,10 @@ import validateConfig from 'utils/validate-config';
 const logger = LogManager.getLogger('app');
 
 
-@inject(EventAggregator, Font, States)
+@inject(EventAggregator, Export, Font, States)
 export default class App {
 
-  constructor (event, font, states) {
+  constructor (event, exportData, font, states) {
     this.event = event;
 
     this.font = font;
@@ -56,6 +57,9 @@ export default class App {
     this.swagJ = 0;
     this.swagInterval = 500;
     this.swagTime = performance.now();
+
+    // Global method for programmatically exporting the piling status
+    window.hipilerExportPiles = () => exportData.get('piles');
   }
 
   /* ----------------------- Aurelia-specific methods ----------------------- */
