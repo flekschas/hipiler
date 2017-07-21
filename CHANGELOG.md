@@ -1,6 +1,15 @@
-v1.0.1 - 2017-07-??
+v1.1.0 - 2017-07-22
 
 - Add link to HiGlass.io
+- Allow config to be more flexible
+- Fix minor issue with the arrange field
+- Fix auot-piling by more categorical values (dataset, zoom level, chromosome, or a user-specified category)
+- Add button to explicitely close error messages
+- Fix scrolling in Firefox
+- Disable state compression because it's too slow
+- Improve frame rendering performance dramatically
+- Improve scale and location updates of snippets to be blazing fast
+- Nicefy disperse animation when doing _undo_
 
 v1.0.0 - 2017-07-16
 
