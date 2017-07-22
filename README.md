@@ -60,3 +60,8 @@ cp config.json config.local.json
 ...and adjust `config.local.json` to your liking.
 
 Dynamic changes of the config are not supported yet. The dev server needs to be resarted to inline the new configuration.
+
+
+#### Browser Support
+
+HiPiler supports the latest version of Chrome and Firefox. Althought, almost everything works in Safari, t-SNE based clustering is broken. Once we fixed the bug Safari will be supported as well.
