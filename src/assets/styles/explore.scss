@@ -4,7 +4,7 @@
 
 .matrix-view,
 .fragments-view,
-.stats-view {
+.details-view {
   min-width: 3rem;
   padding: 0 0.5rem;
 
@@ -29,8 +29,7 @@
 }
 
 #view-details {
-  display: none;  // Hide the panel for now
-  flex-basis: 20rem;
+  flex-basis: 15rem;
   border-left: 1px solid $gray-lighter;
   min-width: 2.5rem;
   padding-right: 0;
@@ -59,13 +58,13 @@
 }
 
 .is-col-drag-fragments .fragments-view .column-resizer,
-.is-col-drag-stats .stats-view .column-resizer {
+.is-col-drag-details .details-view .column-resizer {
   transition: background $transition-very-fast $ease-in-out-cubic;
   width: 1rem;
 }
 
 .is-col-drag-fragments-highlight .fragments-view .column-resizer,
-.is-col-drag-stats-highlight .stats-view .column-resizer {
+.is-col-drag-details-highlight .details-view .column-resizer {
   background: $primary;
   width: 1rem;
 
@@ -89,7 +88,7 @@
 }
 
 .is-col-drag-fragments .fragments-view .drag-indicator,
-.is-col-drag-stats .stats-view .drag-indicator {
+.is-col-drag-details .details-view .drag-indicator {
   opacity: 1;
 }
 
@@ -236,7 +235,15 @@
     }
   }
 
-  .settings-row > button {
-    margin: 0.3rem 0.5rem;
+  .settings-row {
+    h4 {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    &> button {
+      margin: 0.3rem 0.5rem;
+    }
   }
 }

@@ -1,5 +1,6 @@
 <template>
   <require from="components/fragments/fragments"></require>
+  <require from="components/fragments/pile-details"></require>
   <require from="components/higlass/higlass"></require>
   <require from="components/svg-icon/svg-icon"></require>
 
@@ -68,23 +69,23 @@
           base-el-is-init.bind="init"></fragments>
       </div>
     </div>
-    <div id="view-details" class="stats-view rel" css.one-way="css.stats" ref="statsColEl">
+    <div id="view-details" class="details-view rel" css.one-way="css.details" ref="detailsColEl">
       <button
         class="column-resizer draggable horizontal-only"
-        ref="statsDragger"
-        mousedown.trigger="columnDragStartHandler($event, 'stats')"
-        css.one-way="stats.dragBtnCss"></button>
+        ref="detailsDragger"
+        mousedown.trigger="columnDragStartHandler($event, 'details')"
+        css.one-way="details.dragBtnCss"></button>
       <div
         class="drag-indicator"
-        ref="statsDragIndicator"
-        css.one-way="stats.dragIndicatorCss"></div>
+        ref="detailsDragIndicator"
+        css.one-way="details.dragIndicatorCss"></div>
       <header class="column-header rel no-overflow">
         <h2>Details</h2>
         <ul class="flex-c controls">
           <li>
             <button
               class="flex-c"
-              click.delegate="maximizeColumn('stats')">
+              click.delegate="maximizeColumn('details')">
               <svg-icon icon-id="max-horizontal"></svg-icon>
               <span>Max</span>
             </button>
@@ -92,14 +93,14 @@
           <li>
             <button
               class="flex-c"
-              click.delegate="minimizeColumn('stats')">
+              click.delegate="minimizeColumn('details')">
               <svg-icon icon-id="min-horizontal"></svg-icon>
               <span>Min</span>
             </button>
           </li>
         </ul>
       </header>
-      <main class="column-content"></main>
+      <pile-details class="full-dim no-overflow column-content"></pile-details>
     </div>
   </div>
 </template>

@@ -34,7 +34,7 @@ export class Explore {
     this.store.subscribe(this.update.bind(this));
 
     this.fragments = {};
-    this.stats = {};
+    this.details = {};
 
     this.init = false;
 
@@ -55,7 +55,7 @@ export class Explore {
       this.init = true;
       new $(this.matrixColEl).addClass('is-transitionable');
       new $(this.fragmentsColEl).addClass('is-transitionable');
-      new $(this.statsColEl).addClass('is-transitionable');
+      new $(this.detailsColEl).addClass('is-transitionable');
     });
   }
 
@@ -155,7 +155,7 @@ export class Explore {
   keyUpHandler (event) {
     switch (event.keyCode) {
       case 68:  // D == Details (show / hide statistics panel)
-        this.toggleColumnStats();
+        this.toggleColumnDetails();
         break;
 
       default:
@@ -164,20 +164,20 @@ export class Explore {
     }
   }
 
-  toggleColumnStats () {
+  toggleColumnDetails () {
     // Current width
     const width = queryObj(
       this.store.getState(),
-      ['present', 'explore', 'columns', 'statsWidth'],
+      ['present', 'explore', 'columns', 'detailsWidth'],
       0
     );
 
     if (width <= 1) {
       this.store.dispatch(
-        updateWidth('stats', this.columnsLastWidthStats || COLUMNS.statsWidth)
+        updateWidth('details', this.columnsLastWidthdetails || COLUMNS.detailsWidth)
       );
     } else {
-      this.minimizeColumn('stats');
+      this.minimizeColumn('details');
     }
   }
 
@@ -187,15 +187,15 @@ export class Explore {
 
     if (column === 'matrix') {
       this.minimizeColumn('fragments');
-      this.minimizeColumn('stats');
+      this.minimizeColumn('details');
     }
 
     if (column === 'fragments') {
       this.minimizeColumn('matrix');
-      this.minimizeColumn('stats');
+      this.minimizeColumn('details');
     }
 
-    if (column === 'stats') {
+    if (column === 'details') {
       width = this.exploreBaseEl.getBoundingClientRect().width / 16;
     }
 
@@ -211,11 +211,8 @@ export class Explore {
       width = 99;
     }
 
-    if (column === 'stats') {
-      this.columnsLastWidthStats = queryObj(
-        this.store.getState(),
-        ['present', 'explore', 'columns', 'statsWidth']
-      );
+    if (column === 'details') {
+      width = 1;
     }
 
     this.store.dispatch(updateWidth(columnToUpdate, width));
@@ -242,13 +239,13 @@ export class Explore {
       );
     }
 
-    if (dragged.target === 'stats') {
-      const statsWidth = this.statsColEl.getBoundingClientRect().width;
+    if (dragged.target === 'details') {
+      const detailsWidth = this.detailsColEl.getBoundingClientRect().width;
 
       this.store.dispatch(
         updateWidth(
-          'stats',
-          (statsWidth - dragged.dX) / this.font.size
+          'details',
+          (detailsWidth - dragged.dX) / this.font.size
         )
       );
     }
