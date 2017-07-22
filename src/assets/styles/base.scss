@@ -44,7 +44,7 @@ p, ul, ol, figure, pre {
 }
 
 h4, h5, h6, a, p, input, select, option, ul, ol, li, figure, pre, td, th,
-button, .text {
+button, textarea, label, .text {
   color: $gray-dark;
   font-weight: 300;
 }
@@ -110,6 +110,19 @@ figcaption {
 }
 a, p, button, .btn-like {
   font-weight: 300;
+}
+
+textarea {
+  padding: 0.25rem;
+  font-size: 1em;
+  border: 1px solid $gray-lightest;
+  border-radius: 0.25rem;
+
+  &:active,
+  &:focus {
+    border-color: $primary;
+    outline: none;
+  }
 }
 
 /* =====  Global Styles  ==================================================== */
