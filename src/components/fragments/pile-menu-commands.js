@@ -17,6 +17,16 @@ const store = Container.instance.get(States).store;
 const event = Container.instance.get(EventAggregator);
 
 
+export const ANNOTATE = {
+  buttons: [{
+    name: 'Annotate',
+    trigger (pile) {
+      event.publish('explore.fgm.annotatePile', pile);
+    },
+    closeOnClick: true
+  }]
+};
+
 export const COLOR = {
   buttons: [
     {
@@ -212,6 +222,8 @@ export const TRASH = {
 };
 
 export default [
+  ANNOTATE,
+  SEPARATOR,
   INSPECT,
   DISPERSE,
   RECOVER,
