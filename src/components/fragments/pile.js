@@ -677,7 +677,7 @@ export default class Pile {
    */
   drawLabel (isHovering) {
     const numPiles = this.pileMatrices.length;
-    const idReadible = this.idNumeric + 1;
+    const idReadible = this.idNumeric;
     let labelText;
 
     if (numPiles === 1) {
