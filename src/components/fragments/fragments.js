@@ -559,6 +559,15 @@ export class Fragments {
   }
 
   /**
+   * Annotate a pile with text.
+   *
+   * @param {object} pile - Pile to be annotated
+   */
+  annotatePile (pile) {
+
+  }
+
+  /**
    * Arranges piles according to the given measures.
    *
    * @description
@@ -984,9 +993,7 @@ export class Fragments {
    * Handle click events
    */
   canvasClickHandler (event) {
-    if (this.mouseIsDown) {
-      return;
-    }
+    if (this.mouseIsDown) { return; }
 
     if (this.hoveredTool) {
       this.hoveredTool.trigger(this.hoveredTool.pile);
@@ -1007,6 +1014,7 @@ export class Fragments {
 
     if (fgmState.hoveredPile) {
       this.highlightPile(fgmState.hoveredPile);
+      this.selectPile(fgmState.hoveredPile);
     } else {
       this.showPileMenu();
       this.highlightPile();
@@ -1050,8 +1058,6 @@ export class Fragments {
 
     if (event.which !== 1) { return; }
 
-    event.preventDefault();
-
     this.mouseWentDown = true;
     this.mouseIsDown = true;
     this.dragStartPos = {
@@ -1070,8 +1076,6 @@ export class Fragments {
    * @param {object} event - Mouse move event.
    */
   canvasMouseMoveHandler (event) {
-    event.preventDefault();
-
     this.hoveredTool = undefined;
     this.hoveredStrandArrow = undefined;
 
@@ -1158,8 +1162,6 @@ export class Fragments {
    * @param {object} event - Mouse up event.
    */
   canvasMouseUpHandler (event) {
-    event.preventDefault();
-
     fgmState.scene.updateMatrixWorld();
     this.camera.updateProjectionMatrix();
     fgmState.scene.remove(this.lassoObject);
@@ -2518,8 +2520,9 @@ export class Fragments {
    * Highlight a pile.
    *
    * @param {object} pile - Pile to be highlighted.
+   * @param {boolean} forceRendering - If `true` force rerendering.
    */
-  highlightPile (pile) {
+  highlightPile (pile, forceRendering) {
     if (this.pileHighlight) {
       this.pileHighlight.frameReset();
 
@@ -2534,6 +2537,10 @@ export class Fragments {
     if (typeof pile !== 'undefined') {
       pile.frameHighlight();
       this.pileHighlight = pile;
+    }
+
+    if (forceRendering) {
+      this.render();
     }
   }
 
@@ -2646,38 +2653,28 @@ export class Fragments {
    * Initialize event listeners
    */
   initEventListeners () {
-    this.preventDefault = event => event.preventDefault();
-
     this.canvas.addEventListener(
-      'click', this.preventDefault, false
+      'contextmenu', this.canvasContextMenuHandler.bind(this)
     );
 
     this.canvas.addEventListener(
-      'contextmenu', this.canvasContextMenuHandler.bind(this), false
+      'mousedown', this.canvasMouseDownHandler.bind(this)
     );
 
     this.canvas.addEventListener(
-      'dblclick', this.preventDefault, false
+      'mouseleave', this.canvasMouseUpHandler.bind(this)
     );
 
     this.canvas.addEventListener(
-      'mousedown', this.canvasMouseDownHandler.bind(this), false
+      'mousemove', this.canvasMouseMoveHandler.bind(this)
     );
 
     this.canvas.addEventListener(
-      'mouseleave', this.canvasMouseUpHandler.bind(this), false
+      'mouseup', this.canvasMouseUpHandler.bind(this)
     );
 
     this.canvas.addEventListener(
-      'mousemove', this.canvasMouseMoveHandler.bind(this), false
-    );
-
-    this.canvas.addEventListener(
-      'mouseup', this.canvasMouseUpHandler.bind(this), false
-    );
-
-    this.canvas.addEventListener(
-      'wheel', this.canvasMouseWheelHandler.bind(this), false
+      'wheel', this.canvasMouseWheelHandler.bind(this)
     );
 
     this.subscriptions.push(this.event.subscribe(
@@ -2696,6 +2693,11 @@ export class Fragments {
     ));
 
     this.subscriptions.push(this.event.subscribe(
+      'explore.fgm.annotatePile',
+      this.annotatePile.bind(this)
+    ));
+
+    this.subscriptions.push(this.event.subscribe(
       'explore.fgm.coverDispMode',
       this.changeCoverDispMode.bind(this)
     ));
@@ -2703,6 +2705,11 @@ export class Fragments {
     this.subscriptions.push(this.event.subscribe(
       'explore.fgm.dispersePiles',
       this.dispersePilesHandler.bind(this)
+    ));
+
+    this.subscriptions.push(this.event.subscribe(
+      'explore.fgm.highlightPile',
+      this.highlightPile.bind(this)
     ));
 
     this.subscriptions.push(this.event.subscribe(
@@ -3687,6 +3694,7 @@ export class Fragments {
    */
   redrawPiles (piles = this.piles) {
     piles.forEach(pile => pile.draw());
+    this.event.publish('explore.fgm.redrawPiles');
   }
 
   /**
@@ -3970,6 +3978,15 @@ export class Fragments {
         .filter(measure => measure.id === selectedMeasure)
         .forEach((measure) => { measure.isSelected = true; });
     });
+  }
+
+  /**
+   * Select a pile.
+   *
+   * @param {object} pile - Pile to be selected.
+   */
+  selectPile (pile) {
+    this.event.publish('explore.fgm.selectPile', pile);
   }
 
   /**
@@ -4463,11 +4480,9 @@ export class Fragments {
     this.subscriptions = undefined;
 
     // Remove basic JS event listeners.
-    this.canvas.removeEventListener('click', this.preventDefault);
     this.canvas.removeEventListener(
       'contextmenu', this.canvasContextMenuHandler
     );
-    this.canvas.removeEventListener('dblclick', this.preventDefault);
     this.canvas.removeEventListener('mousedown', this.canvasMouseDownHandler);
     this.canvas.removeEventListener('mouseleave', this.canvasMouseUpHandler);
     this.canvas.removeEventListener('mousemove', this.canvasMouseMoveHandler);
