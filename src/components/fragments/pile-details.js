@@ -85,8 +85,27 @@ export class PileDetails {
     }
   }
 
+  extractCategories () {
+    // Init the categories array
+    this.categories = Object
+      .keys(this.pile.pileMatrices[0].categories)
+      .map(key => ({ key, values: [] }));
+
+    // Populate the values
+    this.pile.pileMatrices
+      .map(matrix => Object.keys(matrix.categories)
+        .forEach((key, index) => {
+          const value = matrix.categories[key];
+
+          this.categories[index].values.push(value);
+        })
+      );
+
+    console.log(this.categories);
+  }
+
   extractMeasures () {
-    // Init the measure object
+    // Init the measure array
     this.measures = Object
       .keys(this.pile.pileMatrices[0].measures)
       .map(key => ({ key, max: -Infinity, min: Infinity, values: [] }));
@@ -126,6 +145,7 @@ export class PileDetails {
     this.isSingle = this.pile.pileMatrices.length === 1;
 
     this.drawPreview();
+    this.extractCategories();
     this.extractMeasures();
   }
 

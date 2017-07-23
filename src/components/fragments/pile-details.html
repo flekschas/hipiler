@@ -61,38 +61,43 @@
         <div class="separator"></div>
         <div class="flex-g-1 rel">
           <div class="full-dim oa">
-            <h5 class="flex-c">
-              <svg-icon icon-id="bar-chart"></svg-icon>
-              <span>Measures</span>
-            </h5>
-            <div class="flex-c flex-d-c" if.bind="isSingle">
-              <div
-                class="flex-c one-liner entry"
-                repeat.for="measure of measures">
-                <label>${measure.key}</label>
-                <p>${measure.values[0]}</p>
+            <div if.bind="measures.length">
+              <h5 class="flex-c">
+                <svg-icon icon-id="bar-chart"></svg-icon>
+                <span>Measures</span>
+              </h5>
+              <div class="flex-c flex-d-c" if.bind="isSingle">
+                <div
+                  class="flex-c one-liner entry"
+                  repeat.for="measure of measures">
+                  <label>${measure.key}:</label>
+                  <p>${measure.values[0]}</p>
+                </div>
               </div>
-            </div>
-            <div class="flex-c flex-d-c" if.bind="!isSingle">
-              <div
-                class="flex-c flex-d-c entry"
-                repeat.for="measure of measures">
-                <label>${measure.key}</label>
-                <canvas
-                  class="chartlet"
-                  data-type="bar"
-                  data-colors="hsl(34,57%,50%)"
-                  data-sets="[${measure.values.join(' ')}]"
-                  width="100"
-                  height="50"></canvas>
-                <p>${measure.values.join(' ')}</p>
+              <div class="flex-c flex-d-c" if.bind="!isSingle">
+                <div
+                  class="flex-c flex-d-c entry"
+                  repeat.for="measure of measures">
+                  <label>${measure.key}:</label>
+                  <span>${measure.values.join(', ')}</span>
+                </div>
               </div>
             </div>
             <div class="separator"></div>
-            <h5 class="flex-c">
-              <svg-icon icon-id="tag"></svg-icon>
-              <span>Categories</span>
-            </h5>
+            <div if.bind="categories.length">
+              <h5 class="flex-c">
+                <svg-icon icon-id="tag"></svg-icon>
+                <span>Categories</span>
+              </h5>
+              <div class="flex-c flex-d-c">
+                <div
+                  class="flex-c one-liner entry"
+                  repeat.for="category of categories">
+                  <label>${category.key}:</label>
+                  <p>${category.values.join(', ')}</p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
