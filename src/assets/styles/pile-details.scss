@@ -18,6 +18,23 @@ pile-details {
     background: $gray-lightest;
   }
 
+  h5,
+  h5 label {
+    color: $gray-darker;
+    font-size: 1rem;
+    text-transform: none;
+  }
+
+  h5 {
+    margin: 0 0 0.5rem 0;
+  }
+
+  h5 svg-icon {
+    width: 1rem;
+    height: 1rem;
+    margin-right: 0.25rem;
+  }
+
   label {
     color: $gray;
     font-size: 0.8rem;
@@ -39,7 +56,17 @@ pile-details {
   }
 
   .entry {
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .separator {
+    margin: 0.5rem 0;
+    height: 1px;
+    background: $gray-lightest;
+  }
+
+  .entry + .separator {
+    margin-top: 0.25rem;
   }
 
   #pile-preview {

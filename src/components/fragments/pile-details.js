@@ -44,6 +44,15 @@ export class PileDetails {
   }
 
 
+  /* -------------------------- Getter and Setters -------------------------- */
+
+  get snippetIds () {
+    if (this.pile.fake) { return []; }
+
+    return this.pile.pileMatrices.map(matrix => matrix.id).join(', ');
+  }
+
+
   /* ---------------------------- Custom methods ---------------------------- */
 
   drawPreview () {
@@ -59,15 +68,14 @@ export class PileDetails {
     let previewCan;
 
     if (this.pile.previewsMesh) {
-      offset += this.pile.previewsHeight;
+      offset = this.pile.previewsHeight;
+      this.previewEl.height += offset;
       previewCan = this.pile.previewsMesh.material.map.image;
 
       const ratio = this.previewEl.height / this.previewEl.width * 100;
       this.previewElRatioCss = {
         paddingTop: `${ratio}%`
       };
-
-      console.log(previewCan, offset, this.previewEl.height);
     }
 
     ctx.drawImage(pileCan, 0, offset);
@@ -75,6 +83,31 @@ export class PileDetails {
     if (previewCan) {
       ctx.drawImage(previewCan, 0, 0, previewCan.width, previewCan.height);
     }
+  }
+
+  extractMeasures () {
+    // Init the measure object
+    this.measures = Object
+      .keys(this.pile.pileMatrices[0].measures)
+      .map(key => ({ key, max: -Infinity, min: Infinity, values: [] }));
+
+    // Populate the values
+    this.pile.pileMatrices
+      .map(matrix => Object.keys(matrix.measures)
+        .forEach((key, index) => {
+          const value = matrix.measures[key];
+
+          this.measures[index].values.push(value);
+
+          if (value < this.measures[index].min) {
+            this.measures[index].min = value;
+          }
+
+          if (value > this.measures[index].max) {
+            this.measures[index].max = value;
+          }
+        })
+      );
   }
 
   highlightPile () {
@@ -88,7 +121,12 @@ export class PileDetails {
   pileSelected (pile) {
     this.pile = pile;
 
+    if (this.pile.fake) { return; }
+
+    this.isSingle = this.pile.pileMatrices.length === 1;
+
     this.drawPreview();
+    this.extractMeasures();
   }
 
   subscribeEventListeners () {
