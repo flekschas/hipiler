@@ -1,6 +1,17 @@
+export const ANNOTATION = {
+  viewBox: '0 0 16 16',
+  fillRule: 'evenodd',
+  svg: '<path d="M2 12h-.406C.714 12 0 11.286 0 10.406V4.594C0 3.714.714 3 1.594 3h11.812C14.286 3 15 3.714 15 4.594v5.812c0 .88-.714 1.594-1.594 1.594H5l-3 3v-3zm1.5-6C4.328 6 5 6.672 5 7.5S4.328 9 3.5 9 2 8.328 2 7.5 2.672 6 3.5 6zm4 0C8.328 6 9 6.672 9 7.5S8.328 9 7.5 9 6 8.328 6 7.5 6.672 6 7.5 6zm4 0c.828 0 1.5.672 1.5 1.5S12.328 9 11.5 9 10 8.328 10 7.5 10.672 6 11.5 6z" fill="currentColor"/>'
+};
+
 export const ARROW_BOTTOM = {
   viewBox: '0 0 16 16',
   svg: '<path d="M1 5l7 7 7-7" fill="none" stroke="currentColor" stroke-width="2"/>'
+};
+
+export const BAR_CHART = {
+  viewBox: '0 0 16 16',
+  svg: '<path d="M0 10h3v4H0zM4 4h3v10H4zM8 7h3v7H8zM12 1h3v13h-3zM0 15h15v1H0z" fill="currentColor"/>'
 };
 
 export const BIORXIV = {
@@ -142,6 +153,12 @@ export const PRESENTATION = {
   svg: '<path d="M16,1.067H8.266V0.267C8.266,0.119,8.147,0,8,0C7.852,0,7.733,0.119,7.733,0.267v0.801H0v11.2 h7.355l-3.278,3.276c-0.104,0.104-0.104,0.273,0,0.378C4.13,15.974,4.198,16,4.266,16c0.068,0,0.137-0.026,0.188-0.078 l3.278-3.278v2.556c0,0.146,0.119,0.267,0.267,0.267c0.147,0,0.266-0.12,0.266-0.267v-2.556l3.279,3.278 C11.596,15.974,11.664,16,11.732,16s0.137-0.026,0.188-0.078c0.104-0.104,0.104-0.273,0-0.378l-3.276-3.276H16V1.067L16,1.067z M0.533,1.6h14.933v10.133H0.533V1.6z" fill="currentColor"/><circle cx="2.5" cy="10" r="1" fill="currentColor"/><circle cx="10" cy="7.724" r="1" fill="currentColor"/><circle cx="6" cy="6" r="1" fill="currentColor"/><circle cx="13.5" cy="4" r="1" fill="currentColor"/><polygon points="2.782,10.247 2.218,9.753 5.901,5.543 9.907,7.357 13.224,3.747 13.776,4.253 10.093,8.265 6.099,6.457" fill="currentColor"/>'
 };
 
+export const TAG = {
+  viewBox: '0 0 16 16',
+  fillRule: 'evenodd',
+  svg: '<path d="M13.134 1.06c1.03 0 1.866.837 1.866 1.867v3.52c-.017.456-.2.907-.546 1.254L7.7 14.455c-.727.728-1.91.728-2.638 0L1.607 11c-.728-.73-.728-1.912 0-2.64L8.36 1.607c.347-.347.798-.53 1.254-.545h3.52zM12 2.5c.828 0 1.5.672 1.5 1.5s-.672 1.5-1.5 1.5-1.5-.672-1.5-1.5.672-1.5 1.5-1.5z" fill="currentColor"/>'
+};
+
 export const TEXT = {
   viewBox: '0 0 16 16',
   svg: '<rect y="3.691" width="8.615" height="1.231" fill="currentColor"/><rect width="8.615" height="1.23" fill="currentColor"/><rect y="7.384" width="16" height="1.231" fill="currentColor"/><rect y="11.075" width="16" height="1.233" fill="currentColor"/><rect y="14.769" width="16" height="1.231" fill="currentColor"/>'
@@ -168,7 +185,9 @@ export const WARNING = {
 };
 
 export default {
+  ANNOTATION,
   ARROW_BOTTOM,
+  BAR_CHART,
   BIORXIV,
   CALENDAR,
   CODE,
@@ -196,6 +215,7 @@ export default {
   PLAY,
   PLAY_OUTLINE,
   PRESENTATION,
+  TAG,
   TEXT,
   RESET,
   TRASH,
