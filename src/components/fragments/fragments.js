@@ -1009,7 +1009,8 @@ export class Fragments {
       this.hoveredStrandArrow.userData.pile.flipMatrix(
         this.hoveredStrandArrow.userData.axis
       ).draw();
-      this.store.dispatch(setMatrixOrientation(MATRIX_ORIENTATION_UNDEF));
+      this.event.publish('explore.fgm.redrawPiles');
+      fgmState.matrixOrientation = MATRIX_ORIENTATION_UNDEF;
     }
 
     if (fgmState.hoveredPile) {
@@ -4750,7 +4751,6 @@ export class Fragments {
     if (this.coverDispMode !== coverDispMode) {
       this.coverDispMode = coverDispMode;
 
-      // update.grid = true;
       update.piles = true;
       update.pileCover = true;
     }
