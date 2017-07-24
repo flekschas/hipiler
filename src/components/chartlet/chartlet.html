@@ -1,0 +1,28 @@
+<template>
+  <div class="chartlet-wrapper flex-c">
+    <div class="chartlet-plot-wrapper flex-c flex-d-c" ref="plotWrapperEl">
+      <div class="chartlet-plot flex-c">
+        <canvas
+          class="chartlet"
+          data-type="bar"
+          data-colors="#888"
+          data-sets="[1 2 3 4]"
+          width.one-way="width"
+          height="32"
+          ref="plotEl"></canvas>
+      </div>
+      <ul class="chartlet-axis-x flex-c" if.bind="axisX">
+        <li class="flex-c flex-jc-c flex-g-1" repeat.for="value of data.values">
+          <div>${$index}</div>
+        </li>
+      </ul>
+    </div>
+    <div class="chartlet-axis-y flex-c " if.bind="axisY">
+      <div class="chartlet-axis-y-bar"></div>
+      <div class="chartlet-axis-y-labels flex-c flex-d-c flex-jc-sb">
+        <div class="chartlet-axis-y-max ohe">${range[1]}</div>
+        <div class="chartlet-axis-y-min ohe">${range[0]}</div>
+      </div>
+    </div>
+  </div>
+</template>
