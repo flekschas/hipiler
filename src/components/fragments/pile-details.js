@@ -138,6 +138,8 @@ export class PileDetails {
   }
 
   pileSelected (pile) {
+    if (this.pile === pile) { return; }
+
     this.pile = pile;
 
     if (this.pile.fake) { return; }
