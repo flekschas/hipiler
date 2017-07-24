@@ -44,8 +44,37 @@ pile-details {
   textarea {
     font-size: 0.9rem;
     line-height: 1.25em;
-    min-height: 7em;
+    min-height: 2.8em;
     max-height: 14em;
+  }
+
+  .chartlet-axis-x,
+  .chartlet-axis-x li,
+  .chartlet-axis-y {
+    font-size: 0.7rem;
+    font-weight: 300;
+    color: $gray;
+  }
+
+  .chartlet-axis-x {
+    margin: 0;
+  }
+
+  .chartlet-axis-y {
+    width: 34%;
+    margin: 0 0 0.7rem 0.15rem;
+  }
+
+  .chartlet-plot-wrapper {
+    width: 66%;
+  }
+
+  .chartlet-axis-y-bar {
+    width: 0.2rem;
+    margin: 0 0.1rem;
+    border-top: 1px solid $gray-lightest;
+    border-left: 1px solid $gray-lightest;
+    border-bottom: 1px solid $gray-lightest;
   }
 
   .one-liner {
@@ -55,8 +84,16 @@ pile-details {
     }
   }
 
+  .multi-line label {
+    margin-bottom: 0.25rem;
+  }
+
   .entry {
     margin-bottom: 0.25rem;
+
+    &.multi-line {
+      margin-bottom: 0.33rem;
+    }
   }
 
   .separator {

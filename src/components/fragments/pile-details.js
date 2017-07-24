@@ -29,6 +29,8 @@ export class PileDetails {
     this.previewElRatioCss = {
       paddingTop: '100%'
     };
+
+    this.chartletUpdate = ['explore.pileDetails.colResized'];
   }
 
 
@@ -100,8 +102,6 @@ export class PileDetails {
           this.categories[index].values.push(value);
         })
       );
-
-    console.log(this.categories);
   }
 
   extractMeasures () {
@@ -169,5 +169,11 @@ export class PileDetails {
     this.subscriptions = [];
   }
 
-  update () {}
+  update () {
+    const columnWidth = this.store.getState().present.explore.columns.details;
+
+    if (!this.columnWidth || this.columnWidth !== columnWidth) {
+      this.event.publish(this.chartletUpdate[0]);
+    }
+  }
 }

@@ -1,7 +1,6 @@
 <template>
-  <require from="components/dialog/dialog"></require>
   <require from="components/svg-icon/svg-icon"></require>
-  <require from="components/spinner.html"></require>
+  <require from="components/chartlet/chartlet"></require>
 
   <div class="flex-c flex-a-c flex-jc-c full-dim error-indicator ${isErrored ? 'is-active' : ''}">
     <div class="flex-c flex-d-c flex-jc-c flex-a-c">
@@ -9,17 +8,6 @@
       <span>${errorMsg}</span>
     </div>
   </div>
-  <div class="flex-c flex-a-c flex-jc-c full-dim loading-indicator ${isLoading ? 'is-active' : ''}">
-    <div class="flex-c flex-a-c flex-jc-c spinner-bg">
-      <spinner if.bind="isLoading"></spinner>
-    </div>
-  </div>
-
-  <dialog
-    class="flex-c flex-a-c flex-jc-c full-dim ${dialogIsOpen ? 'is-active' : ''}"
-    deferred.bind="dialogDeferred"
-    is-open.bind="dialogIsOpen"
-    message.bind="dialogMessage"></dialog>
 
   <div class="full-dim flex-c flex-d-c">
     <main class="flex-g-1 rel">
@@ -76,10 +64,15 @@
               </div>
               <div class="flex-c flex-d-c" if.bind="!isSingle">
                 <div
-                  class="flex-c flex-d-c entry"
+                  class="flex-c flex-d-c multi-line entry"
                   repeat.for="measure of measures">
                   <label>${measure.key}:</label>
-                  <span>${measure.values.join(', ')}</span>
+                  <chartlet
+                    axis-x="1"
+                    axis-y="1"
+                    data.bind="measure"
+                    update.bind="chartletUpdate"
+                    width="100"></chartlet>
                 </div>
               </div>
             </div>
