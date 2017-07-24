@@ -10,6 +10,15 @@ export const COLUMNS = {
   detailsWidthUnit: 'rem'
 };
 
+export const CSS = {
+  details: {
+    flexBasis: `${COLUMNS.detailsWidth}${COLUMNS.detailsWidthUnit}`
+  },
+  matrix: {
+    flexBasis: `${COLUMNS.matrixWidth}${COLUMNS.matrixWidthUnit}`
+  }
+};
+
 export default {
   COLUMN_NAMES,
   COLUMNS

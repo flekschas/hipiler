@@ -16,7 +16,7 @@ import queryObj from 'utils/query-obj';
 import { transition } from 'configs/app';
 import { requestNextAnimationFrame } from 'utils/request-animation-frame';
 import { updateWidth } from 'views/explore-actions';
-import { COLUMNS, COLUMN_NAMES } from 'views/explore-defaults';
+import { COLUMNS, COLUMN_NAMES, CSS } from 'views/explore-defaults';
 
 
 const logger = LogManager.getLogger('explore');
@@ -28,7 +28,7 @@ export class Explore {
     this.event = eventAggregator;
     this.font = font;
 
-    this.css = {};
+    this.css = CSS;
 
     this.store = states.store;
     this.store.subscribe(this.update.bind(this));
@@ -253,10 +253,12 @@ export class Explore {
 
   updateCss (columns) {
     COLUMN_NAMES.forEach((columnName) => {
-      this.css[columnName] = {
-        flexBasis:
-          `${columns[`${columnName}Width`]}${columns[`${columnName}WidthUnit`]}`
-      };
+      const newWidth =
+        `${columns[`${columnName}Width`]}${columns[`${columnName}WidthUnit`]}`;
+
+      if (this.css[columnName].flexBasis !== newWidth) {
+        this.css[columnName] = { flexBasis: newWidth };
+      }
     });
   }
 }
