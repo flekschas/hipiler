@@ -341,14 +341,33 @@ export function createRect (w, h, color) {
   return new Mesh(geom, m);
 }
 
+const PIXEL_RATIO = (function () {
+  const ctx = document.createElement('canvas').getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const bsr = (
+    ctx.webkitBackingStorePixelRatio ||
+    ctx.mozBackingStorePixelRatio ||
+    ctx.msBackingStorePixelRatio ||
+    ctx.oBackingStorePixelRatio ||
+    ctx.backingStorePixelRatio || 1
+  );
+
+  return dpr / bsr;
+})();
+
 export function createText (label) {
   const canvas = document.createElement('canvas');
-  canvas.width = 64;
+  canvas.width = 40;
   canvas.height = 16;
-  const context = canvas.getContext('2d');
-  context.font = '12px Rubik';
-  context.fillStyle = 'rgba(0, 0, 0, 0.25)';
+  const context = canvas.getContext('2d', { alpha: false });
+  context.beginPath();
+  context.rect(0, 0, canvas.width, canvas.height);
+  context.fillStyle = 'white';
+  context.fill();
+  context.font = 'normal normal 300 12px Rubik';
+  context.fillStyle = 'rgba(0, 0, 0, 0.4)';
   context.fillText(label, 0, 12);
+  context.setTransform(PIXEL_RATIO, 0, 0, PIXEL_RATIO, 0, 0);
 
   // canvas contents will be used for a texture
   const texture = new Texture(canvas);

@@ -672,10 +672,8 @@ export default class Pile {
 
   /**
    * Draw pile label.
-   *
-   * @param {array} isHovering - If `true` user is currently hovering this pile.
    */
-  drawLabel (isHovering) {
+  drawLabel () {
     const numPiles = this.pileMatrices.length;
     const idReadible = this.idNumeric;
     let labelText;
@@ -689,10 +687,6 @@ export default class Pile {
     if (this.labelText !== labelText) {
       this.labelText = labelText;
       this.label = createText(this.labelText);
-    } else {
-      this.label.material.color.setHex(
-        isHovering ? COLORS.GRAY_DARK : COLORS.GRAY_LIGHT
-      );
     }
 
     this.updateLabelPosScale();
@@ -1786,7 +1780,7 @@ export default class Pile {
     const extraOffset = this.isColored ? COLOR_INDICATOR_HEIGHT : 0;
 
     this.label.position.set(
-      -this.matrixWidthHalf + 32,
+      -this.matrixWidthHalf + 20,
       -this.matrixWidthHalf - 10 - extraOffset,
       0
     );
