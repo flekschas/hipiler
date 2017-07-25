@@ -7,6 +7,8 @@ import COLORS from 'configs/colors';
 
 export const ANIMATION = true;
 
+export const ANNOTATIONS = {};
+
 export const API_DOMAINS = 'domains_by_loci';
 
 export const API_FRAGMENTS = 'fragments_by_loci';

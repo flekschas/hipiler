@@ -10,6 +10,12 @@ import States from 'services/states';  // eslint-disable-line
 
 import FgmState from 'components/fragments/fragments-state';
 
+import {
+  annotatePile
+} from 'components/fragments/fragments-actions';
+
+import debounce from 'utils/debounce';
+
 let fgmState = FgmState.get();
 const logger = LogManager.getLogger('details');
 
@@ -24,6 +30,8 @@ export class PileDetails {
     // Link the Redux store
     this.store = states.store;
     this.unsubscribeStore = this.store.subscribe(this.update.bind(this));
+
+    this.annotate = debounce(this.annotationInputHandler.bind(this), 2000);
 
     // Dummy pile
     this.pile = FAKE_PILE;
@@ -59,6 +67,16 @@ export class PileDetails {
 
 
   /* ---------------------------- Custom methods ---------------------------- */
+
+  annotationInputHandler (text) {
+    this.store.dispatch(annotatePile(this.pile, text));
+
+    return true;
+  }
+
+  checkHighlight () {
+    this.isHighlighted = this.pile === fgmState.pileHighlight;
+  }
 
   drawPreview () {
     if (!this.pile.isDrawn) { return; }
@@ -134,10 +152,6 @@ export class PileDetails {
 
   highlightPile () {
     this.event.publish('explore.fgm.highlightPile', this.pile, true);
-    this.event.publish(
-      'explore.fgm.pileFocus',
-      this.pile.pileMatrices.map(matrix => matrix.id)
-    );
   }
 
   pileSelected (pileId) {
@@ -153,20 +167,28 @@ export class PileDetails {
       this.isSingle = this.pile.pileMatrices.length === 1;
 
       this.drawPreview();
+      this.checkHighlight();
       this.extractCategories();
       this.extractMeasures();
+      this.updateAnnotations(
+        this.store.getState().present.explore.fragments.annotations
+      );
     });
   }
 
   subscribeEventListeners () {
     this.subscriptions = [];
     this.subscriptions.push(this.event.subscribe(
-      'explore.fgm.selectPile',
-      this.pileSelected.bind(this)
+      'explore.fgm.selectPile', this.pileSelected.bind(this)
     ));
     this.subscriptions.push(this.event.subscribe(
-      'explore.fgm.redrawPiles',
-      this.drawPreview.bind(this)
+      'explore.fgm.redrawPiles', this.drawPreview.bind(this)
+    ));
+    this.subscriptions.push(this.event.subscribe(
+      'explore.fgm.pileBlur', this.checkHighlight.bind(this)
+    ));
+    this.subscriptions.push(this.event.subscribe(
+      'explore.fgm.pileFocus', this.checkHighlight.bind(this)
     ));
   }
 
@@ -189,5 +211,16 @@ export class PileDetails {
     }
 
     this.pileSelected(stateFgm.pileSelected);
+  }
+
+  updateAnnotations (annotations) {
+    if (this.annotations === annotations) { return; }
+
+    this.annotations = annotations;
+
+    const id = this.isSingle ? `_${this.pile.idNumeric}` : this.pile.idNumeric;
+
+    this.annotation = this.annotations[id];
+    console.log('annotations', this.annotation, id, annotations);
   }
 }

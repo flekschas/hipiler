@@ -24,7 +24,7 @@
               class="full-dim"
               ref="previewEl"></canvas>
             <div
-              class="full-dim wrapper-border"
+              class="full-dim wrapper-border ${isHighlighted ? 'is-active' : ''}"
               click.delegate="highlightPile()"></div>
           </div>
         </div>
@@ -44,8 +44,10 @@
         <textarea
           id="pile-notes"
           placeholder="Write down your notes in here."
-          value.bind="pile.notes"
-          disabled.bind="pile.fake"></textarea>
+          value.bind="annotation"
+          disabled.bind="pile.fake"
+          input.delegate="annotate($event.target.value)"
+          rows="3"></textarea>
         <div class="separator"></div>
         <div class="flex-g-1 rel">
           <div class="full-dim oa">

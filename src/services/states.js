@@ -7,11 +7,16 @@ import { applyMiddleware, compose, createStore } from 'redux';
 import { autoRehydrate, persistStore, purgeStoredState } from 'redux-persist';
 import thunk from 'redux-thunk';
 // import freeze from 'redux-freeze';
-import undoable, { ActionCreators } from 'redux-undo';
+import undoable, { ActionCreators, groupByActionTypes } from 'redux-undo';
 import { enableBatching } from 'redux-batched-actions';
 
 import { resetState } from 'app-actions';
 import appReducer from 'app-reducer';
+
+import {
+  ANNOTATE_PILE,
+  SELECT_PILE
+} from 'components/fragments/fragments-actions';
 
 import logger from 'utils/redux-logger';
 
@@ -34,6 +39,7 @@ export default class States {
   constructor () {
     this.store = createStore(
       undoable(enableBatching(appReducer), {
+        groupBy: groupByActionTypes([ANNOTATE_PILE, SELECT_PILE]),
         limit: 25
       }),
       undefined,

@@ -2,6 +2,7 @@ import { combineReducers } from 'redux';
 
 import {
   ADD_PILES,
+  ANNOTATE_PILE,
   CLOSE_PILES_INSPECTION,
   DISPERSE_PILES,
   DISPERSE_PILES_INSPECTION,
@@ -37,6 +38,7 @@ import {
 
 import {
   ANIMATION,
+  ANNOTATIONS,
   ARRANGE_MEASURES,
   CELL_SIZE,
   CONFIG,
@@ -123,6 +125,27 @@ export function animation (state = ANIMATION, action) {
     case SET_ANIMATION:
       return action.payload.animation;
 
+    default:
+      return state;
+  }
+}
+
+export function annotations (state = ANNOTATIONS, action) {
+  switch (action.type) {
+    case ANNOTATE_PILE: {
+      const newState = deepClone(state);
+      const id = action.payload.pile.pileMatrices.length === 1 ?
+        `_${action.payload.pile.idNumeric}` : action.payload.pile.idNumeric;
+
+      if (action.payload.annotation) {
+        newState[id] = action.payload.annotation;
+      } else {
+        newState[id] = undefined;
+        delete newState[id];
+      }
+
+      return newState;
+    }
     default:
       return state;
   }
@@ -501,6 +524,7 @@ export function tsnePerplexity (state = TSNE_PERPLEXITY, action) {
 
 export default combineReducers({
   animation,
+  annotations,
   arrangeMeasures,
   cellSize,
   config,
