@@ -2517,12 +2517,12 @@ export class Fragments {
   highlightPile (pile, forceRendering) {
     if (fgmState.pileHighlight) {
       fgmState.pileHighlight.frameReset();
-      const pile = fgmState.pileHighlight;
+      const prevPile = fgmState.pileHighlight;
       fgmState.pileHighlight = undefined;
 
       this.event.publish(
         'explore.fgm.pileBlur',
-        pile.pileMatrices.map(matrix => matrix.id)
+        prevPile.pileMatrices.map(matrix => matrix.id)
       );
     }
 

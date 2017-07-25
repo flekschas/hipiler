@@ -224,9 +224,8 @@ export class PileDetails {
 
     this.annotations = annotations;
 
-    const id = this.isSingle ? `_${this.pile.idNumeric}` : this.pile.idNumeric;
-
-    this.annotation = this.annotations[id];
-    console.log('annotations', this.annotation, id, annotations);
+    if (typeof this.annoId !== 'undefined') {
+      this.annotation = this.getAnnotation(this.annoId);
+    }
   }
 }
