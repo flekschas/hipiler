@@ -16,6 +16,7 @@ import { ERROR_DURATION } from 'app-defaults';
 import { name, routes } from 'configs/app';
 import { externalLinks } from 'configs/nav';
 import FgmState from 'components/fragments/fragments-state';
+import checkTextInputFocus from 'utils/check-text-input-focus';
 import dragDrop from 'utils/drag-drop';
 import readJsonFile from 'utils/read-json-file';
 import validateConfig from 'utils/validate-config';
@@ -182,6 +183,10 @@ export default class App {
    * @param {object} event - Kep up event object.
    */
   keyUpHandler (event) {
+    if (checkTextInputFocus()) { return; }
+
+    event.preventDefault();
+
     if (event.code === 'ControlLeft' || event.code === 'MetaLeft') {
       this.isCtrlMetaKeyDown = false;
     }
