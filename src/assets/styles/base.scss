@@ -33,6 +33,19 @@ footer, header, main, menu, nav, section, summary {
   color: $black;
 }
 
+::-webkit-input-placeholder { /* Chrome/Opera/Safari */
+  color: $gray-light;
+}
+::-moz-placeholder { /* Firefox 19+ */
+  color: $gray-light;
+}
+:-ms-input-placeholder { /* IE 10+ */
+  color: $gray-light;
+}
+:-moz-placeholder { /* Firefox 18- */
+  color: $gray-light;
+}
+
 /* -----  1.3 General Typography  ------------------------------------------- */
 
 h1, h2, h3, h4, h5, h6,
