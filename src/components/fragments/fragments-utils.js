@@ -357,7 +357,7 @@ const PIXEL_RATIO = (function () {
 
 export function createText (label) {
   const canvas = document.createElement('canvas');
-  canvas.width = 40;
+  canvas.width = 64;
   canvas.height = 16;
   const context = canvas.getContext('2d', { alpha: false });
   context.beginPath();

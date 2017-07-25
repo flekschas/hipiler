@@ -1780,7 +1780,7 @@ export default class Pile {
     const extraOffset = this.isColored ? COLOR_INDICATOR_HEIGHT : 0;
 
     this.label.position.set(
-      -this.matrixWidthHalf + 20,
+      -this.matrixWidthHalf + 32,
       -this.matrixWidthHalf - 10 - extraOffset,
       0
     );
