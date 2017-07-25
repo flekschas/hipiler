@@ -41,6 +41,8 @@ export class PileDetails {
     };
 
     this.chartletUpdate = ['explore.pileDetails.colResized'];
+
+    this.update();
   }
 
 
@@ -48,7 +50,6 @@ export class PileDetails {
 
   attached () {
     this.subscribeEventListeners();
-    this.update();
   }
 
   detached () {
@@ -150,6 +151,10 @@ export class PileDetails {
       );
   }
 
+  getAnnotation (id) {
+    return this.annotations[id];
+  }
+
   highlightPile () {
     this.event.publish('explore.fgm.highlightPile', this.pile, true);
   }
@@ -165,14 +170,14 @@ export class PileDetails {
       if (this.pile.fake) { return; }
 
       this.isSingle = this.pile.pileMatrices.length === 1;
+      this.annoId = this.isSingle ?
+        `_${this.pile.idNumeric}` : this.pile.idNumeric;
 
       this.drawPreview();
       this.checkHighlight();
       this.extractCategories();
       this.extractMeasures();
-      this.updateAnnotations(
-        this.store.getState().present.explore.fragments.annotations
-      );
+      this.annotation = this.getAnnotation(this.annoId);
     });
   }
 
@@ -211,6 +216,7 @@ export class PileDetails {
     }
 
     this.pileSelected(stateFgm.pileSelected);
+    this.updateAnnotations(stateFgm.annotations);
   }
 
   updateAnnotations (annotations) {
