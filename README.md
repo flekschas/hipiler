@@ -65,3 +65,5 @@ Dynamic changes of the config are not supported yet. The dev server needs to be 
 #### Browser Support
 
 HiPiler supports the latest version of Chrome and Firefox. Althought, almost everything works in Safari, t-SNE based clustering is broken. Once we fixed the bug Safari will be supported as well.
+
+_Note:_ Firefox by default starts searching on a website as soon as you start typing something. Unfortunately, this feature intereferes with keyboard shortcuts and can't be disabled with JS. If you want to use keyboard shortcuts in Firefox go to `Tools > Options > Advanced > General Tab` and disable `Search for text when I start typing`.
