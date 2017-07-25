@@ -27,6 +27,11 @@ export const dispersePiles = piles => ({
   payload: { piles }
 });
 
+export const dispersePilesAnnotations = piles => batchActions([
+  annotatePiles(piles, piles.map(pile => false), piles.map(pile => undefined)),
+  dispersePiles(piles)
+]);
+
 export const DISPERSE_PILES_INSPECTION = 'DISPERSE_PILES_INSPECTION';
 
 export const dispersePilesInspection = piles => ({

@@ -28,7 +28,7 @@ import States from 'services/states';  // eslint-disable-line
 // Utils etc.
 import {
   closePilesInspection,
-  dispersePiles,
+  dispersePilesAnnotations,
   dispersePilesInspection,
   inspectPiles,
   selectPile,
@@ -1545,7 +1545,7 @@ export class Fragments {
       if (fgmState.isPilesInspection) {
         this.store.dispatch(dispersePilesInspection(pilesToBeDispersed));
       } else {
-        this.store.dispatch(dispersePiles(pilesToBeDispersed));
+        this.store.dispatch(dispersePilesAnnotations(pilesToBeDispersed));
       }
     });
   }
@@ -4030,6 +4030,7 @@ export class Fragments {
    */
   setPilesFromConfig (pilesConfig, ignore = {}) {
     const ready = [];
+    this.pileDetailsNeedsUpdate = false;
 
     Object.keys(pilesConfig).forEach((pileId) => {
       if (ignore[pileId]) { return; }
@@ -4051,10 +4052,20 @@ export class Fragments {
           this.destroyAltPile(pileId);
         }
 
-        // Add matrices onto pile
-        ready.push(pile.setMatrices(
+        const pileReady = pile.setMatrices(
           matrixIds.map(matrixId => fgmState.matrices[matrixId])
-        ));
+        );
+
+        // Add matrices onto pile
+        ready.push(pileReady);
+
+        if (this.pileSelected === pile.id) {
+          pileReady.then((val) => {
+            if (val && val.noChange) { return; }
+
+            this.pileDetailsNeedsUpdate = true;
+          });
+        }
 
         // Check if there is a pile that is dispersable
         if (!this.isDispersable) {
@@ -4090,6 +4101,7 @@ export class Fragments {
               this.fromDisperse[pile.id].y,
               true
             );
+            console.log('ass', pile.id);
           }
         }
       } else if (pile) {
@@ -4538,6 +4550,9 @@ export class Fragments {
       ));
       ready.push(this.updatePilesInspection(stateFgm.pilesInspection, update));
       ready.push(this.updatePiles(stateFgm.piles, update));
+      ready.push(this.updatePileSelected(
+        stateFgm.pileSelected
+      ));
       ready.push(this.updateShowSpecialCells(
         stateFgm.showSpecialCells, update
       ));
@@ -4672,6 +4687,10 @@ export class Fragments {
 
     if (update.hideTrash) {
       this.hideTrash();
+    }
+
+    if (this.pileDetailsNeedsUpdate) {
+      this.event.publish('explore.fgm.pileDetailsRedraw');
     }
   }
 
@@ -5214,6 +5233,15 @@ export class Fragments {
     update.inspection = true;
 
     return Promise.all(ready);
+  }
+
+  /**
+   * Update selected pile.
+   */
+  updatePileSelected (pileSelected) {
+    this.pileSelected = pileSelected;
+
+    return Promise.resolve();
   }
 
   /**

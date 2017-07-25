@@ -1424,7 +1424,7 @@ export default class Pile {
    */
   setMatrices (matrices) {
     if (arraysEqual(this.pileMatrices, matrices)) {
-      return Promise.resolve();
+      return Promise.resolve({ noChange: true });
     }
 
     this.pileMatrices = matrices;

@@ -192,6 +192,9 @@ export class PileDetails {
       'explore.fgm.redrawPiles', this.drawPreview.bind(this)
     ));
     this.subscriptions.push(this.event.subscribe(
+      'explore.fgm.pileDetailsRedraw', this.drawPreview.bind(this)
+    ));
+    this.subscriptions.push(this.event.subscribe(
       'explore.fgm.pileBlur', this.checkHighlight.bind(this)
     ));
     this.subscriptions.push(this.event.subscribe(
