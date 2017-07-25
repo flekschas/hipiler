@@ -2,7 +2,7 @@ import { combineReducers } from 'redux';
 
 import {
   ADD_PILES,
-  ANNOTATE_PILE,
+  ANNOTATE_PILES,
   CLOSE_PILES_INSPECTION,
   DISPERSE_PILES,
   DISPERSE_PILES_INSPECTION,
@@ -132,17 +132,19 @@ export function animation (state = ANIMATION, action) {
 
 export function annotations (state = ANNOTATIONS, action) {
   switch (action.type) {
-    case ANNOTATE_PILE: {
+    case ANNOTATE_PILES: {
       const newState = deepClone(state);
-      const id = action.payload.pile.pileMatrices.length === 1 ?
-        `_${action.payload.pile.idNumeric}` : action.payload.pile.idNumeric;
 
-      if (action.payload.annotation) {
-        newState[id] = action.payload.annotation;
-      } else {
-        newState[id] = undefined;
-        delete newState[id];
-      }
+      action.payload.piles.forEach((pileId, index) => {
+        const id = action.payload.areSingle[index] ? `_${pileId}` : pileId;
+
+        if (action.payload.annotations[index]) {
+          newState[id] = action.payload.annotations[index];
+        } else {
+          newState[id] = undefined;
+          delete newState[id];
+        }
+      });
 
       return newState;
     }

@@ -7,11 +7,11 @@ export const addPiles = piles => ({
   payload: { piles }
 });
 
-export const ANNOTATE_PILE = 'ANNOTATE_PILE';
+export const ANNOTATE_PILES = 'ANNOTATE_PILES';
 
-export const annotatePile = (pile, annotation) => ({
-  type: ANNOTATE_PILE,
-  payload: { pile, annotation }
+export const annotatePiles = (piles, areSingle, annotations) => ({
+  type: ANNOTATE_PILES,
+  payload: { piles, areSingle, annotations }
 });
 
 export const CLOSE_PILES_INSPECTION = 'CLOSE_PILES_INSPECTION';

@@ -11,7 +11,7 @@ import States from 'services/states';  // eslint-disable-line
 import FgmState from 'components/fragments/fragments-state';
 
 import {
-  annotatePile
+  annotatePiles
 } from 'components/fragments/fragments-actions';
 
 import debounce from 'utils/debounce';
@@ -70,7 +70,9 @@ export class PileDetails {
   /* ---------------------------- Custom methods ---------------------------- */
 
   annotationInputHandler (text) {
-    this.store.dispatch(annotatePile(this.pile, text));
+    this.store.dispatch(annotatePiles(
+      [this.pile.idNumeric], [this.pile.pileMatrices.length === 1], [text]
+    ));
 
     return true;
   }
