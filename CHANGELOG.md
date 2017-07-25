@@ -1,5 +1,6 @@
-v1.1.0 - 2017-07-22
+v1.1.0 - 2017-07-27
 
+- Add pile details panel with annotations
 - Add link to HiGlass.io
 - Allow config to be more flexible
 - Fix minor issue with the arrange field
@@ -10,6 +11,7 @@ v1.1.0 - 2017-07-22
 - Improve frame rendering performance dramatically
 - Improve scale and location updates of snippets to be blazing fast
 - Nicefy disperse animation when doing _undo_
+- Ensure compatability in latest version of Firefox
 
 v1.0.0 - 2017-07-16
 
