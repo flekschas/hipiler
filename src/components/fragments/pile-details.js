@@ -87,19 +87,19 @@ export class PileDetails {
     this.previewEl.width = pileCan.width;
     this.previewEl.height = pileCan.height;
 
-    let offset = 0;
+    let offset = this.pile.previewsMesh ? this.pile.previewsHeight : 0;
     let previewCan;
 
-    if (this.pile.previewsMesh) {
-      offset = this.pile.previewsHeight;
-      this.previewEl.height += offset;
-      previewCan = this.pile.previewsMesh.material.map.image;
+    this.previewEl.height += offset;
 
-      const ratio = this.previewEl.height / this.previewEl.width * 100;
-      this.previewElRatioCss = {
-        paddingTop: `${ratio}%`
-      };
+    if (offset) {
+      previewCan = this.pile.previewsMesh.material.map.image;
     }
+
+    const ratio = this.previewEl.height / this.previewEl.width * 100;
+    this.previewElRatioCss = {
+      paddingTop: `${ratio}%`
+    };
 
     ctx.drawImage(pileCan, 0, offset);
 
