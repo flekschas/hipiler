@@ -8,6 +8,7 @@ import {
   INSPECT_PILES,
   RECOVER_PILES,
   REMOVE_PILES_INSPECTION,
+  SELECT_PILE,
   SET_ANIMATION,
   SET_ARRANGE_MEASURES,
   SET_CELL_SIZE,
@@ -51,6 +52,7 @@ import {
   MODE_AVERAGE,
   PILES_INSPECTION,
   PILES,
+  SELECTED_PILE,
   SHOW_SPECIAL_CELLS,
   TSNE_EARLY_EXAGGERATION,
   TSNE_ITERATIONS,
@@ -435,6 +437,16 @@ export function piles (state = PILES, action) {
   }
 }
 
+export function pileSelected (state = SELECTED_PILE, action) {
+  switch (action.type) {
+    case SELECT_PILE:
+      return action.payload.pile;
+
+    default:
+      return state;
+  }
+}
+
 export function showSpecialCells (state = SHOW_SPECIAL_CELLS, action) {
   switch (action.type) {
     case SET_SHOW_SPECIAL_CELLS:
@@ -504,6 +516,7 @@ export default combineReducers({
   matrixOrientation,
   piles,
   pilesInspection,
+  pileSelected,
   showSpecialCells,
   tsneEarlyExaggeration,
   tsneIterations,

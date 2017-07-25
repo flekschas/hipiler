@@ -11,6 +11,7 @@ import {
 import deepClone from 'utils/deep-clone';
 
 const DEFAULT_STATE = {
+  annotations: {},
   adjacentDistances: undefined,
   cellSize: CELL_SIZE,
   gridSize: GRID_SIZE,
@@ -58,14 +59,22 @@ const DEFAULT_STATE = {
   pilesTrash: [],
   previewScale: 1,
   previousHoveredPile: undefined,
+  reject: {},
+  resolve: {},
   scale: 1,
   selectedMatrices: [],
+  selectedPile: undefined,
   strandArrows: [],
   strandArrowsTrash: [],
   trashIsActive: false,
   userSpecificCategories: [],
   workerClusterfck: undefined
 };
+
+DEFAULT_STATE.isReady = new Promise((resolve, reject) => {
+  DEFAULT_STATE.resolve.isReady = resolve;
+  DEFAULT_STATE.reject.isReady = reject;
+});
 
 
 class State {

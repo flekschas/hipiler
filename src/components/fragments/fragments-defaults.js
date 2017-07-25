@@ -177,6 +177,8 @@ export const PILES = {};
 
 export const PREVIEW_MAX = 8;
 
+export const SELECTED_PILE = null;
+
 export const SHOW_MATRICES = 1000;
 
 export const SHOW_SPECIAL_CELLS = false;

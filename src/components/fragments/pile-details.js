@@ -13,6 +13,8 @@ import FgmState from 'components/fragments/fragments-state';
 let fgmState = FgmState.get();
 const logger = LogManager.getLogger('details');
 
+const FAKE_PILE = { fake: true };
+
 
 @inject(EventAggregator, States)
 export class PileDetails {
@@ -24,7 +26,7 @@ export class PileDetails {
     this.unsubscribeStore = this.store.subscribe(this.update.bind(this));
 
     // Dummy pile
-    this.pile = { fake: true };
+    this.pile = FAKE_PILE;
 
     this.previewElRatioCss = {
       paddingTop: '100%'
@@ -38,6 +40,7 @@ export class PileDetails {
 
   attached () {
     this.subscribeEventListeners();
+    this.update();
   }
 
   detached () {
@@ -137,18 +140,22 @@ export class PileDetails {
     );
   }
 
-  pileSelected (pile) {
-    if (this.pile === pile) { return; }
+  pileSelected (pileId) {
+    if (this.pileId === pileId) { return; }
 
-    this.pile = pile;
+    this.pileId = pileId;
 
-    if (this.pile.fake) { return; }
+    fgmState.isReady.then(() => {
+      this.pile = fgmState.pilesIdx[this.pileId] || FAKE_PILE;
 
-    this.isSingle = this.pile.pileMatrices.length === 1;
+      if (this.pile.fake) { return; }
 
-    this.drawPreview();
-    this.extractCategories();
-    this.extractMeasures();
+      this.isSingle = this.pile.pileMatrices.length === 1;
+
+      this.drawPreview();
+      this.extractCategories();
+      this.extractMeasures();
+    });
   }
 
   subscribeEventListeners () {
@@ -172,10 +179,15 @@ export class PileDetails {
   }
 
   update () {
-    const columnWidth = this.store.getState().present.explore.columns.details;
+    const state = this.store.getState().present.explore;
+    const stateFgm = state.fragments;
+    const columnWidth = state.columns.detailsWidth;
 
     if (!this.columnWidth || this.columnWidth !== columnWidth) {
+      this.columnWidth = columnWidth;
       this.event.publish(this.chartletUpdate[0]);
     }
+
+    this.pileSelected(stateFgm.pileSelected);
   }
 }

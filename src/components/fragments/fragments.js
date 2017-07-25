@@ -31,6 +31,7 @@ import {
   dispersePiles,
   dispersePilesInspection,
   inspectPiles,
+  selectPile,
   setAnimation,
   setArrangeMeasures,
   setCellSize,
@@ -3987,7 +3988,7 @@ export class Fragments {
    * @param {object} pile - Pile to be selected.
    */
   selectPile (pile) {
-    this.event.publish('explore.fgm.selectPile', pile);
+    this.store.dispatch(selectPile(pile.id));
   }
 
   /**
@@ -4557,6 +4558,7 @@ export class Fragments {
       Promise.all([this.isInitFully, ...ready]).finally(() => {
         if (!noRendering) {
           this.updateRendering(update);
+          fgmState.resolve.isReady();
         }
       });
     } catch (error) {

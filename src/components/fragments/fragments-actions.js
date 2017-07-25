@@ -48,6 +48,13 @@ export const removePilesInspection = (piles, recursive) => ({
   payload: { piles, recursive }
 });
 
+export const SELECT_PILE = 'SELECT_PILE';
+
+export const selectPile = pile => ({
+  type: SELECT_PILE,
+  payload: { pile }
+});
+
 export const SET_ANIMATION = 'SET_ANIMATION';
 
 export const setAnimation = animation => ({
