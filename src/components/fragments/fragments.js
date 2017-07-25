@@ -1551,6 +1551,13 @@ export class Fragments {
   }
 
   /**
+   * Download export data as JSON
+   */
+  downloadExpertedPiles () {
+    downloadAsJson(this.exportPiles());
+  }
+
+  /**
    * Drag handler
    */
   dragPileHandler () {
@@ -1824,18 +1831,24 @@ export class Fragments {
         const trashed = matrixId[0] === '_';
         const id = parseInt(trashed ? matrixId.slice(1) : matrixId, 10);
         const color = state.matricesColors[id];
+        const numMats = state.piles[matrixId].length;
 
         let pile = id;
-        if (!state.piles[matrixId].length) {
+        if (!numMats) {
           // Pile as been piled
           pile = fgmState.matricesIdx[id].pile.idNumeric;
         }
+
+        const notes = state.annotations[`_${id}`];
+        const pileNotes = state.annotations[pile];
 
         output.push({
           id,
           pile,
           color,
-          trashed
+          trashed,
+          notes,
+          pileNotes
         });
 
         output.sort((x, y) => {
@@ -1844,10 +1857,12 @@ export class Fragments {
           return 0;
         });
       });
-
-      downloadAsJson(output);
-    } catch (e) {
-      logger.error('Could not export state', e);
+    } catch (error) {
+      logger.error('Could not export piles', error);
+      return {
+        errorMsg: 'Could not export piles',
+        error
+      };
     }
 
     return output;
