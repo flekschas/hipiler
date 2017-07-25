@@ -42,9 +42,8 @@ pile-details {
   }
 
   textarea {
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     line-height: 1.25em;
-    min-height: 2.8em;
     max-height: 14em;
   }
 
@@ -125,7 +124,8 @@ pile-details {
         transition: border-color $transition-very-fast $ease-in-out-cubic,
                     border-width $transition-very-fast $ease-in-out-cubic;
 
-        &:active {
+        &:active,
+        &.is-active {
           border-color: $primary;
           border-width: 2px;
         }

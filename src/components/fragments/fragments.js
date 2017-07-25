@@ -1023,16 +1023,6 @@ export class Fragments {
     }
 
     this.render();
-
-    requestNextAnimationFrame(() => {
-      if (fgmState.hoveredPile) {
-        // Show pile location
-        this.event.publish(
-          'explore.fgm.pileFocus',
-          fgmState.hoveredPile.pileMatrices.map(matrix => matrix.id)
-        );
-      }
-    });
   }
 
   /**
@@ -2525,20 +2515,29 @@ export class Fragments {
    * @param {boolean} forceRendering - If `true` force rerendering.
    */
   highlightPile (pile, forceRendering) {
-    if (this.pileHighlight) {
-      this.pileHighlight.frameReset();
+    if (fgmState.pileHighlight) {
+      fgmState.pileHighlight.frameReset();
+      const pile = fgmState.pileHighlight;
+      fgmState.pileHighlight = undefined;
 
       this.event.publish(
         'explore.fgm.pileBlur',
-        this.pileHighlight.pileMatrices.map(matrix => matrix.id)
+        pile.pileMatrices.map(matrix => matrix.id)
       );
-
-      this.pileHighlight = undefined;
     }
 
     if (typeof pile !== 'undefined') {
       pile.frameHighlight();
-      this.pileHighlight = pile;
+      fgmState.pileHighlight = pile;
+      requestNextAnimationFrame(() => {
+        if (fgmState.pileHighlight) {
+          // Show pile location
+          this.event.publish(
+            'explore.fgm.pileFocus',
+            fgmState.pileHighlight.pileMatrices.map(matrix => matrix.id)
+          );
+        }
+      });
     }
 
     if (forceRendering) {
