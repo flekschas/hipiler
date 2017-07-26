@@ -143,6 +143,7 @@ export default class App {
    */
   hideGlobalError () {
     this.corruptConfig = false;
+    this.globalError = false;
     this.globalErrorMsg = undefined;
   }
 
