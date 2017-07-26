@@ -2828,7 +2828,7 @@ export class Fragments {
     fgmState.measures = [];
 
     header.forEach((field, index) => {
-      if (!(index in usedIdx) && field[0] !== '_') {
+      if (usedIdx.indexOf(index) === -1 && field[0] !== '_') {
         this.dataMeasures[field] = index;
         fgmState.measures.push({
           id: field,
