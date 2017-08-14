@@ -94,8 +94,13 @@ export default class App {
       this.showGlobalError(...args);
     });
 
-    if (!this.exploreIsReady) {
-      this.router.navigateToRoute('home');
+    if (
+      this.router.currentInstruction.config.name === 'explore' &&
+      !this.exploreIsReady
+    ) {
+      this.router.navigateToRoute(
+        'home', this.router.currentInstruction.queryParams
+      );
     }
   }
 
