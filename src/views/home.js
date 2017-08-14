@@ -30,7 +30,6 @@ export class Home {
     this.router = router;
 
     this.store = states.store;
-    this.unsubscribeStore = this.store.subscribe(this.update.bind(this));
 
     this.examples = examples;
   }
@@ -40,18 +39,18 @@ export class Home {
   /**
    * Called once the component is attached.
    */
-  attached () {
+  attached (...args) {
     this.selectConfigButton.addEventListener(
       'click', this.selectConfig.bind(this)
     );
+
+    if (this.queryParams.config) {
+      this.loadExample({ url: this.queryParams.config });
+    }
   }
 
-  /**
-   * Called once the component is detached.
-   */
-  detached () {
-    // Unsubscribe from redux store
-    this.unsubscribeStore();
+  activate (params, routeConfig, navigationInstruction) {
+    this.queryParams = navigationInstruction.queryParams;
   }
 
   /* ---------------------------- Class methods ----------------------------- */
@@ -61,7 +60,7 @@ export class Home {
       if (error) {
         logger.error(error);
         this.event.publish(
-          'showGlobalError', ['Could not load example config', 30000]
+          'showGlobalError', ['Could not load example config', 5000]
         );
         return;
       }
@@ -96,13 +95,11 @@ export class Home {
   setState (config) {
     if (validateConfig(config.fgm, config.hgl)) {
       this.store.dispatch(updateConfigs(config));
-      this.router.navigateToRoute('explore');
+      this.router.navigateToRoute('explore', this.queryParams);
     } else {
       this.event.publish(
         'showGlobalError', ['Corrupted config file', 3000]
       );
     }
   }
-
-  update () {}
 }
