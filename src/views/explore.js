@@ -53,9 +53,11 @@ export class Explore {
     this.isInitReady = true;
     requestNextAnimationFrame(() => {
       this.init = true;
-      new $(this.matrixColEl).addClass('is-transitionable');
-      new $(this.fragmentsColEl).addClass('is-transitionable');
-      new $(this.detailsColEl).addClass('is-transitionable');
+      if (this.matrixColEl) {
+        new $(this.matrixColEl).addClass('is-transitionable');
+        new $(this.fragmentsColEl).addClass('is-transitionable');
+        new $(this.detailsColEl).addClass('is-transitionable');
+      }
     });
   }
 

@@ -2693,6 +2693,8 @@ export class Fragments {
       'wheel', this.canvasMouseWheelHandler.bind(this)
     );
 
+    this.subscriptions = [];
+
     this.subscriptions.push(this.event.subscribe(
       `${EVENT_BASE_NAME}.${this.arrangeSelectedEventId}`,
       this.arrangeChangeHandler.bind(this)
@@ -4508,14 +4510,16 @@ export class Fragments {
     this.subscriptions = undefined;
 
     // Remove basic JS event listeners.
-    this.canvas.removeEventListener(
-      'contextmenu', this.canvasContextMenuHandler
-    );
-    this.canvas.removeEventListener('mousedown', this.canvasMouseDownHandler);
-    this.canvas.removeEventListener('mouseleave', this.canvasMouseUpHandler);
-    this.canvas.removeEventListener('mousemove', this.canvasMouseMoveHandler);
-    this.canvas.removeEventListener('mouseup', this.canvasMouseUpHandler);
-    this.canvas.removeEventListener('mousewheel', this.canvasMouseWheelHandler);
+    if (this.canvas) {
+      this.canvas.removeEventListener(
+        'contextmenu', this.canvasContextMenuHandler
+      );
+      this.canvas.removeEventListener('mousedown', this.canvasMouseDownHandler);
+      this.canvas.removeEventListener('mouseleave', this.canvasMouseUpHandler);
+      this.canvas.removeEventListener('mousemove', this.canvasMouseMoveHandler);
+      this.canvas.removeEventListener('mouseup', this.canvasMouseUpHandler);
+      this.canvas.removeEventListener('mousewheel', this.canvasMouseWheelHandler);
+    }
   }
 
   /**
