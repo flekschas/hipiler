@@ -47,6 +47,15 @@ pile-details {
     max-height: 14em;
   }
 
+  .content {
+    opacity: 0.5;
+    transition: opacity $transition-very-fast $ease-in-out-cubic;
+
+    &.is-active {
+      opacity: 1;
+    }
+  }
+
   .chartlet-axis-x,
   .chartlet-axis-x li,
   .chartlet-axis-y {

@@ -1,7 +1,6 @@
 // Aurelia
 import {
   inject,  // eslint-disable-line
-  LogManager
 } from 'aurelia-framework';
 
 import { EventAggregator } from 'aurelia-event-aggregator';  // eslint-disable-line
@@ -17,7 +16,6 @@ import {
 import debounce from 'utils/debounce';
 
 let fgmState = FgmState.get();
-const logger = LogManager.getLogger('details');
 
 const FAKE_PILE = { fake: true };
 
@@ -79,6 +77,7 @@ export class PileDetails {
 
   checkHighlight () {
     this.isHighlighted = this.pile === fgmState.pileHighlight;
+    return this.isHighlighted;
   }
 
   drawPreview () {
@@ -158,7 +157,9 @@ export class PileDetails {
   }
 
   highlightPile () {
-    this.event.publish('explore.fgm.highlightPile', this.pile, true);
+    if (!this.checkHighlight()) {
+      this.event.publish('explore.fgm.highlightPile', this.pile, true);
+    }
   }
 
   pileSelected (pileId) {
