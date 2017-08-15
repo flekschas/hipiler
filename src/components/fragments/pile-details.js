@@ -62,6 +62,12 @@ export class PileDetails {
 
   /* -------------------------- Getter and Setters -------------------------- */
 
+  get pilesIdx () {
+    return fgmState.isPilesInspection ?
+      fgmState.pilesIdxInspection :
+      fgmState.pilesIdx;
+  }
+
   get snippetIds () {
     if (this.pile.fake) { return []; }
 
@@ -172,12 +178,14 @@ export class PileDetails {
   }
 
   pileSelected (pileId) {
-    if (this.pileId === pileId) { return; }
-
     this.pileId = pileId;
 
     fgmState.isReady.then(() => {
-      this.pile = fgmState.pilesIdx[this.pileId] || FAKE_PILE;
+      const oldPile = this.pile;
+
+      this.pile = this.pilesIdx[this.pileId] || FAKE_PILE;
+
+      if (this.pile === oldPile) { return; }
 
       if (this.pile.fake) { return; }
 
