@@ -83,9 +83,11 @@ export class PileDetails {
   }
 
   annotationInputHandler (text) {
-    this.store.dispatch(annotatePiles(
-      [this.pile.idNumeric], [this.pile.pileMatrices.length === 1], [text]
-    ));
+    if (text && text !== this.getAnnotation(this.annoId)) {
+      this.store.dispatch(annotatePiles(
+        [this.pile.idNumeric], [this.pile.pileMatrices.length === 1], [text]
+      ));
+    }
 
     return true;
   }
@@ -172,6 +174,8 @@ export class PileDetails {
   }
 
   highlightPile () {
+    // Speculative update for responsiveness
+    this.isHighlighted = true;
     if (!this.checkHighlight()) {
       this.event.publish('explore.fgm.highlightPile', this.pile, true);
     }
