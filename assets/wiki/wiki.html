@@ -239,9 +239,12 @@ npm run build
 <p>This is an example for the snippet configuration:</p>
 <pre><code>{
   &quot;fgm&quot;: {
-    &quot;fragmentsServer&quot;: &quot;//34.199.119.21/api/v1/&quot;,
+    &quot;fragmentsServer&quot;: &quot;//34.199.119.21&quot;,
     &quot;fragmentsPrecision&quot;: 2,
     &quot;fragmentsDims&quot;: 22,
+    &quot;fragmentsPadding&quot;: 0,
+    &quot;fragmentsNoCache&quot;: false,
+    &quot;fragmentsNoBalance&quot;: false,
     &quot;fragments&quot;: [
       [&quot;chrom1&quot;, &quot;start1&quot;, &quot;end1&quot;, &quot;strand1&quot;, &quot;chrom2&quot;, &quot;start2&quot;, &quot;end2&quot;, &quot;strand2&quot;, &quot;dataset&quot;, &quot;zoomOutLevel&quot;, &quot;size&quot;, &quot;distance-to-diagonal&quot;, &quot;noise&quot;, &quot;_groupA&quot;, , &quot;_groupB&quot;],
       [&quot;22&quot;, 17395000, 17400000, &quot;coding&quot;, &quot;22&quot;, 17535000, 17540000, &quot;coding&quot;, &quot;CQMd6V_cRw6iCI_-Unl3PQ&quot;, 3, 25000000, 135000, 0.21559968240959723, 1, 1],
@@ -254,9 +257,12 @@ npm run build
 }
 </code></pre><p>The parameters are defined as follows:</p>
 <ul>
-<li>fragmentsServer: URL to a <a href="https://github.com/hms-dbmi/higlass-server">HiGlass server</a> or <a href="https://github.com/flekschas/hipiler-server">HiPiler server</a></li>
-<li>fragmentsPrecision: Float precision of the raw matrix snippets to be returned by the server</li>
+<li>fragmentsServer: URL to a <a href="https://github.com/hms-dbmi/higlass-server">HiGlass server</a></li>
+<li>fragmentsPrecision [<em>optional</em>; default: <code>2</code>]: Float precision of the raw matrix snippets to be returned by the server</li>
 <li>fragmentsDims: Pixel dimension of the matrix snippets to be returned by the server. Since HiPiler currently only supports squared snippets only one dimension is needed.</li>
+<li>fragmentsPadding [<em>optional</em>; default: <code>0</code>]: Number of bins used for padding. This only matters when loading domains.</li>
+<li>fragmentsNoCache [<em>optional</em>; default: <code>false</code>]: If <code>true</code> disables loading snippets from cache. Good for testing.</li>
+<li>fragmentsNoBalance [<em>optional</em>; default: <code>false</code>]: If <code>true</code> disables Cooler&#39;s balancing.</li>
 <li>fragments: <a href="https://bedtools.readthedocs.io/en/latest/content/general-usage.html#bedpe-format">BEDPE</a>-like table of snippet locations. For details see below.</li>
 </ul>
 
@@ -268,18 +274,18 @@ npm run build
 </h4>
   <p>Like a simple spreadsheet, the first row of the BEDPE-like location table contains the header. The following columns are required by HiPiler. Examples are in brackets</p>
 <ul>
-<li>chrom1 [<em>str</em>, e.g.: &#39;chr1&#39;]</li>
+<li>chrom1 [<em>str</em>, e.g.: &#39;chr1&#39; or &#39;1&#39;]</li>
 <li>start1 [<em>int</em>, e.g.: 0]</li>
 <li>end1 [<em>int</em>, e.g.: 0]</li>
-<li>strand1 [<em>str</em>, e.g.: &#39;coding&#39; or else]</li>
+<li>strand1 [<em>str</em>, <em>optional</em>, e.g.: &#39;-&#39;, &#39;minus&#39;, &#39;noncoding&#39;, or &#39;non-coding&#39; for the minus strand; otherwise plus strand is assumed]</li>
 <li>chrom2 (like <code>chrom1</code>)</li>
 <li>start2 (like <code>start1</code>)</li>
 <li>end2 (like <code>end1</code>)</li>
-<li>strand2 (like <code>stand1</code>)</li>
+<li>strand2 (like <code>stand1</code>, <em>optional</em>)</li>
 <li>dataset [<em>str</em>, e.g.: &#39;CQMd6V<em>cRw6iCI</em>-Unl3PQ&#39;]</li>
-<li>zoomOutLevel [<em>int</em>, e.g.: 0]</li>
+<li>zoomoutlevel [<em>int</em>, e.g.: 0]</li>
 </ul>
-<p>The <code>dataset</code> is the UUID of the Hi-C map where the locations should be extracted. <code>zoomOutLevel</code> at which zoom level the snippets should be extracted, where 0 means maximally zoomed it.</p>
+<p>The <code>dataset</code> is the UUID of the Hi-C map where the locations should be extracted. <code>zoomoutlevel</code> at which zoom level the snippets should be extracted, i.e., 2^zoomoutlevel <em> base resolution, e.g., for zoomoutlevel 3 with base resolution 1KB: 2^3 = 8 and 8 </em> 1KB = 8KB.</p>
 <p>Additionally, an unlimited number of extra columns can be appended to load categorical and ordinal attributes for exploration. Ordinal attributes just need to specified by a unique name, e.g., size, distance-to-diagonal, and noise. They appear as measure for arrangement of snippets in HiPiler. Categorical attributes need must be prefixed with an underscore (_), e.g., _groupA and _groupB. They appear as grouping options in HiPiler.</p>
 <p>The local neighborhood (i.e., the Hi-C map) of snippets are shown in HiGlass. The configuration of HiGlass in HiPiler is unrestricted except that one should only configure one row of primary matrices and avoid vertical arrangement of multiple matrices as the vertical space is needed for the detail matrices. For instructions on how to configure HiGlass please visit its <a href="https://github.com/hms-dbmi/higlass/wiki">wiki</a>.</p>
 
@@ -373,7 +379,13 @@ npm run build
   
 <ul>
 <li><p><strong>Is HiPiler the same as HiGlass?</strong></p>
-<p>No. HiPiler is a separate application that integrates HiGlass. Having said that, both might eventually merge in the future.</p>
+<p>No. HiPiler is a separate application that integrates HiGlass. While HiGlass focuses on efficient visualization and navigation of entire Hi-C maps and other 1D tracks, HiPiler&#39;s strength is comparing many small regions of interest in the context of large Hi-C maps. Having said that, both might eventually merge in the future.</p>
+</li>
+<li><p><strong>Which browsers are supported?</strong></p>
+<p>HiPiler is tested in and supports the last two versions of Chrome and Firefox. In Safari there is a bug when running t-SNE in a separate worker; until we have fixed this issue HiPiler does not support Safari unfortunately.</p>
+</li>
+<li><p><strong>Firefox starts searching when use keyboard shortcuts</strong></p>
+<p>I know, it can be annoying. but you can disable that behavior! Go to <code>Tools &gt; Options &gt; Advanced &gt; General Tab</code> and disable <code>Search for text when I start typing</code>.</p>
 </li>
 <li><p><strong>Do you guys prefix every app name with <em>Hi</em>? 🙈</strong></p>
 <p>Oh yes we do!</p>
