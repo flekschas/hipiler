@@ -181,11 +181,7 @@ export class PileDetails {
     this.pileId = pileId;
 
     fgmState.isReady.then(() => {
-      const oldPile = this.pile;
-
       this.pile = this.pilesIdx[this.pileId] || FAKE_PILE;
-
-      if (this.pile === oldPile) { return; }
 
       if (this.pile.fake) { return; }
 
