@@ -4124,7 +4124,6 @@ export class Fragments {
               this.fromDisperse[pile.id].y,
               true
             );
-            console.log('ass', pile.id);
           }
         }
       } else if (pile) {
