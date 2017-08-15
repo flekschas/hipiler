@@ -55,6 +55,7 @@ import {
   setTsnePerplexity,
   splitPilesInspection,
   stackPiles,
+  stackPilesSelect,
   stackPilesInspection,
   trashPiles,
   trashPilesInspection
@@ -3648,7 +3649,7 @@ export class Fragments {
       if (fgmState.isPilesInspection) {
         this.store.dispatch(stackPilesInspection(config));
       } else {
-        this.store.dispatch(stackPiles(config));
+        this.store.dispatch(stackPilesSelect(config, Object.keys(config)[0]));
       }
     });
   }

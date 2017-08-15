@@ -261,6 +261,11 @@ export const stackPiles = pileStacks => ({
   payload: { pileStacks }
 });
 
+export const stackPilesSelect = (pileStacks, pileSelect) => batchActions([
+  stackPiles(pileStacks),
+  selectPile(pileSelect)
+]);
+
 export const STACK_PILES_INSPECTION = 'STACK_PILES_INSPECTION';
 
 export const stackPilesInspection = pileStacks => ({
