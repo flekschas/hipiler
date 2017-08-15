@@ -220,6 +220,18 @@ export class Explore {
     this.store.dispatch(updateWidth(columnToUpdate, width));
   }
 
+  showColumn (column) {
+    let columnToUpdate = 'matrix';
+    let width = COLUMNS.matrixWidth;
+
+    if (column === 'details') {
+      columnToUpdate = 'details';
+      width = COLUMNS.detailsWidth;
+    }
+
+    this.store.dispatch(updateWidth(columnToUpdate, width));
+  }
+
   update () {
     try {
       this.updateCssDb(this.store.getState().present.explore.columns);
