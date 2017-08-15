@@ -3145,13 +3145,9 @@ export class Fragments {
         reject(Error(this.errorMsg));
       }
 
-      const postData = {
-        loci: this.extractLoci(config)
-      };
-
       json(url)
         .header('Content-Type', 'application/json')
-        .post(JSON.stringify(postData), (error, results) => {
+        .post(JSON.stringify(this.extractLoci(config)), (error, results) => {
           if (error) {
             this.hasErrored('Could not load data');
             this.reject.isDataLoaded(Error(this.errorMsg));
