@@ -13,11 +13,16 @@
     <main class="flex-g-1 rel">
       <div
         class="full-dim flex-c flex-a-c flex-jc-c no-pile-selected"
-        if.bind="pile.fake">
+        if.bind="pile.fake && isShown">
         <p>Select a pile</p>
       </div>
       <div
-        class="full-dim flex-c flex-d-c content ${isHighlighted ? 'is-active' : ''}"
+        class="full-dim flex-c flex-a-c flex-jc-c collapsed"
+        if.bind="!isShown">
+        <p>Details</p>
+      </div>
+      <div
+        class="full-dim flex-c flex-d-c content ${isShown ? 'is-shown' : ''} ${isHighlighted ? 'is-active' : ''}"
         click.delegate="highlightPile()">
         <div id="pile-preview" class="flex-c flex-jc-c entry">
           <div class="wrapper flex-g-1">

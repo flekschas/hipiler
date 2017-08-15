@@ -1,6 +1,8 @@
 // Aurelia
 import {
   inject,  // eslint-disable-line
+  bindable,
+  bindingMode
 } from 'aurelia-framework';
 
 import { EventAggregator } from 'aurelia-event-aggregator';  // eslint-disable-line
@@ -22,6 +24,8 @@ const FAKE_PILE = { fake: true };
 
 @inject(EventAggregator, States)
 export class PileDetails {
+  @bindable({ defaultBindingMode: bindingMode.oneWay }) isShown;  // eslint-disable-line
+
   constructor (event, states) {
     this.event = event;
 

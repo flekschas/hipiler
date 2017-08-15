@@ -18,6 +18,19 @@ pile-details {
     background: $gray-lightest;
   }
 
+  .collapsed {
+    z-index: 10;
+
+    p {
+      margin: 0;
+      color: $gray-lighter;
+      font-size: 1.125rem;
+      text-transform: uppercase;
+      white-space: nowrap;
+      transform: rotate(90deg);
+    }
+  }
+
   h5,
   h5 label {
     color: $gray-darker;
@@ -48,11 +61,15 @@ pile-details {
   }
 
   .content {
-    opacity: 0.5;
+    opacity: 0;
     transition: opacity $transition-very-fast $ease-in-out-cubic;
 
     &.is-active {
       opacity: 1;
+    }
+
+    &.is-shown {
+      opacity: 0.5;
     }
   }
 
