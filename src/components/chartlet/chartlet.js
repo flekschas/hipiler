@@ -19,6 +19,15 @@ import {
 
 import drawing from 'components/chartlet/chartlet-drawing';
 
+const round = (num, dec = 2) => Number(
+  `${Math.round(`${num}e+${dec}`)}e-${dec}`
+);
+
+const scientificify = (num, dec = 3) => (num > 9999 ?
+  num.toExponential(dec) :
+  round(num, dec)
+);
+
 
 @inject(EventAggregator)
 export class Chartlet {
@@ -29,6 +38,8 @@ export class Chartlet {
   @bindable({ defaultBindingMode: bindingMode.oneWay }) update;  // eslint-disable-line
   @bindable({ defaultBindingMode: bindingMode.oneWay }) width;  // eslint-disable-line
   @bindable({ defaultBindingMode: bindingMode.oneWay }) height;  // eslint-disable-line
+  @bindable({ defaultBindingMode: bindingMode.oneWay }) scientificify;  // eslint-disable-line
+  @bindable({ defaultBindingMode: bindingMode.oneWay }) numPrecision;  // eslint-disable-line
 
   constructor (event) {
     this.color = GRAY_DARK;
@@ -51,6 +62,11 @@ export class Chartlet {
 
       requestNextAnimationFrame(() => {
         this.range = drawing.render([this.plotEl], [[this.data.values]]).range;
+        if (this.scientificify) {
+          this.range = this.range.map(
+            num => scientificify(num, this.numPrecision || 3)
+          );
+        }
       });
     });
   }
