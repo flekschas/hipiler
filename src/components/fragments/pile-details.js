@@ -33,7 +33,7 @@ export class PileDetails {
     this.store = states.store;
     this.unsubscribeStore = this.store.subscribe(this.update.bind(this));
 
-    this.annotate = debounce(this.annotationInputHandler.bind(this), 2000);
+    this.annotate = debounce(this.annotationInputHandler.bind(this), 1000);
 
     // Dummy pile
     this.pile = FAKE_PILE;
@@ -70,6 +70,11 @@ export class PileDetails {
 
 
   /* ---------------------------- Custom methods ---------------------------- */
+
+  annotateImmediate (text) {
+    this.annotate.cancel();
+    this.annotationInputHandler(text);
+  }
 
   annotationInputHandler (text) {
     this.store.dispatch(annotatePiles(

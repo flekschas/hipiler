@@ -53,6 +53,7 @@
           value.bind="annotation"
           disabled.bind="pile.fake"
           input.delegate="annotate($event.target.value)"
+          blur.trigger="annotateImmediate($event.target.value)"
           rows="3"></textarea>
         <div
           class="separator"
