@@ -49,8 +49,12 @@
           disabled.bind="pile.fake"
           input.delegate="annotate($event.target.value)"
           rows="3"></textarea>
-        <div class="separator"></div>
-        <div class="flex-g-1 rel">
+        <div
+          class="separator"
+          if.bind="measures.length || categories.length"></div>
+        <div
+          class="flex-g-1 rel"
+          if.bind="measures.length || categories.length">
           <div class="full-dim oa">
             <div if.bind="measures.length">
               <h5 class="flex-c">
@@ -79,7 +83,7 @@
                 </div>
               </div>
             </div>
-            <div class="separator"></div>
+            <div class="separator" if.bind="categories.length"></div>
             <div if.bind="categories.length">
               <h5 class="flex-c">
                 <svg-icon icon-id="tag"></svg-icon>
