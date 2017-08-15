@@ -27,10 +27,10 @@ import States from 'services/states';  // eslint-disable-line
 
 // Utils etc.
 import {
-  closePilesInspection,
-  dispersePilesAnnotations,
+  closePilesInspectionSelect,
+  dispersePilesAnnoSelect,
   dispersePilesInspection,
-  inspectPiles,
+  inspectPilesSelect,
   selectPile,
   setAnimation,
   setArrangeMeasures,
@@ -1267,7 +1267,7 @@ export class Fragments {
   closePilesInspectionHandler () {
     if (!fgmState.isPilesInspection) { return; }
 
-    this.store.dispatch(closePilesInspection());
+    this.store.dispatch(closePilesInspectionSelect());
   }
 
   /**
@@ -1509,6 +1509,15 @@ export class Fragments {
   }
 
   /**
+   * Deselect a pile.
+   *
+   * @param {object} pile - Pile to be selected.
+   */
+  deselectPile (pile) {
+    this.store.dispatch(selectPile(null));
+  }
+
+  /**
    * Disperse piles into their snippets.
    *
    * @param {object} piles - A list of piles to be dispersed.
@@ -1545,7 +1554,7 @@ export class Fragments {
       if (fgmState.isPilesInspection) {
         this.store.dispatch(dispersePilesInspection(pilesToBeDispersed));
       } else {
-        this.store.dispatch(dispersePilesAnnotations(pilesToBeDispersed));
+        this.store.dispatch(dispersePilesAnnoSelect(pilesToBeDispersed));
       }
     });
   }
@@ -2993,7 +3002,7 @@ export class Fragments {
       pilesConfig[pile.id] = pile.pileMatrices.map(pileMatrix => pileMatrix.id);
     });
 
-    this.store.dispatch(inspectPiles(pilesConfig));
+    this.store.dispatch(inspectPilesSelect(pilesConfig));
   }
 
   /**

@@ -22,6 +22,11 @@ export const closePilesInspection = () => ({
 
 export const DISPERSE_PILES = 'DISPERSE_PILES';
 
+export const closePilesInspectionSelect = piles => batchActions([
+  selectPile(null),
+  closePilesInspection()
+]);
+
 export const dispersePiles = piles => ({
   type: DISPERSE_PILES,
   payload: { piles }
@@ -29,6 +34,12 @@ export const dispersePiles = piles => ({
 
 export const dispersePilesAnnotations = piles => batchActions([
   annotatePiles(piles, piles.map(pile => false), piles.map(pile => undefined)),
+  dispersePiles(piles)
+]);
+
+export const dispersePilesAnnoSelect = piles => batchActions([
+  annotatePiles(piles, piles.map(pile => false), piles.map(pile => undefined)),
+  selectPile(null),
   dispersePiles(piles)
 ]);
 
@@ -45,6 +56,11 @@ export const inspectPiles = piles => ({
   type: INSPECT_PILES,
   payload: { piles }
 });
+
+export const inspectPilesSelect = piles => batchActions([
+  selectPile(null),
+  inspectPiles(piles)
+]);
 
 export const RECOVER_PILES = 'RECOVER_PILES';
 
