@@ -137,6 +137,7 @@
 
 .column-header {
   z-index: 2;
+  min-width: 2rem;
   height: 2rem;
 
   &:hover h2 {
@@ -170,14 +171,17 @@
     min-width: 2rem;
     height: 2rem;
     color: $gray;
-    border: none;
+    border: 1px solid $gray-lightest;
     background: none;
     transition: color $transition-very-fast $ease-in-out-cubic,
+                border $transition-very-fast $ease-in-out-cubic,
                 background $transition-very-fast $ease-in-out-cubic;
 
     &:hover {
       color: $black;
+      border-color: $gray-lighter;
       background: $gray-lighter;
+      cursor: pointer;
     }
   }
 
@@ -191,7 +195,7 @@
     margin: 0;
 
     li {
-      margin-left: 0.5rem;
+      margin-left: 0.25rem;
 
       &:first-child {
         margin-left: 0;

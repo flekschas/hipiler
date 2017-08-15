@@ -223,6 +223,9 @@ export class Explore {
   update () {
     try {
       this.updateCssDb(this.store.getState().present.explore.columns);
+
+      this.colDetailsIsMin =
+        this.store.getState().present.explore.columns.detailsWidth === 1;
     } catch (e) {
       logger.error('State invalid', e);
     }

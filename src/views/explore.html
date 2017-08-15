@@ -12,23 +12,23 @@
           <ul class="flex-c controls">
             <li>
               <button
-                class="flex-c"
+                class="flex-c flex-a-c flex-jc-c"
                 click.delegate="maximizeColumn('matrix')">
-                <svg-icon icon-id="max-horizontal"></svg-icon>
-                <span>Max</span>
+                <svg-icon icon-id="max" />
               </button>
             </li>
             <li>
               <button
-                class="flex-c"
+                class="flex-c flex-a-c flex-jc-c"
                 click.delegate="minimizeColumn('matrix')">
-                <svg-icon icon-id="min-horizontal"></svg-icon>
-                <span>Min</span>
+                <svg-icon
+                  icon-id="arrow-right-double"
+                  icon-mirror-v="true" />
               </button>
             </li>
           </ul>
         </header>
-        <higlass class="full-dim no-overflow column-content"></higlass>
+        <higlass class="full-dim no-overflow column-content" />
       </div>
       <div
         id="view-fragments"
@@ -48,25 +48,23 @@
           <ul class="flex-c controls">
             <li>
               <button
-                class="flex-c"
+                class="flex-c flex-a-c flex-jc-c"
                 click.delegate="maximizeColumn('fragments')">
-                <svg-icon icon-id="max-horizontal"></svg-icon>
-                <span>Max</span>
+                <svg-icon icon-id="max" />
               </button>
             </li>
             <li>
               <button
-                class="flex-c"
+                class="flex-c flex-a-c flex-jc-c"
                 click.delegate="minimizeColumn('fragments')">
-                <svg-icon icon-id="min-horizontal"></svg-icon>
-                <span>Min</span>
+                <svg-icon icon-id="arrow-right-double" />
               </button>
             </li>
           </ul>
         </header>
         <fragments
           class="full-dim no-overflow column-content"
-          base-el-is-init.bind="init"></fragments>
+          base-el-is-init.bind="init" />
       </div>
     </div>
     <div
@@ -84,27 +82,29 @@
         ref="detailsDragIndicator"
         css.one-way="details.dragIndicatorCss"></div>
       <header class="column-header rel no-overflow">
-        <h2>Details</h2>
+        <h2 if.bind="!colDetailsIsMin">Details</h2>
         <ul class="flex-c controls">
           <li>
             <button
-              class="flex-c"
-              click.delegate="maximizeColumn('details')">
-              <svg-icon icon-id="max-horizontal"></svg-icon>
-              <span>Max</span>
+              class="flex-c flex-a-c flex-jc-c"
+              click.delegate="maximizeColumn('details')"
+              if.bind="colDetailsIsMin">
+              <svg-icon
+                icon-id="arrow-right-double"
+                icon-mirror-v="true" />
             </button>
-          </li>
-          <li>
             <button
-              class="flex-c"
-              click.delegate="minimizeColumn('details')">
-              <svg-icon icon-id="min-horizontal"></svg-icon>
-              <span>Min</span>
+              class="flex-c  flex-a-c flex-jc-c"
+              click.delegate="minimizeColumn('details')"
+              if.bind="!colDetailsIsMin">
+              <svg-icon icon-id="arrow-right-double" />
             </button>
           </li>
         </ul>
       </header>
-      <pile-details class="full-dim no-overflow column-content"></pile-details>
+      <pile-details
+        class="full-dim no-overflow column-content"
+        is-shown.bind="!colDetailsIsMin" />
     </div>
   </div>
 </template>
