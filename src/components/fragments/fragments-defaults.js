@@ -7,6 +7,8 @@ import COLORS from 'configs/colors';
 
 export const ANIMATION = true;
 
+export const ANNOTATIONS = {};
+
 export const API_DOMAINS = 'domains_by_loci';
 
 export const API_FRAGMENTS = 'fragments_by_loci';
@@ -176,6 +178,8 @@ export const PILE_MENU_CLOSING_DELAY = 200;
 export const PILES = {};
 
 export const PREVIEW_MAX = 8;
+
+export const SELECTED_PILE = null;
 
 export const SHOW_MATRICES = 1000;
 

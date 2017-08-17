@@ -8,6 +8,8 @@ import icons from 'configs/icons';
 
 export class SvgIcon {
   @bindable({ defaultBindingMode: bindingMode.oneWay }) iconId;  // eslint-disable-line
+  @bindable({ defaultBindingMode: bindingMode.oneWay }) iconMirrorH;  // eslint-disable-line
+  @bindable({ defaultBindingMode: bindingMode.oneWay }) iconMirrorV;  // eslint-disable-line
 
   constructor () {
     this.icon = {

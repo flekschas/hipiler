@@ -89,7 +89,7 @@
     <footer class="flex-c bottom-bar ${footerIsExpanded ? 'is-expanded' : ''}">
       <div class="flex-c flex-d-c flex-g-1 settings-container">
         <div class="flex-c settings-row">
-          <h4>Arrange</h4>
+          <h4 class="no-select">Arrange</h4>
 
           <multi-select
             class="flex-g-1"
@@ -140,7 +140,7 @@
           <h4>Layout</h4>
 
           <ul class="flex-c flex-g-1 settings-list">
-            <li class="flex-c flex-d-c">
+            <li class="flex-c flex-d-c ${state.isHilbertCurve ? 'is-disabled' : ''}">
               <label for="settings-fgm-size">
                 Snippet Size
                 <span class="value ${cellSizeTmp ? 'is-active' : ''} ${cellSizeTmp !== state.cellSize ? 'new' : ''}">: <em>${cellSizeTmp}</em></span>
@@ -157,17 +157,17 @@
                 input.delegate="cellSizeInputHandler($event)"
                 change.delegate="cellSizeChangeHandler($event)">
             </li>
-            <li class="flex-c flex-d-c">
+            <li class="flex-c flex-d-c ${state.isHilbertCurve ? 'is-disabled' : ''}">
               <label
                 for="settings-fgm-grid-to-snippet-size"
                 title="Link grid size to cell size">&larr;</label>
               <input
                 type="checkbox"
                 id="settings-fgm-grid-to-snippet-size"
-                checked.bind="gridCellSizeLock"
+                checked.one-way="gridCellSizeLock"
                 click.delegate="gridCellSizeLockChangeHandler()">
             </li>
-            <li class="flex-c flex-d-c ${gridCellSizeLock ? 'is-disabled' : 'is-enabled'}">
+            <li class="flex-c flex-d-c ${gridCellSizeLock ? 'is-disabled' : ''}">
               <label for="settings-fgm-size">
                 Grid Size
                 <span class="value ${gridSizeTmp ? 'is-active' : ''} ${gridSizeTmp != state.gridSize ? 'new' : ''}">: <em>${gridSizeTmp}</em></span>
@@ -190,7 +190,7 @@
               <input
                 type="checkbox"
                 id="settings-fgm-hilbert-curve"
-                checked.bind="state.isHilbertCurve"
+                checked.one-way="state.isHilbertCurve"
                 click.delegate="hilbertCurveChangeHandler()">
             </li>
           </ul>
@@ -239,9 +239,9 @@
                       repeat.for="option of colorsUsed"
                       value.one-way="option.id"
                       selected.bind="option.id === categoryForGrouping">${option.name}</option>
-                    <option disabled if.bind="attrsCatOther.length">──────────</option>
+                    <option disabled if.bind="userSpecificCategories.length">──────────</option>
                     <option
-                      repeat.for="option of attrsCatOther"
+                      repeat.for="option of userSpecificCategories"
                       value.one-way="option.id"
                       selected.bind="option.id === categoryForGrouping">${option.name}</option>
                   </select>
@@ -287,7 +287,7 @@
               <input
                 type="checkbox"
                 id="settings-fgm-show-low-quality"
-                checked.bind="state.showSpecialCells"
+                checked.one-way="state.showSpecialCells"
                 click.delegate="showSpecialCellsChangeHandler()">
             </li>
             <li class="flex-c flex-d-c">
@@ -295,7 +295,7 @@
               <input
                 type="checkbox"
                 id="settings-fgm-log"
-                checked.bind="state.logTransform"
+                checked.one-way="state.logTransform"
                 click.delegate="logTransformChangeHandler()">
             </li>
             <li class="flex-c flex-d-c">
@@ -327,109 +327,126 @@
         <div class="flex-c settings-row">
           <h4>t-SNE</h4>
 
-          <ul class="flex-c settings-list settings-list">
-            <li class="flex-c flex-d-c">
-              <label for="settings-fgm-tsne-perplexity">
-                Perplexity
-                <span class="value ${tsnePerplexityTmp && tsnePerplexityTmp !== tsnePerplexity ? 'new' : ''}">: <em>${tsnePerplexityTmp ? tsnePerplexityTmp : tsnePerplexity}</em></span>
-              </label>
-              <input
-                id="settings-fgm-tsne-perplexity"
-                type="range"
-                min="1"
-                max="100"
-                step="1"
-                value.one-way="tsnePerplexity"
-                mousedown.delegate="tsnePerplexityMousedownHandler($event)"
-                mouseup.delegate="tsnePerplexityMouseupHandler($event)"
-                input.delegate="tsnePerplexityInputHandler($event)"
-                change.delegate="tsnePerplexityChangeHandler($event)">
-            </li>
-            <li class="flex-c flex-d-c">
-              <label for="settings-fgm-tsne-early-exaggeration">
-                Early Exaggeration
-                <span class="value ${tsneEarlyExaggerationTmp && tsneEarlyExaggerationTmp !== tsneEarlyExaggeration ? 'new' : ''}">: <em>${tsneEarlyExaggerationTmp ? tsneEarlyExaggerationTmp : tsneEarlyExaggeration}</em></span>
-              </label>
-              <input
-                id="settings-fgm-tsne-early-exaggeration"
-                type="range"
-                min="1.0"
-                max="10.0"
-                step="0.1"
-                value.one-way="tsneEarlyExaggeration"
-                mousedown.delegate="tsneEarlyExaggerationMousedownHandler($event)"
-                mouseup.delegate="tsneEarlyExaggerationMouseupHandler($event)"
-                input.delegate="tsneEarlyExaggerationInputHandler($event)"
-                change.delegate="tsneEarlyExaggerationChangeHandler($event)">
-            </li>
-            <li class="flex-c flex-d-c">
-              <label for="settings-fgm-tsne-learning-rate">
-                Learning Rate
-                <span class="value ${tsneLearningRateTmp &&tsneLearningRateTmp !== tsneLearningRate ? 'new' : ''}">: <em>${tsneLearningRateTmp ? tsneLearningRateTmp : tsneLearningRate}</em></span>
-              </label>
-              <input
-                id="settings-fgm-tsne-learning-rate"
-                type="range"
-                min="1"
-                max="1000"
-                step="1"
-                value.one-way="tsneLearningRate"
-                mousedown.delegate="tsneLearningRateMousedownHandler($event)"
-                mouseup.delegate="tsneLearningRateMouseupHandler($event)"
-                input.delegate="tsneLearningRateInputHandler($event)"
-                change.delegate="tsneLearningRateChangeHandler($event)">
-            </li>
-            <li class="flex-c flex-d-c">
-              <label for="settings-fgm-tsne-iterations">
-                Max Iterations
-                <span class="value ${tsneIterationsTmp && tsneIterationsTmp !== tsneIterations ? 'new' : ''}">: <em>${tsneIterationsTmp ? tsneIterationsTmp : tsneIterations}</em></span>
-              </label>
-              <input
-                id="settings-fgm-tsne-iterations"
-                type="range"
-                min="100"
-                max="5000"
-                step="10"
-                value.one-way="tsneIterations"
-                mousedown.delegate="tsneIterationsMousedownHandler($event)"
-                mouseup.delegate="tsneIterationsMouseupHandler($event)"
-                input.delegate="tsneIterationsInputHandler($event)"
-                change.delegate="tsneIterationsChangeHandler($event)">
-            </li>
-            <li>
-              <button
-                class="flex-c flex-jc-c flex-a-c rel button"
-                click.delegate="helpTsneSettings()">
-                <svg-icon icon-id="help"></svg-icon>
-              </button>
-            </li>
-          </ul>
+          <div class="flex-c flex-g-1 flex-jc-sb">
+            <ul class="flex-c settings-list settings-list">
+              <li class="flex-c flex-d-c">
+                <label for="settings-fgm-tsne-perplexity">
+                  Perplexity
+                  <span class="value ${tsnePerplexityTmp && tsnePerplexityTmp !== tsnePerplexity ? 'new' : ''}">: <em>${tsnePerplexityTmp ? tsnePerplexityTmp : tsnePerplexity}</em></span>
+                </label>
+                <input
+                  id="settings-fgm-tsne-perplexity"
+                  type="range"
+                  min="1"
+                  max="100"
+                  step="1"
+                  value.one-way="tsnePerplexity"
+                  mousedown.delegate="tsnePerplexityMousedownHandler($event)"
+                  mouseup.delegate="tsnePerplexityMouseupHandler($event)"
+                  input.delegate="tsnePerplexityInputHandler($event)"
+                  change.delegate="tsnePerplexityChangeHandler($event)">
+              </li>
+              <li class="flex-c flex-d-c">
+                <label for="settings-fgm-tsne-early-exaggeration">
+                  <abbr title="Early Exaggeration">Early Exag.</abbr>
+                  <span class="value ${tsneEarlyExaggerationTmp && tsneEarlyExaggerationTmp !== tsneEarlyExaggeration ? 'new' : ''}">: <em>${tsneEarlyExaggerationTmp ? tsneEarlyExaggerationTmp : tsneEarlyExaggeration}</em></span>
+                </label>
+                <input
+                  id="settings-fgm-tsne-early-exaggeration"
+                  type="range"
+                  min="1.0"
+                  max="10.0"
+                  step="0.1"
+                  value.one-way="tsneEarlyExaggeration"
+                  mousedown.delegate="tsneEarlyExaggerationMousedownHandler($event)"
+                  mouseup.delegate="tsneEarlyExaggerationMouseupHandler($event)"
+                  input.delegate="tsneEarlyExaggerationInputHandler($event)"
+                  change.delegate="tsneEarlyExaggerationChangeHandler($event)">
+              </li>
+              <li class="flex-c flex-d-c">
+                <label for="settings-fgm-tsne-learning-rate">
+                  <abbr title="Learning Rate">Learning</abbr>
+                  <span class="value ${tsneLearningRateTmp &&tsneLearningRateTmp !== tsneLearningRate ? 'new' : ''}">: <em>${tsneLearningRateTmp ? tsneLearningRateTmp : tsneLearningRate}</em></span>
+                </label>
+                <input
+                  id="settings-fgm-tsne-learning-rate"
+                  type="range"
+                  min="1"
+                  max="1000"
+                  step="1"
+                  value.one-way="tsneLearningRate"
+                  mousedown.delegate="tsneLearningRateMousedownHandler($event)"
+                  mouseup.delegate="tsneLearningRateMouseupHandler($event)"
+                  input.delegate="tsneLearningRateInputHandler($event)"
+                  change.delegate="tsneLearningRateChangeHandler($event)">
+              </li>
+              <li class="flex-c flex-d-c">
+                <label for="settings-fgm-tsne-iterations">
+                  <abbr title="Max Iterations">Max Iter.</abbr>
+                  <span class="value ${tsneIterationsTmp && tsneIterationsTmp !== tsneIterations ? 'new' : ''}">: <em>${tsneIterationsTmp ? tsneIterationsTmp : tsneIterations}</em></span>
+                </label>
+                <input
+                  id="settings-fgm-tsne-iterations"
+                  type="range"
+                  min="100"
+                  max="5000"
+                  step="10"
+                  value.one-way="tsneIterations"
+                  mousedown.delegate="tsneIterationsMousedownHandler($event)"
+                  mouseup.delegate="tsneIterationsMouseupHandler($event)"
+                  input.delegate="tsneIterationsInputHandler($event)"
+                  change.delegate="tsneIterationsChangeHandler($event)">
+              </li>
+            </ul>
+
+            <ul class="flex-c settings-list settings-list-buttons-only">
+              <li>
+                <button
+                  class="flex-c flex-jc-c flex-a-c rel button"
+                  click.delegate="helpTsneSettings()">
+                  <svg-icon icon-id="help"></svg-icon>
+                </button>
+              </li>
+            </ul>
+          </div>
         </div>
 
         <div class="flex-c settings-row">
           <h4>Other</h4>
 
-          <ul class="flex-c flex-g-1 settings-list">
-            <li class="flex-c flex-d-c">
-              <label for="settings-fgm-matrix-orientation">Orientation</label>
-              <select
-                id="settings-fgm-matrix-orientation"
-                change.delegate="matrixOrientationChangeHandler($event)">
-                <option
-                  repeat.for="option of matrixOrientations"
-                  value.one-way="option.id"
-                  selected.bind="option.id === state.matrixOrientation">${option.name}</option>
-              </select>
-            </li>
-            <li class="flex-c flex-d-c">
-              <label for="settings-fgm-round-lasso">Swipe Selection</label>
-              <input
-                type="checkbox"
-                id="settings-fgm-round-lasso"
-                checked.bind="lassoIsRound"
-                click.delegate="lassoIsRoundChangeHandler()">
-            </li>
-          </ul>
+          <div class="flex-c flex-g-1 flex-jc-sb">
+            <ul class="flex-c settings-list">
+              <li class="flex-c flex-d-c">
+                <label for="settings-fgm-matrix-orientation">Orientation</label>
+                <select
+                  id="settings-fgm-matrix-orientation"
+                  change.delegate="matrixOrientationChangeHandler($event)">
+                  <option
+                    repeat.for="option of matrixOrientations"
+                    value.one-way="option.id"
+                    selected.bind="option.id === state.matrixOrientation">${option.name}</option>
+                </select>
+              </li>
+              <li class="flex-c flex-d-c">
+                <label for="settings-fgm-round-lasso">Swipe Selection</label>
+                <input
+                  type="checkbox"
+                  id="settings-fgm-round-lasso"
+                  checked.one-way="lassoIsRound"
+                  click.delegate="lassoIsRoundChangeHandler()">
+              </li>
+            </ul>
+
+            <ul class="flex-c settings-list settings-list-buttons-only">
+              <li>
+                <button
+                  class="flex-c flex-jc-c flex-a-c rel button"
+                  click.delegate="downloadExportedPiles()">
+                  Export Piles
+                </button>
+              </li>
+            </ul>
+          </div>
         </div>
       </div>
       <button

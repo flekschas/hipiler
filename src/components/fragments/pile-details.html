@@ -1,0 +1,113 @@
+<template>
+  <require from="components/svg-icon/svg-icon"></require>
+  <require from="components/chartlet/chartlet"></require>
+
+  <div class="flex-c flex-a-c flex-jc-c full-dim error-indicator ${isErrored ? 'is-active' : ''}">
+    <div class="flex-c flex-d-c flex-jc-c flex-a-c">
+      <svg-icon icon-id="warning"></svg-icon>
+      <span>${errorMsg}</span>
+    </div>
+  </div>
+
+  <div class="full-dim flex-c flex-d-c">
+    <main class="flex-g-1 rel">
+      <div
+        class="full-dim flex-c flex-a-c flex-jc-c no-pile-selected"
+        if.bind="pile.fake && isShown">
+        <p>Select a snippet or pile</p>
+      </div>
+      <div
+        class="full-dim flex-c flex-a-c flex-jc-c collapsed"
+        if.bind="!isShown">
+        <p>Details</p>
+      </div>
+      <div
+        class="full-dim flex-c flex-d-c content ${isShown ? 'is-shown' : ''} ${isHighlighted ? 'is-active' : ''}"
+        click.delegate="highlightPile()">
+        <div id="pile-preview" class="flex-c flex-jc-c entry">
+          <div class="wrapper flex-g-1">
+            <div class="wrapper-ratio" css.bind="previewElRatioCss"></div>
+            <canvas
+              class="full-dim"
+              ref="previewEl"></canvas>
+            <div
+              class="full-dim wrapper-border ${isHighlighted ? 'is-active' : ''}"></div>
+          </div>
+        </div>
+        <div class="flex-c one-liner entry">
+          <label>${pile.pileMatrices.length > 1 ? 'Pile' : 'Snippet'} ID:</label>
+          <p>${pile.id}</p>
+        </div>
+        <div class="flex-c one-liner entry" if.bind="pile.pileMatrices.length > 1">
+          <label>Snippet IDs:</label>
+          <p>${snippetIds} (Total: ${pile.pileMatrices.length})</p>
+        </div>
+        <div class="separator"></div>
+        <h5 class="flex-c">
+          <svg-icon icon-id="annotation"></svg-icon>
+          <label for="pile-notes">Annotations</label>
+        </h5>
+        <textarea
+          id="pile-notes"
+          placeholder="Write down your notes in here."
+          value.bind="annotation"
+          disabled.bind="pile.fake"
+          input.delegate="annotate($event.target.value)"
+          blur.trigger="annotateImmediate($event.target.value)"
+          rows="3"></textarea>
+        <div
+          class="separator"
+          if.bind="measures.length || categories.length"></div>
+        <div
+          class="flex-g-1 rel"
+          if.bind="measures.length || categories.length">
+          <div class="full-dim oa">
+            <div if.bind="measures.length">
+              <h5 class="flex-c">
+                <svg-icon icon-id="bar-chart"></svg-icon>
+                <span>Measures</span>
+              </h5>
+              <div class="flex-c flex-d-c" if.bind="isSingle">
+                <div
+                  class="flex-c one-liner entry"
+                  repeat.for="measure of measures">
+                  <label>${measure.key}:</label>
+                  <p>${measure.values[0]}</p>
+                </div>
+              </div>
+              <div class="flex-c flex-d-c" if.bind="!isSingle">
+                <div
+                  class="flex-c flex-d-c multi-line entry"
+                  repeat.for="measure of measures">
+                  <label>${measure.key}:</label>
+                  <chartlet
+                    axis-x="1"
+                    axis-y="1"
+                    data.bind="measure"
+                    update.bind="chartletUpdate"
+                    width="100"
+                    scientificify="true""></chartlet>
+                </div>
+              </div>
+            </div>
+            <div class="separator" if.bind="categories.length"></div>
+            <div if.bind="categories.length">
+              <h5 class="flex-c">
+                <svg-icon icon-id="tag"></svg-icon>
+                <span>Categories</span>
+              </h5>
+              <div class="flex-c flex-d-c">
+                <div
+                  class="flex-c one-liner entry"
+                  repeat.for="category of categories">
+                  <label>${category.key}:</label>
+                  <p>${category.values.join(', ')}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</template>

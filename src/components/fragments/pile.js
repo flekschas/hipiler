@@ -29,7 +29,7 @@ import {
   ARROW_Y_REV,
   BASE_MATERIAL,
   COLOR_INDICATOR_HEIGHT,
-  LABEL_MIN_CELL_SIZE,
+  LABEL_MIN_PILE_SIZE,
   PREVIEW_LOW_QUAL_THRESHOLD,
   PREVIEW_NUM_CLUSTERS,
   PREVIEW_GAP_SIZE,
@@ -44,10 +44,10 @@ import {
   cellValueLog,
   createImage,
   createLineFrame,
-  createRect,
   createRectFrame,
   createText,
   frameValue,
+  scaleLineFrame,
   updateImageTexture
 } from 'components/fragments/fragments-utils';
 
@@ -575,17 +575,10 @@ export default class Pile {
       this.getPreviewHeight();
     }
 
-    const width = this.cellSize * this.dims;
-    const height = width + this.previewsHeightNorm;
-
-    this.geometry = new PlaneGeometry(width, height);
-    this.geometry.translate(0, this.previewsHeightNorm / 2, 0);
+    this.geometry = this.updateScaleGeometry();
 
     // Create base mesh
-    this.mesh = new Mesh(
-      this.geometry,
-      BASE_MATERIAL
-    );
+    this.mesh = new Mesh(this.geometry, BASE_MATERIAL);
 
     // Draw matrix
     this.matrixMesh = this.drawMatrix(this.singleMatrix);
@@ -600,9 +593,9 @@ export default class Pile {
     if (
       !(fgmState.isHilbertCurve) &&
       !(fgmState.isLayout2d || fgmState.isLayoutMd) &&
-      !(this.cellSize < LABEL_MIN_CELL_SIZE)
+      !(this.matrixWidth < LABEL_MIN_PILE_SIZE)
     ) {
-      this.drawPileLabel(isHovering);
+      this.drawLabel(isHovering);
     }
 
     // Update and add frames
@@ -638,7 +631,7 @@ export default class Pile {
       this.drawStrandArrows();
     }
 
-    this.drawColorIndicator();
+    this.colorIndicatorMesh = this.drawColorIndicator();
 
     this.isDrawn = true;
     this.numPileMatsChanged = false;
@@ -663,34 +656,26 @@ export default class Pile {
       return;
     }
 
-    const width = this.matrixWidth / numColors;
-
-    const height = COLOR_INDICATOR_HEIGHT * (this.isLayout1d ? 1 : 0.5);
+    const pixels = new Uint8ClampedArray(numColors * 4);
 
     Object.keys(colorsUsed).forEach((color, index) => {
-      this.colorIndicator[color] = createRect(
-        width, height, COLORS[color.toUpperCase()]
-      );
-
-      this.colorIndicator[color].position.set(
-        (index * width) - ((numColors - 1) * width / 2),
-        -this.matrixWidthHalf - 2 - (this.matrixFrameThickness / 2),
-        1
-      );
-
-      this.mesh.add(this.colorIndicator[color]);
+      pixels.set(COLORS[`${color.toUpperCase()}_RGBA`], index * 4);
     });
+
+    const colorIndicatorMesh = createImage(pixels, numColors, 1);
+    this.updateScaleColorIndicator(colorIndicatorMesh);
+
+    this.mesh.add(colorIndicatorMesh);
+
+    return colorIndicatorMesh;
   }
 
   /**
    * Draw pile label.
-   *
-   * @param {array} isHovering - If `true` user is currently hovering this pile.
    */
-  drawPileLabel (isHovering) {
+  drawLabel () {
     const numPiles = this.pileMatrices.length;
-    const idReadible = this.idNumeric + 1;
-    const scale = 1 / this.scale;
+    const idReadible = this.idNumeric;
     let labelText;
 
     if (numPiles === 1) {
@@ -699,23 +684,12 @@ export default class Pile {
       labelText = `${idReadible} (${numPiles})`;
     }
 
-    const extraOffset = this.isColored ? COLOR_INDICATOR_HEIGHT + 2 : 0;
-
     if (this.labelText !== labelText) {
       this.labelText = labelText;
       this.label = createText(this.labelText);
-    } else {
-      this.label.material.color.setHex(
-        isHovering ? COLORS.GRAY_DARK : COLORS.GRAY_LIGHT
-      );
     }
 
-    this.label.position.set(
-      -this.matrixWidthHalf + 32,
-      -this.matrixWidthHalf - 10 - extraOffset,
-      0
-    );
-    this.label.scale.set(scale, scale, scale);
+    this.updateLabelPosScale();
     this.label.material.opacity = this.alpha;
 
     this.mesh.add(this.label);
@@ -747,17 +721,7 @@ export default class Pile {
 
     // Set image data
     const imageMesh = createImage(pixels, this.dims, this.previewsHeight);
-    imageMesh.position.set(
-      0,
-      (this.matrixWidth / 2) + (this.previewsHeightNorm / 2) + 1,
-      this.zLayerHeight * 5
-    );
-    imageMesh.scale.set(
-      this.cellSize,
-      this.previewScale,
-      1
-    );
-    imageMesh.material.opacity = this.alpha;
+    this.updateScalePreviews(imageMesh);
 
     return imageMesh;
   }
@@ -794,9 +758,7 @@ export default class Pile {
 
     // Set image data
     const imageMesh = createImage(this.pixels, this.dims, this.dims);
-    imageMesh.position.set(0, 0, this.zLayerHeight * 5);
-    imageMesh.scale.set(this.cellSize, this.cellSize, this.cellSize);
-    imageMesh.material.opacity = this.alpha;
+    this.updateScaleMatrix(imageMesh);
 
     return imageMesh;
   }
@@ -805,8 +767,6 @@ export default class Pile {
    * Draw strand arrows for both axis.
    */
   drawStrandArrows () {
-    const extraOffset = this.isColored ? COLOR_INDICATOR_HEIGHT + 2 : 0;
-
     // Remove previous sprites
     fgmState.scene.remove(this.strandArrowX);
     fgmState.scene.remove(this.strandArrowY);
@@ -818,17 +778,7 @@ export default class Pile {
       ARROW_Y.clone() : ARROW_Y_REV.clone();
 
     // Position arrow
-    this.strandArrowX.position.set(
-      this.matrixWidthHalf - 7,
-      -this.matrixWidthHalf - 9 - extraOffset,
-      0
-    );
-
-    this.strandArrowY.position.set(
-      this.matrixWidthHalf - 20,
-      -this.matrixWidthHalf - 9 - extraOffset,
-      0
-    );
+    this.updateArrowPos();
 
     // Associate pile
     this.strandArrowX.userData.pile = this;
@@ -940,8 +890,6 @@ export default class Pile {
     this.pileOutline.material.uniforms.thickness.value =
       this.matrixFrameThickness + 4;
 
-    // this.showPreviewHeight();
-
     return this;
   }
 
@@ -993,11 +941,54 @@ export default class Pile {
   }
 
   /**
-   * Frame requires update after matrix size has changed through filtering.
+   * Update the entire matrix frame.
    *
    * @return {object} Self.
    */
-  frameUpdate (encoding = fgmState.matrixFrameEncoding) {
+  frameUpdate () {
+    this.frameUpdateScale();
+    this.frameUpdateStyle();
+
+    return this;
+  }
+
+  /**
+   * Update the matrix frame scale, i.e., with and height.
+   *
+   * @return {object} Self.
+   */
+  frameUpdateScale () {
+    scaleLineFrame(
+      this.matrixFrame,
+      this.matrixWidth,
+      this.matrixWidth
+    );
+    scaleLineFrame(
+      this.matrixFrameHighlight,
+      this.matrixWidth,
+      this.matrixWidth
+    );
+    scaleLineFrame(
+      this.pileOutline,
+      this.matrixWidth,
+      this.matrixWidth
+    );
+
+    return this;
+  }
+
+  /**
+   * Update the matrix frame styling, i.e., thickness, color, and opacity.
+   *
+   * @return {object} Self.
+   */
+  frameUpdateStyle (encoding = fgmState.matrixFrameEncoding) {
+    scaleLineFrame(
+      this.matrixFrame,
+      this.matrixWidth,
+      this.matrixWidth
+    );
+
     if (encoding === null) {
       this.matrixFrameThickness = MATRIX_FRAME_THICKNESS;
       this.matrixFrameColor = COLORS.GRAY_LIGHT;
@@ -1279,6 +1270,17 @@ export default class Pile {
   }
 
   /**
+   * Calculate the offset from the center of the pile
+   *
+   * @param {number} x - Mouse coordinate.
+   * @param {number} y - Mouse coordinate.
+   * @return  {object} Object with x and y offset of the cursor to the center.
+   */
+  centerOffSet (x, y) {
+    return { x: this.x - x, y: this.y - y };
+  }
+
+  /**
    * Move mesh.
    *
    * @param {number} x - X position.
@@ -1292,13 +1294,11 @@ export default class Pile {
     this.y = y;
 
     if (!abs) {
-      if (fgmState.isLayout1d) {
-        this.x += fgmState.gridCellWidthInclSpacingHalf;
-        this.y = -this.y - fgmState.gridCellHeightInclSpacingHalf;
-      } else {
-        this.x += this.matrixWidthHalf;
-        this.y = -this.y - this.matrixWidthHalf;
-      }
+      const matrixWidth = fgmState.isLayout1d ?
+        fgmState.gridCellWidthInclSpacingHalf : this.matrixWidthHalf;
+
+      this.x += matrixWidth;
+      this.y = -this.y - matrixWidth;
     }
 
     this.mesh.position.set(this.x, this.y, this.mesh.position.z);
@@ -1424,7 +1424,7 @@ export default class Pile {
    */
   setMatrices (matrices) {
     if (arraysEqual(this.pileMatrices, matrices)) {
-      return Promise.resolve();
+      return Promise.resolve({ noChange: true });
     }
 
     this.pileMatrices = matrices;
@@ -1702,26 +1702,203 @@ export default class Pile {
   /**
    * Update the pile outline.
    */
-  updateFrameHighlight (pileHighlight) {
-    this.matrixFrameHighlight = createLineFrame(
+  updateFrameHighlight () {
+    scaleLineFrame(
+      this.matrixFrameHighlight,
       this.matrixWidth,
-      this.matrixWidth + this.previewsHeightNorm,
-      COLORS.ORANGE,
-      this.matrixFrameThickness + 2,
-      this.matrixFrameHighlight.material.uniforms.opacity.value
+      this.matrixWidth + this.previewsHeightNorm
     );
+    this.matrixFrameHighlight.material.uniforms.thickness.value =
+      this.matrixFrameThickness + 2;
   }
 
   /**
    * Update the pile outline.
    */
   updatePileOutline () {
-    this.pileOutline = createLineFrame(
+    scaleLineFrame(
+      this.pileOutline,
       this.matrixWidth,
-      this.matrixWidth + this.previewsHeightNorm,
-      COLORS.WHITE,
-      this.matrixFrameThickness + 2,
-      this.alpha
+      this.matrixWidth + this.previewsHeightNorm
     );
+    this.pileOutline.material.uniforms.thickness.value =
+      this.matrixFrameThickness + 2;
+    this.pileOutline.material.uniforms.opacity.value = this.alpha;
+  }
+
+  /**
+   * Update array position.
+   */
+  updateArrowPos () {
+    const extraOffset = this.isColored ? COLOR_INDICATOR_HEIGHT + 2 : 0;
+
+    this.strandArrowX.position.set(
+      this.matrixWidthHalf - 7,
+      -this.matrixWidthHalf - 9 - extraOffset,
+      0
+    );
+
+    this.strandArrowY.position.set(
+      this.matrixWidthHalf - 20,
+      -this.matrixWidthHalf - 9 - extraOffset,
+      0
+    );
+  }
+
+  /**
+   * Update arrow visibility.
+   */
+  updateArrowVisibility () {
+    fgmState.scene.remove(this.strandArrowX);
+    fgmState.scene.remove(this.strandArrowY);
+    this.mesh.remove(this.strandArrowX);
+    this.mesh.remove(this.strandArrowY);
+
+    if (
+      !fgmState.isHilbertCurve &&
+      !(fgmState.isLayout2d || fgmState.isLayoutMd) &&
+      this.pileMatrices.length === 1
+    ) {
+      if (this.strandArrowX) {
+        this.updateArrowPos();
+
+        fgmState.scene.add(this.strandArrowX);
+        fgmState.scene.add(this.strandArrowY);
+        this.mesh.add(this.strandArrowX);
+        this.mesh.add(this.strandArrowY);
+      } else {
+        this.drawStrandArrows();
+      }
+    }
+  }
+
+  /**
+   * Update label position and scale.
+   */
+  updateLabelPosScale () {
+    const scale = 1 / this.scale;
+    const extraOffset = this.isColored ? COLOR_INDICATOR_HEIGHT : 0;
+
+    this.label.position.set(
+      -this.matrixWidthHalf + 32,
+      -this.matrixWidthHalf - 10 - extraOffset,
+      0
+    );
+    this.label.scale.set(scale, scale, scale);
+  }
+
+  /**
+   * Update label visibility.
+   */
+  updateLabelVisibility () {
+    this.mesh.remove(this.label);
+
+    if (
+      !(fgmState.isHilbertCurve) &&
+      !(fgmState.isLayout2d || fgmState.isLayoutMd) &&
+      !(this.matrixWidth < LABEL_MIN_PILE_SIZE)
+    ) {
+      if (this.label) {
+        this.updateLabelPosScale();
+        this.mesh.add(this.label);
+      } else {
+        this.drawLabel();
+      }
+    }
+  }
+
+  /**
+   * Update the scale for re-rendering.
+   *
+   * @return {object} Self.
+   */
+  updateScale () {
+    if (!this.mesh) { return; }
+
+    this.updateArrowVisibility();
+    this.updateLabelVisibility();
+    this.updateScaleGeometry();
+    this.updateScaleMatrix();
+    this.updateScalePreviews();
+    this.updateScaleColorIndicator();
+
+    return this;
+  }
+
+  /**
+   * Update the position and scale of the color indicator.
+   */
+  updateScaleColorIndicator (mesh = this.colorIndicatorMesh) {
+    if (mesh) {
+      mesh.position.set(
+        0,
+        -this.matrixWidthHalf - 2 - (this.matrixFrameThickness / 2) - 1,
+        6
+      );
+      mesh.scale.set(
+        this.matrixWidth / mesh.material.map.image.width,
+        COLOR_INDICATOR_HEIGHT * (this.isLayout1d ? 1 : 0.5),
+        1
+      );
+    }
+  }
+
+  /**
+   * Update the scaling for the base geometry;
+   *
+   * @param {object} geometry - Geometry to be scaled.
+   * @return {object} Scaled gemetry.
+   */
+  updateScaleGeometry (geometry = this.geometry) {
+    const width = this.cellSize * this.dims;
+    const height = width + this.previewsHeightNorm;
+
+    if (geometry) {
+      const wh = width / 2;
+      const hh = height / 2;
+      const ph = this.previewsHeightNorm / 2;
+
+      geometry.vertices[0].x = -wh;
+      geometry.vertices[0].y = hh + ph;
+      geometry.vertices[1].x = wh;
+      geometry.vertices[1].y = hh + ph;
+      geometry.vertices[2].x = -wh;
+      geometry.vertices[2].y = -hh + ph;
+      geometry.vertices[3].x = wh;
+      geometry.vertices[3].y = -hh + ph;
+
+      geometry.verticesNeedUpdate = true;
+    } else {
+      geometry = new PlaneGeometry(width, height);
+      geometry.translate(0, (this.previewsHeightNorm / 2), 0);
+    }
+
+    return geometry;
+  }
+
+  /**
+   * Update the opacity, position, and scale of matrix.
+   */
+  updateScaleMatrix (mesh = this.matrixMesh) {
+    if (mesh) {
+      mesh.position.set(0, 0, this.zLayerHeight * 5);
+      mesh.scale.set(this.cellSize, this.cellSize, 1);
+      mesh.material.opacity = this.alpha;
+    }
+  }
+
+  /**
+   * Update the opacity, position, and scale of previews.
+   */
+  updateScalePreviews (mesh = this.previewsMesh) {
+    if (mesh) {
+      mesh.position.set(
+        0,
+        (this.matrixWidth / 2) + (this.previewsHeightNorm / 2) + 1,
+        this.zLayerHeight * 5
+      );
+      mesh.scale.set(this.cellSize, this.previewScale, 1);
+      mesh.material.opacity = this.alpha;
+    }
   }
 }

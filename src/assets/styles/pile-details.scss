@@ -1,0 +1,173 @@
+@import 'colors';
+@import 'transitions';
+@import 'mixins/ratio';
+
+pile-details {
+  display: block;
+  margin: 2rem 0 0 0.5rem;
+
+  .fragment-plot {
+    &.is-piles-inspection {
+      box-shadow: inset 0 0 0 0.25rem lighten($primary, 40%);
+    }
+  }
+
+  .no-pile-selected {
+    z-index: 10;
+    color: $gray;
+    background: $gray-lightest;
+  }
+
+  .collapsed {
+    z-index: 10;
+
+    p {
+      margin: 0;
+      color: $gray-lighter;
+      font-size: 1.125rem;
+      text-transform: uppercase;
+      white-space: nowrap;
+      transform: rotate(90deg);
+    }
+  }
+
+  h5,
+  h5 label {
+    color: $gray-darker;
+    font-size: 1rem;
+    text-transform: none;
+  }
+
+  h5 {
+    margin: 0 0 0.5rem 0;
+  }
+
+  h5 svg-icon {
+    width: 1rem;
+    height: 1rem;
+    margin-right: 0.25rem;
+  }
+
+  label {
+    color: $gray;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+  }
+
+  textarea {
+    font-size: 0.85rem;
+    line-height: 1.25em;
+    max-height: 14em;
+  }
+
+  .content {
+    opacity: 0;
+    transition: opacity $transition-very-fast $ease-in-out-cubic;
+
+    &.is-shown {
+      opacity: 0.5;
+
+      &.is-active {
+        opacity: 1;
+      }
+    }
+  }
+
+  .chartlet-axis-x,
+  .chartlet-axis-x li,
+  .chartlet-axis-y {
+    font-size: 0.7rem;
+    font-weight: 300;
+    color: $gray;
+  }
+
+  .chartlet-axis-x {
+    margin: 0;
+  }
+
+  .chartlet-axis-y {
+    width: 34%;
+    margin: 0 0 0.7rem 0.15rem;
+  }
+
+  .chartlet-plot-wrapper {
+    width: 66%;
+  }
+
+  .chartlet-axis-y-bar {
+    width: 0.2rem;
+    margin: 0 0.1rem;
+    border-top: 1px solid $gray-lightest;
+    border-left: 1px solid $gray-lightest;
+    border-bottom: 1px solid $gray-lightest;
+  }
+
+  .one-liner {
+    p {
+      margin: 0 0 0 0.5em;
+      font-size: 0.8rem;
+    }
+  }
+
+  .multi-line label {
+    margin-bottom: 0.25rem;
+  }
+
+  .entry {
+    margin-bottom: 0.25rem;
+
+    &.multi-line {
+      margin-bottom: 0.33rem;
+    }
+  }
+
+  .separator {
+    margin: 0.5rem 0;
+    height: 1px;
+    background: $gray-lightest;
+  }
+
+  .entry + .separator {
+    margin-top: 0.25rem;
+  }
+
+  #pile-preview {
+    .wrapper {
+      position: relative;
+      max-width: 20rem;
+      border-radius: 0.25rem;
+
+      .wrapper-ratio {
+        width: 100%;
+        padding-top: 100%;
+      }
+
+      .wrapper-border {
+        z-index: 2;
+        border: 1px solid $gray-lightest;
+        border-radius: 0.25rem;
+        cursor: pointer;
+        transition: border-color $transition-very-fast $ease-in-out-cubic,
+                    border-width $transition-very-fast $ease-in-out-cubic;
+
+        &:active,
+        &.is-active {
+          border-color: $primary;
+          border-width: 2px;
+        }
+      }
+    }
+
+    canvas {
+      z-index: 1;
+      width: 100%;
+      height: 100%;
+      image-rendering: optimizeSpeed;
+      image-rendering: -moz-crisp-edges;
+      image-rendering: -webkit-optimize-contrast;
+      image-rendering: optimize-contrast;
+      image-rendering: pixelated;
+      -ms-interpolation-mode: nearest-neighbor;
+    }
+  }
+}

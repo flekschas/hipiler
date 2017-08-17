@@ -3,6 +3,7 @@ export const name = 'HiPiler';
 export const routes = [
   {
     route: '',
+    href: '/',
     name: 'home',
     title: 'Home',
     moduleId: 'views/home',
@@ -10,7 +11,7 @@ export const routes = [
   },
   {
     route: 'about/:anchor?',
-    href: '#about',
+    href: '/about',
     name: 'about',
     title: 'About',
     moduleId: 'views/about',
@@ -19,7 +20,7 @@ export const routes = [
   },
   {
     route: 'docs/:anchor?/:anchor2?',
-    href: '#docs',
+    href: '/docs',
     name: 'docs',
     title: 'Documentation',
     moduleId: 'views/docs',
@@ -29,6 +30,7 @@ export const routes = [
   },
   {
     route: 'explore',
+    href: '/explore',
     name: 'explore',
     title: 'Explore',
     moduleId: 'views/explore',

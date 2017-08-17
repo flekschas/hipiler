@@ -129,9 +129,17 @@ gulp.task('config', () => gulp
   .pipe(plumber())
   .pipe(modify({
     fileModifier: (file, contents) => {
+      if (ghp) {
+        _config.ghp = true;
+      }
+
       let insert = `window.hipilerConfig = ${JSON.stringify(_config)};`;
 
       if (ghp) {
+        const base = '<base href="http://hipiler.higlass.io">';
+
+        contents = contents.replace(/<!-- HiPiler: adjustments -->/, base);
+
         insert = '// Google Tag Manager\n' +  // eslint-disable-line prefer-template
           '(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({"gtm.start":\n' +
           'new Date().getTime(),event:"gtm.js"});var f=d.getElementsByTagName(s)[0],\n' +

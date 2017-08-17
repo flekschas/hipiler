@@ -1,13 +1,22 @@
 export const COLUMN_NAMES = [
   'matrix',
-  'stats'
+  'details'
 ];
 
 export const COLUMNS = {
   matrixWidth: 40,
   matrixWidthUnit: '%',
-  statsWidth: 20,
-  statsWidthUnit: 'rem'
+  detailsWidth: 15,
+  detailsWidthUnit: 'rem'
+};
+
+export const CSS = {
+  details: {
+    flexBasis: `${COLUMNS.detailsWidth}${COLUMNS.detailsWidthUnit}`
+  },
+  matrix: {
+    flexBasis: `${COLUMNS.matrixWidth}${COLUMNS.matrixWidthUnit}`
+  }
 };
 
 export default {
