@@ -60,8 +60,6 @@ export class Home {
     ) {
       this.queryParams = queryParams;
     }
-
-    console.log(this.queryParams);
   }
 
   /* ---------------------------- Class methods ----------------------------- */
