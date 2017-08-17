@@ -17,6 +17,7 @@
         class="flex-g-1"
         type="text"
         placeholder="${!selectedOptions.length ? placeholder : ''}"
+        click.delegate="activateOptions()"
         enter.delegate="select($event)"
         focus.trigger="activateOptions()"
         keydown.delegate="keyDownHandler($event)"

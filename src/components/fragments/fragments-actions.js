@@ -7,6 +7,13 @@ export const addPiles = piles => ({
   payload: { piles }
 });
 
+export const ANNOTATE_PILES = 'ANNOTATE_PILES';
+
+export const annotatePiles = (piles, areSingle, annotations) => ({
+  type: ANNOTATE_PILES,
+  payload: { piles, areSingle, annotations }
+});
+
 export const CLOSE_PILES_INSPECTION = 'CLOSE_PILES_INSPECTION';
 
 export const closePilesInspection = () => ({
@@ -15,10 +22,26 @@ export const closePilesInspection = () => ({
 
 export const DISPERSE_PILES = 'DISPERSE_PILES';
 
+export const closePilesInspectionSelect = piles => batchActions([
+  selectPile(null),
+  closePilesInspection()
+]);
+
 export const dispersePiles = piles => ({
   type: DISPERSE_PILES,
   payload: { piles }
 });
+
+export const dispersePilesAnnotations = piles => batchActions([
+  annotatePiles(piles, piles.map(pile => false), piles.map(pile => undefined)),
+  dispersePiles(piles)
+]);
+
+export const dispersePilesAnnoSelect = piles => batchActions([
+  annotatePiles(piles, piles.map(pile => false), piles.map(pile => undefined)),
+  selectPile(null),
+  dispersePiles(piles)
+]);
 
 export const DISPERSE_PILES_INSPECTION = 'DISPERSE_PILES_INSPECTION';
 
@@ -34,6 +57,11 @@ export const inspectPiles = piles => ({
   payload: { piles }
 });
 
+export const inspectPilesSelect = piles => batchActions([
+  selectPile(null),
+  inspectPiles(piles)
+]);
+
 export const RECOVER_PILES = 'RECOVER_PILES';
 
 export const recoverPiles = piles => ({
@@ -46,6 +74,13 @@ export const REMOVE_PILES_INSPECTION = 'REMOVE_PILES_INSPECTION';
 export const removePilesInspection = (piles, recursive) => ({
   type: REMOVE_PILES_INSPECTION,
   payload: { piles, recursive }
+});
+
+export const SELECT_PILE = 'SELECT_PILE';
+
+export const selectPile = pile => ({
+  type: SELECT_PILE,
+  payload: { pile }
 });
 
 export const SET_ANIMATION = 'SET_ANIMATION';
@@ -225,6 +260,11 @@ export const stackPiles = pileStacks => ({
   type: STACK_PILES,
   payload: { pileStacks }
 });
+
+export const stackPilesSelect = (pileStacks, pileSelect) => batchActions([
+  stackPiles(pileStacks),
+  selectPile(pileSelect)
+]);
 
 export const STACK_PILES_INSPECTION = 'STACK_PILES_INSPECTION';
 

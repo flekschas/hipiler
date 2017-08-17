@@ -2,12 +2,14 @@ import { combineReducers } from 'redux';
 
 import {
   ADD_PILES,
+  ANNOTATE_PILES,
   CLOSE_PILES_INSPECTION,
   DISPERSE_PILES,
   DISPERSE_PILES_INSPECTION,
   INSPECT_PILES,
   RECOVER_PILES,
   REMOVE_PILES_INSPECTION,
+  SELECT_PILE,
   SET_ANIMATION,
   SET_ARRANGE_MEASURES,
   SET_CELL_SIZE,
@@ -36,6 +38,7 @@ import {
 
 import {
   ANIMATION,
+  ANNOTATIONS,
   ARRANGE_MEASURES,
   CELL_SIZE,
   CONFIG,
@@ -51,6 +54,7 @@ import {
   MODE_AVERAGE,
   PILES_INSPECTION,
   PILES,
+  SELECTED_PILE,
   SHOW_SPECIAL_CELLS,
   TSNE_EARLY_EXAGGERATION,
   TSNE_ITERATIONS,
@@ -121,6 +125,29 @@ export function animation (state = ANIMATION, action) {
     case SET_ANIMATION:
       return action.payload.animation;
 
+    default:
+      return state;
+  }
+}
+
+export function annotations (state = ANNOTATIONS, action) {
+  switch (action.type) {
+    case ANNOTATE_PILES: {
+      const newState = deepClone(state);
+
+      action.payload.piles.forEach((pileId, index) => {
+        const id = action.payload.areSingle[index] ? `_${pileId}` : pileId;
+
+        if (action.payload.annotations[index]) {
+          newState[id] = action.payload.annotations[index];
+        } else {
+          newState[id] = undefined;
+          delete newState[id];
+        }
+      });
+
+      return newState;
+    }
     default:
       return state;
   }
@@ -435,6 +462,16 @@ export function piles (state = PILES, action) {
   }
 }
 
+export function pileSelected (state = SELECTED_PILE, action) {
+  switch (action.type) {
+    case SELECT_PILE:
+      return action.payload.pile;
+
+    default:
+      return state;
+  }
+}
+
 export function showSpecialCells (state = SHOW_SPECIAL_CELLS, action) {
   switch (action.type) {
     case SET_SHOW_SPECIAL_CELLS:
@@ -489,6 +526,7 @@ export function tsnePerplexity (state = TSNE_PERPLEXITY, action) {
 
 export default combineReducers({
   animation,
+  annotations,
   arrangeMeasures,
   cellSize,
   config,
@@ -504,6 +542,7 @@ export default combineReducers({
   matrixOrientation,
   piles,
   pilesInspection,
+  pileSelected,
   showSpecialCells,
   tsneEarlyExaggeration,
   tsneIterations,

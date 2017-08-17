@@ -363,6 +363,53 @@ export class Higlass {
   }
 
   /**
+   * Focus on some loci.
+   *
+   * @param {array} lociIds - List of loci IDs to be focused on.
+   */
+  focusLoci (lociIds) {
+    if (!this.loci) { return; }
+
+    const configTmp = deepClone(this.config);
+    const lociTmp = deepClone(this.loci);
+
+    lociTmp.forEach((locus) => {
+      locus[6] = 'rgba(0, 0, 0, 0.33)';
+      locus[7] = 'rgba(255, 255, 255, 0.33)';
+    });
+
+    let counter = 0;
+    lociIds.sort((a, b) => a - b).forEach((id) => {
+      // We need the counter as we splice off the location and add it at the
+      // end again. Mutating the indices.
+      const _id = id - counter;
+
+      lociTmp[_id][6] = 'rgba(255, 85, 0, 0.66)';
+      lociTmp[_id][7] = 'rgba(255, 85, 0, 0.66)';
+      lociTmp[_id][8] = 7;
+      lociTmp[_id][9] = 7;
+      const tmp = lociTmp[_id];
+      lociTmp.splice(_id, 1);
+      lociTmp.push(tmp);
+
+      counter += 1;
+    });
+
+    configTmp.views
+      .forEach((view) => {
+        view.tracks.center
+          .filter(center => center.type === '2d-chromosome-annotations')
+          .forEach((center) => {
+            center.options.regions = lociTmp;
+          });
+      });
+
+    this.isFgmHighlight = true;
+
+    this.render(configTmp);
+  }
+
+  /**
    * Handles changes of highlighting fragments.
    */
   fragmentsHighlightChangeHandler () {
@@ -511,46 +558,27 @@ export class Higlass {
     this.isErrored = true;
   }
 
-  focusLoci (lociIds) {
-    if (!this.loci) { return; }
-
-    const configTmp = deepClone(this.config);
-    const lociTmp = deepClone(this.loci);
-
-    lociTmp.forEach((locus) => {
-      locus[6] = 'rgba(0, 0, 0, 0.33)';
-      locus[7] = 'rgba(255, 255, 255, 0.33)';
+  /**
+   * Display info for HiGlass.
+   */
+  infoHiGlass () {
+    this.dialogPromise = new Promise((resolve, reject) => {
+      this.dialogDeferred = { resolve, reject };
     });
+    this.dialogIsOpen = true;
+    this.dialogMessage =
+      'HiPiler uses <a href="http://higlass.io" target="_blank">' +
+      '<strong>HiGlass</strong></a> for displaying Hi-C matrices and other ' +
+      '1D genomic tracks. HiGlass is an outragiously awesome masterpiece of ' +
+      'software and we strongly recommend you <a href="http://higlass.io" ' +
+      'target="_blank">check it out</a> if your focus is on browsing the ' +
+      'entire matrix. HiGlass let\'s you build your own views and as long ' +
+      'as they consit of horizontally arranged views only you can even ' +
+      'export the config and use it here in HiPiler.';
 
-    let counter = 0;
-    lociIds.sort((a, b) => a - b).forEach((id) => {
-      // We need the counter as we splice off the location and add it at the
-      // end again. Mutating the indices.
-      const _id = id - counter;
-
-      lociTmp[_id][6] = 'rgba(255, 85, 0, 0.66)';
-      lociTmp[_id][7] = 'rgba(255, 85, 0, 0.66)';
-      lociTmp[_id][8] = 7;
-      lociTmp[_id][9] = 7;
-      const tmp = lociTmp[_id];
-      lociTmp.splice(_id, 1);
-      lociTmp.push(tmp);
-
-      counter += 1;
+    this.dialogPromise.catch(() => {
+      //Nothing
     });
-
-    configTmp.views
-      .forEach((view) => {
-        view.tracks.center
-          .filter(center => center.type === '2d-chromosome-annotations')
-          .forEach((center) => {
-            center.options.regions = lociTmp;
-          });
-      });
-
-    this.isFgmHighlight = true;
-
-    this.render(configTmp);
   }
 
   /**

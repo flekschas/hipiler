@@ -6,6 +6,7 @@ import {
 import { EventAggregator } from 'aurelia-event-aggregator';  // eslint-disable-line
 
 // Injectable
+import Export from 'services/export';  // eslint-disable-line
 import Font from 'services/font';  // eslint-disable-line
 import States from 'services/states';  // eslint-disable-line
 
@@ -15,7 +16,7 @@ import { ERROR_DURATION } from 'app-defaults';
 import { name, routes } from 'configs/app';
 import { externalLinks } from 'configs/nav';
 import FgmState from 'components/fragments/fragments-state';
-import $ from 'utils/dom-el';
+import checkTextInputFocus from 'utils/check-text-input-focus';
 import dragDrop from 'utils/drag-drop';
 import readJsonFile from 'utils/read-json-file';
 import validateConfig from 'utils/validate-config';
@@ -24,10 +25,10 @@ import validateConfig from 'utils/validate-config';
 const logger = LogManager.getLogger('app');
 
 
-@inject(EventAggregator, Font, States)
+@inject(EventAggregator, Export, Font, States)
 export default class App {
 
-  constructor (event, font, states) {
+  constructor (event, exportData, font, states) {
     this.event = event;
 
     this.font = font;
@@ -57,6 +58,9 @@ export default class App {
     this.swagJ = 0;
     this.swagInterval = 500;
     this.swagTime = performance.now();
+
+    // Global method for programmatically exporting the piling status
+    window.hipilerExportPiles = () => exportData.get('piles');
   }
 
   /* ----------------------- Aurelia-specific methods ----------------------- */
@@ -90,8 +94,13 @@ export default class App {
       this.showGlobalError(...args);
     });
 
-    if (!this.exploreIsReady) {
-      this.router.navigateToRoute('home');
+    if (
+      this.router.currentInstruction.config.name === 'explore' &&
+      !this.exploreIsReady
+    ) {
+      this.router.navigateToRoute(
+        'home', this.router.currentInstruction.queryParams
+      );
     }
   }
 
@@ -99,6 +108,11 @@ export default class App {
     this.router = router;
 
     config.title = this.appName;
+
+    if (window.hipilerConfig.ghp) {
+      config.options.pushState = true;
+      config.options.root = '/';
+    }
 
     config.map(routes);
 
@@ -139,8 +153,8 @@ export default class App {
    */
   hideGlobalError () {
     this.corruptConfig = false;
+    this.globalError = false;
     this.globalErrorMsg = undefined;
-    $(this.baseEl).removeClass('is-global-error');
   }
 
   /**
@@ -153,20 +167,26 @@ export default class App {
       this.isCtrlMetaKeyDown = true;
     }
 
+    // 83 === S
+    if (event.keyCode === 83 && this.isCtrlMetaKeyDown) {
+      event.preventDefault();
+      this.event.publish('app.save', event);
+    }
+
+    // 89 === Y
+    if (event.keyCode === 89 && this.isCtrlMetaKeyDown) {
+      event.preventDefault();
+      if (!this.wasUndoRedo) {
+        this.redo();
+        this.wasUndoRedo = true;
+      }
+    }
+
     // 90 === Z
     if (event.keyCode === 90 && this.isCtrlMetaKeyDown) {
       event.preventDefault();
       if (!this.wasUndoRedo) {
         this.undo();
-        this.wasUndoRedo = true;
-      }
-    }
-
-    // 90 === Y
-    if (event.keyCode === 89 && this.isCtrlMetaKeyDown) {
-      event.preventDefault();
-      if (!this.wasUndoRedo) {
-        this.redo();
         this.wasUndoRedo = true;
       }
     }
@@ -180,6 +200,10 @@ export default class App {
    * @param {object} event - Kep up event object.
    */
   keyUpHandler (event) {
+    if (checkTextInputFocus()) { return; }
+
+    event.preventDefault();
+
     if (event.code === 'ControlLeft' || event.code === 'MetaLeft') {
       this.isCtrlMetaKeyDown = false;
     }
@@ -368,8 +392,6 @@ export default class App {
 
     this.globalError = true;
     this.globalErrorMsg = msg;
-
-    $(this.baseEl).addClass('is-global-error');
 
     this.globalErrorDisplay = setTimeout(
       this.hideGlobalError.bind(this), duration

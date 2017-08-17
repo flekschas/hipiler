@@ -4,6 +4,12 @@ export const rao2014Gm12878Mbol1kbMresChr22Loops = {
   url: 'https://rawgit.com/flekschas/8b0163f25fd4ffb067aaba2a595da447/raw/rao-2014-gm12878-mbol-1kb-mres-chr22-loops.json'
 };
 
+export const rao2014Gm12878Mbol1kbMresChr4Tads = {
+  name: 'TADs in chromosome 4 of GM12878',
+  data: 'Rao et al. (2014) GM12878 Mbol 1kb',
+  url: 'https://rawgit.com/flekschas/37b6293b82b5b3e5fb56de9827100797/raw/rao-2014-gm12878-mbol-1kb-mres-chr4-tads.json'
+};
+
 export const rao2014Gm12878Mbol1kbMresTelomeres = {
   name: 'Telomere contacts of GM2878',
   data: 'Rao et al. (2014) GM12878 Mbol 1kb',
@@ -18,6 +24,7 @@ export const rao2014Gm12878VsK562Mbol1kbMresTelomeres = {
 
 export default [
   rao2014Gm12878Mbol1kbMresChr22Loops,
+  rao2014Gm12878Mbol1kbMresChr4Tads,
   rao2014Gm12878Mbol1kbMresTelomeres,
   rao2014Gm12878VsK562Mbol1kbMresTelomeres
 ];

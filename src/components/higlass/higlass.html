@@ -1,4 +1,5 @@
 <template>
+  <require from="components/dialog/dialog"></require>
   <require from="components/svg-icon/svg-icon"></require>
   <require from="components/spinner.html"></require>
 
@@ -14,11 +15,17 @@
     </div>
   </div>
 
+  <dialog
+    class="flex-c flex-a-c flex-jc-c full-dim ${dialogIsOpen ? 'is-active' : ''}"
+    deferred.bind="dialogDeferred"
+    is-open.bind="dialogIsOpen"
+    message.bind="dialogMessage"></dialog>
+
   <div class="full-wh flex-c flex-d-c" ref="baseEl">
     <main class="flex-g-1 rel">
       <div class="full-dim" ref="plotEl"></div>
     </main>
-    <footer class="bottom-bar">
+    <footer class="flex-c flex-jc-sb bottom-bar">
       <ul class="flex-c settings-list">
         <li class="flex-c flex-d-c">
           <label
@@ -26,7 +33,7 @@
           <input
             type="checkbox"
             id="settings-hg-grayscale"
-            checked.bind="!!grayscale"
+            checked.one-way="!!grayscale"
             click.delegate="grayscaleChangeHandler()">
         </li>
         <li class="flex-c flex-d-c">
@@ -36,7 +43,7 @@
           <input
             type="checkbox"
             id="settings-hg-highlight-fragments"
-            checked.bind="fragmentsHighlight"
+            checked.one-way="fragmentsHighlight"
             click.delegate="fragmentsHighlightChangeHandler()">
         </li>
         <li class="flex-c flex-d-c">
@@ -46,7 +53,7 @@
           <input
             type="checkbox"
             id="settings-fgm-selection"
-            checked.bind="fragmentsSelection"
+            checked.one-way="fragmentsSelection"
             click.delegate="fragmentsSelectionChangeHandler()">
         </li>
         <li class="flex-c flex-d-c">
@@ -57,7 +64,7 @@
             type="checkbox"
             id="settings-fgm-selection-fadeout"
             disabled.bind="!fragmentsSelection"
-            checked.bind="fragmentsSelectionFadeOut"
+            checked.one-way="fragmentsSelectionFadeOut"
             click.delegate="fragmentsSelectionFadeOutChangeHandler()">
         </li>
 <!--         <li if.bind="currentRoute !== 'matrix'">
@@ -68,6 +75,16 @@
             <svg-icon icon-id="external"></svg-icon>
           </a>
         </li> -->
+      </ul>
+
+      <ul class="flex-c settings-list settings-list-buttons-only">
+        <li>
+          <button
+            class="flex-c flex-jc-c flex-a-c rel button"
+            click.delegate="infoHiGlass()">
+            <svg-icon icon-id="info"></svg-icon>
+          </button>
+        </li>
       </ul>
     </footer>
   </div>

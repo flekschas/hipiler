@@ -1,9 +1,15 @@
 <template>
   <require from="components/footer-main/footer-main"></require>
+  <require from="components/svg-icon/svg-icon"></require>
 
-  <div class="flex-c flex-d-c full-wh">
-    <main class="flex-g-1">
-      <p>Ups! The page you are trying to access doesn't exist. May we kindly ask you to check the URL for typos or to send us an angry email complaining about a bug?</p>
+  <div class="flex-c flex-d-c full-wh not-found">
+    <main class="flex-g-1 wrap">
+      <div class="flex-c flex-d-c flex-a-c">
+        <svg-icon icon-id="sad"></svg-icon>
+        <h2>Oh no! This shouldn't have happened.</h2>
+      </div>
+
+      <p class="intro is-increased-line-height">The page you are trying to access doesn't exist. May we kindly ask you to check the URL for typos or to send us an angry message complaining about the bug?</p>
     </main>
     <footer-main></footer-main>
   </div>

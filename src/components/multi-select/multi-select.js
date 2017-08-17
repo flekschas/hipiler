@@ -90,6 +90,8 @@ export class MultiSelect {
     if (this.disabled) { return; }
     this.focusedOptionId = -1;
     this.optionsIsActive = true;
+
+    return true;
   }
 
   deactivateOptions () {

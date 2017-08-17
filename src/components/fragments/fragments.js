@@ -18,17 +18,20 @@ import {
   Vector3,
   WebGLRenderer
 } from 'three';
+import normalizeWheel from 'normalize-wheel';
 
 // Injectables
 import ChromInfo from 'services/chrom-info';  // eslint-disable-line
+import Export from 'services/export';  // eslint-disable-line
 import States from 'services/states';  // eslint-disable-line
 
 // Utils etc.
 import {
-  closePilesInspection,
-  dispersePiles,
+  closePilesInspectionSelect,
+  dispersePilesAnnoSelect,
   dispersePilesInspection,
-  inspectPiles,
+  inspectPilesSelect,
+  selectPile,
   setAnimation,
   setArrangeMeasures,
   setCellSize,
@@ -52,6 +55,7 @@ import {
   setTsnePerplexity,
   splitPilesInspection,
   stackPiles,
+  stackPilesSelect,
   stackPilesInspection,
   trashPiles,
   trashPilesInspection
@@ -130,7 +134,9 @@ import { EVENT_BASE_NAME } from 'components/multi-select/multi-select-defaults';
 import COLORS from 'configs/colors';
 
 import arraysEqual from 'utils/arrays-equal';
+import downloadAsJson from 'utils/download-as-json';
 import hilbertCurve from 'utils/hilbert-curve';
+import objValsToStr from 'utils/object-values-to-string';
 import { requestNextAnimationFrame } from 'utils/request-animation-frame';
 
 
@@ -172,11 +178,11 @@ const sortAsc = (a, b) => {
 let fgmState = FgmState.get();
 
 
-@inject(ChromInfo, EventAggregator, States)
+@inject(ChromInfo, EventAggregator, Export, States)
 export class Fragments {
   @bindable baseElIsInit = false;  // eslint-disable-line
 
-  constructor (chromInfo, event, states) {
+  constructor (chromInfo, event, exportData, states) {
     this.event = event;
     this.chromInfo = chromInfo;
 
@@ -185,7 +191,7 @@ export class Fragments {
     this.unsubscribeStore = this.store.subscribe(this.update.bind(this));
 
     this.arrangeMeasures = [];
-    this.attrsCatOther = [];
+    this.userSpecificCategories = [];
     this.clusterPos = {};
     this.colorsMatrixIdx = {};
     this.colorsUsed = [];
@@ -339,6 +345,8 @@ export class Fragments {
     this.checkBaseElIsInit();
 
     fgmState.render = this.render;
+
+    exportData.register('piles', this.exportPiles.bind(this));
   }
 
 
@@ -550,6 +558,15 @@ export class Fragments {
    */
   animationChangeHandler () {
     this.store.dispatch(setAnimation(!fgmState.animation));
+  }
+
+  /**
+   * Annotate a pile with text.
+   *
+   * @param {object} pile - Pile to be annotated
+   */
+  annotatePile (pile) {
+
   }
 
   /**
@@ -978,9 +995,7 @@ export class Fragments {
    * Handle click events
    */
   canvasClickHandler (event) {
-    if (this.mouseIsDown) {
-      return;
-    }
+    if (this.mouseIsDown) { return; }
 
     if (this.hoveredTool) {
       this.hoveredTool.trigger(this.hoveredTool.pile);
@@ -996,27 +1011,19 @@ export class Fragments {
       this.hoveredStrandArrow.userData.pile.flipMatrix(
         this.hoveredStrandArrow.userData.axis
       ).draw();
-      this.store.dispatch(setMatrixOrientation(MATRIX_ORIENTATION_UNDEF));
+      this.event.publish('explore.fgm.redrawPiles');
+      fgmState.matrixOrientation = MATRIX_ORIENTATION_UNDEF;
     }
 
     if (fgmState.hoveredPile) {
       this.highlightPile(fgmState.hoveredPile);
+      this.selectPile(fgmState.hoveredPile);
     } else {
       this.showPileMenu();
       this.highlightPile();
     }
 
     this.render();
-
-    requestNextAnimationFrame(() => {
-      if (fgmState.hoveredPile) {
-        // Show pile location
-        this.event.publish(
-          'explore.fgm.pileFocus',
-          fgmState.hoveredPile.pileMatrices.map(matrix => matrix.id)
-        );
-      }
-    });
   }
 
   /**
@@ -1044,8 +1051,6 @@ export class Fragments {
 
     if (event.which !== 1) { return; }
 
-    event.preventDefault();
-
     this.mouseWentDown = true;
     this.mouseIsDown = true;
     this.dragStartPos = {
@@ -1064,8 +1069,6 @@ export class Fragments {
    * @param {object} event - Mouse move event.
    */
   canvasMouseMoveHandler (event) {
-    event.preventDefault();
-
     this.hoveredTool = undefined;
     this.hoveredStrandArrow = undefined;
 
@@ -1152,8 +1155,6 @@ export class Fragments {
    * @param {object} event - Mouse up event.
    */
   canvasMouseUpHandler (event) {
-    event.preventDefault();
-
     fgmState.scene.updateMatrixWorld();
     this.camera.updateProjectionMatrix();
     fgmState.scene.remove(this.lassoObject);
@@ -1218,15 +1219,16 @@ export class Fragments {
    */
   canvasMouseWheelHandler (event) {
     event.preventDefault();
+    const normalizedDeltaY = -1 * normalizeWheel(event).pixelY;
 
     if (!this.isLayout1d) {
       if (this.isZoomPan) {
         this.scalePlot(event);
       } else if (fgmState.hoveredPile) {
-        this.scalePile(fgmState.hoveredPile, event.wheelDelta);
+        this.scalePile(fgmState.hoveredPile, normalizedDeltaY);
       }
     } else {
-      this.scrollView(event.wheelDelta);
+      this.scrollView(normalizedDeltaY);
     }
 
     this.render();
@@ -1266,7 +1268,7 @@ export class Fragments {
   closePilesInspectionHandler () {
     if (!fgmState.isPilesInspection) { return; }
 
-    this.store.dispatch(closePilesInspection());
+    this.store.dispatch(closePilesInspectionSelect());
   }
 
   /**
@@ -1508,6 +1510,15 @@ export class Fragments {
   }
 
   /**
+   * Deselect a pile.
+   *
+   * @param {object} pile - Pile to be selected.
+   */
+  deselectPile (pile) {
+    this.store.dispatch(selectPile(null));
+  }
+
+  /**
    * Disperse piles into their snippets.
    *
    * @param {object} piles - A list of piles to be dispersed.
@@ -1544,9 +1555,16 @@ export class Fragments {
       if (fgmState.isPilesInspection) {
         this.store.dispatch(dispersePilesInspection(pilesToBeDispersed));
       } else {
-        this.store.dispatch(dispersePiles(pilesToBeDispersed));
+        this.store.dispatch(dispersePilesAnnoSelect(pilesToBeDispersed));
       }
     });
+  }
+
+  /**
+   * Download export data as JSON
+   */
+  downloadExportedPiles () {
+    downloadAsJson(this.exportPiles());
   }
 
   /**
@@ -1568,8 +1586,8 @@ export class Fragments {
     }
 
     this.dragPile.moveTo(
-      this.relToAbsPositionX(this.mouse.x),
-      this.relToAbsPositionY(this.mouse.y),
+      this.relToAbsPositionX(this.mouse.x) + this.dragPileCenterOffset.x,
+      this.relToAbsPositionY(this.mouse.y) + this.dragPileCenterOffset.y,
       true
     );
   }
@@ -1581,9 +1599,13 @@ export class Fragments {
     // Don't do raycasting. "Freeze" the current state of
     // highlighte items and move matrix with cursor.
     this.dragPile = fgmState.hoveredPile;
-    this.dragPile.moveTo(
+    this.dragPileCenterOffset = this.dragPile.centerOffSet(
       this.relToAbsPositionX(this.mouse.x),
-      this.relToAbsPositionY(this.mouse.y),
+      this.relToAbsPositionY(this.mouse.y)
+    );
+    this.dragPile.moveTo(
+      this.relToAbsPositionX(this.mouse.x) + this.dragPileCenterOffset.x,
+      this.relToAbsPositionY(this.mouse.y) + this.dragPileCenterOffset.y,
       true
     );
     this.dragPile.elevateTo(Z_DRAG);
@@ -1805,13 +1827,65 @@ export class Fragments {
   }
 
   /**
+   * Export state of piling
+   *
+   * @return {object} Export.
+   */
+  exportPiles () {
+    const output = [];
+
+    try {
+      const state = this.store.getState().present.explore.fragments;
+
+      Object.keys(state.piles).forEach((matrixId) => {
+        const trashed = matrixId[0] === '_';
+        const id = parseInt(trashed ? matrixId.slice(1) : matrixId, 10);
+        const color = state.matricesColors[id];
+        const numMats = state.piles[matrixId].length;
+
+        let pile = id;
+        if (!numMats) {
+          // Pile as been piled
+          pile = fgmState.matricesIdx[id].pile.idNumeric;
+        }
+
+        const notes = state.annotations[`_${id}`];
+        const pileNotes = state.annotations[pile];
+
+        output.push({
+          id,
+          pile,
+          color,
+          trashed,
+          notes,
+          pileNotes
+        });
+
+        output.sort((x, y) => {
+          if (x.id < y.id) { return -1; }
+          if (x.id > y.id) { return 1; }
+          return 0;
+        });
+      });
+    } catch (error) {
+      logger.error('Could not export piles', error);
+      return {
+        errorMsg: 'Could not export piles',
+        error
+      };
+    }
+
+    return output;
+  }
+
+  /**
    * Extract loci object.
    *
    * @param {object} config - Fragment config.
    * @return {array} API ready loci list
    */
   extractLoci (config) {
-    const header = config.fragments[0];
+    const header = config.fragments[0].map(entry => entry.toLowerCase());
 
     const chrom1 = header.indexOf('chrom1');
     const start1 = header.indexOf('start1');
@@ -1820,7 +1894,7 @@ export class Fragments {
     const start2 = header.indexOf('start2');
     const end2 = header.indexOf('end2');
     const dataset = header.indexOf('dataset');
-    const zoomOutLevel = header.indexOf('zoomOutLevel');
+    const zoomOutLevel = header.indexOf('zoomoutlevel');
 
     if (-1 in [
       chrom1, start1, end1, chrom2, start2, end2, dataset, zoomOutLevel
@@ -2088,6 +2162,21 @@ export class Fragments {
   }
 
   /**
+   * Get piles instances of matrices.
+   *
+   * @param {array} matrices - List of matrices for which a unique list of piles
+   *   is to be obtained.
+   * @return {object} Object holding the unique set of piles for the matrices.
+   */
+  getPilesFromMatrices (matrices) {
+    return matrices.reduce((piles, matrix) => {
+      piles[matrix.pile.id] = true;
+
+      return piles;
+    }, {});
+  }
+
+  /**
    * Get matrices of piles
    *
    * @param {array} piles - Piles.
@@ -2110,64 +2199,103 @@ export class Fragments {
     return this.plotElDim;
   }
 
+  /**
+   * Group by category change event handler.
+   *
+   * @param {object} event - CHange event object.
+   */
   groupByCategorySelectChangeHandler (event) {
     this.categoryForGrouping = event.target.value;
   }
 
-  getPilesFromMatrices (matrices) {
-    return matrices.reduce((piles, matrix) => {
-      piles[matrix.pile.id] = true;
-
-      return piles;
-    }, {});
-  }
-
+  /**
+   * Pile snippets (and piles) automatically by category.
+   *
+   * @param {string} category - Category ID.
+   */
   groupByCategory (category = this.categoryForGrouping) {
+    const batchPileStacking = {};
+    const pilesByCats = {};
+    let mapper;
+
     if (this.colorsUsed.some(cat => cat.id === category)) {
-      // Group by color
-
+      // Group by color:
+      // Grouping by color is done differently as colors are always associated
+      // to an entire stack
       const piles = this.getPilesFromMatrices(this.colorsMatrixIdx[category]);
-      const batchPileStacking = {
-        [Object.keys(piles)[0]]: Object.keys(piles).slice(1)
-      };
-
-      this.pileUp(batchPileStacking);
+      batchPileStacking[Object.keys(piles)[0]] = Object.keys(piles).slice(1);
     } else {
-      switch (category) {
-        case CAT_LOCATION: {
-          const batchPileStacking = {};
-          const pilesByLocation = {};
+      // Piling by matrix-specific categories
+      // Note: only piles with a unique category are actually piled up.
+      if (category[0] === '_') {
+        // Pile by user-specified category
+        category = category.slice(1);
 
-          this.piles.forEach((pile) => {
-            if (pile.pileMatrices.length === 1) {
-              const matrix = pile.pileMatrices[0];
-              const locus = Object.keys(matrix.locus)
-                .map(key => matrix.locus[key])
-                .reduce((str, value) => str.concat(value), '');
+        mapper = matrix => matrix.categories[category];
+      } else {
+        switch (category) {
+          case CAT_CHROMOSOME:
+            mapper = matrix => `${matrix.locus.chrom1}${matrix.locus.chrom2}`;
+            break;
 
-              if (pilesByLocation[locus]) {
-                pilesByLocation[locus].push(pile);
-              } else {
-                pilesByLocation[locus] = [pile];
-              }
-            }
-          });
+          case CAT_DATASET:
+            mapper = matrix => matrix.dataset;
+            break;
 
-          Object.keys(pilesByLocation).forEach((locus) => {
-            if (pilesByLocation[locus].length > 1) {
-              batchPileStacking[pilesByLocation[locus][0].id] =
-                pilesByLocation[locus].slice(1).map(matrix => matrix.id);
-            }
-          });
+          case CAT_LOCATION: {
+            mapper = matrix => objValsToStr(matrix.locus);
+            break;
+          }
 
-          this.pileUp(batchPileStacking);
-          break;
+          case CAT_ZOOMOUT_LEVEL:
+            mapper = matrix => matrix.resolution;
+            break;
+
+          default:
+            // Nothing
+            break;
+        }
+      }
+
+      // Group by category
+      this.piles.forEach((pile) => {
+        const cats = pile.pileMatrices.map(mapper);
+
+        let cat;
+        if (cats.length) {
+          cat = cats.reduce((a, b) => (a === b ? a : NaN));
+          cat = Number.isNaN(cat) ? undefined : cat;
+
+          if (typeof cat === 'undefined') {
+            logger.info(
+              'The pile contains matrices which are part of different ' +
+              'categories. Therefore, this pile is ignore during this ' +
+              'piling process. The categories of this pile are as follows:',
+              cats
+            );
+          }
         }
 
-        default:
-          // Nothing
-          break;
-      }
+        if (pilesByCats[cat]) {
+          pilesByCats[cat].push(pile.id);
+        } else {
+          pilesByCats[cat] = [pile.id];
+        }
+      });
+
+      // Create batch piling object
+      Object.keys(pilesByCats).forEach((cat) => {
+        if (cat !== 'undefined' && pilesByCats[cat].length > 1) {
+          batchPileStacking[pilesByCats[cat][0]] =
+            pilesByCats[cat].slice(1);
+        }
+      });
+    }
+
+    logger.info('groupByCategory():', batchPileStacking);
+
+    if (Object.keys(batchPileStacking).length) {
+      this.pileUp(batchPileStacking);
     }
   }
 
@@ -2378,7 +2506,8 @@ export class Fragments {
     });
     this.dialogIsOpen = true;
     this.dialogMessage =
-      'HiPiler uses t-SNE for dimensionality reduction when the number of ' +
+      'HiPiler uses <strong>t-SNE</strong> for dimensionality reduction when ' +
+      'the number of ' +
       'chosen measures for arranging snippets is higher than 2 or when ' +
       'directly clicking on <em>Cluster</em>. While t-SNE works very well ' +
       'with default settings most of the time you might want to tweak the ' +
@@ -2389,6 +2518,10 @@ export class Fragments {
       'at the <a href="https://github.com/scienceai/tsne-js#model-' +
       'parameters" target="_blank">project page</a> of the JavaScript ' +
       'implementation';
+
+    this.dialogPromise.catch(() => {
+      //Nothing
+    });
   }
 
   /**
@@ -2404,22 +2537,36 @@ export class Fragments {
    * Highlight a pile.
    *
    * @param {object} pile - Pile to be highlighted.
+   * @param {boolean} forceRendering - If `true` force rerendering.
    */
-  highlightPile (pile) {
-    if (this.pileHighlight) {
-      this.pileHighlight.frameReset();
+  highlightPile (pile, forceRendering) {
+    if (fgmState.pileHighlight) {
+      fgmState.pileHighlight.frameReset();
+      const prevPile = fgmState.pileHighlight;
+      fgmState.pileHighlight = undefined;
 
       this.event.publish(
         'explore.fgm.pileBlur',
-        this.pileHighlight.pileMatrices.map(matrix => matrix.id)
+        prevPile.pileMatrices.map(matrix => matrix.id)
       );
-
-      this.pileHighlight = undefined;
     }
 
     if (typeof pile !== 'undefined') {
       pile.frameHighlight();
-      this.pileHighlight = pile;
+      fgmState.pileHighlight = pile;
+      requestNextAnimationFrame(() => {
+        if (fgmState.pileHighlight) {
+          // Show pile location
+          this.event.publish(
+            'explore.fgm.pileFocus',
+            fgmState.pileHighlight.pileMatrices.map(matrix => matrix.id)
+          );
+        }
+      });
+    }
+
+    if (forceRendering) {
+      this.render();
     }
   }
 
@@ -2450,6 +2597,23 @@ export class Fragments {
   }
 
   /**
+   * Initialize categorical columns.
+   *
+   * @param {array} header - Data header that contains the measures.
+   */
+  initCategories (header) {
+    header.forEach((field, index) => {
+      if (field[0] === '_') {
+        this.userSpecificCategories.push({
+          id: field,
+          idx: index,
+          name: this.wurstCaseToNice(field)
+        });
+      }
+    });
+  }
+
+  /**
    * Combine the config and raw matrix to the final data model
    *
    * @param {object} config - Fragment config.
@@ -2457,7 +2621,9 @@ export class Fragments {
    * @return {object} Object with the config and combined raw matrices.
    */
   initData (config, rawMatrices) {
-    const header = ['matrix', ...config.fragments[0]];
+    const header = [
+      'matrix', ...config.fragments[0].map(entry => entry.toLowerCase())
+    ];
     const fragments = config.fragments.slice(1).map(
       (fragment, index) => [rawMatrices[index], ...fragment]
     );
@@ -2472,7 +2638,7 @@ export class Fragments {
     this.dataIdxEnd2 = header.indexOf('end2');
     this.dataIdxStrand2 = header.indexOf('strand2');
     this.dataIdxDataset = header.indexOf('dataset');
-    this.dataIdxZoomOutLevel = header.indexOf('zoomOutLevel');
+    this.dataIdxZoomOutLevel = header.indexOf('zoomoutlevel');
 
     const usedIdx = [
       this.dataIdxMatrix,
@@ -2496,6 +2662,9 @@ export class Fragments {
     // Extract measures
     this.initMeasures(header, usedIdx);
 
+    // Extract categorical columns
+    this.initCategories(header);
+
     this.selectMeasure(this.arrangeMeasures, fgmState.measures);
 
     // Let the multi/select component know
@@ -2510,39 +2679,31 @@ export class Fragments {
    * Initialize event listeners
    */
   initEventListeners () {
-    this.preventDefault = event => event.preventDefault();
-
     this.canvas.addEventListener(
-      'click', this.preventDefault, false
+      'contextmenu', this.canvasContextMenuHandler.bind(this)
     );
 
     this.canvas.addEventListener(
-      'contextmenu', this.canvasContextMenuHandler.bind(this), false
+      'mousedown', this.canvasMouseDownHandler.bind(this)
     );
 
     this.canvas.addEventListener(
-      'dblclick', this.preventDefault, false
+      'mouseleave', this.canvasMouseUpHandler.bind(this)
     );
 
     this.canvas.addEventListener(
-      'mousedown', this.canvasMouseDownHandler.bind(this), false
+      'mousemove', this.canvasMouseMoveHandler.bind(this)
     );
 
     this.canvas.addEventListener(
-      'mouseleave', this.canvasMouseUpHandler.bind(this), false
+      'mouseup', this.canvasMouseUpHandler.bind(this)
     );
 
     this.canvas.addEventListener(
-      'mousemove', this.canvasMouseMoveHandler.bind(this), false
+      'wheel', this.canvasMouseWheelHandler.bind(this)
     );
 
-    this.canvas.addEventListener(
-      'mouseup', this.canvasMouseUpHandler.bind(this), false
-    );
-
-    this.canvas.addEventListener(
-      'mousewheel', this.canvasMouseWheelHandler.bind(this), false
-    );
+    this.subscriptions = [];
 
     this.subscriptions.push(this.event.subscribe(
       `${EVENT_BASE_NAME}.${this.arrangeSelectedEventId}`,
@@ -2560,6 +2721,16 @@ export class Fragments {
     ));
 
     this.subscriptions.push(this.event.subscribe(
+      'app.save',
+      this.downloadExportedPiles.bind(this)
+    ));
+
+    this.subscriptions.push(this.event.subscribe(
+      'explore.fgm.annotatePile',
+      this.annotatePile.bind(this)
+    ));
+
+    this.subscriptions.push(this.event.subscribe(
       'explore.fgm.coverDispMode',
       this.changeCoverDispMode.bind(this)
     ));
@@ -2567,6 +2738,11 @@ export class Fragments {
     this.subscriptions.push(this.event.subscribe(
       'explore.fgm.dispersePiles',
       this.dispersePilesHandler.bind(this)
+    ));
+
+    this.subscriptions.push(this.event.subscribe(
+      'explore.fgm.highlightPile',
+      this.highlightPile.bind(this)
     ));
 
     this.subscriptions.push(this.event.subscribe(
@@ -2622,9 +2798,14 @@ export class Fragments {
 
     fragments.forEach((fragment, index) => {
       const measures = {};
+      const categories = {};
 
       Object.keys(this.dataMeasures).forEach((measure) => {
         measures[measure] = fragment[this.dataMeasures[measure]];
+      });
+
+      this.userSpecificCategories.forEach((cat) => {
+        categories[cat.id.slice(1)] = fragment[cat.idx];
       });
 
       const matrix = new Matrix(
@@ -2638,12 +2819,14 @@ export class Fragments {
           start2: fragment[this.dataIdxStart2],
           end2: fragment[this.dataIdxEnd2]
         },
+        fragment[this.dataIdxDataset],
         baseRes * (2 ** fragment[this.dataIdxZoomOutLevel]),
         {
           strand1: fragment[this.dataIdxStrand1],
           strand2: fragment[this.dataIdxStrand2]
         },
-        measures
+        measures,
+        categories
       );
 
       fgmState.matrices.push(matrix);
@@ -2662,7 +2845,7 @@ export class Fragments {
     fgmState.measures = [];
 
     header.forEach((field, index) => {
-      if (!(index in usedIdx) && field[0] !== '_') {
+      if (usedIdx.indexOf(index) === -1 && field[0] !== '_') {
         this.dataMeasures[field] = index;
         fgmState.measures.push({
           id: field,
@@ -2825,7 +3008,7 @@ export class Fragments {
       pilesConfig[pile.id] = pile.pileMatrices.map(pileMatrix => pileMatrix.id);
     });
 
-    this.store.dispatch(inspectPiles(pilesConfig));
+    this.store.dispatch(inspectPilesSelect(pilesConfig));
   }
 
   /**
@@ -2949,10 +3132,26 @@ export class Fragments {
         params['no-balance'] = 1;
       }
 
+      if (config.fragmentsPercentile) {
+        params.percentile = Math.max(
+          0, Math.min(100, parseInt(config.fragmentsPercentile, 10))
+        );
+      }
+
+      if (config.fragmentsIgnoreDiags) {
+        params['ignore-diags'] = Math.max(
+          0, Math.min(3, parseInt(config.fragmentsIgnoreDiags, 10))
+        );
+      }
+
       const queryString = this.prepareQueryString(params);
 
       // Remove trailing slashes
-      const server = config.fragmentsServer.replace(/\/+$/, '');
+      let server = config.fragmentsServer.replace(/\/+$/, '');
+
+      if (server.slice(-7) !== '/api/v1') {
+        server += '/api/v1';
+      }
 
       try {
         url = `${server}/${endpoint}/${queryString}`;
@@ -2961,13 +3160,9 @@ export class Fragments {
         reject(Error(this.errorMsg));
       }
 
-      const postData = {
-        loci: this.extractLoci(config)
-      };
-
       json(url)
         .header('Content-Type', 'application/json')
-        .post(JSON.stringify(postData), (error, results) => {
+        .post(JSON.stringify(this.extractLoci(config)), (error, results) => {
           if (error) {
             this.hasErrored('Could not load data');
             this.reject.isDataLoaded(Error(this.errorMsg));
@@ -3299,11 +3494,11 @@ export class Fragments {
         fgmState.matrices.forEach((matrix) => {
           if (
             (
-              matrix.orientation.strand1 === 'coding' &&
+              Matrix.isCodingStrand(matrix.orientation.strand1) &&
               matrix.orientationX === -1
             ) ||
             (
-              matrix.orientation.strand1 !== 'coding' &&
+              !Matrix.isCodingStrand(matrix.orientation.strand1) &&
               matrix.orientationX === 1
             )
           ) {
@@ -3311,11 +3506,11 @@ export class Fragments {
           }
           if (
             (
-              matrix.orientation.strand2 === 'coding' &&
+              Matrix.isCodingStrand(matrix.orientation.strand2) &&
               matrix.orientationY === -1
             ) ||
             (
-              matrix.orientation.strand2 !== 'coding' &&
+              !Matrix.isCodingStrand(matrix.orientation.strand2) &&
               matrix.orientationY === 1
             )
           ) {
@@ -3459,7 +3654,7 @@ export class Fragments {
       if (fgmState.isPilesInspection) {
         this.store.dispatch(stackPilesInspection(config));
       } else {
-        this.store.dispatch(stackPiles(config));
+        this.store.dispatch(stackPilesSelect(config, Object.keys(config)[0]));
       }
     });
   }
@@ -3528,6 +3723,7 @@ export class Fragments {
    */
   redrawPiles (piles = this.piles) {
     piles.forEach(pile => pile.draw());
+    this.event.publish('explore.fgm.redrawPiles');
   }
 
   /**
@@ -3814,6 +4010,15 @@ export class Fragments {
   }
 
   /**
+   * Select a pile.
+   *
+   * @param {object} pile - Pile to be selected.
+   */
+  selectPile (pile) {
+    this.store.dispatch(selectPile(pile.id));
+  }
+
+  /**
    * Set from disperse for nice disperse animations
    *
    * @param {object} piles - A list of piles to be dispersed.
@@ -3853,6 +4058,7 @@ export class Fragments {
    */
   setPilesFromConfig (pilesConfig, ignore = {}) {
     const ready = [];
+    this.pileDetailsNeedsUpdate = false;
 
     Object.keys(pilesConfig).forEach((pileId) => {
       if (ignore[pileId]) { return; }
@@ -3864,18 +4070,30 @@ export class Fragments {
       if (matrixIds.length) {
         // Get or create pile
         if (!pile) {
+          if (
+            fgmState.matricesIdx[pileId] && fgmState.matricesIdx[pileId].pile
+          ) {
+            this.fromDisperse = this.fromDisperse || {};
+            this.fromDisperse[pileId] = fgmState.matricesIdx[pileId].pile;
+          }
           pile = this.pileCreate(pileId, fgmState.matrices.length);
           this.destroyAltPile(pileId);
         }
 
+        const pileReady = pile.setMatrices(
+          matrixIds.map(matrixId => fgmState.matrices[matrixId])
+        );
+
         // Add matrices onto pile
-        ready.push(pile.setMatrices(
-          matrixIds
-            .map(matrixId => fgmState.matrices[matrixId])
-            // This causes an issue when snippets are faded out. I also forgot
-            // why I added this.
-            // .filter(matrix => matrix.visible)
-        ));
+        ready.push(pileReady);
+
+        if (this.pileSelected === pile.id) {
+          pileReady.then((val) => {
+            if (val && val.noChange) { return; }
+
+            this.pileDetailsNeedsUpdate = true;
+          });
+        }
 
         // Check if there is a pile that is dispersable
         if (!this.isDispersable) {
@@ -4302,16 +4520,16 @@ export class Fragments {
     this.subscriptions = undefined;
 
     // Remove basic JS event listeners.
-    this.canvas.removeEventListener('click', this.preventDefault);
-    this.canvas.removeEventListener(
-      'contextmenu', this.canvasContextMenuHandler
-    );
-    this.canvas.removeEventListener('dblclick', this.preventDefault);
-    this.canvas.removeEventListener('mousedown', this.canvasMouseDownHandler);
-    this.canvas.removeEventListener('mouseleave', this.canvasMouseUpHandler);
-    this.canvas.removeEventListener('mousemove', this.canvasMouseMoveHandler);
-    this.canvas.removeEventListener('mouseup', this.canvasMouseUpHandler);
-    this.canvas.removeEventListener('mousewheel', this.canvasMouseWheelHandler);
+    if (this.canvas) {
+      this.canvas.removeEventListener(
+        'contextmenu', this.canvasContextMenuHandler
+      );
+      this.canvas.removeEventListener('mousedown', this.canvasMouseDownHandler);
+      this.canvas.removeEventListener('mouseleave', this.canvasMouseUpHandler);
+      this.canvas.removeEventListener('mousemove', this.canvasMouseMoveHandler);
+      this.canvas.removeEventListener('mouseup', this.canvasMouseUpHandler);
+      this.canvas.removeEventListener('mousewheel', this.canvasMouseWheelHandler);
+    }
   }
 
   /**
@@ -4361,6 +4579,9 @@ export class Fragments {
       ));
       ready.push(this.updatePilesInspection(stateFgm.pilesInspection, update));
       ready.push(this.updatePiles(stateFgm.piles, update));
+      ready.push(this.updatePileSelected(
+        stateFgm.pileSelected
+      ));
       ready.push(this.updateShowSpecialCells(
         stateFgm.showSpecialCells, update
       ));
@@ -4380,6 +4601,7 @@ export class Fragments {
       Promise.all([this.isInitFully, ...ready]).finally(() => {
         if (!noRendering) {
           this.updateRendering(update);
+          fgmState.resolve.isReady();
         }
       });
     } catch (error) {
@@ -4401,23 +4623,24 @@ export class Fragments {
       this.orientMatrices();
     }
 
-    if (update.pileFrames) {
-      this.piles.forEach(pile => pile.frameUpdate());
+    if (update.pileFrameStyles) {
+      this.piles.forEach(pile => pile.frameUpdateStyle());
     }
 
-    if (update.pileFramesRecreate) {
-      this.piles.forEach(pile => pile.frameCreate());
+    if (update.pileFrameScales) {
+      this.piles.forEach(pile => pile.frameUpdateScale());
     }
 
     if (update.pileCover) {
       this.piles.forEach(pile => pile.calculateCoverMatrix());
     }
 
-    if (
-      (update.piles || update.pileFramesRecreate) &&
-      !update.drawPilesAfter
-    ) {
+    if (update.piles && !update.drawPilesAfter) {
       this.redrawPiles();
+    }
+
+    if (update.pileScales) {
+      this.piles.forEach(pile => pile.updateScale());
     }
 
     if (!(update.piles || update.drawPilesAfter)) {
@@ -4494,6 +4717,10 @@ export class Fragments {
     if (update.hideTrash) {
       this.hideTrash();
     }
+
+    if (this.pileDetailsNeedsUpdate) {
+      this.event.publish('explore.fgm.pileDetailsRedraw');
+    }
   }
 
   /**
@@ -4554,8 +4781,9 @@ export class Fragments {
     this.updatePreviewScaling();
 
     update.grid = true;
-    update.piles = true;
-    update.pileFramesRecreate = true;
+    // update.piles = true;
+    update.pileScales = true;
+    update.pileFrameScales = true;
     update.layout = true;
     update.scrollLimit = true;
 
@@ -4572,7 +4800,6 @@ export class Fragments {
     if (this.coverDispMode !== coverDispMode) {
       this.coverDispMode = coverDispMode;
 
-      // update.grid = true;
       update.piles = true;
       update.pileCover = true;
     }
@@ -4593,9 +4820,9 @@ export class Fragments {
 
     this.updatePreviewScaling();
 
-    update.piles = true;
-    update.pileFramesRecreate = true;
-    update.pileFramesUpdate = true;
+    // update.piles = true;
+    update.pileScales = true;
+    update.pileFrameScales = true;
     update.scrollLimit = true;
     update.scrollToMax = true;
   }
@@ -4665,7 +4892,8 @@ export class Fragments {
 
     update.grid = true;
     update.layout = true;
-    update.pileFramesRecreate = true;
+    update.pileScales = true;
+    update.pileFrameScales = true;
     update.scrollLimit = true;
     update.scrollToTop = true;
 
@@ -4742,10 +4970,11 @@ export class Fragments {
 
     this.higlassSubSelection = higlassSubSelection;
 
-    update.piles = true;
-    update.pileFrames = true;
-    update.layout = true;
-    update.scrollLimit = true;
+    // Seems to be dead code?!
+    // update.pileOpacities = true;
+    // update.pileFrameStyles = true;
+    // update.layout = true;
+    // update.scrollLimit = true;
 
     return Promise.resolve();
   }
@@ -4892,7 +5121,7 @@ export class Fragments {
 
     fgmState.matrixFrameEncoding = encoding;
 
-    update.pileFrames = true;
+    update.pileFrameStyles = true;
 
     return Promise.resolve();
   }
@@ -5036,6 +5265,15 @@ export class Fragments {
   }
 
   /**
+   * Update selected pile.
+   */
+  updatePileSelected (pileSelected) {
+    this.pileSelected = pileSelected;
+
+    return Promise.resolve();
+  }
+
+  /**
    * Update preview scaling.
    */
   updatePreviewScaling () {
@@ -5164,6 +5402,7 @@ export class Fragments {
    * @return {string} Nicefied string.
    */
   wurstCaseToNice (str) {
+    str = str.replace(/^_+/, '').replace(/_+$/, '');
     return `${str[0].toUpperCase()}${str.slice(1).replace(/[-_]/g, ' ')}`;
   }
 }

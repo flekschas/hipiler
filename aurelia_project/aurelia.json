@@ -201,9 +201,7 @@
           "aurelia-task-queue",
           "aurelia-templating",
           "aurelia-templating-binding",
-          "deep-freeze-strict",
           "json-stringify-safe",
-          "lz-string",
           "text",
           {
             "name": "aurelia-templating-resources",
@@ -222,6 +220,12 @@
             "env": "dev"
           },
           {
+            "name": "deep-freeze-strict",
+            "path": "../node_modules/deep-freeze-strict",
+            "main": "index",
+            "env": "dev"
+          },
+          {
             "name": "inherits",
             "path": "../node_modules/inherits",
             "main": "inherits_browser"
@@ -230,6 +234,11 @@
             "name": "localForage",
             "path": "../node_modules/localforage/dist",
             "main": "localforage"
+          },
+          {
+            "name": "normalize-wheel",
+            "path": "../node_modules/normalize-wheel/src",
+            "main": "normalizeWheel"
           },
           {
             "name": "object-assign",
@@ -263,11 +272,6 @@
             "name": "redux-persist",
             "path": "../node_modules/redux-persist/dist",
             "main": "redux-persist"
-          },
-          {
-            "name": "redux-persist-transform-compress",
-            "path": "../node_modules/redux-persist-transform-compress/lib",
-            "main": "index"
           },
           {
             "name": "redux-thunk",

@@ -185,28 +185,40 @@ export function makeRgbaBuffer (array, alpha = 1.0) {
   return buffer;
 }
 
+const FRAME_GEOMETRY = LINE(
+  [[-0.5, -0.5], [-0.5, 0.5], [0.5, 0.5], [0.5, -0.5]], { closed: true }
+);
+
+const FRAME_GEOMETRY_BASE_POS = FRAME_GEOMETRY
+  .attributes.position.array.slice(0);
+
 export function createLineFrame (width, height, color, lineWidth, opacity) {
-  const wh = width / 2;
-  const hh = height / 2;
+  const frame = new Mesh(
+    FRAME_GEOMETRY.clone(),
+    new ShaderMaterial(LINE_SHADER({
+      side: DoubleSide,
+      diffuse: color,
+      thickness: lineWidth,
+      transparent: true,
+      opacity: typeof opacity === 'undefined' ? 1 : opacity
+    }))
+  );
 
-  const coordinates = [
-    [-wh, -hh],
-    [-wh, hh],
-    [wh, hh],
-    [wh, -hh]
-  ];
+  frame.geometry.scale(width, height, 1);
 
-  const geometry = LINE(coordinates, { closed: true });
+  return frame;
+}
 
-  const material = new ShaderMaterial(LINE_SHADER({
-    side: DoubleSide,
-    diffuse: color,
-    thickness: lineWidth,
-    transparent: true,
-    opacity: typeof opacity === 'undefined' ? 1 : opacity
-  }));
+export function scaleLineFrame (frame, x, y, z = 1) {
+  const len = frame.geometry.attributes.position.array.length / 3;
+  for (let i = 0; i < len; i++) {
+    const idx = i * 3;
+    frame.geometry.attributes.position.array[idx] = x * FRAME_GEOMETRY_BASE_POS[idx];
+    frame.geometry.attributes.position.array[idx + 1] = y * FRAME_GEOMETRY_BASE_POS[idx + 1];
+    frame.geometry.attributes.position.array[idx + 2] = z * FRAME_GEOMETRY_BASE_POS[idx + 2];
+  }
 
-  return new Mesh(geometry, material);
+  frame.geometry.attributes.position.needsUpdate = true;
 }
 
 export function createChMap (
@@ -329,14 +341,33 @@ export function createRect (w, h, color) {
   return new Mesh(geom, m);
 }
 
+const PIXEL_RATIO = (function () {
+  const ctx = document.createElement('canvas').getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const bsr = (
+    ctx.webkitBackingStorePixelRatio ||
+    ctx.mozBackingStorePixelRatio ||
+    ctx.msBackingStorePixelRatio ||
+    ctx.oBackingStorePixelRatio ||
+    ctx.backingStorePixelRatio || 1
+  );
+
+  return dpr / bsr;
+})();
+
 export function createText (label) {
   const canvas = document.createElement('canvas');
   canvas.width = 64;
   canvas.height = 16;
-  const context = canvas.getContext('2d');
-  context.font = '12px Rubik';
-  context.fillStyle = 'rgba(0, 0, 0, 0.25)';
+  const context = canvas.getContext('2d', { alpha: false });
+  context.beginPath();
+  context.rect(0, 0, canvas.width, canvas.height);
+  context.fillStyle = 'white';
+  context.fill();
+  context.font = 'normal normal 300 12px Rubik';
+  context.fillStyle = 'rgba(0, 0, 0, 0.4)';
   context.fillText(label, 0, 12);
+  context.setTransform(PIXEL_RATIO, 0, 0, PIXEL_RATIO, 0, 0);
 
   // canvas contents will be used for a texture
   const texture = new Texture(canvas);

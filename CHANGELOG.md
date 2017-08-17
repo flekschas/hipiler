@@ -1,3 +1,19 @@
+v1.1.0 - 2017-08-17
+
+- Improve frame rendering performance dramatically
+- Improve scale and location updates of snippets to be blazing fast
+- Add pile details panel with annotations
+- Add support for loading configs via the URL `?config=<URL_TO_CONFIG>`
+- Allow config to be more flexible
+- Disable state compression because it's too slow
+- Nicefy disperse animation when doing _undo_
+- Ensure compatability in latest version of Firefox
+- Add link to HiGlass.io
+- Fix minor issue with the arrange field
+- Fix auot-piling by more categorical values (dataset, zoom level, chromosome, or a user-specified category)
+- Add button to explicitely close error messages
+- Fix scrolling in Firefox
+
 v1.0.0 - 2017-07-16
 
 - 5-10x faster snippet rendering

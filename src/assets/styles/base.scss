@@ -33,6 +33,19 @@ footer, header, main, menu, nav, section, summary {
   color: $black;
 }
 
+::-webkit-input-placeholder { /* Chrome/Opera/Safari */
+  color: $gray-light;
+}
+::-moz-placeholder { /* Firefox 19+ */
+  color: $gray-light;
+}
+:-ms-input-placeholder { /* IE 10+ */
+  color: $gray-light;
+}
+:-moz-placeholder { /* Firefox 18- */
+  color: $gray-light;
+}
+
 /* -----  1.3 General Typography  ------------------------------------------- */
 
 h1, h2, h3, h4, h5, h6,
@@ -44,7 +57,7 @@ p, ul, ol, figure, pre {
 }
 
 h4, h5, h6, a, p, input, select, option, ul, ol, li, figure, pre, td, th,
-button, .text {
+button, textarea, label, .text {
   color: $gray-dark;
   font-weight: 300;
 }
@@ -110,6 +123,19 @@ figcaption {
 }
 a, p, button, .btn-like {
   font-weight: 300;
+}
+
+textarea {
+  padding: 0.25rem;
+  font-size: 1em;
+  border: 1px solid $gray-lightest;
+  border-radius: 0.25rem;
+
+  &:active,
+  &:focus {
+    border-color: $primary;
+    outline: none;
+  }
 }
 
 /* =====  Global Styles  ==================================================== */
@@ -190,6 +216,16 @@ a, p, button, .btn-like {
   overflow: hidden;
 }
 
+.oa {
+  overflow: auto;
+}
+
+.ohe {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .spinner-bg {
   padding: 1rem;
   border-radius: 0.25rem;
@@ -237,6 +273,16 @@ body.dragging-vertical,
 
 .max-50 {
   max-width: 50%;
+}
+
+.no-select {
+  -webkit-touch-callout: none; /* iOS Safari */
+    -webkit-user-select: none; /* Safari */
+     -khtml-user-select: none; /* Konqueror HTML */
+       -moz-user-select: none; /* Firefox */
+        -ms-user-select: none; /* Internet Explorer/Edge */
+            user-select: none; /* Non-prefixed version, currently
+                                  supported by Chrome and Opera */
 }
 
 .iconized {

@@ -5,7 +5,7 @@
   <require from="components/svg-icon/svg-icon"></require>
 
   <div
-    class="full-wh ${currentRoute === 'matrix' ? 'matrix-full-screen-view' : ''}"
+    class="full-wh ${currentRoute === 'matrix' ? 'matrix-full-screen-view' : ''} ${globalError ? 'is-global-error' : ''}"
     click.delegate="clickHandler($event)"
     ref="baseEl">
 
@@ -17,7 +17,10 @@
     </div>
 
     <div id="global-error" class="full-wh flex-c flex-jc-c flex-a-c">
-      <span>${globalErrorMsg}</span>
+      <div class="flex-c flex-d-c flex-a-c">
+        <span>${globalErrorMsg}</span>
+        <button click.delegate="hideGlobalError()">Close</button>
+      </div>
     </div>
 
     <dialog
