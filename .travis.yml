@@ -1,8 +1,25 @@
 language: node_js
+
 node_js:
   - "7"
+
+branches:
+  only:
+  - master
+  - develop
+  - "/^v.*$/"
 
 before_script:
   - npm install
 
-script: npm run build
+before_deploy:
+  - npm run build
+
+deploy:
+  - provider: releases
+    api_key:
+      secure: "VUmfPUdKpOSrKFBmVRf3xIwsEK2zWbeoges+vFEFw7eBcqasBlyLZKYb0lILWxdgPj29WRbxiGWrCcmx+qnrGPwBBiKuiyb9fEAZLrKuO7ujloYH70z2f8331Ekid4Ds6QLp0CPQZyxrd0RKmXPW23NJo7Mk/EQexmI8aLus3dzcX0bz6MSQsNU+VH6RR/VgAn6lZ5umTDAmrLXo98UcVLlYVneaJgl+xV6HavYHg9RE0vFaCJ0n0F5OMBxi6/A+O2iTdR+kbheFArgzB0/YQ8OwKIqbgf2uLHg/zEUHFR5PpyR/zoVGJvn5NJXew46ZqrIBmCjZrgkcB4OebHwJFUXiZvq/bA7e39WL347bDOSPmuL5NQp4JT0WwGxydub4t+JqI4UxxYgs9RUub8YNJectiyBf9rvG6HBl7mLzoQzk8SYc4lvlA3UMdpK/YIX4FLvoV3UOF+vR3YNCyMA56TTVoLUnVfb5Tjo6bS3UfCdWqxGNhW7khJwqqlrxvFqAk0psqXM4Dryst5Ku2ftNIyrJhWx3pwG+5ozNrG80+WYIEHUI9xhnSegM0a7lefq/aWjAmPFR92NQPequg5DMhz7VZwCz8vEbm+iADGGxlOC4QrpY84dbiplMaqjMskXVr6FQ+MkQ0Ri6/v+8/+oX6Jok0w4G00T34WkRU9a7yjs="
+    file: "build.zip"
+    skip_cleanup: true
+    on:
+      tags: true
