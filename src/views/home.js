@@ -15,6 +15,7 @@ import States from 'services/states';  // eslint-disable-line
 // Utils
 import examples from 'configs/examples';
 import { updateConfigs } from 'app-actions';
+import getUrlQueryParams from 'utils/get-url-query-params';
 import readJsonFile from 'utils/read-json-file';
 import validateConfig from 'utils/validate-config';
 
@@ -51,6 +52,16 @@ export class Home {
 
   activate (params, routeConfig, navigationInstruction) {
     this.queryParams = navigationInstruction.queryParams;
+    const queryParams = getUrlQueryParams(window.location.search);
+
+    if (
+      Object.keys(navigationInstruction.queryParams).length <
+      Object.keys(queryParams).length
+    ) {
+      this.queryParams = queryParams;
+    }
+
+    console.log(this.queryParams);
   }
 
   /* ---------------------------- Class methods ----------------------------- */
