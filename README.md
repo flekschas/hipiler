@@ -15,7 +15,7 @@ HiPiler is an interactive web application for exploring and visualizing many reg
 
 ## Get Started
 
-**Live demo**: [https://flekschas.github.io/hipiler](https://flekschas.github.io/hipiler)
+**Live demo**: [https://flekschas.github.io/hipiler](http://hipiler.higlass.io)
 
 **Video introduction**: [https://youtu.be/qoLqje5OYKg](https://youtu.be/qoLqje5OYKg)
 
