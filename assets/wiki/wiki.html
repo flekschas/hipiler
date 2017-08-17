@@ -176,44 +176,59 @@ npm run build
 <thead>
 <tr>
 <th>Short cut</th>
+<th>View</th>
 <th>Action</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td><em>ESC</em></td>
+<td><em>Global</em></td>
 <td>Exit / reject dialog, error notification, leave pile inspection and trash</td>
 </tr>
 <tr>
 <td><em>ENTER</em></td>
+<td><em>Global</em></td>
 <td>Accept / resolve dialog</td>
 </tr>
 <tr>
 <td><em>CMD</em> + Z</td>
+<td><em>Global</em></td>
 <td>Undo</td>
 </tr>
 <tr>
 <td><em>CMD</em> + Y</td>
+<td><em>Global</em></td>
 <td>Redo</td>
 </tr>
 <tr>
+<td><em>CMD</em> + S</td>
+<td><code>/explore</code></td>
+<td>Save snippets / piles configuration as JSON</td>
+</tr>
+<tr>
 <td>C</td>
+<td><code>/explore</code></td>
 <td>Toggle between the average and variance cover display.</td>
 </tr>
 <tr>
 <td>L</td>
+<td><code>/explore</code></td>
 <td>Toggle log transform of snippets.</td>
 </tr>
 <tr>
 <td>S</td>
+<td><code>/explore</code></td>
 <td>Toggle between the rectangular lasso and the swipe selection.</td>
 </tr>
 <tr>
 <td>X</td>
+<td><code>/explore</code></td>
 <td>Toggle between the collapsed and expanded snippet menu.</td>
 </tr>
 <tr>
 <td>Z</td>
+<td><code>/explore</code></td>
 <td>Enable snippet view navigation (i.e., pan and zoom).</td>
 </tr>
 </tbody>
@@ -245,6 +260,8 @@ npm run build
     &quot;fragmentsPadding&quot;: 0,
     &quot;fragmentsNoCache&quot;: false,
     &quot;fragmentsNoBalance&quot;: false,
+    &quot;fragmentsPercentile&quot;: 99,
+    &quot;fragmentsIgnoreDiags&quot;: 1,
     &quot;fragments&quot;: [
       [&quot;chrom1&quot;, &quot;start1&quot;, &quot;end1&quot;, &quot;strand1&quot;, &quot;chrom2&quot;, &quot;start2&quot;, &quot;end2&quot;, &quot;strand2&quot;, &quot;dataset&quot;, &quot;zoomOutLevel&quot;, &quot;size&quot;, &quot;distance-to-diagonal&quot;, &quot;noise&quot;, &quot;_groupA&quot;, , &quot;_groupB&quot;],
       [&quot;22&quot;, 17395000, 17400000, &quot;coding&quot;, &quot;22&quot;, 17535000, 17540000, &quot;coding&quot;, &quot;CQMd6V_cRw6iCI_-Unl3PQ&quot;, 3, 25000000, 135000, 0.21559968240959723, 1, 1],
@@ -257,13 +274,15 @@ npm run build
 }
 </code></pre><p>The parameters are defined as follows:</p>
 <ul>
-<li>fragmentsServer: URL to a <a href="https://github.com/hms-dbmi/higlass-server">HiGlass server</a></li>
-<li>fragmentsPrecision [<em>optional</em>; default: <code>2</code>]: Float precision of the raw matrix snippets to be returned by the server</li>
-<li>fragmentsDims: Pixel dimension of the matrix snippets to be returned by the server. Since HiPiler currently only supports squared snippets only one dimension is needed.</li>
-<li>fragmentsPadding [<em>optional</em>; default: <code>0</code>]: Number of bins used for padding. This only matters when loading domains.</li>
-<li>fragmentsNoCache [<em>optional</em>; default: <code>false</code>]: If <code>true</code> disables loading snippets from cache. Good for testing.</li>
-<li>fragmentsNoBalance [<em>optional</em>; default: <code>false</code>]: If <code>true</code> disables Cooler&#39;s balancing.</li>
-<li>fragments: <a href="https://bedtools.readthedocs.io/en/latest/content/general-usage.html#bedpe-format">BEDPE</a>-like table of snippet locations. For details see below.</li>
+<li><strong>fragmentsServer</strong>: URL to a <a href="https://github.com/hms-dbmi/higlass-server">HiGlass server</a></li>
+<li><strong>fragmentsPrecision</strong> [<em>optional</em>; default: <code>2</code>]: Float precision of the raw matrix snippets to be returned by the server</li>
+<li><strong>fragmentsDims</strong> [<em>optional</em>; default: <code>22</code>]: Pixel dimension of the matrix snippets to be returned by the server. Since HiPiler currently only supports squared snippets only one dimension is needed.</li>
+<li><strong>fragmentsPadding</strong> [<em>optional</em>; default: <code>0</code>]: Number of bins used for padding. This only matters when loading domains.</li>
+<li><strong>fragmentsNoCache</strong> [<em>optional</em>; default: <code>false</code>]: If <code>true</code> disables loading snippets from cache. Good for testing.</li>
+<li><strong>fragmentsNoBalance</strong> [<em>optional</em>; default: <code>false</code>]: If <code>true</code> disables Cooler&#39;s balancing.</li>
+<li><strong>fragmentsPercentile</strong> [<em>optional</em>; default: <code>100</code>]: Percentile at which the values are capped.</li>
+<li><strong>fragmentsIgnoreDiags</strong> [<em>optional</em>; default: <code>0</code>]: Number of diagonals that are ignored, i.e., set to zero.</li>
+<li><strong>fragments</strong>: <a href="https://bedtools.readthedocs.io/en/latest/content/general-usage.html#bedpe-format">BEDPE</a>-like table of snippet locations. For details see <a href="#bedpe-like-table">below</a>.</li>
 </ul>
 
 <h4 id="/docs/data/bedpe-like-table" class="underlined anchored">
@@ -274,16 +293,16 @@ npm run build
 </h4>
   <p>Like a simple spreadsheet, the first row of the BEDPE-like location table contains the header. The following columns are required by HiPiler. Examples are in brackets</p>
 <ul>
-<li>chrom1 [<em>str</em>, e.g.: &#39;chr1&#39; or &#39;1&#39;]</li>
-<li>start1 [<em>int</em>, e.g.: 0]</li>
-<li>end1 [<em>int</em>, e.g.: 0]</li>
-<li>strand1 [<em>str</em>, <em>optional</em>, e.g.: &#39;-&#39;, &#39;minus&#39;, &#39;noncoding&#39;, or &#39;non-coding&#39; for the minus strand; otherwise plus strand is assumed]</li>
-<li>chrom2 (like <code>chrom1</code>)</li>
-<li>start2 (like <code>start1</code>)</li>
-<li>end2 (like <code>end1</code>)</li>
-<li>strand2 (like <code>stand1</code>, <em>optional</em>)</li>
-<li>dataset [<em>str</em>, e.g.: &#39;CQMd6V<em>cRw6iCI</em>-Unl3PQ&#39;]</li>
-<li>zoomoutlevel [<em>int</em>, e.g.: 0]</li>
+<li><strong>chrom1</strong> [<em>str</em>, e.g.: &#39;chr1&#39; or &#39;1&#39;]</li>
+<li><strong>start1</strong> [<em>int</em>, e.g.: 0]</li>
+<li><strong>end1</strong> [<em>int</em>, e.g.: 0]</li>
+<li><strong>strand1</strong> [<em>str</em>, <em>optional</em>, e.g.: &#39;-&#39;, &#39;minus&#39;, &#39;noncoding&#39;, or &#39;non-coding&#39; for the minus strand; otherwise plus strand is assumed]</li>
+<li><strong>chrom2</strong> (like <code>chrom1</code>)</li>
+<li><strong>start2</strong> (like <code>start1</code>)</li>
+<li><strong>end2</strong> (like <code>end1</code>)</li>
+<li><strong>strand2</strong> (like <code>stand1</code>, <em>optional</em>)</li>
+<li><strong>dataset</strong> [<em>str</em>, e.g.: &#39;CQMd6V<em>cRw6iCI</em>-Unl3PQ&#39;]</li>
+<li><strong>zoomoutlevel</strong> [<em>int</em>, e.g.: 0]</li>
 </ul>
 <p>The <code>dataset</code> is the UUID of the Hi-C map where the locations should be extracted. <code>zoomoutlevel</code> at which zoom level the snippets should be extracted, i.e., 2^zoomoutlevel <em> base resolution, e.g., for zoomoutlevel 3 with base resolution 1KB: 2^3 = 8 and 8 </em> 1KB = 8KB.</p>
 <p>Additionally, an unlimited number of extra columns can be appended to load categorical and ordinal attributes for exploration. Ordinal attributes just need to specified by a unique name, e.g., size, distance-to-diagonal, and noise. They appear as measure for arrangement of snippets in HiPiler. Categorical attributes need must be prefixed with an underscore (_), e.g., _groupA and _groupB. They appear as grouping options in HiPiler.</p>
@@ -295,7 +314,7 @@ npm run build
   </a>
   <span>Examples</span>
 </h4>
-  <p>A set of example / demo configurations are <a href="https://gist.github.com/flekschas/8b0163f25fd4ffb067aaba2a595da447">available here</a>.</p>
+  <p>A set of example / demo configurations are <a href="https://gist.github.com/flekschas">available here</a>. Look for <em>HiPiler Example</em>.</p>
 
 <h2 id="/docs/data/import" class="underlined anchored">
   <a href="#/docs/data/import" class="hidden-anchor">
@@ -303,10 +322,11 @@ npm run build
   </a>
   <span>Import</span>
 </h2>
-  <p>There are two options to load a configuration:</p>
+  <p>There are three options to load a configuration:</p>
 <ol>
 <li>Drag and drop JSON onto the browser window of HiPiler.</li>
 <li>Go to the home page and click on <em>Select a config</em>.</li>
+<li>You can direct load hosted config files by going to <a href="http://hipiler.higlass.io/?config=URL_TO_YOUR_CONFIG">http://hipiler.higlass.io/?config=URL_TO_YOUR_CONFIG</a>, where <code>URL_TO_YOUR_CONFIG</code> should point to your config. E.g.: <a href="http://hipiler.higlass.io/?config=https://rawgit.com/flekschas/8b0163f25fd4ffb067aaba2a595da447/raw/rao-2014-gm12878-mbol-1kb-mres-chr22-loops.json">http://hipiler.higlass.io/?config=https://rawgit.com/flekschas/8b0163f25fd4ffb067aaba2a595da447/raw/rao-2014-gm12878-mbol-1kb-mres-chr22-loops.json</a></li>
 </ol>
 
 <h2 id="/docs/data/export" class="underlined anchored">
@@ -315,7 +335,12 @@ npm run build
   </a>
   <span>Export</span>
 </h2>
-  <p><em>Coming soon</em></p>
+  <p>There are two options to export the snippets / pile configuration, including annotations, as JSON:</p>
+<p><em>Note: You have to be at <code>/explore</code> to export anything.</em></p>
+<ol>
+<li>Open the snippet&#39;s menu by clicking on <em>More</em> at the bottom and then on <em>Export Piles</em>.</li>
+<li>Hit <em>CMD + S</em>.</li>
+</ol>
 
 <h2 id="/docs/data/jupyter-notebook-integration" class="underlined anchored">
   <a href="#/docs/data/jupyter-notebook-integration" class="hidden-anchor">
@@ -344,13 +369,14 @@ npm run build
   <p><strong>Demo</strong>: Go to the <a href="https://flekschas.github.io/hipiler/">public demo</a> and select <em>Loops in chromosome 22 of GM12878</em> from the list of <em>predefined configs</em>.</p>
 <p><strong>Instructions</strong>: <em>Coming soon</em></p>
 
-<h2 id="/docs/usage-scenarios/structural-variations" class="underlined anchored">
-  <a href="#/docs/usage-scenarios/structural-variations" class="hidden-anchor">
+<h2 id="/docs/usage-scenarios/domains" class="underlined anchored">
+  <a href="#/docs/usage-scenarios/domains" class="hidden-anchor">
     <svg-icon icon-id="link"></svg-icon>
   </a>
-  <span>Structural Variations</span>
+  <span>Domains</span>
 </h2>
-  <p><em>Coming soon</em></p>
+  <p><strong>Demo</strong>: Go to the <a href="https://flekschas.github.io/hipiler/">public demo</a> and select <em>TADs in chromosome 4 of GM12878</em> from the list of <em>predefined configs</em>.</p>
+<p><strong>Instructions</strong>: <em>Coming soon</em></p>
 
 <h2 id="/docs/usage-scenarios/telomeres" class="underlined anchored">
   <a href="#/docs/usage-scenarios/telomeres" class="hidden-anchor">
@@ -366,6 +392,14 @@ npm run build
     <svg-icon icon-id="link"></svg-icon>
   </a>
   <span>Enhancer-Promotor Units</span>
+</h2>
+  <p><em>Coming soon</em></p>
+
+<h2 id="/docs/usage-scenarios/structural-variations" class="underlined anchored">
+  <a href="#/docs/usage-scenarios/structural-variations" class="hidden-anchor">
+    <svg-icon icon-id="link"></svg-icon>
+  </a>
+  <span>Structural Variations</span>
 </h2>
   <p><em>Coming soon</em></p>
 </div>
