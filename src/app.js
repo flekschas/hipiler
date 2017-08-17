@@ -162,20 +162,26 @@ export default class App {
       this.isCtrlMetaKeyDown = true;
     }
 
+    // 83 === S
+    if (event.keyCode === 83 && this.isCtrlMetaKeyDown) {
+      event.preventDefault();
+      this.event.publish('app.save', event);
+    }
+
+    // 89 === Y
+    if (event.keyCode === 89 && this.isCtrlMetaKeyDown) {
+      event.preventDefault();
+      if (!this.wasUndoRedo) {
+        this.redo();
+        this.wasUndoRedo = true;
+      }
+    }
+
     // 90 === Z
     if (event.keyCode === 90 && this.isCtrlMetaKeyDown) {
       event.preventDefault();
       if (!this.wasUndoRedo) {
         this.undo();
-        this.wasUndoRedo = true;
-      }
-    }
-
-    // 90 === Y
-    if (event.keyCode === 89 && this.isCtrlMetaKeyDown) {
-      event.preventDefault();
-      if (!this.wasUndoRedo) {
-        this.redo();
         this.wasUndoRedo = true;
       }
     }

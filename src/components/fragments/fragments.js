@@ -1563,7 +1563,7 @@ export class Fragments {
   /**
    * Download export data as JSON
    */
-  downloadExpertedPiles () {
+  downloadExportedPiles () {
     downloadAsJson(this.exportPiles());
   }
 
@@ -2718,6 +2718,11 @@ export class Fragments {
     this.subscriptions.push(this.event.subscribe(
       'app.keyUp',
       this.keyUpHandler.bind(this)
+    ));
+
+    this.subscriptions.push(this.event.subscribe(
+      'app.save',
+      this.downloadExportedPiles.bind(this)
     ));
 
     this.subscriptions.push(this.event.subscribe(
