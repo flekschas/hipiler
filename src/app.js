@@ -109,6 +109,11 @@ export default class App {
 
     config.title = this.appName;
 
+    if (window.hipilerConfig.ghp) {
+      config.options.pushState = true;
+      config.options.root = '/';
+    }
+
     config.map(routes);
 
     config.mapUnknownRoutes(() => ({
