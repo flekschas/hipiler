@@ -48,7 +48,5 @@ module.exports = function (config) {
     cfg.browsers = ['Chrome_travis_ci'];
   }
 
-  // console.log(cfg, project.transpiler.options);
-
   config.set(cfg);
 };
