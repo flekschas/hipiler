@@ -26,10 +26,16 @@
         click.delegate="highlightPile()">
         <div id="pile-preview" class="flex-c flex-jc-c entry">
           <div class="wrapper flex-g-1">
-            <div class="wrapper-ratio" css.bind="previewElRatioCss"></div>
-            <canvas
-              class="full-dim"
-              ref="previewEl"></canvas>
+            <div class="wrapper-previews" css.bind="previewsRatioCss">
+              <canvas
+                class="full-dim"
+                ref="previewPreviewsEl" />
+            </div>
+            <div class="wrapper-snippet">
+              <canvas
+                class="full-dim"
+                ref="previewSnippetEl" />
+            </div>
             <div
               class="full-dim wrapper-border ${isHighlighted ? 'is-active' : ''}"></div>
           </div>

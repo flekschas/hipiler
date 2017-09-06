@@ -146,8 +146,17 @@ pile-details {
       max-width: 20rem;
       border-radius: 0.25rem;
 
-      .wrapper-ratio {
+      .wrapper-previews,
+      .wrapper-snippet {
+        position: relative;
         width: 100%;
+      }
+
+      .wrapper-previews {
+        padding-top: 0;
+      }
+
+      .wrapper-snippet {
         padding-top: 100%;
       }
 
