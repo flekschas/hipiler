@@ -121,6 +121,11 @@ pile-details {
     }
   }
 
+  .max-three-liner {
+    overflow: auto;
+    max-height: 3rem;
+  }
+
   .separator {
     margin: 0.5rem 0;
     height: 1px;

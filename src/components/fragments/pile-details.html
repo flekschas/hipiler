@@ -36,11 +36,11 @@
         </div>
         <div class="flex-c one-liner entry">
           <label>${pile.pileMatrices.length > 1 ? 'Pile' : 'Snippet'} ID:</label>
-          <p>${pile.id}</p>
+          <p class="max-three-liner">${pile.id}</p>
         </div>
         <div class="flex-c one-liner entry" if.bind="pile.pileMatrices.length > 1">
           <label>Snippet IDs:</label>
-          <p>${snippetIds} (Total: ${pile.pileMatrices.length})</p>
+          <p class="max-three-liner">${snippetIds} (Total: ${pile.pileMatrices.length})</p>
         </div>
         <div class="separator"></div>
         <h5 class="flex-c">
@@ -101,7 +101,9 @@
                   class="flex-c one-liner entry"
                   repeat.for="category of categories">
                   <label>${category.key}:</label>
-                  <p>${category.values.join(', ')}</p>
+                  <p class="max-three-liner">
+                    ${category.values.join(', ')}
+                  </p>
                 </div>
               </div>
             </div>
