@@ -44,6 +44,7 @@ export class Chartlet {
   constructor (event) {
     this.color = GRAY_DARK;
     this.event = event;
+    this.indices = [];
     this.renderDb = debounce(this.render.bind(this), 175);
   }
 
@@ -54,6 +55,14 @@ export class Chartlet {
 
   detached () {
     this.unsubscribeEventListeners();
+  }
+
+  dataChanged (newData) {
+    const fraction = newData.values.length / 5;
+
+    this.indices = newData.values.length > 10
+      ? Array.from(Array(6)).map((x, index) => parseInt(index * fraction, 10))
+      : Array.from(Array(newData.values.length)).map((x, index) => index);
   }
 
   render () {
