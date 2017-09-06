@@ -45,7 +45,7 @@ export class Chartlet {
     this.color = GRAY_DARK;
     this.event = event;
     this.indices = [];
-    this.renderDb = debounce(this.render.bind(this), 175);
+    this.renderDb = debounce(this.render.bind(this), 150);
   }
 
   attached () {
@@ -67,6 +67,8 @@ export class Chartlet {
 
   render () {
     requestNextAnimationFrame(() => {
+      if (!this.plotWrapperEl) return;
+
       this.width = this.plotWrapperEl.getBoundingClientRect().width;
 
       requestNextAnimationFrame(() => {
@@ -83,17 +85,14 @@ export class Chartlet {
   subscribeEventListeners () {
     this.subscriptions = [];
     this.update.forEach((eventName) => {
-      this.subscriptions.push(this.event.subscribe(
-        eventName,
-        this.renderDb.bind(this)
-      ));
+      this.subscriptions.push(this.event.subscribe(eventName, this.renderDb));
     });
   }
 
   unsubscribeEventListeners () {
     // Remove Aurelia event listeners
     this.subscriptions.forEach((subscription) => {
-      subscription.dispose();
+      subscription.dispose.call(this);
     });
     this.subscriptions = [];
   }

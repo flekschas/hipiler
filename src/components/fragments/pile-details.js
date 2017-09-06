@@ -43,6 +43,9 @@ export class PileDetails {
     };
 
     this.chartletUpdate = ['explore.pileDetails.colResized'];
+    this.publishCHartletUpdateDb = debounce(
+      this.publishCHartletUpdate.bind(this), 50
+    );
 
     this.update();
   }
@@ -206,6 +209,10 @@ export class PileDetails {
     });
   }
 
+  publishCHartletUpdate () {
+    this.event.publish(this.chartletUpdate[0]);
+  }
+
   subscribeEventListeners () {
     this.subscriptions = [];
     this.subscriptions.push(this.event.subscribe(
@@ -240,7 +247,7 @@ export class PileDetails {
 
     if (!this.columnWidth || this.columnWidth !== columnWidth) {
       this.columnWidth = columnWidth;
-      this.event.publish(this.chartletUpdate[0]);
+      this.publishCHartletUpdateDb();
     }
 
     this.pileSelected(stateFgm.pileSelected);
