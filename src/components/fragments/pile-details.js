@@ -17,6 +17,10 @@ import {
 
 import debounce from 'utils/debounce';
 
+import {
+  requestNextAnimationFrame
+} from 'utils/request-animation-frame';
+
 let fgmState = FgmState.get();
 
 const FAKE_PILE = { fake: true };
@@ -103,8 +107,10 @@ export class PileDetails {
   drawPreview () {
     if (!this.pile.isDrawn) { return; }
 
-    this.drawPreviewPreviews();
-    this.drawPreviewSnippet();
+    requestNextAnimationFrame(() => {
+      this.drawPreviewPreviews();
+      this.drawPreviewSnippet();
+    });
   }
 
   drawPreviewSnippet () {
