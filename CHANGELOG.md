@@ -1,3 +1,12 @@
+v1.1.1 - 2017-09-06
+
+- Limit height and width of entries in the pile details panel
+- Limit number of marks on the x axis of chartlets
+- Limit height of the previews in the pile details panel
+- Fix a rare issue with rerendering chartlets
+- Updated hiGlass to `v0.8.34`
+- Updated some third party librabries
+
 v1.1.0 - 2017-08-17
 
 - Improve frame rendering performance dramatically
