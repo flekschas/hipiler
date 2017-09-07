@@ -12,8 +12,8 @@
           ref="plotEl"></canvas>
       </div>
       <ul class="chartlet-axis-x flex-c" if.bind="axisX">
-        <li class="flex-c flex-jc-c flex-g-1" repeat.for="value of data.values">
-          <div>${$index}</div>
+        <li class="flex-g-1" repeat.for="index of indices">
+          ${index}
         </li>
       </ul>
     </div>

@@ -2,33 +2,39 @@
 const path = require('path');
 const project = require('./aurelia_project/aurelia.json');
 
-let testSrc = [
+const testSrc = [
   { pattern: project.unitTestRunner.source, included: false },
   'test/aurelia-karma.js'
 ];
 
-let output = project.platform.output;
-let appSrc = project.build.bundles.map(x => path.join(output, x.name));
-let entryIndex = appSrc.indexOf(path.join(output, project.build.loader.configTarget));
-let entryBundle = appSrc.splice(entryIndex, 1)[0];
-let files = [entryBundle].concat(testSrc).concat(appSrc);
+const output = project.platform.output;
+const appSrc = project.build.bundles.map(x => path.join(output, x.name));
+const entryIndex = appSrc.indexOf(path.join(output, project.build.loader.configTarget));
+const entryBundle = appSrc.splice(entryIndex, 1)[0];
+const files = [entryBundle].concat(testSrc).concat(appSrc);
 
-module.exports = function(config) {
-  config.set({
+module.exports = function (config) {
+  const cfg = {
     basePath: '',
     frameworks: [project.testFramework.id],
-    files: files,
+    files,
     exclude: [],
     preprocessors: {
       [project.unitTestRunner.source]: [project.transpiler.id]
     },
-    'babelPreprocessor': { options: project.transpiler.options },
+    babelPreprocessor: { options: project.transpiler.options },
     reporters: ['progress'],
     port: 9876,
     colors: true,
     logLevel: config.LOG_INFO,
     autoWatch: true,
     browsers: ['Chrome'],
+    customLaunchers: {
+      Chrome_travis_ci: {
+        base: 'Chrome',
+        flags: ['--no-sandbox']
+      }
+    },
     singleRun: false,
     // client.args must be a array of string.
     // Leave 'aurelia-root', project.paths.root in this order so we can find
@@ -36,5 +42,11 @@ module.exports = function(config) {
     client: {
       args: ['aurelia-root', project.paths.root]
     }
-  });
+  };
+
+  if (process.env.TRAVIS) {
+    cfg.browsers = ['Chrome_travis_ci'];
+  }
+
+  config.set(cfg);
 };

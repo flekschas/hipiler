@@ -17,6 +17,10 @@ import {
 
 import debounce from 'utils/debounce';
 
+import {
+  requestNextAnimationFrame
+} from 'utils/request-animation-frame';
+
 let fgmState = FgmState.get();
 
 const FAKE_PILE = { fake: true };
@@ -43,6 +47,9 @@ export class PileDetails {
     };
 
     this.chartletUpdate = ['explore.pileDetails.colResized'];
+    this.publishCHartletUpdateDb = debounce(
+      this.publishCHartletUpdate.bind(this), 50
+    );
 
     this.update();
   }
@@ -100,31 +107,38 @@ export class PileDetails {
   drawPreview () {
     if (!this.pile.isDrawn) { return; }
 
-    const ctx = this.previewEl.getContext('2d');
+    requestNextAnimationFrame(() => {
+      this.drawPreviewPreviews();
+      this.drawPreviewSnippet();
+    });
+  }
+
+  drawPreviewSnippet () {
+    if (!this.pile.isDrawn) { return; }
+
+    const ctx = this.previewSnippetEl.getContext('2d');
     const pileCan = this.pile.matrixMesh.material.map.image;
 
-    this.previewEl.width = pileCan.width;
-    this.previewEl.height = pileCan.height;
+    this.previewSnippetEl.width = pileCan.width;
+    this.previewSnippetEl.height = pileCan.height;
 
-    let offset = this.pile.previewsMesh ? this.pile.previewsHeight : 0;
-    let previewCan;
+    ctx.drawImage(pileCan, 0, 0);
+  }
 
-    this.previewEl.height += offset;
+  drawPreviewPreviews () {
+    if (!this.pile.isDrawn || !this.pile.previewsMesh) { return; }
 
-    if (offset) {
-      previewCan = this.pile.previewsMesh.material.map.image;
-    }
+    const ctx = this.previewPreviewsEl.getContext('2d');
+    const previewCan = this.pile.previewsMesh.material.map.image;
 
-    const ratio = this.previewEl.height / this.previewEl.width * 100;
-    this.previewElRatioCss = {
-      paddingTop: `${ratio}%`
+    this.previewPreviewsEl.height = previewCan.height;
+    this.previewPreviewsEl.width = previewCan.width;
+
+    this.previewsRatioCss = {
+      paddingTop: `${this.pile.clustersAvgMatrices.length * 3}%`
     };
 
-    ctx.drawImage(pileCan, 0, offset);
-
-    if (previewCan) {
-      ctx.drawImage(previewCan, 0, 0, previewCan.width, previewCan.height);
-    }
+    ctx.drawImage(previewCan, 0, 0);
   }
 
   extractCategories () {
@@ -201,6 +215,10 @@ export class PileDetails {
     });
   }
 
+  publishCHartletUpdate () {
+    this.event.publish(this.chartletUpdate[0]);
+  }
+
   subscribeEventListeners () {
     this.subscriptions = [];
     this.subscriptions.push(this.event.subscribe(
@@ -235,7 +253,7 @@ export class PileDetails {
 
     if (!this.columnWidth || this.columnWidth !== columnWidth) {
       this.columnWidth = columnWidth;
-      this.event.publish(this.chartletUpdate[0]);
+      this.publishCHartletUpdateDb();
     }
 
     this.pileSelected(stateFgm.pileSelected);

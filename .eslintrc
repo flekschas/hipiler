@@ -7,6 +7,11 @@
     "airbnb/base",
     "./node_modules/aurelia-tools/.eslintrc.json"
   ],
+  "globals": {
+    "describe": false,
+    "expect": false,
+    "it": false
+  },
   "parser": "babel-eslint",
   "rules": {
     "new-cap": ["error", { "capIsNew": false }],
