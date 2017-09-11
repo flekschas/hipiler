@@ -35,6 +35,45 @@
     line-height: 1.25em;
   }
 
+  h3,
+  h4 {
+    margin: 2rem 0 1rem 0;
+    color: $gray-dark;
+    text-transform: uppercase;
+  }
+
+  h3 {
+    font-size: 1.25rem;
+  }
+
+  h4 {
+    font-size: 0.9em;
+    color: $gray;
+  }
+
+  .lighter li {
+    color: $gray;
+  }
+
+  .date {
+    margin-left: 0.25rem;
+    font-size: 0.9em;
+    color: $gray;
+  }
+
+  .separator {
+    margin: 3rem 0;
+
+    &:after {
+      content: '';
+      display: block;
+      width: 50%;
+      height: 3px;
+      border-radius: 10px;
+      background: $gray-lightest;
+    }
+  }
+
   .columns > * {
     margin: 0 1rem;
 
