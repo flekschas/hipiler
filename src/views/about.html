@@ -12,11 +12,11 @@
     </div>
     <main class="flex-g-1 wrap">
       <p class="is-justified is-increased-line-height">
-      <strong>HiPiler</strong> is an interactive visualization interface for the exploration and visualization of regions-of-interest in large <a href="https://en.wikipedia.org/wiki/Chromosome_conformation_capture#Hi-C_.28all-vs-all.29" target="_blank">genome interaction matrices</a>. Genome interaction matrices approximate the physical distance of pairs of genomic regions to each other and can contain up to 3 million rows and columns with many sparse regions. Traditional matrix aggregation or pan-and-zoom interfaces largely fail in supporting search, inspection, and comparison of local regions-of-interest (ROIs). ROIs can be defined, e.g., by sets of adjacent rows and columns, or by specific visual patterns in the matrix. ROIs are first-class objects in HiPiler, which represents them as thumbnail-like “snippets”. Snippets can be laid out automatically based on their data and meta attributes. They are linked back to the matrix and can be explored interactively. The design of HiPiler is based on a series of semi-structured interviews with 10 domain experts involved in the analysis and interpretation of genome interaction matrices. In <a href="#/about/publication">the paper</a> we describe six exploration tasks that are crucial for analysis of interaction matrices and demonstrate how HiPiler supports these tasks. We report on a user study with a series of data exploration sessions with domain experts to assess the usability of HiPiler as well as to demonstrate respective findings in the data.
+      <strong>HiPiler</strong> is an interactive visualization interface for the exploration and visualization of regions-of-interest in large <a href="https://en.wikipedia.org/wiki/Chromosome_conformation_capture#Hi-C_.28all-vs-all.29" target="_blank">genome interaction matrices</a>. Genome interaction matrices approximate the physical distance of pairs of genomic regions to each other and can contain up to 3 million rows and columns with many sparse regions. Traditional matrix aggregation or pan-and-zoom interfaces largely fail in supporting search, inspection, and comparison of local regions-of-interest (ROIs). ROIs can be defined, e.g., by sets of adjacent rows and columns, or by specific visual patterns in the matrix. ROIs are first-class objects in HiPiler, which represents them as thumbnail-like “snippets”. Snippets can be laid out automatically based on their data and meta attributes. They are linked back to the matrix and can be explored interactively. The design of HiPiler is based on a series of semi-structured interviews with 10 domain experts involved in the analysis and interpretation of genome interaction matrices. In <a href.bind="anchorLink('about', 'publication')">the paper</a> we describe six exploration tasks that are crucial for analysis of interaction matrices and demonstrate how HiPiler supports these tasks. We report on a user study with a series of data exploration sessions with domain experts to assess the usability of HiPiler as well as to demonstrate respective findings in the data.
       </p>
 
-      <h2 id="/about/publication" class="flex-c iconized anchored">
-        <a href="#/about/publication" class="hidden-anchor">
+      <h2 id.bind="getAnchor('about', 'publication')" class="flex-c iconized anchored">
+        <a href.bind="anchorLink('about', 'publication')" class="hidden-anchor">
           <svg-icon icon-id="link"></svg-icon>
         </a>
         <svg-icon icon-id="document"></svg-icon>
@@ -32,8 +32,8 @@
         <p class="nm">IEEE Transactions on Visualization and Computer Graphics (InfoVis), 2017. [doi: <a href="https://doi.org/10.1109/TVCG.2017.2745978" target="_blank">10.1109/TVCG.2017.2745978</a>]</p>
       </div>
 
-      <h2 id="/about/introduction" class="flex-c iconized anchored">
-        <a href="#/about/introduction" class="hidden-anchor">
+      <h2 id.bind="getAnchor('about', 'introduction')" class="flex-c iconized anchored">
+        <a href.bind="anchorLink('about', 'introduction')" class="hidden-anchor">
           <svg-icon icon-id="link"></svg-icon>
         </a>
         <svg-icon icon-id="video"></svg-icon>
@@ -48,8 +48,8 @@
         </iframe>
       </div>
 
-      <h2 id="/about/source-code" class="flex-c iconized anchored">
-        <a href="#/about/source-code" class="hidden-anchor">
+      <h2 id.bind="getAnchor('about', 'source-code')" class="flex-c iconized anchored">
+        <a href.bind="anchorLink('about', 'source-code')" class="hidden-anchor">
           <svg-icon icon-id="link"></svg-icon>
         </a>
         <svg-icon icon-id="code"></svg-icon>
@@ -76,8 +76,8 @@
         </li>
       </ul>
 
-      <h2 id="/about/authors" class="flex-c iconized anchored">
-        <a href="#/about/authors" class="hidden-anchor">
+      <h2 id.bind="getAnchor('about', 'authors')" class="flex-c iconized anchored">
+        <a href.bind="anchorLink('about', 'authors')" class="hidden-anchor">
           <svg-icon icon-id="link"></svg-icon>
         </a>
         <svg-icon icon-id="people"></svg-icon>
@@ -206,8 +206,8 @@
         </li>
       </ol>
 
-      <h2 id="/about/acknowledgements" class="flex-c iconized anchored">
-        <a href="#/about/acknowledgements" class="hidden-anchor">
+      <h2 id.bind="getAnchor('about', 'acknowledgements')" class="flex-c iconized anchored">
+        <a href.bind="anchorLink('about', 'acknowledgements')" class="hidden-anchor">
           <svg-icon icon-id="link"></svg-icon>
         </a>
         <svg-icon icon-id="people"></svg-icon>
@@ -233,8 +233,8 @@
         <li>Su Wang</li>
       </ul>
 
-      <h2 id="/about/higlass" class="flex-c iconized anchored">
-        <a href="#/about/higlass" class="hidden-anchor">
+      <h2 id.bind="getAnchor('about', 'higlass')" class="flex-c iconized anchored">
+        <a href.bind="anchorLink('about', 'higlass')" class="hidden-anchor">
           <svg-icon icon-id="link"></svg-icon>
         </a>
         <svg-icon class="icon-info" icon-id="info"></svg-icon>
@@ -242,8 +242,8 @@
       </h2>
       <p class="is-increased-line-height">HiPiler uses <a href="http://higlass.io" target="_blank"><strong>HiGlass</strong></a> for displaying Hi-C matrices and other 1D genomic tracks. HiGlass is a particularly efficient tool for browsing an entire matrix with several interlinked detail or overviews. HiGlass let's you build your own views and as long as they consit of horizontally arranged views only you can export the view config and use it here in HiPiler.</p>
 
-      <h2 id="/about/icons" class="flex-c iconized anchored">
-        <a href="#/about/icons" class="hidden-anchor">
+      <h2 id.bind="getAnchor('about', 'icons')" class="flex-c iconized anchored">
+        <a href.bind="anchorLink('about', 'icons')" class="hidden-anchor">
           <svg-icon icon-id="link"></svg-icon>
         </a>
         <svg-icon class="icon-info" icon-id="info"></svg-icon>
