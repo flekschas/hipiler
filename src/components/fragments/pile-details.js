@@ -12,7 +12,8 @@ import States from 'services/states';  // eslint-disable-line
 import FgmState from 'components/fragments/fragments-state';
 
 import {
-  annotatePiles
+  annotatePiles,
+  selectPile
 } from 'components/fragments/fragments-actions';
 
 import debounce from 'utils/debounce';
@@ -58,10 +59,12 @@ export class PileDetails {
   /* ----------------------- Aurelia-specific methods ----------------------- */
 
   attached () {
+    fgmState = FgmState.get();
     this.subscribeEventListeners();
   }
 
   detached () {
+    this.store.dispatch(selectPile(null));
     this.unsubscribeStore();
     this.unsubscribeEventListeners();
   }
