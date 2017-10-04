@@ -22,10 +22,11 @@ import {
 
 import deepClone from 'utils/deep-clone';
 
-function config (state = { ...CONFIG }, action) {
+function config (state = CONFIG, action) {
   switch (action.type) {
     case UPDATE_HGL_CONFIG:
-      return { ...state, ...deepClone(action.payload.config) };
+      if (action.payload.config) return deepClone(action.payload.config);
+      return state;
 
     default:
       return state;

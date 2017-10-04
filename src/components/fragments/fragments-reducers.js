@@ -173,10 +173,11 @@ export function cellSize (state = CELL_SIZE, action) {
   }
 }
 
-export function config (state = { ...CONFIG }, action) {
+export function config (state = CONFIG, action) {
   switch (action.type) {
     case UPDATE_FGM_CONFIG:
-      return { ...state, ...deepClone(action.payload.config) };
+      if (action.payload.config) return deepClone(action.payload.config);
+      return state;
 
     default:
       return state;
