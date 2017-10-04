@@ -42,12 +42,16 @@ if (production) {
 // Extend marked options
 const renderer = new marked.marked.Renderer();
 
+//
+const anchorPrefix = ghp ? '' : '/docs/';
+const anchorLinkPrefix = ghp ? '/docs/#' : '#/docs/';
+
 const makeH = (increment = 0) => (text, level) => {
   const escapedText = text.toLowerCase().replace(/[^\w]+/g, '-');
 
   return `
-<h${level + increment} id="/docs/${escapedText}" class="underlined anchored">
-  <a href="#/docs/${escapedText}" class="hidden-anchor">
+<h${level + increment} id="${anchorPrefix}${escapedText}" class="underlined anchored">
+  <a href="${anchorLinkPrefix}${escapedText}" class="hidden-anchor">
     <svg-icon icon-id="link"></svg-icon>
   </a>
   <span>${text}</span>
@@ -254,7 +258,7 @@ gulp.task('sidebar', () => gulp
         (a, b) => `href="${b.toLowerCase().replace('#', '/')}"`
       );
       contents = contents.replace(/href="home/gi, 'href="getting-started');
-      contents = contents.replace(/href="/gi, 'href="#/docs/');
+      contents = contents.replace(/href="/gi, `href="${anchorLinkPrefix}`);
 
       return contents;
     }
@@ -283,8 +287,8 @@ gulp.task('wiki', () => gulp
       const prefix = fileName.toLowerCase().replace(/ /gi, '-');
 
       // Add page-specific prefices to anchor links
-      contents = contents.replace(/id="\/docs\//gi, `id="/docs/${prefix}/`);
-      contents = contents.replace(/href="#\/docs\//gi, `href="#/docs/${prefix}/`);
+      contents = contents.replace(/id="\/docs\//gi, `id="${anchorPrefix}${prefix}/`);
+      contents = contents.replace(/href="#\/docs\//gi, `href="${anchorLinkPrefix}${prefix}/`);
 
       return `${makeH(0)(fileName, 1)}\n${contents}`;
     }
