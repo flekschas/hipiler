@@ -31,7 +31,7 @@ npm install
 
 #### Commands
 
-```
+```JavaScript
 npm start       // Start dev server
 npm run build   // Build application
 npm run update  // Update to latest code
