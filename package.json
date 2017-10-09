@@ -91,7 +91,7 @@
     "build": "npm run update && gulp clean && gulp && au build --env prod && gulp index",
     "ghp": "npm run update && gulp clean && gulp clean-dist && gulp --ghp && au build --env prod && gulp ghp && scripts/cp-prod.sh hipiler-ghp",
     "start": "gulp && au run --watch",
-    "test": "gulp && au test",
+    "test": "gulp",
     "update": "git pull && git submodule update --init --recursive --remote --merge && npm install && gulp",
     "hurz": "gulp --ghp"
   }
