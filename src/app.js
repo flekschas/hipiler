@@ -20,6 +20,7 @@ import checkTextInputFocus from 'utils/check-text-input-focus';
 import dragDrop from 'utils/drag-drop';
 import readJsonFile from 'utils/read-json-file';
 import validateConfig from 'utils/validate-config';
+import { requestNextAnimationFrame } from 'utils/request-animation-frame';
 
 
 const logger = LogManager.getLogger('app');
@@ -58,6 +59,20 @@ export default class App {
     this.swagJ = 0;
     this.swagInterval = 500;
     this.swagTime = performance.now();
+
+    if (window.hipilerConfig.ghp) {
+      this.navEvent = this.event.subscribe(
+        'router:navigation:processing',
+        () => {
+          if (typeof location.hash !== 'string') {
+            return;
+          }
+
+          const el = document.getElementById(location.hash.slice(1));
+
+          if (el) el.scrollIntoView();
+        });
+    }
 
     // Global method for programmatically exporting the piling status
     window.hipilerExportPiles = () => exportData.get('piles');
@@ -102,6 +117,15 @@ export default class App {
         'home', this.router.currentInstruction.queryParams
       );
     }
+
+    // Check if page is loaded with a hash link
+    if (typeof location.hash === 'string') {
+      const el = document.getElementById(location.hash.slice(1));
+
+      if (el) {
+        requestNextAnimationFrame(() => { el.scrollIntoView(); });
+      }
+    }
   }
 
   configureRouter (config, router) {
@@ -123,6 +147,10 @@ export default class App {
     }));
 
     config.fallbackRoute('/');
+  }
+
+  deactivate () {
+    this.navEvent.dispose();
   }
 
 
