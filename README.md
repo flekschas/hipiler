@@ -7,7 +7,7 @@
 [![Build Status](https://img.shields.io/travis/flekschas/hipiler/master.svg?colorB=6357ff)](https://travis-ci.org/flekschas/hipiler)
 [![Demo](https://img.shields.io/badge/demo-running-red.svg?colorB=f25100)](http://hipiler.higlass.io)
 [![Video](https://img.shields.io/badge/video-awesome-red.svg?colorB=f25100)](https://youtu.be/qoLqje5OYKg)
-[![doi](https://img.shields.io/badge/doi-10.1101%2F123588-red.svg?colorB=f25100)](https://doi.org/10.1101/123588)
+[![doi](https://img.shields.io/badge/doi-10.1109%2FTVCG.2017.2745978-red.svg?colorB=f25100)](https://doi.org/10.1109/TVCG.2017.2745978)
 
 ## Introduction
 
@@ -31,22 +31,10 @@ npm install
 
 #### Commands
 
-**Start developmental server**:
-
 ```
-npm start
-```
-
-**Build application**:
-
-```
-npm run build
-```
-
-**Update to latest code**:
-
-```
-npm run update
+npm start       // Start dev server
+npm run build   // Build application
+npm run update  // Update to latest code
 ```
 
 #### Config
