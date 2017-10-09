@@ -21,10 +21,11 @@ before_deploy:
   - npm run build
 
 deploy:
-  - provider: releases
-    api_key:
-      secure: "VUmfPUdKpOSrKFBmVRf3xIwsEK2zWbeoges+vFEFw7eBcqasBlyLZKYb0lILWxdgPj29WRbxiGWrCcmx+qnrGPwBBiKuiyb9fEAZLrKuO7ujloYH70z2f8331Ekid4Ds6QLp0CPQZyxrd0RKmXPW23NJo7Mk/EQexmI8aLus3dzcX0bz6MSQsNU+VH6RR/VgAn6lZ5umTDAmrLXo98UcVLlYVneaJgl+xV6HavYHg9RE0vFaCJ0n0F5OMBxi6/A+O2iTdR+kbheFArgzB0/YQ8OwKIqbgf2uLHg/zEUHFR5PpyR/zoVGJvn5NJXew46ZqrIBmCjZrgkcB4OebHwJFUXiZvq/bA7e39WL347bDOSPmuL5NQp4JT0WwGxydub4t+JqI4UxxYgs9RUub8YNJectiyBf9rvG6HBl7mLzoQzk8SYc4lvlA3UMdpK/YIX4FLvoV3UOF+vR3YNCyMA56TTVoLUnVfb5Tjo6bS3UfCdWqxGNhW7khJwqqlrxvFqAk0psqXM4Dryst5Ku2ftNIyrJhWx3pwG+5ozNrG80+WYIEHUI9xhnSegM0a7lefq/aWjAmPFR92NQPequg5DMhz7VZwCz8vEbm+iADGGxlOC4QrpY84dbiplMaqjMskXVr6FQ+MkQ0Ri6/v+8/+oX6Jok0w4G00T34WkRU9a7yjs="
-    file: "build.zip"
-    skip_cleanup: true
-    on:
-      tags: true
+  provider: releases
+  api_key:
+    secure: gHgdamFQGb5UX05AHAtwf/Cv8DqdkoL0ObU9pm3D6ZLLvHfGB7liZp6twWElxihKOAHOqqqJ0Qw3oD1He/0nRZ3Jco64PueZoC82QadCIOqPHv0LAACK609vyC7K1u7X2zQNV+Fxs+YaQn6N+EJW06rBGicTnHFqXAB80jACYEnhuRMOKGMTWLteET2iCofWgm3X5V3Ab5QIQOw5hc4+DtlmbeSWr9AHFrvRerc8Mk/gfQmvpgYDIgqNrGDaV+X4FLuxwLPmuUNlGHKemsZ3+f3x1CRs7JAD+AKUonbTbEByLwWuKG8IKcvXwbNu0FLEWVxbC2ZAMGzPLQFd+WAGf800unDQS5D/Jq7odahzEjPvSiLvfYFtfqS/Z92cySrFmH9KMXcfmQKd9hOtgmCZIKI3zNDBW3o+vaD3kAUYQyuzhhTNUax1xSg2eLcbP6hOD+3braNZApOgv4y6bB++wjV7ldte9AOn4xfnHiVs/vXmLoN1bTc87zDDjLLds8gIwlkQEgBxOeOzn9TcsM5KwvN05ySTIEnULJXN8fzpoW38gQYuNKJS6n77qVaBxQlXp4rex9NanXZdF6Gk6lX9hGNKDZOK8CsqUOUbhVK0Ag6rkMC0Qi2aeSFDvxbdb3ubgSYKIVwXgwtQIP8lkJf19oq1ONoxar0t4gGT4hQSwZs=
+  file: build.zip
+  skip_cleanup: true
+  on:
+    repo: flekschas/hipiler
+    tags: true
