@@ -1,3 +1,8 @@
+v1.1.5 - 2017-10-09
+
+- Finally fixed anchor links on hipiler.higlass.io
+- Fix typos
+
 v1.1.4 - 2017-10-09
 
 - Add slides from speakerdeck to about
