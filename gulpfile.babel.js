@@ -44,17 +44,23 @@ const renderer = new marked.marked.Renderer();
 
 //
 const anchorPrefix = ghp ? '' : '/docs/';
-const anchorLinkPrefix = ghp ? '/docs/#' : '#/docs/';
+const anchorLinkPrefix = ghp ? '/docs#' : '#/docs/';
 
 const makeH = (increment = 0) => (text, level) => {
-  const escapedText = text.toLowerCase().replace(/[^\w]+/g, '-');
+  const escapedText = text
+    .toLowerCase()
+    .replace(/-----/g, '/')
+    .replace(/[^\w\/]+/g, '-');  // eslint-disable-line no-useless-escape
+
+  const idx = text.indexOf('-----');
+  const cleanedText = idx >= 0 ? text.slice(idx + 5) : text;
 
   return `
 <h${level + increment} id="${anchorPrefix}${escapedText}" class="underlined anchored">
   <a href="${anchorLinkPrefix}${escapedText}" class="hidden-anchor">
     <svg-icon icon-id="link"></svg-icon>
   </a>
-  <span>${text}</span>
+  <span>${cleanedText}</span>
 </h${level + increment}>
   `;
 };
@@ -94,8 +100,11 @@ gulp.src = (...args) => gulpSrc
     this.emit('end');
   }));
 
-const extractFileName =
+const extractFileNameHtml =
   file => file.path.slice(file.base.length).replace(/-/gi, ' ').slice(0, -5);
+
+const extractFileNameMd =
+  file => file.path.slice(file.base.length).replace(/-/gi, ' ').slice(0, -3);
 
 let pageOrder = [];
 
@@ -274,11 +283,9 @@ gulp.task('sidebar', () => gulp
 gulp.task('wiki', () => gulp
   .src(['wiki/**/*.md', '!wiki/_Sidebar.md'])
   .pipe(plumber())
-  .pipe(order(pageOrder))
-  .pipe(marked(markedOptions))
   .pipe(modify({
     fileModifier: (file, contents) => {
-      let fileName = extractFileName(file);
+      let fileName = extractFileNameMd(file);
 
       if (fileName === 'Home') {
         fileName = 'Getting Started';
@@ -287,8 +294,22 @@ gulp.task('wiki', () => gulp
       const prefix = fileName.toLowerCase().replace(/ /gi, '-');
 
       // Add page-specific prefices to anchor links
-      contents = contents.replace(/id="\/docs\//gi, `id="${anchorPrefix}${prefix}/`);
-      contents = contents.replace(/href="#\/docs\//gi, `href="${anchorLinkPrefix}${prefix}/`);
+      contents = contents.replace(/(\n#+\s)/gi, `$1${prefix}-----`);
+
+      return contents;
+    }
+  }))
+  .pipe(order(pageOrder))
+  .pipe(marked(markedOptions))
+  .pipe(modify({
+    fileModifier: (file, contents) => {
+      let fileName = extractFileNameHtml(file);
+
+      if (fileName === 'Home') {
+        fileName = 'Getting Started';
+      }
+
+      const prefix = fileName.toLowerCase().replace(/ /gi, '-');
 
       return `${makeH(0)(fileName, 1)}\n${contents}`;
     }
