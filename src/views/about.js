@@ -1,7 +1,14 @@
 // Utils etc.
+import anchorLink, { getAnchor } from 'utils/anchor-link';
 import scrollToAnchor from 'utils/scroll-to-anchor';
 
+
 export class About {
+  constructor () {
+    this.anchorLink = anchorLink;
+    this.getAnchor = getAnchor;
+  }
+
   /* ----------------------- Aurelia-specific methods ----------------------- */
 
   activate (urlParams) {

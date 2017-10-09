@@ -15,7 +15,7 @@ import States from 'services/states';  // eslint-disable-line
 // Utils etc.
 import $ from 'utils/dom-el';
 import debounce from 'utils/debounce';
-import ping from 'utils/ping';
+// import ping from 'utils/ping';
 // import { createHgComponent as hg } from 'hglib';
 import { requestNextAnimationFrame } from 'utils/request-animation-frame';
 import {
@@ -85,10 +85,10 @@ export class Higlass {
     //   this.reject.isGlobalLociCalced = reject;
     // });
 
-    this.isServersAvailable = new Promise((resolve, reject) => {
-      this.resolve.isServersAvailable = resolve;
-      this.reject.isServersAvailable = reject;
-    });
+    // this.isServersAvailable = new Promise((resolve, reject) => {
+    //   this.resolve.isServersAvailable = resolve;
+    //   this.reject.isServersAvailable = reject;
+    // });
 
     Promise
       .all([this.isLociExtracted, this.chromInfo.ready])
@@ -216,25 +216,25 @@ export class Higlass {
     };
   }
 
-  /**
-   * Check server availablility.
-   *
-   * @param {object} config - HiGlass config.
-   * @return {object} Promise resolving to true if all servers are available.
-   */
-  checkServersAvailablility (config) {
-    let servers;
+  // /**
+  //  * Check server availablility.
+  //  *
+  //  * @param {object} config - HiGlass config.
+  //  * @return {object} Promise resolving to true if all servers are available.
+  //  */
+  // checkServersAvailablility (config) {
+  //   let servers;
 
-    try {
-      // This needs refactoring but we need to wait until Higlass's config has
-      // been refactored.
-      servers = [config.views[0].tracks.center[0].contents[0].server];
-    } catch (e) {
-      return Promise.reject(Error('Broken config'));
-    }
+  //   try {
+  //     // This needs refactoring but we need to wait until Higlass's config has
+  //     // been refactored.
+  //     servers = [config.views[0].tracks.center[0].contents[0].server];
+  //   } catch (e) {
+  //     return Promise.reject(Error('Broken config'));
+  //   }
 
-    return Promise.all(servers.map(server => ping(server)));
-  }
+  //   return Promise.all(servers.map(server => ping(server)));
+  // }
 
   // calcGlobalLoci (loci, chromInfo) {
   //   const globalLoci = loci.map((locus) => {
@@ -769,9 +769,9 @@ export class Higlass {
     this.originalConfig = config;
     this.config = deepClone(config);
 
-    this.checkServersAvailablility(this.originalConfig)
-      .then(() => { this.resolve.isServersAvailable(); })
-      .catch((error) => { this.reject.isServersAvailable(error); });
+    // this.checkServersAvailablility(this.originalConfig)
+    //   .then(() => { this.resolve.isServersAvailable(); })
+    //   .catch((error) => { this.reject.isServersAvailable(error); });
 
     if (!this.chromInfoData && this.config.chromInfoPath) {
       this.loadChromInfo(this.config.chromInfoPath);
@@ -936,7 +936,10 @@ export class Higlass {
   }
 
   render (config) {
-    Promise.all([this.isServersAvailable, this.isAttached])
+    // Pinging the server somehow fails when the internet connection is bad but
+    // loading HiGlass still works so the server check is disabled for now.
+    // Promise.all([this.isServersAvailable, this.isAttached])
+    Promise.all([this.isAttached])
       .then(() => {
         window.hglib.createHgComponent(
           this.plotEl,

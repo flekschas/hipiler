@@ -20,6 +20,7 @@
     .bottom-bar {
       height: 3rem;
       padding: 0 0.5rem 0.5rem 0.5rem;
+      border-top-color: rgba(0,0,0,0.1);
       background: transparentize($white, 0.25);
     }
   }
@@ -184,6 +185,16 @@
         height: 1em;
         margin-right: 0.25em;
       }
+    }
+  }
+
+  .data-links {
+    color: $gray;
+
+    a {
+      font-size: 0.8em;
+      vertical-align: top;
+      text-transform: uppercase;
     }
   }
 }

@@ -111,6 +111,7 @@ export default class App {
 
     if (window.hipilerConfig.ghp) {
       config.options.pushState = true;
+      config.options.hashChange = false;
       config.options.root = '/';
     }
 

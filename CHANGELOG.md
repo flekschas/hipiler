@@ -1,3 +1,19 @@
+v1.1.4 - 2017-10-09
+
+- Add slides from speakerdeck to about
+- Fix typos
+
+v1.1.3 - 2017-10-08
+
+- Update news
+- Fix view config loading
+- Disable buggy server pinging
+- Fix anchor links on hipiler.higlass.io
+
+v1.1.2 - 2017-10-04
+
+- Adjust anchor links on hipiler.higlass.io
+
 v1.1.1 - 2017-09-06
 
 - Limit height and width of entries in the pile details panel
