@@ -93,6 +93,29 @@
   #youtube {
     @include ratio(.626);
   }
+
+  .slides-container {
+    @include ratio(.6);
+
+    margin: 0.5rem;
+
+    &:first-child {
+      margin-left: 0;
+    }
+
+    &:last-child {
+      margin-right: 0;
+    }
+  }
+
+  .slides {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+  }
 }
 
 @media (min-width: 64rem) {  // 1024px
