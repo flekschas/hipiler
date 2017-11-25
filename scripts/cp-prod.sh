@@ -13,6 +13,7 @@ cd ../$1/
 
 # Add symlinks to index.html for HTML5 History
 ln -s index.html about.html
+ln -s index.html configurator.html
 ln -s index.html docs.html
 ln -s index.html explore.html
 ln -s index.html 404.html

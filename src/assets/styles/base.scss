@@ -395,6 +395,11 @@ p.nm {
   }
 }
 
+.info-panel {
+  padding: 0.5rem;
+  background: $gray-lightest;
+}
+
 @media (min-width: 60rem) {  // 960px
   .is-increased-font-size {
     font-size: 1.125em;
