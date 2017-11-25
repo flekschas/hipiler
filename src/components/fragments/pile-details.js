@@ -190,6 +190,17 @@ export class PileDetails {
     return this.annotations[id];
   }
 
+  getDatasets () {
+    if (!this.pile || !this.pile.pileMatrices) this.pileDatasets = '';
+    this.pileDatasets = this.pile.pileMatrices.map(matrix => matrix.dataset).join(', ');
+  }
+
+  getLocus () {
+    if (!this.pile || !this.pile.pileMatrices) this.pileLocus = '';
+    const { locus } = this.pile.pileMatrices[0];
+    this.pileLocus = `chr${locus.chrom1} ${locus.start1}:${locus.end1} & chr${locus.chrom2} ${locus.start2}:${locus.end2}`;
+  }
+
   highlightPile () {
     // Speculative update for responsiveness
     this.isHighlighted = true;
@@ -214,6 +225,8 @@ export class PileDetails {
       this.checkHighlight();
       this.extractCategories();
       this.extractMeasures();
+      this.getLocus();
+      this.getDatasets();
       this.annotation = this.getAnnotation(this.annoId);
     });
   }
