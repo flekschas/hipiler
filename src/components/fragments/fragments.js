@@ -3140,7 +3140,7 @@ export class Fragments {
 
       if (config.fragmentsIgnoreDiags) {
         params['ignore-diags'] = Math.max(
-          0, Math.min(3, parseInt(config.fragmentsIgnoreDiags, 10))
+          0, Math.min(10, parseInt(config.fragmentsIgnoreDiags, 10))
         );
       }
 
