@@ -22,6 +22,7 @@
     "import/no-unresolved": 0,
     "indent": ["error", 2, { "SwitchCase": 1 }],
     "no-mixed-operators": ["error", { "allowSamePrecedence": true }],
+    "no-multi-spaces": ["error", { "ignoreEOLComments": true }],
     "no-plusplus": ["error", { "allowForLoopAfterthoughts": true }],
     "no-undef": ["error"],
     "space-before-function-paren": ["error", "always"]
