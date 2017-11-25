@@ -95,6 +95,5 @@
     "start": "gulp && au run --watch",
     "test": "gulp",
     "update": "git pull && git submodule update --init --recursive --remote --merge && npm install && gulp",
-    "hurz": "gulp --ghp"
   }
 }
