@@ -1,3 +1,11 @@
+v1.2.0 - 2017-12-??
+
+- Add view config generator
+- Show pile source and genomic location in pile detail panel
+- Updated HiGlass to v0.9.15
+- Updated lots of third-party libraries
+- Updated news
+
 v1.1.5 - 2017-10-09
 
 - Finally fixed anchor links on hipiler.higlass.io
