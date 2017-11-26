@@ -220,6 +220,11 @@
             "env": "dev"
           },
           {
+            "name": "aurelia-validation",
+            "path": "../node_modules/aurelia-validation/dist/amd",
+            "main": "aurelia-validation"
+          },
+          {
             "name": "deep-freeze-strict",
             "path": "../node_modules/deep-freeze-strict",
             "main": "index",
