@@ -17,6 +17,7 @@ import {
 } from 'components/fragments/fragments-actions';
 
 import debounce from 'utils/debounce';
+import flatten from 'utils/flatten';
 
 import {
   requestNextAnimationFrame
@@ -192,7 +193,31 @@ export class PileDetails {
 
   getDatasets () {
     if (!this.pile || !this.pile.pileMatrices) this.pileDatasets = '';
-    this.pileDatasets = this.pile.pileMatrices.map(matrix => matrix.dataset).join(', ');
+
+    const state = this.store.getState().present.explore;
+
+    const heatmaps = state.higlass.config.views
+      .map(
+        view => view.tracks.center
+          .filter(track => track.type === 'combined')
+          .map(
+            track => track.contents
+              .filter(trackc => trackc.type === 'heatmap')
+          )
+          .reduce(...flatten)
+      )
+      .reduce(...flatten)
+      .reduce((a, b) => { a[b.tilesetUid] = b; return a; }, {});
+
+    this.pileDatasets = this.pile.pileMatrices
+      .map(matrix => matrix.dataset)
+      .reduce((a, b) => {
+        const idx = a.indexOf(b);
+        if (idx === -1) a.push(b);
+        return a;
+      }, [])
+      .map(uuid => heatmaps[uuid].options.name || heatmaps[uuid].options.orgName)
+      .join(', ');
   }
 
   getLocus () {
