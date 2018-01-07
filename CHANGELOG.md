@@ -1,3 +1,7 @@
+v1.1.6 - 2018-01-07
+
+- Updated `marked` to `v0.3.9`
+
 v1.1.5 - 2017-10-09
 
 - Finally fixed anchor links on hipiler.higlass.io
