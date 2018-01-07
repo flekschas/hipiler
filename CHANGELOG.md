@@ -1,33 +1,37 @@
-v1.2.0 - 2017-12-??
+**v1.2.0** - 2018-01-??
 
 - Add view config generator
 - Show pile source and genomic location in pile detail panel
-- Updated HiGlass to v0.9.15
+- Updated HiGlass to `v0.10.6`
 - Updated lots of third-party libraries
 - Updated news
 
-v1.1.5 - 2017-10-09
+**v1.1.6** - 2018-01-07
+
+- Updated `marked` to `v0.3.9`
+
+**v1.1.5** - 2017-10-09
 
 - Finally fixed anchor links on hipiler.higlass.io
 - Fix typos
 
-v1.1.4 - 2017-10-09
+**v1.1.4** - 2017-10-09
 
 - Add slides from speakerdeck to about
 - Fix typos
 
-v1.1.3 - 2017-10-08
+**v1.1.3** - 2017-10-08
 
 - Update news
 - Fix view config loading
 - Disable buggy server pinging
 - Fix anchor links on hipiler.higlass.io
 
-v1.1.2 - 2017-10-04
+**v1.1.2** - 2017-10-04
 
 - Adjust anchor links on hipiler.higlass.io
 
-v1.1.1 - 2017-09-06
+**v1.1.1** - 2017-09-06
 
 - Limit height and width of entries in the pile details panel
 - Limit number of marks on the x axis of chartlets
@@ -36,7 +40,7 @@ v1.1.1 - 2017-09-06
 - Updated hiGlass to `v0.8.34`
 - Updated some third party librabries
 
-v1.1.0 - 2017-08-17
+**v1.1.0** - 2017-08-17
 
 - Improve frame rendering performance dramatically
 - Improve scale and location updates of snippets to be blazing fast
@@ -52,7 +56,7 @@ v1.1.0 - 2017-08-17
 - Add button to explicitely close error messages
 - Fix scrolling in Firefox
 
-v1.0.0 - 2017-07-16
+**v1.0.0** - 2017-07-16
 
 - 5-10x faster snippet rendering
 - Implement removing matrices from piles
@@ -70,7 +74,7 @@ v1.0.0 - 2017-07-16
 - Fix orientation
 - Fix state reset (truly working this time!)
 
-v1.0.0-beta7 - 2017-06-09
+**v1.0.0-beta7** - 2017-06-09
 
 - Add support for loading unbalanced snippets
 - Add introduction video
@@ -81,7 +85,7 @@ v1.0.0-beta7 - 2017-06-09
 - Fix state reset
 - Fix bug when pulling non-standard snippets
 
-v1.0.0-beta6 - 2017-05-23
+**v1.0.0-beta6** - 2017-05-23
 
 - Update HiGlass
 - Update third-party libraries
@@ -89,24 +93,24 @@ v1.0.0-beta6 - 2017-05-23
 - Fix interaction issues
 - Scope CSS rules
 
-v1.0.0-beta5 - 2017-04-21
+**v1.0.0-beta5** - 2017-04-21
 
 - Fix import bug
 - Always load latest example from GIST
 
-v1.0.0-beta4 - 2017-04-20
+**v1.0.0-beta4** - 2017-04-20
 
 - Add documentation
 - Update icons
 - Minor design updates
 - Enable shortcuts for the dialog
 
-v1.0.0-beta3 - 2017-04-20
+**v1.0.0-beta3** - 2017-04-20
 
 - Code cleanup
 - Design landing page
 
-v1.0.0-beta2 - 2017-04-12
+**v1.0.0-beta2** - 2017-04-12
 
 - Lower memory footprint
 - Support Numpy's NaN mean
@@ -115,6 +119,6 @@ v1.0.0-beta2 - 2017-04-12
 - Update license
 - Integrate Travis-CI
 
-v1.0.0-beta1 - 2017-04-06
+**v1.0.0-beta1** - 2017-04-06
 
 - Initial pre-release for IEEE VIS 2017

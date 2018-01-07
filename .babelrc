@@ -5,7 +5,7 @@
   "compact": false,
   "code": true,
   "presets": [
-    ["es2015", {"loose": true}],
+    ["env", {"loose": true}],
     "stage-1"
   ],
   "plugins": [
