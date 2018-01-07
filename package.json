@@ -89,10 +89,10 @@
   },
   "scripts": {
     "build": "npm run update && gulp clean && gulp && au build --env prod && gulp index",
+    "build-travis": "npm run update && gulp clean && gulp clean-dist && gulp --ghp && au build --env prod && gulp ghp && cd ghp && zip -r ../build.zip ./*",
     "ghp": "npm run update && gulp clean && gulp clean-dist && gulp --ghp && au build --env prod && gulp ghp && scripts/cp-prod.sh hipiler-ghp",
     "start": "gulp && au run --watch",
     "test": "gulp",
-    "update": "git pull && git submodule update --init --recursive --remote --merge && npm install && gulp",
-    "hurz": "gulp --ghp"
+    "update": "git pull && git submodule update --init --recursive --remote --merge && npm install && gulp"
   }
 }
