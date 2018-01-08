@@ -32,9 +32,10 @@ npm install
 #### Commands
 
 ```JavaScript
-npm start       // Start dev server
-npm run build   // Build application
-npm run update  // Update to latest code
+npm start          // Start dev server
+npm run build      // Build JS bundles
+npm run build-app  // Build entire app
+npm run update     // Update to latest code
 ```
 
 #### Config
