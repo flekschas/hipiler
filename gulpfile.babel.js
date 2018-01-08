@@ -25,7 +25,8 @@ try {
 
 // Flags
 let ghp = gulpUtil.env.ghp;  // `--ghp`, i.e., GitHub pages
-let production = ghp || gulpUtil.env.production;  // `--production`
+let build = gulpUtil.env.build;  // `--ghp`, i.e., GitHub pages
+let production = ghp || build || gulpUtil.env.production;  // `--production`
 
 // We need an extra object because the import creates a `default` property
 const _config = {};
@@ -101,10 +102,10 @@ gulp.src = (...args) => gulpSrc
   }));
 
 const extractFileNameHtml =
-  file => file.path.slice(file.base.length).replace(/-/gi, ' ').slice(0, -5);
+  file => file.path.slice(file.base.length + 1).replace(/-/gi, ' ').slice(0, -5);
 
 const extractFileNameMd =
-  file => file.path.slice(file.base.length).replace(/-/gi, ' ').slice(0, -3);
+  file => file.path.slice(file.base.length + 1).replace(/-/gi, ' ').slice(0, -3);
 
 let pageOrder = [];
 
@@ -130,6 +131,13 @@ gulp.task('clean-dist', () => gulp
 );
 
 // Clean
+gulp.task('clean-build', () => gulp
+  .src('build/*', { read: false })
+  .pipe(plumber())
+  .pipe(clean())
+);
+
+// Clean
 gulp.task('clean-ghp', () => gulp
   .src('ghp/*', { read: false })
   .pipe(plumber())
@@ -150,9 +158,10 @@ gulp.task('config', () => gulp
 
       if (ghp) {
         const base = '<base href="http://hipiler.higlass.io">';
-
         contents = contents.replace(/<!-- HiPiler: adjustments -->/, base);
+      }
 
+      if (ghp || build) {
         insert = '// Google Tag Manager\n' +  // eslint-disable-line prefer-template
           '(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({"gtm.start":\n' +
           'new Date().getTime(),event:"gtm.js"});var f=d.getElementsByTagName(s)[0],\n' +
@@ -175,7 +184,15 @@ gulp.task('config', () => gulp
     }
   }))
   .pipe(gulpIf(ghp, gulp.dest('ghp/')))
-  .pipe(gulpIf(!ghp, gulp.dest('./')))
+  .pipe(gulpIf(build, gulp.dest('build/')))
+  .pipe(gulpIf(!ghp && !build, gulp.dest('./')))
+);
+
+// Copy to build
+gulp.task('copy-build', () => gulp
+  .src('favicon.ico')
+  .pipe(plumber())
+  .pipe(gulp.dest('build'))
 );
 
 // Copy to ghp
@@ -185,11 +202,25 @@ gulp.task('copy-ghp', () => gulp
   .pipe(gulp.dest('ghp'))
 );
 
+// Copy to build
+gulp.task('copy-build-assets', () => gulp
+  .src('assets/**')
+  .pipe(plumber())
+  .pipe(gulp.dest('build/assets'))
+);
+
 // Copy to ghp
 gulp.task('copy-ghp-assets', () => gulp
   .src('assets/**')
   .pipe(plumber())
   .pipe(gulp.dest('ghp/assets'))
+);
+
+// Copy to build
+gulp.task('copy-build-dist', () => gulp
+  .src('dist/*')
+  .pipe(plumber())
+  .pipe(gulp.dest('build/dist'))
 );
 
 // Copy to ghp
@@ -199,8 +230,24 @@ gulp.task('copy-ghp-dist', () => gulp
   .pipe(gulp.dest('ghp/dist'))
 );
 
+// Set env for build
+gulp.task('env-build', () => gulp
+  .src('index.html')
+  .pipe(plumber())
+  .pipe(modify({
+    fileModifier: (file, contents) => {
+      build = true;
+      production = true;
+      _config.debug = false;
+      _config.testing = false;
+
+      return contents;
+    }
+  }))
+);
+
 // Set env for ghp
-gulp.task('ghp-env', () => gulp
+gulp.task('env-ghp', () => gulp
   .src('index.html')
   .pipe(plumber())
   .pipe(modify({
@@ -309,8 +356,6 @@ gulp.task('wiki', () => gulp
         fileName = 'Getting Started';
       }
 
-      const prefix = fileName.toLowerCase().replace(/ /gi, '-');
-
       return `${makeH(0)(fileName, 1)}\n${contents}`;
     }
   }))
@@ -331,4 +376,6 @@ gulp.task('default', gulp.series('clean', 'sidebar', 'wiki'));
 
 gulp.task('index', gulp.series('hash', 'config'));
 
-gulp.task('ghp', gulp.series('ghp-env', 'clean-ghp', 'index', 'copy-ghp', 'copy-ghp-assets', 'copy-ghp-dist'));
+gulp.task('ghp', gulp.series('env-ghp', 'clean-ghp', 'index', 'copy-ghp', 'copy-ghp-assets', 'copy-ghp-dist'));
+
+gulp.task('build', gulp.series('env-build', 'clean-build', 'index', 'copy-build', 'copy-build-assets', 'copy-build-dist'));

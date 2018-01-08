@@ -6,6 +6,10 @@
 - Updated lots of third-party libraries
 - Updated news
 
+**v1.1.7** - 2018-01-08
+
+- Add build task for the entire app for easier integration with HiGlass docker
+
 **v1.1.6** - 2018-01-07
 
 - Updated `marked` to `v0.3.9`
