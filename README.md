@@ -26,7 +26,7 @@ HiPiler is an interactive web application for exploring and visualizing many reg
 #### Dependencies
 
 ```bash
-npm install
+npm run update
 ```
 
 #### Commands
