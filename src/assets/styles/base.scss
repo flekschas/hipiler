@@ -10,11 +10,7 @@
 *, *::before, *::after {
   font-family: 'Rubik', sans-serif;
   text-rendering: optimizeLegibility;
-  margin: 0;
-  padding: 0;
-  border: none;
   box-sizing: border-box;
-  list-style: none;
 }
 
 article, aside, details, figcaption, figure,
@@ -105,10 +101,29 @@ a:hover, a:focus, a:active {
   border-bottom-color: $primary;
 }
 
+button,
+input,
+select {
+  border: 0;
+}
+
+button {
+  border-radius: 0.25rem;
+}
+
 button:hover
 button:active,
 button:focus {
   outline: none;
+}
+
+ul {
+  margin: 0;
+  padding: 0;
+}
+
+li {
+  list-style: none;
 }
 
 img {

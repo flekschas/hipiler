@@ -43,6 +43,7 @@
   display: block;
   width: 0.5rem;
   height: 2rem;
+  padding: 0;
   background: $gray-lighter;
   transform: translateX(0);
   transition: background $transition-very-fast $ease-in-out-cubic,
@@ -220,7 +221,7 @@
 .bottom-bar {
   &.is-expanded,
   .settings-container {
-    height: 15rem;
+    height: 17.5rem;
   }
 
   multi-select {
@@ -249,5 +250,13 @@
     &> button {
       margin: 0.3rem 0.5rem;
     }
+  }
+
+  .color-gradient {
+    width: 1.5rem;
+    height: 1rem;
+    margin-right: 0.25rem;
+    border-radius: 0.25rem;
+    box-shadow: 0 0 3px 0 rgba(0, 0, 0, 0.25);
   }
 }
