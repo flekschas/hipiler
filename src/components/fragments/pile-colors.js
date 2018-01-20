@@ -1,4 +1,49 @@
+import chroma from 'chroma';
 import { scaleLinear } from 'd3';
+
+const COLOR_BW = chroma.scale();
+
+const COLOR_FALL = chroma.bezier(
+  ['white', 'LemonChiffon', 'OrangeRed', 'DarkRed', 'black']
+).scale().correctLightness();
+
+const COLOR_YL_GN_BU = chroma.scale([
+  '#ffffff',
+  '#ffffd9',
+  '#edf8b1',
+  '#c7e9b4',
+  '#7fcdbb',
+  '#41b6c4',
+  '#1d91c0',
+  '#225ea8',
+  '#253494',
+  '#081d58'
+]);
+
+const COLOR_YL_RD_BU = chroma.scale([
+  '#ffffff',
+  '#fff9bf',
+  '#ffce00',
+  '#ff9a00',
+  '#ff622d',
+  '#ff164a',
+  '#e10061',
+  '#b10074',
+  '#73007f',
+  '#000080'
+]);
+
+const COLOR_RD_WH_BU = chroma.scale('RdBu');
+
+export const bw = value => [...COLOR_BW(value).rgb(), 255];
+
+export const fall = value => [...COLOR_FALL(value).rgb(), 255];
+
+export const ylGnBu = value => [...COLOR_YL_GN_BU(value).rgb(), 255];
+
+export const ylRdBu = value => [...COLOR_YL_RD_BU(value).rgb(), 255];
+
+export const rdWhBu = value => [...COLOR_RD_WH_BU(value).rgb(), 255];
 
 const scale = scaleLinear().range([0, 1]);
 
@@ -78,5 +123,10 @@ export default {
   gray,
   grayRgba,
   orangeBlackRgba,
-  whiteOrangeBlackRgba
+  whiteOrangeBlackRgba,
+  bw,
+  fall,
+  ylGnBu,
+  ylRdBu,
+  rdWhBu
 };
