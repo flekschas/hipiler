@@ -198,6 +198,13 @@ export const setPiles = piles => ({
   payload: { piles }
 });
 
+export const SET_COLOR_MAP = 'SET_COLOR_MAP';
+
+export const setColorMap = colorMap => ({
+  type: SET_COLOR_MAP,
+  payload: { colorMap }
+});
+
 export const SET_SHOW_SPECIAL_CELLS = 'SET_SHOW_SPECIAL_CELLS';
 
 export const setShowSpecialCells = showSpecialCells => ({

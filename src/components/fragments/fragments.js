@@ -35,6 +35,7 @@ import {
   setAnimation,
   setArrangeMeasures,
   setCellSize,
+  setColorMap,
   setCellAndGridSize,
   setCoverDispMode,
   setGridCellSizeLock,
@@ -1287,6 +1288,19 @@ export class Fragments {
       }
     } else {
       this.store.dispatch(setArrangeMeasures([CLUSTER_TSNE]));
+    }
+  }
+
+  /**
+   * Set color map for snippets
+   *
+   * @param {String}  color  Color map name
+   */
+  colorMapSelectHandler (color) {
+    try {
+      this.store.dispatch(setColorMap(color));
+    } catch (error) {
+      logger.error(`Could not set color map: ${color}.`, error);
     }
   }
 
@@ -4597,6 +4611,9 @@ export class Fragments {
       ready.push(this.updateTsnePerplexity(
         stateFgm.tsnePerplexity, update
       ));
+      ready.push(this.updateColorMap(
+        stateFgm.colorMap, update
+      ));
 
       Promise.all([this.isInitFully, ...ready]).finally(() => {
         if (!noRendering) {
@@ -5357,6 +5374,21 @@ export class Fragments {
     if (this.tsnePerplexity !== tsnePerplexity) {
       this.tsnePerplexity = tsnePerplexity;
       update.clustering = this.isDataClustered;
+    }
+
+    return Promise.resolve();
+  }
+
+  /**
+   * Update color map.
+   *
+   * @param {string} colorMap - Color map name.
+   * @param {object} update - Update object.
+   */
+  updateColorMap (colorMap, update) {
+    if (this.colorMap !== colorMap) {
+      this.state.colorMap = colorMap;
+      update.piles = true;
     }
 
     return Promise.resolve();

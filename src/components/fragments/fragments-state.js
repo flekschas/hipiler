@@ -2,6 +2,7 @@ import { Scene } from 'three';
 
 import {
   CELL_SIZE,
+  COLOR_BW,
   GRID_SIZE,
   LOG_TRANSFORM,
   MATRIX_ORIENTATION_INITIAL,
@@ -14,6 +15,7 @@ const DEFAULT_STATE = {
   annotations: {},
   adjacentDistances: undefined,
   cellSize: CELL_SIZE,
+  colorMap: COLOR_BW,
   gridSize: GRID_SIZE,
   colorsIdx: {},
   coverDispMode: MODE_AVERAGE,
