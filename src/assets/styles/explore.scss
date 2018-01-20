@@ -257,6 +257,36 @@
     height: 1rem;
     margin-right: 0.25rem;
     border-radius: 0.25rem;
-    box-shadow: 0 0 3px 0 rgba(0, 0, 0, 0.25);
+    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.2);
+    transition: width $transition-very-fast $ease-in-out-cubic;
+
+    &:hover,
+    &.is-active {
+      width: 2rem;
+    }
+
+    &.is-active {
+      box-shadow: inset 0 0 0 1px $white, 0 0 0 1px $primary;
+    }
+  }
+
+  .color-gradient-bw {
+    background: linear-gradient(to right, #ffffff 0%, #000000 100%);
+  }
+
+  .color-gradient-fall {
+    background: linear-gradient(to right, #ffffff 0%, #ffc394 20%, #ff7c40 40%, #e03702 60%, #501405 80%, #000000 100%);
+  }
+
+  .color-gradient-yl-gn-bu {
+    background: linear-gradient(to right, #ffffd9 0%, #41b6c4 50%, #081d58 100%);
+  }
+
+  .color-gradient-yl-rd-bu {
+    background: linear-gradient(to right, #ffff55 0%, #ef8b39 25%, #ea3353 50%, #b5256b 75%, #00007b 100%);
+  }
+
+  .color-gradient-rd-wh-bu {
+    background: linear-gradient(to right, #d6604d 0%, #ffffff 50%, #4393c3 100%);
   }
 }
