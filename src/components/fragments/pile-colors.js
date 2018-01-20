@@ -33,6 +33,16 @@ const COLOR_YL_RD_BU = chroma.scale([
   '#000080'
 ]);
 
+const COLOR_PK_PP = chroma.scale([
+  '#ffffff',
+  '#ffb8fb',
+  '#ff5cfe',
+  '#cb08e1',
+  '#81169e',
+  '#401551',
+  '#000000'
+]);
+
 const COLOR_RD_WH_BU = chroma.scale('RdBu');
 
 export const bw = value => [...COLOR_BW(value).rgb(), 255];
@@ -44,6 +54,8 @@ export const ylGnBu = value => [...COLOR_YL_GN_BU(value).rgb(), 255];
 export const ylRdBu = value => [...COLOR_YL_RD_BU(value).rgb(), 255];
 
 export const rdWhBu = value => [...COLOR_RD_WH_BU(value).rgb(), 255];
+
+export const pkPp = value => [...COLOR_PK_PP(value).rgb(), 255];
 
 const scale = scaleLinear().range([0, 1]);
 
@@ -128,5 +140,6 @@ export default {
   fall,
   ylGnBu,
   ylRdBu,
-  rdWhBu
+  rdWhBu,
+  pkPp
 };

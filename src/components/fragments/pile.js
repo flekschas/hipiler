@@ -1156,7 +1156,7 @@ export default class Pile {
    */
   getMatrixColor (varianceMode) {
     const transformer = varianceMode ?
-      pileColors.whiteOrangeBlackRgba : pileColors[fgmState.colorMap];
+      pileColors.pkPp : pileColors[fgmState.colorMap];
 
     return function (value, specialCells) {
       return transformer(value, specialCells);
