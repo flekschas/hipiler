@@ -251,6 +251,8 @@ export class Fragments {
     this.tsneIterations = TSNE_ITERATIONS;
 
     this.colorScaleSelected = [0, 1];
+    this.colorScaleFromTmp = 0;
+    this.colorScaleToTmp = 1;
 
     this.arrangeMeasuresAccessPath = [
       'explore', 'fragments', 'arrangeMeasures'
@@ -489,6 +491,10 @@ export class Fragments {
 
   get matrixWidthHalf () {
     return this.matrixWidth / 2;
+  }
+
+  get nonStandardColorScale () {
+    return this.colorScaleFromTmp !== 0 || this.colorScaleToTmp !== 1;
   }
 
   get pilePreviewHeight () {
@@ -1323,11 +1329,16 @@ export class Fragments {
   colorScaleChangeHandler (event) {
     const state = this.store.getState().present.explore.fragments;
 
-    if (state.colorScaleFrom !== event.from) {
-      this.store.dispatch(setColorScaleFrom(event.from));
-    }
-    if (state.colorScaleTo !== event.to) {
-      this.store.dispatch(setColorScaleTo(event.to));
+    this.colorScaleFromTmp = Math.round(event.from * 100) / 100;
+    this.colorScaleToTmp = Math.round(event.to * 100) / 100;
+
+    if (event.final) {
+      if (state.colorScaleFrom !== event.from) {
+        this.store.dispatch(setColorScaleFrom(event.from));
+      }
+      if (state.colorScaleTo !== event.to) {
+        this.store.dispatch(setColorScaleTo(event.to));
+      }
     }
   }
 
@@ -5455,6 +5466,9 @@ export class Fragments {
       this.state.colorScaleFrom,
       this.state.colorScaleTo
     ];
+
+    this.colorScaleFromTmp = Math.round(this.state.colorScaleFrom * 100) / 100;
+    this.colorScaleToTmp = Math.round(this.state.colorScaleTo * 100) / 100;
 
     this.state.colorScale.domain(this.colorScaleSelected);
 

@@ -114,6 +114,7 @@ export class RangeSelect {
       }
 
       this.update();
+      this.publish();
     }
   }
 

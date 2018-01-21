@@ -171,6 +171,12 @@
             <li class="flex-c flex-d-c flex-g-1 m-r-0-5">
               <label>
                 Scale:
+                <span
+                  if.bind="nonStandardColorScale">
+                  <span>${colorScaleFromTmp}</span>
+                  &ndash;
+                  <span>${colorScaleToTmp}</span>
+                </span>
               </label>
               <range-select
                 class="flex-g-1"
