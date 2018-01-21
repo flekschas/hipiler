@@ -2,6 +2,7 @@
   <require from="components/dialog/dialog"></require>
   <require from="components/fragments/pile-menu"></require>
   <require from="components/multi-select/multi-select"></require>
+  <require from="components/range-select/range-select"></require>
   <require from="components/svg-icon/svg-icon"></require>
   <require from="components/spinner.html"></require>
 
@@ -167,22 +168,11 @@
                 ></div>
               </div>
             </li>
-            <li class="flex-c flex-d-c ${state.isHilbertCurve ? 'is-disabled' : ''}">
-              <label for="settings-fgm-color-scale">
+            <li class="flex-c flex-d-c flex-g-1 m-r-0-5">
+              <label>
                 Scale:
               </label>
-              <input
-                id="settings-fgm-color-scale"
-                type="range"
-                min="1"
-                max="10"
-                step="1"
-                value.one-way="state.cellSize"
-                mousedown.delegate="cellSizeMousedownHandler($event)"
-                mouseup.delegate="cellSizeMouseupHandler($event)"
-                input.delegate="cellSizeInputHandler($event)"
-                change.delegate="cellSizeChangeHandler($event)"
-              >
+              <range-select class="flex-g-1"></range-select>
             </li>
           </ul>
         </div>
