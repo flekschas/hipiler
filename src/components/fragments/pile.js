@@ -1035,11 +1035,9 @@ export default class Pile {
     const lowQualThreshold = -this.dims * PREVIEW_LOW_QUAL_THRESHOLD;
     let idx;
 
-    let color = pileColors.grayRgba;
-
-    if (previewing) {
-      color = pileColors.orangeBlackRgba;
-    }
+    const color = previewing
+      ? pileColors[fgmState.colorMap].inverse  // When mousing over a pile preview
+      : pileColors[fgmState.colorMap];
 
     for (let i = this.dims; i--;) {
       colAvg[i] = 0;
@@ -1074,29 +1072,7 @@ export default class Pile {
    *   values (e.g., low quality) instead of a color.
    * @return {array} Relative RGB array
    */
-  getColor (value, showSpecialCells) {
-    switch (value) {
-      case -1:
-        if (showSpecialCells) {
-          return COLORS.LOW_QUALITY_BLUE_ARR;
-        }
-
-        return [1, 1, 1];
-
-      default:
-        return pileColors.gray(1 - value);
-    }
-  }
-
-  /**
-   * Get gray tone color from value.
-   *
-   * @param {number} value - Valuer of the cell.
-   * @param {boolean} showSpecialCells - If `true` return white for special
-   *   values (e.g., low quality) instead of a color.
-   * @return {array} Relative RGB array
-   */
-  getColorRgba (value, showSpecialCells, color = pileColors.grayRgba) {
+  getColorRgba (value, showSpecialCells, color = pileColors[fgmState.colorMap]) {
     switch (value) {
       case -1:
         if (showSpecialCells) {
@@ -1106,7 +1082,7 @@ export default class Pile {
         return [255, 255, 255, 255];
 
       default:
-        return color(1 - value);
+        return color(fgmState.colorScale(value));
     }
   }
 
@@ -1159,7 +1135,7 @@ export default class Pile {
       pileColors.pkPp : pileColors[fgmState.colorMap];
 
     return function (value, specialCells) {
-      return transformer(value, specialCells);
+      return transformer(fgmState.colorScale(value), specialCells);
     };
   }
 
