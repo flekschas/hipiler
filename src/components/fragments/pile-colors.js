@@ -7,6 +7,10 @@ const COLOR_FALL = chroma.bezier(
   ['white', 'LemonChiffon', 'OrangeRed', 'DarkRed', 'black']
 ).scale().correctLightness();
 
+const COLOR_FALL_INVERSE = chroma.bezier(
+  ['#ffffff', '#d9c5f5', '#00cca7', '#006f00', '#000000']
+).scale().correctLightness();
+
 const COLOR_YL_GN_BU = chroma.scale([
   '#ffffff',
   '#ffffd9',
@@ -47,7 +51,11 @@ const COLOR_RD_WH_BU = chroma.scale('RdBu');
 
 export const bw = value => [...COLOR_BW(value).rgb(), 255];
 
+bw.inverse = orangeBlackRgba;
+
 export const fall = value => [...COLOR_FALL(value).rgb(), 255];
+
+fall.inverse = value => [...COLOR_FALL_INVERSE(value).rgb(), 255];
 
 export const ylGnBu = value => [...COLOR_YL_GN_BU(value).rgb(), 255];
 
