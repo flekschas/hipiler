@@ -1,0 +1,76 @@
+@import 'colors';
+@import 'transitions';
+
+range-select {
+  position: relative;
+  height: 1rem;
+}
+
+.range-select-from,
+.range-select-top {
+  font-size: 0.8rem;
+  line-height: 1rem;
+}
+
+.range-select-from {
+  margin-right: 0.25rem;
+}
+
+.range-select-top {
+  margin-left: 0.5rem;
+}
+
+.range-selector {
+  z-index: 2;
+  position: absolute;
+  top: 0;
+  width: 0.25rem;
+  height: 1rem;
+  margin-left: -0.25rem;
+  padding: 0 0.25;
+  border-radius: 0;
+  background: transparent;
+
+  &:active,
+  &:focus,
+  &:hover {
+    z-index: 3;
+
+    &:after {
+      left: 0.125rem;
+      right: 0.125rem;
+      background: $black;
+    }
+  }
+
+  &:after {
+    position: absolute;
+    content: '';
+    top: 0;
+    right: 0.25rem;
+    bottom: 0;
+    left: 0.25rem;
+    border-radius: 0.25rem;
+    background: $gray;
+    transition: all $transition-very-fast $ease-in-out-cubic;
+  }
+}
+
+.range-select-range {
+  z-index: 0;
+  position: absolute;
+  top: 0.375rem;
+  right: 0;
+  bottom: 0.375rem;
+  left: 0;
+  border-radius: 0.25rem;
+}
+
+.selected-range {
+  z-index: 1;
+  background: $gray;
+}
+
+.available-range {
+  background: $gray-lightest;
+}
