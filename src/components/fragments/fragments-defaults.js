@@ -52,6 +52,10 @@ export const COLOR_MAPS = [
   COLOR_RD_WH_BY
 ];
 
+export const COLOR_SCALE_FROM = 0;
+
+export const COLOR_SCALE_TO = 1;
+
 export const DBL_CLICK_DELAY_TIME = 250;
 
 /**

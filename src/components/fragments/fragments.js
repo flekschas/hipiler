@@ -36,6 +36,8 @@ import {
   setArrangeMeasures,
   setCellSize,
   setColorMap,
+  setColorScaleFrom,
+  setColorScaleTo,
   setCellAndGridSize,
   setCoverDispMode,
   setGridCellSizeLock,
@@ -130,7 +132,13 @@ import {
   is2d
 } from 'components/fragments/fragments-utils';
 
-import { EVENT_BASE_NAME } from 'components/multi-select/multi-select-defaults';
+import {
+  EVENT_BASE_NAME as MULTI_SELECT_EVENT_NAME
+} from 'components/multi-select/multi-select-defaults';
+
+import {
+  EVENT_BASE_NAME as RANGE_SELECT_EVENT_NAME
+} from 'components/range-select/range-select-defaults';
 
 import COLORS from 'configs/colors';
 
@@ -242,6 +250,8 @@ export class Fragments {
     this.tsneLearningRate = TSNE_LEARNING_RATE;
     this.tsneIterations = TSNE_ITERATIONS;
 
+    this.colorScaleSelected = [0, 1];
+
     this.arrangeMeasuresAccessPath = [
       'explore', 'fragments', 'arrangeMeasures'
     ];
@@ -283,6 +293,7 @@ export class Fragments {
     }];
 
     this.arrangeSelectedEventId = 'fgm.arrange';
+    this.colorScaleEventId = 'fgm.colorScale';
 
     // The following setup allows us to imitate deferred objects. I.e., we can
     // resolve promises outside their scope.
@@ -646,7 +657,7 @@ export class Fragments {
   }
 
   /**
-   * Handles changes of arrange measures amd dispatches the appropriate action.
+   * Handles changes of arrange measures and dispatches the appropriate action.
    *
    * @param {array} measures - List of measures to arrange piles.
    */
@@ -1301,6 +1312,22 @@ export class Fragments {
       this.store.dispatch(setColorMap(color));
     } catch (error) {
       logger.error(`Could not set color map: ${color}.`, error);
+    }
+  }
+
+  /**
+   * Handles changes of color scalnigs and dispatches the appropriate action.
+   *
+   * @param {object} event - Event object holding the from and to scales.
+   */
+  colorScaleChangeHandler (event) {
+    const state = this.store.getState().present.explore.fragments;
+
+    if (state.colorScaleFrom !== event.from) {
+      this.store.dispatch(setColorScaleFrom(event.from));
+    }
+    if (state.colorScaleTo !== event.to) {
+      this.store.dispatch(setColorScaleTo(event.to));
     }
   }
 
@@ -2683,7 +2710,12 @@ export class Fragments {
 
     // Let the multi/select component know
     this.event.publish(
-      `${EVENT_BASE_NAME}.${this.arrangeSelectedEventId}.update`
+      `${MULTI_SELECT_EVENT_NAME}.${this.arrangeSelectedEventId}.update`
+    );
+
+    // Let the color range component know
+    this.event.publish(
+      `${RANGE_SELECT_EVENT_NAME}.${this.colorScaleEventId}.update`
     );
 
     return { header, fragments };
@@ -2720,8 +2752,13 @@ export class Fragments {
     this.subscriptions = [];
 
     this.subscriptions.push(this.event.subscribe(
-      `${EVENT_BASE_NAME}.${this.arrangeSelectedEventId}`,
+      `${MULTI_SELECT_EVENT_NAME}.${this.arrangeSelectedEventId}`,
       this.arrangeChangeHandler.bind(this)
+    ));
+
+    this.subscriptions.push(this.event.subscribe(
+      `${RANGE_SELECT_EVENT_NAME}.${this.colorScaleEventId}`,
+      this.colorScaleChangeHandler.bind(this)
     ));
 
     this.subscriptions.push(this.event.subscribe(
@@ -4614,6 +4651,9 @@ export class Fragments {
       ready.push(this.updateColorMap(
         stateFgm.colorMap, update
       ));
+      ready.push(this.updateColorScale(
+        stateFgm.colorScaleFrom, stateFgm.colorScaleTo, update
+      ));
 
       Promise.all([this.isInitFully, ...ready]).finally(() => {
         if (!noRendering) {
@@ -5386,10 +5426,37 @@ export class Fragments {
    * @param {object} update - Update object.
    */
   updateColorMap (colorMap, update) {
-    if (this.colorMap !== colorMap) {
+    if (this.state.colorMap !== colorMap) {
       this.state.colorMap = colorMap;
       update.piles = true;
     }
+
+    return Promise.resolve();
+  }
+
+  /**
+   * Update color map.
+   *
+   * @param {number} from - Color scale from.
+   * @param {number} to - Color scale to.
+   * @param {object} update - Update object.
+   */
+  updateColorScale (colorScaleFrom, colorScaleTo, update) {
+    if (this.state.colorScaleFrom !== colorScaleFrom) {
+      this.state.colorScaleFrom = colorScaleFrom;
+      update.piles = true;
+    }
+    if (this.state.colorScaleTo !== colorScaleTo) {
+      this.state.colorScaleTo = colorScaleTo;
+      update.piles = true;
+    }
+
+    this.colorScaleSelected = [
+      this.state.colorScaleFrom,
+      this.state.colorScaleTo
+    ];
+
+    this.state.colorScale.domain(this.colorScaleSelected);
 
     return Promise.resolve();
   }

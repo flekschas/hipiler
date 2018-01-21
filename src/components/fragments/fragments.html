@@ -172,7 +172,10 @@
               <label>
                 Scale:
               </label>
-              <range-select class="flex-g-1"></range-select>
+              <range-select
+                class="flex-g-1"
+                event-id.bind="colorScaleEventId"
+                selected.bind="colorScaleSelected"></range-select>
             </li>
           </ul>
         </div>

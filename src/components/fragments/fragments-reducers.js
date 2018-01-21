@@ -14,6 +14,8 @@ import {
   SET_ARRANGE_MEASURES,
   SET_CELL_SIZE,
   SET_COLOR_MAP,
+  SET_COLOR_SCALE_FROM,
+  SET_COLOR_SCALE_TO,
   SET_COVER_DISP_MODE,
   SET_GRID_CELL_SIZE_LOCK,
   SET_GRID_SIZE,
@@ -43,7 +45,8 @@ import {
   ARRANGE_MEASURES,
   CELL_SIZE,
   COLOR_BW,
-  COLOR_MAPS,
+  COLOR_SCALE_FROM,
+  COLOR_SCALE_TO,
   CONFIG,
   GRID_CELL_SIZE_LOCK,
   GRID_SIZE,
@@ -180,6 +183,26 @@ export function colorMap (state = COLOR_BW, action) {
   switch (action.type) {
     case SET_COLOR_MAP:
       return action.payload.colorMap;
+
+    default:
+      return state;
+  }
+}
+
+export function colorScaleFrom (state = COLOR_SCALE_FROM, action) {
+  switch (action.type) {
+    case SET_COLOR_SCALE_FROM:
+      return action.payload.colorScaleFrom;
+
+    default:
+      return state;
+  }
+}
+
+export function colorScaleTo (state = COLOR_SCALE_TO, action) {
+  switch (action.type) {
+    case SET_COLOR_SCALE_TO:
+      return action.payload.colorScaleTo;
 
     default:
       return state;
@@ -544,6 +567,8 @@ export default combineReducers({
   arrangeMeasures,
   cellSize,
   colorMap,
+  colorScaleFrom,
+  colorScaleTo,
   config,
   coverDispMode,
   gridCellSizeLock,
