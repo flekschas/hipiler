@@ -89,7 +89,10 @@ export class RangeSelect {
   mouseUpHandler (event) {
     this.mouseX = undefined;
 
-    this.mouseMoveListener.dispose();
+    if (this.mouseMoveListener) {
+      this.mouseMoveListener.dispose();
+    }
+
     this.mouseMoveListener = undefined;
     this.activeSelector = undefined;
 
