@@ -223,8 +223,7 @@
           {
             "name": "chroma",
             "path": "../node_modules/chroma-js",
-            "main": "chroma",
-            "env": "dev"
+            "main": "chroma"
           },
           {
             "name": "deep-freeze-strict",
