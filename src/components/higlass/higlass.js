@@ -162,7 +162,8 @@ export class Higlass {
 
     hgConfig.views.forEach((view, index) => {
       // Adjust height of the original view
-      view.uid += '_';  // This is needed to make HiGlass refresh properly. Otherwise an error is thrown
+      // This is needed to make HiGlass refresh properly. Otherwise an error is thrown
+      view.uid += '_';
       view.layout.h = 6;
 
       const selectionView = deepClone(view);
@@ -598,8 +599,8 @@ export class Higlass {
       if (view.selectionView) {
         this.api.on(
           'location',
-          view.uid,
           this.locationTracker[view.uid].callback,
+          view.uid,
           (id) => { this.locationTracker[view.uid].id = id; }
         );
       }

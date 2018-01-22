@@ -216,6 +216,13 @@ gulp.task('copy-ghp-assets', () => gulp
   .pipe(gulp.dest('ghp/assets'))
 );
 
+// Copy hglib.css
+gulp.task('copy-hglib-css', () => gulp
+  .src('node_modules/higlass/dist/styles/hglib.css')
+  .pipe(plumber())
+  .pipe(gulp.dest('ghp/node_modules/higlass/dist/styles/'))
+);
+
 // Copy to build
 gulp.task('copy-build-dist', () => gulp
   .src('dist/*')
@@ -376,6 +383,6 @@ gulp.task('default', gulp.series('clean', 'sidebar', 'wiki'));
 
 gulp.task('index', gulp.series('hash', 'config'));
 
-gulp.task('ghp', gulp.series('env-ghp', 'clean-ghp', 'index', 'copy-ghp', 'copy-ghp-assets', 'copy-ghp-dist'));
+gulp.task('ghp', gulp.series('env-ghp', 'clean-ghp', 'index', 'copy-ghp', 'copy-ghp-assets', 'copy-hglib-css', 'copy-ghp-dist'));
 
 gulp.task('build', gulp.series('env-build', 'clean-build', 'index', 'copy-build', 'copy-build-assets', 'copy-build-dist'));

@@ -170,10 +170,6 @@
       {
         "name": "vendor-bundle.js",
         "prepend": [
-          "node_modules/pixi.js/dist/pixi.min.js",
-          "node_modules/react/dist/react.min.js",
-          "node_modules/react-bootstrap/dist/react-bootstrap.min.js",
-          "node_modules/react-dom/dist/react-dom.min.js",
           "node_modules/higlass/dist/scripts/hglib.js",
           "node_modules/bluebird/js/browser/bluebird.core.min.js",
           "node_modules/aurelia-cli/lib/resources/scripts/configure-bluebird.js",
@@ -218,6 +214,16 @@
             "path": "../node_modules/aurelia-testing/dist/amd",
             "main": "aurelia-testing",
             "env": "dev"
+          },
+          {
+            "name": "aurelia-validation",
+            "path": "../node_modules/aurelia-validation/dist/amd",
+            "main": "aurelia-validation"
+          },
+          {
+            "name": "chroma",
+            "path": "../node_modules/chroma-js",
+            "main": "chroma"
           },
           {
             "name": "deep-freeze-strict",

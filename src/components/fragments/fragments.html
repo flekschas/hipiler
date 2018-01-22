@@ -1,7 +1,8 @@
-`<template>
+<template>
   <require from="components/dialog/dialog"></require>
   <require from="components/fragments/pile-menu"></require>
   <require from="components/multi-select/multi-select"></require>
+  <require from="components/range-select/range-select"></require>
   <require from="components/svg-icon/svg-icon"></require>
   <require from="components/spinner.html"></require>
 
@@ -132,6 +133,55 @@
                 click.delegate="closePilesInspectionHandler()">
                 Close Inspection
               </button>
+            </li>
+          </ul>
+        </div>
+
+        <div class="flex-c settings-row">
+          <h4>Color</h4>
+
+          <ul class="flex-c flex-g-1 settings-list">
+            <li class="flex-c flex-d-c ${state.isHilbertCurve ? 'is-disabled' : ''}">
+              <label>
+                Maps:
+              </label>
+              <div class="flex-c">
+                <div
+                  class="color-gradient color-gradient-bw ${state.colorMap === 'bw' ? 'is-active' : ''}"
+                  click.delegate="colorMapSelectHandler('bw')"
+                ></div>
+                <div
+                  class="color-gradient color-gradient-fall ${state.colorMap === 'fall' ? 'is-active' : ''}"
+                  click.delegate="colorMapSelectHandler('fall')"
+                ></div>
+                <div
+                  class="color-gradient color-gradient-yl-gn-bu ${state.colorMap === 'ylGnBu' ? 'is-active' : ''}"
+                  click.delegate="colorMapSelectHandler('ylGnBu')"
+                ></div>
+                <div
+                  class="color-gradient color-gradient-yl-rd-bu ${state.colorMap === 'ylRdBu' ? 'is-active' : ''}"
+                  click.delegate="colorMapSelectHandler('ylRdBu')"
+                ></div>
+                <div
+                  class="color-gradient color-gradient-rd-wh-bu ${state.colorMap === 'rdWhBu' ? 'is-active' : ''}"
+                  click.delegate="colorMapSelectHandler('rdWhBu')"
+                ></div>
+              </div>
+            </li>
+            <li class="flex-c flex-d-c flex-g-1 m-r-0-5">
+              <label>
+                Scale:
+                <span
+                  if.bind="nonStandardColorScale">
+                  <span>${colorScaleFromTmp}</span>
+                  &ndash;
+                  <span>${colorScaleToTmp}</span>
+                </span>
+              </label>
+              <range-select
+                class="flex-g-1"
+                event-id.bind="colorScaleEventId"
+                selected.bind="colorScaleSelected"></range-select>
             </li>
           </ul>
         </div>

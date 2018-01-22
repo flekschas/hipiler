@@ -109,6 +109,20 @@ export const setCellAndGridSize = size => batchActions([
   setGridSize(size)
 ]);
 
+export const SET_COLOR_SCALE_FROM = 'SET_COLOR_SCALE_FROM';
+
+export const setColorScaleFrom = colorScaleFrom => ({
+  type: SET_COLOR_SCALE_FROM,
+  payload: { colorScaleFrom }
+});
+
+export const SET_COLOR_SCALE_TO = 'SET_COLOR_SCALE_TO';
+
+export const setColorScaleTo = colorScaleTo => ({
+  type: SET_COLOR_SCALE_TO,
+  payload: { colorScaleTo }
+});
+
 export const SET_COVER_DISP_MODE = 'SET_COVER_DISP_MODE';
 
 export const setCoverDispMode = coverDispMode => ({
@@ -196,6 +210,13 @@ export const SET_PILES = 'SET_PILES';
 export const setPiles = piles => ({
   type: SET_PILES,
   payload: { piles }
+});
+
+export const SET_COLOR_MAP = 'SET_COLOR_MAP';
+
+export const setColorMap = colorMap => ({
+  type: SET_COLOR_MAP,
+  payload: { colorMap }
 });
 
 export const SET_SHOW_SPECIAL_CELLS = 'SET_SHOW_SPECIAL_CELLS';

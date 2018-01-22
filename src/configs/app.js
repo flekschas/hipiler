@@ -9,6 +9,15 @@ export const routes = [
     moduleId: 'views/home',
     nav: false
   },
+  // {
+  //   route: 'configurator/:anchor?',
+  //   href: '/configurator',
+  //   name: 'configurator',
+  //   title: 'Configurator',
+  //   moduleId: 'views/configurator',
+  //   nav: true,
+  //   icon: 'cog'
+  // },
   {
     route: 'about/:anchor?',
     href: '/about',

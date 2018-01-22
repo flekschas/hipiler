@@ -1,0 +1,26 @@
+<template>
+  <div class="flex-c full-dim rel">
+    <div class="range-select-from">${from}</div>
+    <div class="range-selection flex-g-1 rel" ref="baseEl">
+      <button
+        class="range-selector range-selector-left"
+        mousedown.delegate="mouseDownHandler($event, 'left')"
+        mouseup.delegate="mouseUpHandler($event)"
+        mousemove.delegate="mouseMoveHandler($event)"
+        css.one-way="rangeSelectorLeftCss"
+        ref="leftSelectorEl"></button>
+      <button
+        class="range-selector range-selector-right"
+        mousedown.delegate="mouseDownHandler($event, 'right')"
+        mouseup.delegate="mouseUpHandler($event)"
+        mousemove.delegate="mouseMoveHandler($event)"
+        css.one-way="rangeSelectorRightCss"
+        ref="rightSelectorEl"></button>
+      <div
+        class="range-select-range selected-range"
+        css.one-way="selectedRangeCss"></div>
+      <div class="range-select-range available-range"></div>
+    </div>
+    <div class="range-select-top">${to}</div>
+  </div>
+</template>

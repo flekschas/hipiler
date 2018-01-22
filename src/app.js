@@ -278,18 +278,6 @@ export default class App {
 
       this.dialogIsOpen = true;
 
-      if (this.swagI < 2) {
-        this.dialogMessage =
-          'Yuuhuu! May the bockwurst be with you my young compression lover.' +
-          '<br/>Learn more about Compresso\'s awesome bockwurst-guided ' +
-          'compression by clicking on <em>Okay</em>.';
-      } else {
-        this.dialogMessage =
-          'We hear you! You are not alone, help is on it\'s way.<br/>' +
-          'Meanwhile have a look at our extensive documentation and get ' +
-          'yourself a nice cup of ☕️';
-      }
-
       switch (this.swagI) {
         case 0:
         case 1:
@@ -313,7 +301,7 @@ export default class App {
             'directly we highly recommend checking out ' +
             '<a href="https://github.com/mirnylab/cooler" target="_blank"> ' +
             '<strong>Cooler</strong></a>. Cooler is a fine piece of digital ' +
-            'craftmanship for smart storing and outragously efficient ' +
+            'craftmanship for smart storing and outrageously efficient ' +
             'querying of Hi-C maps, provided by the smart folks at Mirnylab.';
           break;
         default:

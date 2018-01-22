@@ -1,0 +1,70 @@
+<template>
+  <require from="components/dialog/dialog"></require>
+  <require from="components/higlass/higlass"></require>
+
+  <dialog
+    class="flex-c flex-a-c flex-jc-c full-dim ${dialogIsOpen ? 'is-active' : ''}"
+    deferred.bind="dialogDeferred"
+    is-open.bind="dialogIsOpen"
+    message.bind="dialogMessage"></dialog>
+
+  <div class="full-wh flex-c flex-d-c configurator">
+    <p class="info-panel is-increased-line-height">
+      The configurator lets you interactively generate view configs for HiPiler. A view config consists of two parts: 1) the view config for HiGlass, which displays the matrix and 2) a BEDPE-like list of genomic loci. For details about the structure of HiPiler's view configs please refer to the <a class="prominent" route-href="route: docs"><em>docs</em></a>.
+    </p>
+    <main class="flex-g-1 flex-c flex-a-s configurator-main">
+      <div class="flex-g-1 column-1-2 flex-c flex-d-c">
+        <h3>Matrix</h3>
+        <p>Create a matrix view using HiGlass and paste the view config into the textarea below. Note, it is important that your HiGlass view config consists of horizontally arranged views only!</p>
+        <button>Configure HiGlass Interactively</button>
+        <textarea class="flex-g-1" placeholder="Paste your HiGlass view config in here"></textarea>
+        <div class="validator"></div>
+      </div>
+      <div class="flex-g-1 column-1-2 flex-c flex-d-c">
+        <h3>Snippets</h3>
+        <p>Paste a CSV-based sheet with BEDPE-like 2D loci into textarea below.</p>
+
+        <textarea class="flex-g-1" placeholder="Paste your BEDPE-like CSV in here"></textarea>
+        <div class="validated-snippets"></div>
+
+        <h4>Server &amp; Global Snippets Config:</h4>
+        <form class="flex-c flex-w snippets-settings">
+          <label class="column-1 flex-c flex-d-c">
+            <span>HiGlass Server URL:</span>
+            <input type="text" name="server" placeholder="//higlass.io" value.bind="fragmentsServer & debounce & validate">
+          </label>
+          <label class="column-1-3 flex-c flex-d-c no-p">
+            <span>Padding:</span>
+            <input type="number" name="padding" placeholder="0" min="0" step="1" value.bind="fragmentsPadding & debounce & validate">
+          </label>
+          <label class="column-1-3 flex-c flex-d-c">
+            <span>Percentile Cap:</span>
+            <input type="number" name="percentile" placeholder="100" value.bind="fragmentsPercentile & debounce & validate">
+          </label>
+          <label class="column-1-3 flex-c flex-d-c">
+            <span>Ignore Diagonal:</span>
+            <input type="number" name="ignore-diags" placeholder="0" min="0" step="1" value.bind="fragmentsIgnoreDiags & debounce & validate">
+          </label>
+          <label class="column-1-3 flex-c flex-d-c no-p">
+            <span>Numerical Precision:</span>
+            <input type="number" name="precision" placeholder="2" placeholder="2" min="0" step="1" value.bind="fragmentsPrecision & debounce & validate">
+          </label>
+          <label class="column-1-3 flex-c flex-d-c">
+            <span>Disable Cache:</span>
+            <input type="checkbox" name="no-cache" value.bind="fragmentsNoCache & debounce & validate">
+          </label>
+          <label class="column-1-3 flex-c flex-d-c">
+            <span>Disable Cooler Balancing:</span>
+            <input type="checkbox" name="no-balance" value.bind="fragmentsNoBalance & debounce & validate">
+          </label>
+        </form>
+
+        <ul if.bind="controller.errors">
+          <li repeat.for="error of controller.errors">
+            ${error.message}
+          </li>
+        </ul>
+      </div>
+    </main>
+  </div>
+</template>

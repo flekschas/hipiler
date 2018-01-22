@@ -1,3 +1,16 @@
+**v1.2.0** - 2018-??-??
+
+- Add view config generator
+
+**v1.2.0** - 2018-01-21
+
+- Add color maps and color scaling for snippets
+- Show pile source and genomic location in pile detail panel
+- Updated HiGlass to `v0.10.11`
+- Updated lots of third-party libraries
+- Updated news
+- Load `react`, `react-dom`, `react-bootstrap`, and `pixi.js` from CDN
+
 **v1.1.7** - 2018-01-08
 
 - Add build task for the entire app for easier integration with HiGlass docker

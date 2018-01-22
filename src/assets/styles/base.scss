@@ -10,11 +10,7 @@
 *, *::before, *::after {
   font-family: 'Rubik', sans-serif;
   text-rendering: optimizeLegibility;
-  margin: 0;
-  padding: 0;
-  border: none;
   box-sizing: border-box;
-  list-style: none;
 }
 
 article, aside, details, figcaption, figure,
@@ -105,10 +101,30 @@ a:hover, a:focus, a:active {
   border-bottom-color: $primary;
 }
 
+button,
+input,
+select {
+  border: 0;
+}
+
+button {
+  border-radius: 0.25rem;
+}
+
 button:hover
 button:active,
 button:focus {
   outline: none;
+}
+
+ul,
+ol {
+  margin: 0;
+  padding: 0;
+}
+
+li {
+  list-style: none;
 }
 
 img {
@@ -393,6 +409,11 @@ p.nm {
     color: $white;
     background: $primary;
   }
+}
+
+.info-panel {
+  padding: 0.5rem;
+  background: $gray-lightest;
 }
 
 @media (min-width: 60rem) {  // 960px

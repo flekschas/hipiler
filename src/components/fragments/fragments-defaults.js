@@ -1,3 +1,4 @@
+import chroma from 'chroma';
 import * as THREE from 'three';
 import threeLine2d from 'three-line-2d';
 import threeLine2dShader from 'three-line-2d-shader';
@@ -32,6 +33,28 @@ export const CELL_THRESHOLD = 0.0;  // only cells above are shown
 export const CLICK_DELAY_TIME = 300;
 
 export const CLUSTER_TSNE = '_cluster_tsne';
+
+export const COLOR_BW = 'bw';
+
+export const COLOR_FALL = 'fall';
+
+export const COLOR_YL_GN_BU = 'ylGnBu';
+
+export const COLOR_YL_RD_BU = 'ylRdBu';
+
+export const COLOR_RD_WH_BY = 'rdWhBu';
+
+export const COLOR_MAPS = [
+  COLOR_BW,
+  COLOR_FALL,
+  COLOR_YL_GN_BU,
+  COLOR_YL_RD_BU,
+  COLOR_RD_WH_BY
+];
+
+export const COLOR_SCALE_FROM = 0;
+
+export const COLOR_SCALE_TO = 1;
 
 export const DBL_CLICK_DELAY_TIME = 250;
 

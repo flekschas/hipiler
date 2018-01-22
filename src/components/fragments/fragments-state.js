@@ -1,7 +1,11 @@
 import { Scene } from 'three';
+import { scaleLinear } from 'd3';
 
 import {
   CELL_SIZE,
+  COLOR_BW,
+  COLOR_SCALE_FROM,
+  COLOR_SCALE_TO,
   GRID_SIZE,
   LOG_TRANSFORM,
   MATRIX_ORIENTATION_INITIAL,
@@ -14,6 +18,10 @@ const DEFAULT_STATE = {
   annotations: {},
   adjacentDistances: undefined,
   cellSize: CELL_SIZE,
+  colorMap: COLOR_BW,
+  colorScale: scaleLinear().range([COLOR_SCALE_FROM, COLOR_SCALE_TO]),
+  colorScaleFrom: COLOR_SCALE_FROM,
+  colorScaleTo: COLOR_SCALE_TO,
   gridSize: GRID_SIZE,
   colorsIdx: {},
   coverDispMode: MODE_AVERAGE,

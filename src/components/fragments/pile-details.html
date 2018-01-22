@@ -44,6 +44,14 @@
           <label>${pile.pileMatrices.length > 1 ? 'Pile' : 'Snippet'} ID:</label>
           <p class="max-three-liner">${pile.id}</p>
         </div>
+        <div class="flex-c one-liner entry">
+          <label>From:</label>
+          <p class="max-three-liner">${pileDatasets}</p>
+        </div>
+        <div class="flex-c one-liner entry"  if.bind="pile.pileMatrices.length === 1">
+          <label>Locus:</label>
+          <p class="max-three-liner">${pileLocus}</p>
+        </div>
         <div class="flex-c one-liner entry" if.bind="pile.pileMatrices.length > 1">
           <label>Snippet IDs:</label>
           <p class="max-three-liner">${snippetIds} (Total: ${pile.pileMatrices.length})</p>

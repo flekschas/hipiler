@@ -17,6 +17,7 @@ import {
 } from 'components/fragments/fragments-actions';
 
 import debounce from 'utils/debounce';
+import flatten from 'utils/flatten';
 
 import {
   requestNextAnimationFrame
@@ -190,6 +191,41 @@ export class PileDetails {
     return this.annotations[id];
   }
 
+  getDatasets () {
+    if (!this.pile || !this.pile.pileMatrices) this.pileDatasets = '';
+
+    const state = this.store.getState().present.explore;
+
+    const heatmaps = state.higlass.config.views
+      .map(
+        view => view.tracks.center
+          .filter(track => track.type === 'combined')
+          .map(
+            track => track.contents
+              .filter(trackc => trackc.type === 'heatmap')
+          )
+          .reduce(...flatten)
+      )
+      .reduce(...flatten)
+      .reduce((a, b) => { a[b.tilesetUid] = b; return a; }, {});
+
+    this.pileDatasets = this.pile.pileMatrices
+      .map(matrix => matrix.dataset)
+      .reduce((a, b) => {
+        const idx = a.indexOf(b);
+        if (idx === -1) a.push(b);
+        return a;
+      }, [])
+      .map(uuid => heatmaps[uuid].options.name || heatmaps[uuid].options.orgName)
+      .join(', ');
+  }
+
+  getLocus () {
+    if (!this.pile || !this.pile.pileMatrices) this.pileLocus = '';
+    const { locus } = this.pile.pileMatrices[0];
+    this.pileLocus = `chr${locus.chrom1} ${locus.start1}:${locus.end1} & chr${locus.chrom2} ${locus.start2}:${locus.end2}`;
+  }
+
   highlightPile () {
     // Speculative update for responsiveness
     this.isHighlighted = true;
@@ -214,6 +250,8 @@ export class PileDetails {
       this.checkHighlight();
       this.extractCategories();
       this.extractMeasures();
+      this.getLocus();
+      this.getDatasets();
       this.annotation = this.getAnnotation(this.annoId);
     });
   }
