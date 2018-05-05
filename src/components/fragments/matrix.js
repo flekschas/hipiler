@@ -1,6 +1,6 @@
 export default class Matrix {
   constructor (
-    id, matrix, locus, dataset, resolution, orientation, measures, categories
+    id, matrix, locus, dataset, zoomOutLevel, orientation, measures, categories
   ) {
     this.dim = matrix.length;
     this.id = id;
@@ -15,7 +15,7 @@ export default class Matrix {
     this.orientationY = Matrix.isCodingStrand(this.orientation.strand2) ?
       1 : -1;
     this.visible = true;
-    this.resolution = resolution;
+    this.zoomOutLevel = zoomOutLevel;
   }
 
   /**
