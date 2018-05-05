@@ -39,7 +39,5 @@ export class Configurator {
 
   /* ----------------------- Custom methods ----------------------- */
 
-  validated() {
-    console.log('GIRLS');
-  }
+  validated () {}
 }

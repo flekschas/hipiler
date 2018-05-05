@@ -166,7 +166,9 @@ export class PileDetails {
     // Init the measure array
     this.measures = Object
       .keys(this.pile.pileMatrices[0].measures)
-      .map(key => ({ key, max: -Infinity, min: Infinity, values: [] }));
+      .map(key => ({
+        key, max: -Infinity, min: Infinity, values: []
+      }));
 
     // Populate the values
     this.pile.pileMatrices

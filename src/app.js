@@ -28,7 +28,6 @@ const logger = LogManager.getLogger('app');
 
 @inject(EventAggregator, Export, Font, States)
 export default class App {
-
   constructor (event, exportData, font, states) {
     this.event = event;
 
