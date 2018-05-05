@@ -692,27 +692,19 @@ export class Higlass {
     return (location) => {
       if (
         this.location === location ||
-        arraysEqual(this.location, location)
+        JSON.stringify(this.location) === JSON.stringify(location)
       ) { return; }
 
       this.location = location;
 
       if (!this.chromInfoData) { return; }
 
-      // Get global locations
-      const xStart = this.chromInfoData[location[0]].offset + location[1];
-      const xEnd = this.chromInfoData[location[2]].offset + location[3];
-      const yStart = this.chromInfoData[location[4]].offset + location[5];
-      const yEnd = this.chromInfoData[location[6]].offset + location[7];
-
       // this.isGlobalLociCalced.then(this.updateLociColor.bind(this));
 
       // Update state
       this.store.dispatch(setSelectionView([
-        xStart,
-        xEnd,
-        yStart,
-        yEnd
+        ...this.location.xDomain,
+        ...this.location.yDomain
       ]));
     };
   }
@@ -942,11 +934,10 @@ export class Higlass {
     // Promise.all([this.isServersAvailable, this.isAttached])
     Promise.all([this.isAttached])
       .then(() => {
-        window.hglib.createHgComponent(
+        this.api = window.hglib.viewer(
           this.plotEl,
           deepClone(config),
           OPTIONS,
-          (api) => { this.api = api; }
         );
 
         this.initApi(this.api);
