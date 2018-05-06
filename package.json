@@ -21,6 +21,7 @@
     "localforage": "1.5.5",
     "marked": "0.3.9",
     "normalize-wheel": "1.0.1",
+    "papaparse": "4.4.0",
     "pixi.js": "4.6.2",
     "react": "15.6.2",
     "react-bootstrap": "0.31.5",

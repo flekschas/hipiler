@@ -252,6 +252,11 @@
             "main": "index"
           },
           {
+            "name": "papaparse",
+            "path": "../node_modules/papaparse",
+            "main": "papaparse"
+          },
+          {
             "name": "redux",
             "path": "../node_modules/redux/dist",
             "main": "redux",
