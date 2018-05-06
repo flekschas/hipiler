@@ -32,7 +32,6 @@ import {
   SELECTION_DOMAIN_DISPATCH_DEBOUNCE
 } from 'components/higlass/higlass-defaults';
 import COLORS from 'configs/colors';
-import arraysEqual from 'utils/arrays-equal';
 import deepClone from 'utils/deep-clone';
 import HaltResume from 'utils/halt-resume';
 
@@ -161,6 +160,11 @@ export class Higlass {
     const locksDir = {};
 
     hgConfig.views.forEach((view, index) => {
+      // Set current location (needed for CSV-derived view configs)
+      const location = this.api.getLocation(view.uid);
+      view.initialXDomain = location.xDomain;
+      view.initialYDomain = location.yDomain;
+
       // Adjust height of the original view
       // This is needed to make HiGlass refresh properly. Otherwise an error is thrown
       view.uid += '_';
@@ -326,6 +330,14 @@ export class Higlass {
 
     this.isFgmHighlight = false;
 
+    this.config.views.forEach((view) => {
+      if (!view.initialXDomain) {
+        const location = this.api.getLocation(view.uid);
+        view.initialXDomain = location.xDomain;
+        view.initialYDomain = location.yDomain;
+      }
+    });
+
     this.render(this.config);
   }
 
@@ -406,6 +418,14 @@ export class Higlass {
       });
 
     this.isFgmHighlight = true;
+
+    configTmp.views.forEach((view) => {
+      if (!view.initialXDomain) {
+        const location = this.api.getLocation(view.uid);
+        view.initialXDomain = location.xDomain;
+        view.initialYDomain = location.yDomain;
+      }
+    });
 
     this.render(configTmp);
   }
@@ -667,20 +687,20 @@ export class Higlass {
     hgConfig.zoomLocks = {};
     hgConfig.locationLocks = {};
 
-    const originalView = hgConfig.views[0];
-
-    // Adjust height of the original view
-    if (originalView.uid[originalView.uid.length - 1] === '_') {
-      originalView.uid = originalView.uid.slice(0, -1);
-    }
-    originalView.layout.h = 12;
-
-    // Remove view projections
-    for (let i = originalView.tracks.center.length; i--;) {
-      if (originalView.tracks.center[i].type === 'viewport-projection-center') {
-        originalView.tracks.center.splice(i, 1);
+    hgConfig.views.forEach((originalView) => {
+      // Adjust height of the original view
+      if (originalView.uid[originalView.uid.length - 1] === '_') {
+        originalView.uid = originalView.uid.slice(0, -1);
       }
-    }
+      originalView.layout.h = 12;
+
+      // Remove view projections
+      for (let i = originalView.tracks.center.length; i--;) {
+        if (originalView.tracks.center[i].type === 'viewport-projection-center') {
+          originalView.tracks.center.splice(i, 1);
+        }
+      }
+    });
   }
 
   /**
