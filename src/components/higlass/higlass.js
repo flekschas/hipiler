@@ -160,10 +160,12 @@ export class Higlass {
     const locksDir = {};
 
     hgConfig.views.forEach((view, index) => {
-      // Set current location (needed for CSV-derived view configs)
-      const location = this.api.getLocation(view.uid);
-      view.initialXDomain = location.xDomain;
-      view.initialYDomain = location.yDomain;
+      if (this.api) {
+        // Set current location (needed for CSV-derived view configs)
+        const location = this.api.getLocation(view.uid);
+        view.initialXDomain = location.xDomain;
+        view.initialYDomain = location.yDomain;
+      }
 
       // Adjust height of the original view
       // This is needed to make HiGlass refresh properly. Otherwise an error is thrown
