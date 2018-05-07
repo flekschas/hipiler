@@ -610,6 +610,8 @@ function renderPieChart () {
 
 // Render or re-render the chart for the given element
 function init (elem, dataSet) {
+  if (!elem) return { range: [] };
+
   if (window.devicePixelRatio > 1) {
     if (!elem.__resized) {
       elem.style.width = `${elem.width}px`;
