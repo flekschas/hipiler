@@ -1,8 +1,10 @@
 **v1.3.0** - 2018-05-07
 
-- Add support for CSV import with dynamic update of the imported data.
+- Add support for CSV import
+- Add dynamic reloading of the snippets.
 - Updated HiGlass to `v1.0.0-alpha3`
 - Updated lots of third-party libraries
+- Fixed several smaller bugs
 
 **v1.2.0** - 2018-01-21
 
