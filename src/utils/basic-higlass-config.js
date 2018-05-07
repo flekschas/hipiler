@@ -104,8 +104,6 @@ const basicHiglassConfig = (server, dataSets) => {
       }
     });
 
-    console.log(dataset);
-
     view.chromInfoPath = view.chromInfoPath
       .replace(/<SERVER>/g, server)
       .replace(/<MATRIX>/g, dataset.matrix);
