@@ -4,6 +4,7 @@ import {
   LogManager
 } from 'aurelia-framework';
 import { EventAggregator } from 'aurelia-event-aggregator';  // eslint-disable-line
+import * as Papa from 'papaparse';
 
 // Injectable
 import Export from 'services/export';  // eslint-disable-line
@@ -20,6 +21,7 @@ import checkTextInputFocus from 'utils/check-text-input-focus';
 import dragDrop from 'utils/drag-drop';
 import readJsonFile from 'utils/read-json-file';
 import validateConfig from 'utils/validate-config';
+import basicHiglassConfig from 'utils/basic-higlass-config';
 import { requestNextAnimationFrame } from 'utils/request-animation-frame';
 
 
@@ -90,12 +92,32 @@ export default class App {
 
     // Drag and drop handler
     dragDrop(this.baseEl, this.dragDropArea, (event) => {
-      readJsonFile(event.dataTransfer.files[0])
-        .then(json => this.setConfig(json))
-        .catch((error) => {
-          logger.info(error);
-          this.showGlobalError('Invalid JSON file');
-        });
+      switch (event.dataTransfer.files[0].type) {
+        case 'text/csv':
+          Papa.parse(event.dataTransfer.files[0], {
+            complete: (results) => {
+              this.buildConfig(results.data);
+            },
+            error: (error) => {
+              logger.info(error);
+              this.showGlobalError('Invalid CSV file');
+            }
+          });
+          break;
+
+        case 'application/json':
+          readJsonFile(event.dataTransfer.files[0])
+            .then(json => this.setConfig(json))
+            .catch((error) => {
+              logger.info(error);
+              this.showGlobalError('Invalid JSON file');
+            });
+          break;
+
+        default:
+          this.showGlobalError('Unsupported file type. Drop a JSON or CSV!');
+          break;
+      }
     });
 
     document.addEventListener('keydown', this.keyDownHandler.bind(this));
@@ -164,7 +186,91 @@ export default class App {
   }
 
 
-  /* ----------------------- Getter / Setter Variables ---------------------- */
+  /* -------------------------------- Methods ------------------------------- */
+
+  buildConfig (rows) {
+    // Scan loci and extract
+    const colIds = {};
+    const fragments = [];
+    const noInt = {
+      chrom1: true,
+      strand1: true,
+      chrom2: true,
+      strand2: true,
+      dataset: true,
+      server: true,
+      coords: true
+    };
+    const datasets = {};
+    let server;
+
+    for (let i = 0; i < rows.length; i++) {
+      const row = rows[i];
+      if (i === 0) {
+        const header = [];
+        row.forEach((col, j) => {
+          header.push(col.toLowerCase());
+          colIds[col.toLowerCase()] = j;
+        });
+        if (this.checkLoci(colIds)) {
+          fragments.push(header);
+        } else {
+          this.showGlobalError('Invalid CSV file!');
+          return;
+        }
+      } else if (row.length === fragments[0].length) {
+        const parsedRow = [];
+        row.forEach((val, j) => {
+          if (noInt[fragments[0][j]] || fragments[0][j][0] === '_') {
+            parsedRow.push(val);
+          } else {
+            parsedRow.push(parseInt(val, 10));
+          }
+        });
+        fragments.push(parsedRow);
+        datasets[parsedRow[colIds.dataset]] = parsedRow[colIds.coords] || 'hg19';
+        server = parsedRow[colIds.server];
+      }
+    }
+
+    const config = {
+      fgm: {
+        fragmentsServer: server,
+        fragmentsPrecision: 2,
+        fragments
+      },
+      hgl: basicHiglassConfig(
+        server, Object.keys(datasets)
+          .map(matrix => ({ matrix, coords: datasets[matrix] }))
+      )
+    };
+
+    // Set new config
+    this.setConfig(config);
+  }
+
+  checkLoci (header) {
+    const minCols = {
+      chrom1: 0,
+      start1: 0,
+      end1: 0,
+      chrom2: 0,
+      start2: 0,
+      end2: 0,
+      dataset: 0,
+      zoomoutlevel: 0,
+      server: 0
+    };
+    const cols = Object.keys(header);
+
+    if (cols.length < 8) return false;
+
+    cols.forEach((col) => {
+      if (typeof minCols[col] !== 'undefined') minCols[col] += 1;
+    });
+
+    return Object.values(minCols).every(col => col > 0);
+  }
 
   /**
    * Mouse click event handler.
