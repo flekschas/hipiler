@@ -138,6 +138,81 @@
         </div>
 
         <div class="flex-c settings-row">
+          <h4>Data</h4>
+
+          <ul class="flex-c flex-g-1 settings-list">
+            <li class="flex-c flex-d-c ${isLoading ? 'is-disabled' : ''}">
+              <label for="settings-fgm-data-dims">
+                Dims
+                <span class="value ${dataDimsTmp && dataDimsTmp !== dataDims ? 'new' : ''}">: <em>${dataDimsTmp ? dataDimsTmp : dataDims}</em></span>
+              </label>
+              <input
+                id="settings-fgm-data-dims"
+                type="range"
+                min="5"
+                max="64"
+                step="1"
+                value.one-way="dataDims"
+                mousedown.delegate="dataDimsMousedownHandler($event)"
+                mouseup.delegate="dataDimsMouseupHandler($event)"
+                input.delegate="dataDimsInputHandler($event)"
+                change.delegate="dataDimsChangeHandler($event)">
+            </li>
+            <li class="flex-c flex-d-c ${isLoading ? 'is-disabled' : ''}">
+              <label for="settings-fgm-data-padding">
+                Padding
+                <span class="value ${dataPaddingTmp && dataPaddingTmp !== dataPadding ? 'new' : ''}">: <em>${dataPaddingTmp ? dataPaddingTmp : dataPadding}</em></span>
+              </label>
+              <input
+                id="settings-fgm-data-padding"
+                type="range"
+                min="0"
+                max="100"
+                step="1"
+                value.one-way="dataPadding"
+                mousedown.delegate="dataPaddingMousedownHandler($event)"
+                mouseup.delegate="dataPaddingMouseupHandler($event)"
+                input.delegate="dataPaddingInputHandler($event)"
+                change.delegate="dataPaddingChangeHandler($event)">
+            </li>
+            <li class="flex-c flex-d-c ${isLoading ? 'is-disabled' : ''}">
+              <label for="settings-fgm-data-percentile">
+                Percentile
+                <span class="value ${dataPercentileTmp && dataPercentileTmp !== dataPercentile ? 'new' : ''}">: <em>${dataPercentileTmp ? dataPercentileTmp : dataPercentile}</em></span>
+              </label>
+              <input
+                id="settings-fgm-data-percentile"
+                type="range"
+                min="50"
+                max="100"
+                step="0.5"
+                value.one-way="dataPercentile"
+                mousedown.delegate="dataPercentileMousedownHandler($event)"
+                mouseup.delegate="dataPercentileMouseupHandler($event)"
+                input.delegate="dataPercentileInputHandler($event)"
+                change.delegate="dataPercentileChangeHandler($event)">
+            </li>
+            <li class="flex-c flex-d-c ${isLoading ? 'is-disabled' : ''}">
+              <label for="settings-fgm-data-ignore-diags" title="Ignore Matrix Diagonals">
+                Ignore Diags.
+                <span class="value ${dataIgnoreDiagsTmp > -1 && dataIgnoreDiagsTmp !== dataIgnoreDiags ? 'new' : ''}">: <em>${dataIgnoreDiagsTmp > -1 ? dataIgnoreDiagsTmp : dataIgnoreDiags}</em></span>
+              </label>
+              <input
+                id="settings-fgm-data-ignore-diags"
+                type="range"
+                min="0"
+                max="10"
+                step="1"
+                value.one-way="dataIgnoreDiags"
+                mousedown.delegate="dataIgnoreDiagsMousedownHandler($event)"
+                mouseup.delegate="dataIgnoreDiagsMouseupHandler($event)"
+                input.delegate="dataIgnoreDiagsInputHandler($event)"
+                change.delegate="dataIgnoreDiagsChangeHandler($event)">
+            </li>
+          </ul>
+        </div>
+
+        <div class="flex-c settings-row">
           <h4>Color</h4>
 
           <ul class="flex-c flex-g-1 settings-list">

@@ -17,6 +17,10 @@ import {
   SET_COLOR_SCALE_FROM,
   SET_COLOR_SCALE_TO,
   SET_COVER_DISP_MODE,
+  SET_DATA_DIMS,
+  SET_DATA_PADDING,
+  SET_DATA_PERCENTILE,
+  SET_DATA_IGNORE_DIAGS,
   SET_GRID_CELL_SIZE_LOCK,
   SET_GRID_SIZE,
   SET_HILBERT_CURVE,
@@ -48,6 +52,10 @@ import {
   COLOR_SCALE_FROM,
   COLOR_SCALE_TO,
   CONFIG,
+  DATA_DIMS,
+  DATA_PADDING,
+  DATA_PERCENTILE,
+  DATA_IGNORE_DIAGS,
   GRID_CELL_SIZE_LOCK,
   GRID_SIZE,
   HILBERT_CURVE,
@@ -224,6 +232,47 @@ export function coverDispMode (state = MODE_AVERAGE, action) {
   switch (action.type) {
     case SET_COVER_DISP_MODE:
       return action.payload.coverDispMode;
+
+    default:
+      return state;
+  }
+}
+
+export function dataDims (state = DATA_DIMS, action) {
+  switch (action.type) {
+    case SET_DATA_DIMS:
+      console.log(action.payload.dataDims);
+      return action.payload.dataDims;
+
+    default:
+      return state;
+  }
+}
+
+export function dataPadding (state = DATA_PADDING, action) {
+  switch (action.type) {
+    case SET_DATA_PADDING:
+      return action.payload.dataPadding;
+
+    default:
+      return state;
+  }
+}
+
+export function dataPercentile (state = DATA_PERCENTILE, action) {
+  switch (action.type) {
+    case SET_DATA_PERCENTILE:
+      return action.payload.dataPercentile;
+
+    default:
+      return state;
+  }
+}
+
+export function dataIgnoreDiags (state = DATA_IGNORE_DIAGS, action) {
+  switch (action.type) {
+    case SET_DATA_IGNORE_DIAGS:
+      return action.payload.dataIgnoreDiags;
 
     default:
       return state;
@@ -571,6 +620,10 @@ export default combineReducers({
   colorScaleTo,
   config,
   coverDispMode,
+  dataDims,
+  dataPadding,
+  dataPercentile,
+  dataIgnoreDiags,
   gridCellSizeLock,
   gridSize,
   hilbertCurve,
