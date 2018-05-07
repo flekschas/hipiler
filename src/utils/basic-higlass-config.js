@@ -1,5 +1,21 @@
 import deepClone from './deep-clone';
 
+const genes = {
+  hg19: 'OHJakQICQD6gTD7skx4EWA',
+  hg38: 'P0PLbQMwTYGy-5uPIQid7A',
+  mm9: 'GUm5aBiLRCyz2PsBea7Yzg',
+  mm10: 'QDutvmyiSrec5nX4pA5WGQ',
+  danRer10: 'OwA1ouTzRamg5lOeDFUGIw'
+};
+
+const chroms = {
+  hg19: 'N12wVGG9SPiTkk03yUayUw',
+  hg38: 'NyITQvZsS_mOFNlz5C2LJg',
+  mm9: 'WAVhNHYxQVueq6KulwgWiQ',
+  mm10: 'EtrWT0VtScixmsmwFSd7zg',
+  danRer10: 'Yl1IWCeVRI65yOEMvmpIZQ'
+};
+
 const baseTemplate = {
   editable: false,
   trackSourceServers: [
@@ -12,15 +28,13 @@ const baseTemplate = {
 const viewTemplate = {
   uid: '<VIEW>',
   zoomFixed: true,
-  autocompleteSource:
-    'http://higlass.io/api/v1/suggest/?d=OHJakQICQD6gTD7skx4EWA&',
-  chromInfoPath: '<SERVER>/api/v1/chrom-sizes/?id=<DATASET>',
+  chromInfoPath: '<SERVER>/api/v1/chrom-sizes/?id=<MATRIX>',
   tracks: {
     top: [
       {
         uid: '<VIEW>.1',
         type: 'horizontal-gene-annotations',
-        tilesetUid: 'OHJakQICQD6gTD7skx4EWA',
+        tilesetUid: '<GENES>',
         server: 'http://higlass.io/api/v1',
         options: {
           minusStrandColor: '#999',
@@ -30,7 +44,7 @@ const viewTemplate = {
       {
         uid: '<VIEW>.2',
         chromInfoPath:
-          'http://higlass.io/api/v1/chrom-sizes/?id=N12wVGG9SPiTkk03yUayUw',
+          'http://higlass.io/api/v1/chrom-sizes/?id=<CHROMS>',
         type: 'horizontal-chromosome-labels'
       }
     ],
@@ -38,7 +52,7 @@ const viewTemplate = {
       {
         uid: '<VIEW>.3',
         chromInfoPath:
-          'http://higlass.io/api/v1/chrom-sizes/?id=N12wVGG9SPiTkk03yUayUw',
+          'http://higlass.io/api/v1/chrom-sizes/?id=<CHROMS>',
         type: 'vertical-chromosome-labels'
       }
     ],
@@ -50,7 +64,7 @@ const viewTemplate = {
           {
             uid: '<VIEW>.5',
             server: '<SERVER>/api/v1',
-            tilesetUid: '<DATASET>',
+            tilesetUid: '<MATRIX>',
             type: 'heatmap',
             options: {
               colorRange: ['#FFFFFF', '#ffed1a', '#ff5500', '#540000']
@@ -90,9 +104,20 @@ const basicHiglassConfig = (server, dataSets) => {
       }
     });
 
+    console.log(dataset);
+
     view.chromInfoPath = view.chromInfoPath
       .replace(/<SERVER>/g, server)
-      .replace(/<DATASET>/g, dataset);
+      .replace(/<MATRIX>/g, dataset.matrix);
+
+    view.tracks.top[0].tilesetUid = view.tracks.top[0].tilesetUid
+      .replace(/<GENES>/g, genes[dataset.coords]);
+
+    view.tracks.top[1].chromInfoPath = view.tracks.top[1].chromInfoPath
+      .replace(/<CHROMS>/g, chroms[dataset.coords]);
+
+    view.tracks.left[0].chromInfoPath = view.tracks.left[0].chromInfoPath
+      .replace(/<CHROMS>/g, chroms[dataset.coords]);
 
     const centerTrack = view.tracks.center[0].contents[0];
 
@@ -100,7 +125,7 @@ const basicHiglassConfig = (server, dataSets) => {
       .replace(/<SERVER>/g, server);
 
     centerTrack.tilesetUid = centerTrack.tilesetUid
-      .replace(/<DATASET>/g, dataset);
+      .replace(/<MATRIX>/g, dataset.matrix);
 
     view.layout.w = 12 / dataSets.length;
     view.layout.x = i * view.layout.w;
