@@ -1,6 +1,8 @@
-**v1.2.0** - 2018-??-??
+**v1.3.0** - 2018-05-07
 
-- Add view config generator
+- Add support for CSV import with dynamic update of the imported data.
+- Updated HiGlass to `v1.0.0-alpha3`
+- Updated lots of third-party libraries
 
 **v1.2.0** - 2018-01-21
 
