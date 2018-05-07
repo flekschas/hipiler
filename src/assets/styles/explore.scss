@@ -72,7 +72,7 @@
   &:hover,
   &:active,
   &:focus {
-    transform: none;
+    transform: translateX(-0.25rem);
   }
 }
 
@@ -80,7 +80,7 @@
   position: absolute;
   z-index: 4;
   top: 0;
-  left: 0;
+  left: -1px;
   bottom: 0;
   width: 1px;
   background: $primary;
