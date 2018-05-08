@@ -105,6 +105,7 @@ import {
   PILE_AREA_POINTS,
   PILE_LABEL_HEIGHT,
   PREVIEW_MAX,
+  SPECIAL_FIELDS,
   TSNE_PERPLEXITY,
   TSNE_EARLY_EXAGGERATION,
   TSNE_LEARNING_RATE,
@@ -2093,9 +2094,9 @@ export class Fragments {
 
       // Upate header
       snippets[0].push(
-        '_pileId',
-        '_colorTag',
-        '_isTrashed',
+        '_pile-id',
+        '_color-tag',
+        '_is-trashed',
         'notes',
         'pileNotes'
       );
@@ -3085,7 +3086,11 @@ export class Fragments {
     fgmState.measures = [];
 
     header.forEach((field, index) => {
-      if (usedIdx.indexOf(index) === -1 && field[0] !== '_') {
+      if (
+        usedIdx.indexOf(index) === -1 &&
+        field[0] !== '_' &&
+        SPECIAL_FIELDS.indexOf(field.toLowerCase()) === -1
+      ) {
         this.dataMeasures[field] = index;
         fgmState.measures.push({
           id: field,
