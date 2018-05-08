@@ -130,7 +130,10 @@ export class PileDetails {
   }
 
   drawPreviewPreviews () {
-    if (!this.pile.isDrawn || !this.pile.previewsMesh) { return; }
+    if (!this.pile.isDrawn) { return; }
+    if (!this.pile.previewsMesh) {
+      this.previewsRatioCss = { paddingTop: 0 };
+    }
 
     const ctx = this.previewPreviewsEl.getContext('2d');
     const previewCan = this.pile.previewsMesh.material.map.image;
