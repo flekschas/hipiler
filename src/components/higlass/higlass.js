@@ -413,9 +413,9 @@ export class Higlass {
     configTmp.views
       .forEach((view) => {
         view.tracks.center
-          .filter(center => center.type === '2d-chromosome-annotations')
-          .forEach((center) => {
-            center.options.regions = lociTmp;
+          .filter(track => track.type === '2d-chromosome-annotations')
+          .forEach((track) => {
+            track.options.regions = lociTmp;
           });
       });
 
@@ -864,6 +864,7 @@ export class Higlass {
 
     if (this.fragmentsHighlight) {
       const loci = this.extractLoci(fgmConfig);
+
 
       if (this.loci !== loci) {
         this.loci = loci;
