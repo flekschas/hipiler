@@ -146,6 +146,8 @@ import {
 import COLORS from 'configs/colors';
 
 import arraysEqual from 'utils/arrays-equal';
+import deepClone from 'utils/deep-clone';
+import downloadAsCvs from 'utils/download-as-csv';
 import downloadAsJson from 'utils/download-as-json';
 import hilbertCurve from 'utils/hilbert-curve';
 import objValsToStr from 'utils/object-values-to-string';
@@ -1776,10 +1778,23 @@ export class Fragments {
   }
 
   /**
-   * Download export data as JSON
+   * Download snippets as a CSV table together with their annotations
    */
-  downloadExportedPiles () {
-    downloadAsJson(this.exportPiles());
+  downloadSnippets () {
+    downloadAsCvs(this.exportPiles());
+  }
+
+  /**
+   * Download view config
+   */
+  downloadViewConfig () {
+    const state = this.store.getState().present.explore;
+    const config = {
+      fgm: state.fragments.config,
+      hgl: state.higlass.config
+    };
+
+    downloadAsJson(config);
   }
 
   /**
@@ -2047,13 +2062,12 @@ export class Fragments {
    * @return {object} Export.
    */
   exportPiles () {
-    const output = [];
-
     try {
       const state = this.store.getState().present.explore.fragments;
+      const snippets = deepClone(state.config.fragments);
 
       Object.keys(state.piles).forEach((matrixId) => {
-        const trashed = matrixId[0] === '_';
+        let trashed = matrixId[0] === '_';
         const id = parseInt(trashed ? matrixId.slice(1) : matrixId, 10);
         const color = state.matricesColors[id];
         const numMats = state.piles[matrixId].length;
@@ -2062,26 +2076,31 @@ export class Fragments {
         if (!numMats) {
           // Pile as been piled
           pile = fgmState.matricesIdx[id].pile.idNumeric;
+          trashed = fgmState.matricesIdx[id].pile.id[0] === '_';
         }
 
         const notes = state.annotations[`_${id}`];
         const pileNotes = state.annotations[pile];
 
-        output.push({
-          id,
+        snippets[id + 1].push(
           pile,
           color,
           trashed,
           notes,
           pileNotes
-        });
-
-        output.sort((x, y) => {
-          if (x.id < y.id) { return -1; }
-          if (x.id > y.id) { return 1; }
-          return 0;
-        });
+        );
       });
+
+      // Upate header
+      snippets[0].push(
+        '_pileId',
+        '_colorTag',
+        '_isTrashed',
+        'notes',
+        'pileNotes'
+      );
+
+      return snippets;
     } catch (error) {
       logger.error('Could not export piles', error);
       return {
@@ -2089,8 +2108,6 @@ export class Fragments {
         error
       };
     }
-
-    return output;
   }
 
   /**
@@ -2947,7 +2964,7 @@ export class Fragments {
 
     this.subscriptions.push(this.event.subscribe(
       'app.save',
-      this.downloadExportedPiles.bind(this)
+      this.downloadSnippets.bind(this)
     ));
 
     this.subscriptions.push(this.event.subscribe(

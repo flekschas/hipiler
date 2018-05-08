@@ -566,8 +566,17 @@
               <li>
                 <button
                   class="flex-c flex-jc-c flex-a-c rel button"
-                  click.delegate="downloadExportedPiles()">
-                  Export Piles
+                  click.delegate="downloadViewConfig()"
+                  title="Export the view config as JSON">
+                  Export View
+                </button>
+              </li>
+              <li>
+                <button
+                  class="flex-c flex-jc-c flex-a-c rel button"
+                  click.delegate="downloadSnippets()"
+                  title="Export the snippets as CSV">
+                  Export Snippets
                 </button>
               </li>
             </ul>
