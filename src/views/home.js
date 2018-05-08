@@ -75,7 +75,7 @@ export class Home {
         return;
       }
 
-      this.setState(config);
+      this.setConfig(config);
     });
   }
 
