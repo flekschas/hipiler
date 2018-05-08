@@ -14,22 +14,16 @@ const checkLoci = (header) => {
   };
   const cols = Object.keys(header);
 
-  console.log('wasn los1', cols, minCols);
-
   if (cols.length < 8) return false;
 
   cols.forEach((col) => {
     if (typeof minCols[col] !== 'undefined') minCols[col] += 1;
   });
 
-  console.log('wasn los2', minCols);
-
   return Object.values(minCols).every(col => col > 0);
 };
 
 const buildConfig = (rows) => {
-  console.log('kackwurst');
-
   // Scan loci and extract
   const colIds = {};
   const fragments = [];
@@ -44,7 +38,6 @@ const buildConfig = (rows) => {
   };
   const datasets = {};
   let server;
-  console.log('kackwurst1');
 
   for (let i = 0; i < rows.length; i++) {
     const row = rows[i];
@@ -57,7 +50,6 @@ const buildConfig = (rows) => {
       if (checkLoci(colIds)) {
         fragments.push(header);
       } else {
-        console.log('kackwurst2');
         return;
       }
     } else if (row.length === fragments[0].length) {
@@ -66,7 +58,7 @@ const buildConfig = (rows) => {
         if (noInt[fragments[0][j]] || fragments[0][j][0] === '_') {
           parsedRow.push(val);
         } else {
-          parsedRow.push(parseInt(val, 10));
+          parsedRow.push(+val);
         }
       });
       fragments.push(parsedRow);
@@ -74,7 +66,6 @@ const buildConfig = (rows) => {
       server = parsedRow[colIds.server];
     }
   }
-  console.log('kackwurst3');
 
   const config = {
     fgm: {
