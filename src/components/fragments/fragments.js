@@ -5156,7 +5156,7 @@ export class Fragments {
    * @param {boolean} init - If not `true` reload the page.
    */
   updateDataPadding (dataPadding, configPadding, update, init) {
-    const padding = dataPadding || configPadding;
+    const padding = (dataPadding || configPadding) | 0;
 
     if (this.dataPadding !== padding) {
       this.dataPadding = padding;
@@ -5180,7 +5180,7 @@ export class Fragments {
    * @param {boolean} init - If `true` app is initializing.
    */
   updateDataPercentile (dataPercentile, configPercentile, update, init) {
-    const percentile = dataPercentile || configPercentile;
+    const percentile = (dataPercentile || configPercentile) | 0;
 
     if (this.dataPercentile !== percentile) {
       this.dataPercentile = percentile;
@@ -5198,7 +5198,7 @@ export class Fragments {
    * @param {boolean} init - If `true` app is initializing.
    */
   updateDataIgnoreDiags (dataIgnoreDiags, configIgnoreDiags, update, init) {
-    const ignoreDiags = dataIgnoreDiags || configIgnoreDiags;
+    const ignoreDiags = (dataIgnoreDiags || configIgnoreDiags) | 0;
 
     if (this.dataIgnoreDiags !== ignoreDiags) {
       this.dataIgnoreDiags = ignoreDiags;
