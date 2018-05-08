@@ -133,6 +133,7 @@ export class PileDetails {
     if (!this.pile.isDrawn) { return; }
     if (!this.pile.previewsMesh) {
       this.previewsRatioCss = { paddingTop: 0 };
+      return;
     }
 
     const ctx = this.previewPreviewsEl.getContext('2d');
