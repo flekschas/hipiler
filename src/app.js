@@ -297,6 +297,8 @@ export default class App {
    * @param {object} event - Kep down event object.
    */
   keyDownHandler (event) {
+    if (checkTextInputFocus()) { return; }
+
     if (event.ctrlKey || event.metaKey) {
       this.isCtrlMetaKeyDown = true;
     }
@@ -334,7 +336,10 @@ export default class App {
    * @param {object} event - Kep up event object.
    */
   keyUpHandler (event) {
-    if (checkTextInputFocus()) { return; }
+    if (checkTextInputFocus()) {
+      this.isCtrlMetaKeyDown = false;
+      return;
+    }
 
     event.preventDefault();
 
