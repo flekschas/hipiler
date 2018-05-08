@@ -384,10 +384,12 @@ export default class App {
 
     this.dialogPromise
       .then(() => {
-        this.reset();
-        FgmState.reset();
-        this.exploreIsReady = false;
         this.router.navigateToRoute('home');
+        setTimeout(() => {
+          this.reset();
+          FgmState.reset();
+          this.exploreIsReady = false;
+        }, 50);
       })
       .catch(() => {
         // Nothing
