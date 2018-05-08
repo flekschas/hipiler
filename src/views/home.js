@@ -8,6 +8,7 @@ import { EventAggregator } from 'aurelia-event-aggregator';  // eslint-disable-l
 
 // Third party
 import { json } from 'd3';
+import * as Papa from 'papaparse';
 
 // Injectable
 import States from 'services/states';  // eslint-disable-line
@@ -15,6 +16,7 @@ import States from 'services/states';  // eslint-disable-line
 // Utils
 import examples from 'configs/examples';
 import { updateConfigs } from 'app-actions';
+import buildConfig from 'utils/build-config';
 import getUrlQueryParams from 'utils/get-url-query-params';
 import readJsonFile from 'utils/read-json-file';
 import validateConfig from 'utils/validate-config';
@@ -78,17 +80,51 @@ export class Home {
   }
 
   selectedConfigChanged () {
-    let results;
+    switch (this.selectedConfig[0].type) {
+      case 'text/csv':
+      case 'text/tab-separated-values':
+        Papa.parse(this.selectedConfig[0], {
+          complete: (results) => {
+            const newConfig = buildConfig(results.data);
 
-    try {
-      results = readJsonFile(this.selectedConfig[0]);
-    } catch (error) {
-      logger.error(error);
+            if (newConfig) {
+              this.setConfig(newConfig);
+            } else {
+              this.event.publish(
+                'showGlobalError',
+                ['Invalid CSV or TSV file']
+              );
+            }
+          },
+          error: (error) => {
+            logger.info(error);
+            this.event.publish(
+              'showGlobalError',
+              ['Invalid CSV or TSV file']
+            );
+          }
+        });
+        break;
+
+      case 'application/json':
+        readJsonFile(this.selectedConfig[0])
+          .then(config => this.setConfig(config))
+          .catch((error) => {
+            logger.info(error);
+            this.event.publish(
+              'showGlobalError',
+              ['Invalid JSON file']
+            );
+          });
+        break;
+
+      default:
+        this.event.publish(
+          'showGlobalError',
+          ['Unsupported file type. Drop a CSV, TSV, or JSON!']
+        );
+        break;
     }
-
-    results
-      .then(resultsJson => this.setState(resultsJson))
-      .catch(error => logger.error(error));
   }
 
   selectConfig (event) {
@@ -100,7 +136,7 @@ export class Home {
     this.inputConfigFile.dispatchEvent(newEvent);
   }
 
-  setState (config) {
+  setConfig (config) {
     if (validateConfig(config.fgm, config.hgl)) {
       this.store.dispatch(updateConfigs(config));
       this.router.navigateToRoute('explore', this.queryParams);
