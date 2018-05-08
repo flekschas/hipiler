@@ -1452,7 +1452,7 @@ export default class Pile {
       this.scale = scale;
     }
 
-    this.mesh.scale.set(this.scale, this.scale, this.scale);
+    this.mesh.scale.set(this.scale, this.scale, this.z);
 
     return this;
   }
