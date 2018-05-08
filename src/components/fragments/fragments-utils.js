@@ -435,6 +435,8 @@ export function createMarker (x, y, z, color) {
 }
 
 export function updateImageTexture (mesh, pixels) {
+  if (!mesh || !pixels) return;
+
   // Set image data
   const canvas = document.createElement('canvas');
   canvas.width = mesh.material.map.image.width;
