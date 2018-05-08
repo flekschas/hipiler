@@ -3443,6 +3443,7 @@ export class Fragments {
     fgmState.matrices.forEach((matrix, i) => {
       matrix.matrix = Matrix.to1d(newRawMatrices[i]);
     });
+    this.piles.forEach(pile => pile.calculateCoverMatrix());
     this.redrawPiles();
     this.render();
   }
