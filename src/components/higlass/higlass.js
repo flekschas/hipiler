@@ -782,6 +782,8 @@ export class Higlass {
     ) { return; }
 
     this.originalConfig = config;
+    this.originalConfig.views[0]
+      .tracks.center[0].contents[0].options.backgroundColor = 'white';
     this.config = deepClone(config);
 
     // this.checkServersAvailablility(this.originalConfig)
