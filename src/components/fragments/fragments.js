@@ -69,7 +69,6 @@ import {
 } from 'components/fragments/fragments-actions';
 
 import {
-  API_DOMAINS,
   API_FRAGMENTS,
   ARRANGE_MEASURES,
   CAT_CHROMOSOME,
@@ -3361,10 +3360,6 @@ export class Fragments {
         precision: config.fragmentsPrecision || FRAGMENT_PRECISION,
         dims: this.dataDims || config.fragmentsDims || FRAGMENT_SIZE
       };
-
-      if (config.fragmentsDomains) {
-        endpoint = API_DOMAINS;
-      }
 
       if (config.fragmentsPadding || this.dataPadding) {
         params.padding = (
