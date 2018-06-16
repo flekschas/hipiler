@@ -4,6 +4,7 @@ import {
   LogManager
 } from 'aurelia-framework';
 import { EventAggregator } from 'aurelia-event-aggregator';  // eslint-disable-line
+import * as Papa from 'papaparse';
 
 // Injectable
 import Export from 'services/export';  // eslint-disable-line
@@ -16,6 +17,7 @@ import { ERROR_DURATION } from 'app-defaults';
 import { name, routes } from 'configs/app';
 import { externalLinks } from 'configs/nav';
 import FgmState from 'components/fragments/fragments-state';
+import buildConfig from 'utils/build-config';
 import checkTextInputFocus from 'utils/check-text-input-focus';
 import dragDrop from 'utils/drag-drop';
 import readJsonFile from 'utils/read-json-file';
@@ -28,7 +30,6 @@ const logger = LogManager.getLogger('app');
 
 @inject(EventAggregator, Export, Font, States)
 export default class App {
-
   constructor (event, exportData, font, states) {
     this.event = event;
 
@@ -91,12 +92,36 @@ export default class App {
 
     // Drag and drop handler
     dragDrop(this.baseEl, this.dragDropArea, (event) => {
-      readJsonFile(event.dataTransfer.files[0])
-        .then(json => this.setConfig(json))
-        .catch((error) => {
-          logger.info(error);
-          this.showGlobalError('Invalid JSON file');
-        });
+      switch (event.dataTransfer.files[0].type) {
+        case 'text/csv':
+        case 'text/tab-separated-values':
+          Papa.parse(event.dataTransfer.files[0], {
+            complete: (results) => {
+              const newConfig = buildConfig(results.data);
+
+              if (newConfig) this.setConfig(newConfig);
+              else this.showGlobalError('Invalid CSV or TSV file');
+            },
+            error: (error) => {
+              logger.warn(error);
+              this.showGlobalError('Invalid CSV or TSV file');
+            }
+          });
+          break;
+
+        case 'application/json':
+          readJsonFile(event.dataTransfer.files[0])
+            .then(newConfig => this.setConfig(newConfig))
+            .catch((error) => {
+              logger.warn(error);
+              this.showGlobalError('Invalid JSON file');
+            });
+          break;
+
+        default:
+          this.showGlobalError('Unsupported file type. Drop a CSV, TSV, or JSON!');
+          break;
+      }
     });
 
     document.addEventListener('keydown', this.keyDownHandler.bind(this));
@@ -164,8 +189,7 @@ export default class App {
     }
   }
 
-
-  /* ----------------------- Getter / Setter Variables ---------------------- */
+  /* -------------------------------- Methods ------------------------------- */
 
   /**
    * Mouse click event handler.
@@ -192,6 +216,8 @@ export default class App {
    * @param {object} event - Kep down event object.
    */
   keyDownHandler (event) {
+    if (checkTextInputFocus()) { return; }
+
     if (event.ctrlKey || event.metaKey) {
       this.isCtrlMetaKeyDown = true;
     }
@@ -229,7 +255,10 @@ export default class App {
    * @param {object} event - Kep up event object.
    */
   keyUpHandler (event) {
-    if (checkTextInputFocus()) { return; }
+    if (checkTextInputFocus()) {
+      this.isCtrlMetaKeyDown = false;
+      return;
+    }
 
     event.preventDefault();
 
@@ -355,10 +384,12 @@ export default class App {
 
     this.dialogPromise
       .then(() => {
-        this.reset();
-        FgmState.reset();
-        this.exploreIsReady = false;
         this.router.navigateToRoute('home');
+        setTimeout(() => {
+          this.reset();
+          FgmState.reset();
+          this.exploreIsReady = false;
+        }, 50);
       })
       .catch(() => {
         // Nothing

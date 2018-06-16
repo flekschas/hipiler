@@ -25,7 +25,9 @@
     "no-mixed-operators": ["error", { "allowSamePrecedence": true }],
     "no-multi-spaces": ["error", { "ignoreEOLComments": true }],
     "no-plusplus": ["error", { "allowForLoopAfterthoughts": true }],
+    "no-restricted-globals": 0,
     "no-undef": ["error"],
+    "object-curly-newline": 0,
     "prefer-destructuring": 0,
     "space-before-function-paren": ["error", "always"]
   }

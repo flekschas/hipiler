@@ -65,11 +65,11 @@ pile-details {
     transition: opacity $transition-very-fast $ease-in-out-cubic;
 
     &.is-shown {
-      opacity: 0.5;
+      opacity: 1;
 
-      &.is-active {
-        opacity: 1;
-      }
+      // &.is-active {
+      //   opacity: 1;
+      // }
     }
   }
 
@@ -186,6 +186,7 @@ pile-details {
       image-rendering: optimize-contrast;
       image-rendering: pixelated;
       -ms-interpolation-mode: nearest-neighbor;
+      border-radius: 0.25rem;
     }
   }
 }

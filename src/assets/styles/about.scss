@@ -94,6 +94,24 @@
     @include ratio(.626);
   }
 
+  #more-info {
+    display: block;
+    margin: 0.5em 0;
+    padding: 0.25em 0;
+    text-align: center;
+    border-radius: 0.25rem;
+    background: $gray-lighter;
+    border-bottom: 0;
+    transition: color $transition-very-fast $ease-in-out-cubic,
+                background $transition-very-fast $ease-in-out-cubic;
+
+    &:focus,
+    &:hover {
+      color: $black;
+      background: $primary;
+    }
+  }
+
   .slides-container {
     @include ratio(.6);
 

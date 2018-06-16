@@ -32,7 +32,6 @@ import {
   SELECTION_DOMAIN_DISPATCH_DEBOUNCE
 } from 'components/higlass/higlass-defaults';
 import COLORS from 'configs/colors';
-import arraysEqual from 'utils/arrays-equal';
 import deepClone from 'utils/deep-clone';
 import HaltResume from 'utils/halt-resume';
 
@@ -161,6 +160,13 @@ export class Higlass {
     const locksDir = {};
 
     hgConfig.views.forEach((view, index) => {
+      if (this.api) {
+        // Set current location (needed for CSV-derived view configs)
+        const location = this.api.getLocation(view.uid);
+        view.initialXDomain = location.xDomain;
+        view.initialYDomain = location.yDomain;
+      }
+
       // Adjust height of the original view
       // This is needed to make HiGlass refresh properly. Otherwise an error is thrown
       view.uid += '_';
@@ -326,6 +332,14 @@ export class Higlass {
 
     this.isFgmHighlight = false;
 
+    this.config.views.forEach((view) => {
+      if (!view.initialXDomain) {
+        const location = this.api.getLocation(view.uid);
+        view.initialXDomain = location.xDomain;
+        view.initialYDomain = location.yDomain;
+      }
+    });
+
     this.render(this.config);
   }
 
@@ -399,13 +413,21 @@ export class Higlass {
     configTmp.views
       .forEach((view) => {
         view.tracks.center
-          .filter(center => center.type === '2d-chromosome-annotations')
-          .forEach((center) => {
-            center.options.regions = lociTmp;
+          .filter(track => track.type === '2d-chromosome-annotations')
+          .forEach((track) => {
+            track.options.regions = lociTmp;
           });
       });
 
     this.isFgmHighlight = true;
+
+    configTmp.views.forEach((view) => {
+      if (!view.initialXDomain) {
+        const location = this.api.getLocation(view.uid);
+        view.initialXDomain = location.xDomain;
+        view.initialYDomain = location.yDomain;
+      }
+    });
 
     this.render(configTmp);
   }
@@ -667,20 +689,20 @@ export class Higlass {
     hgConfig.zoomLocks = {};
     hgConfig.locationLocks = {};
 
-    const originalView = hgConfig.views[0];
-
-    // Adjust height of the original view
-    if (originalView.uid[originalView.uid.length - 1] === '_') {
-      originalView.uid = originalView.uid.slice(0, -1);
-    }
-    originalView.layout.h = 12;
-
-    // Remove view projections
-    for (let i = originalView.tracks.center.length; i--;) {
-      if (originalView.tracks.center[i].type === 'viewport-projection-center') {
-        originalView.tracks.center.splice(i, 1);
+    hgConfig.views.forEach((originalView) => {
+      // Adjust height of the original view
+      if (originalView.uid[originalView.uid.length - 1] === '_') {
+        originalView.uid = originalView.uid.slice(0, -1);
       }
-    }
+      originalView.layout.h = 12;
+
+      // Remove view projections
+      for (let i = originalView.tracks.center.length; i--;) {
+        if (originalView.tracks.center[i].type === 'viewport-projection-center') {
+          originalView.tracks.center.splice(i, 1);
+        }
+      }
+    });
   }
 
   /**
@@ -692,27 +714,19 @@ export class Higlass {
     return (location) => {
       if (
         this.location === location ||
-        arraysEqual(this.location, location)
+        JSON.stringify(this.location) === JSON.stringify(location)
       ) { return; }
 
       this.location = location;
 
       if (!this.chromInfoData) { return; }
 
-      // Get global locations
-      const xStart = this.chromInfoData[location[0]].offset + location[1];
-      const xEnd = this.chromInfoData[location[2]].offset + location[3];
-      const yStart = this.chromInfoData[location[4]].offset + location[5];
-      const yEnd = this.chromInfoData[location[6]].offset + location[7];
-
       // this.isGlobalLociCalced.then(this.updateLociColor.bind(this));
 
       // Update state
       this.store.dispatch(setSelectionView([
-        xStart,
-        xEnd,
-        yStart,
-        yEnd
+        ...this.location.xDomain,
+        ...this.location.yDomain
       ]));
     };
   }
@@ -768,6 +782,8 @@ export class Higlass {
     ) { return; }
 
     this.originalConfig = config;
+    this.originalConfig.views[0]
+      .tracks.center[0].contents[0].options.backgroundColor = 'white';
     this.config = deepClone(config);
 
     // this.checkServersAvailablility(this.originalConfig)
@@ -850,6 +866,7 @@ export class Higlass {
 
     if (this.fragmentsHighlight) {
       const loci = this.extractLoci(fgmConfig);
+
 
       if (this.loci !== loci) {
         this.loci = loci;
@@ -942,11 +959,10 @@ export class Higlass {
     // Promise.all([this.isServersAvailable, this.isAttached])
     Promise.all([this.isAttached])
       .then(() => {
-        window.hglib.createHgComponent(
+        this.api = window.hglib.viewer(
           this.plotEl,
           deepClone(config),
           OPTIONS,
-          (api) => { this.api = api; }
         );
 
         this.initApi(this.api);

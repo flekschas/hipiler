@@ -178,7 +178,7 @@ export const RESET = {
 
 export const SAD = {
   viewBox: '0 0 16 16',
-  svg: '<g transform="matrix(0.505538,0,0,0.505538,-13.793,-17.5515)"><path d="M37.5,38.5L37.5,46.5" fill="none" stroke="currentColor" stroke-width="3px"/></g><g transform="matrix(0.505538,0,0,0.505538,-13.793,-17.5515)"><path d="M49.5,38.5L49.5,46.5" fill="none" stroke="currentColor" stroke-width="3px"/></g><g transform="matrix(-0.505538,0,0,-0.505538,29.793,39.972)"><path d="M29.262,53.353C29.262,53.353 41.882,69.284 56.955,53.353" fill="none" stroke="currentColor" stroke-width="3px"/></g>',
+  svg: '<g transform="matrix(0.505538,0,0,0.505538,-13.793,-17.5515)"><path d="M37.5,38.5L37.5,46.5" fill="none" stroke="currentColor" stroke-width="3px"/></g><g transform="matrix(0.505538,0,0,0.505538,-13.793,-17.5515)"><path d="M49.5,38.5L49.5,46.5" fill="none" stroke="currentColor" stroke-width="3px"/></g><g transform="matrix(-0.505538,0,0,-0.505538,29.793,39.972)"><path d="M29.262,53.353C29.262,53.353 41.882,69.284 56.955,53.353" fill="none" stroke="currentColor" stroke-width="3px"/></g>'
 };
 
 export const TRASH = {

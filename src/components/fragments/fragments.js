@@ -40,6 +40,10 @@ import {
   setColorScaleTo,
   setCellAndGridSize,
   setCoverDispMode,
+  setDataDims,
+  setDataPadding,
+  setDataPercentile,
+  setDataIgnoreDiags,
   setGridCellSizeLock,
   setGridCellSizeLockAndGridSize,
   setGridSize,
@@ -65,7 +69,6 @@ import {
 } from 'components/fragments/fragments-actions';
 
 import {
-  API_DOMAINS,
   API_FRAGMENTS,
   ARRANGE_MEASURES,
   CAT_CHROMOSOME,
@@ -76,7 +79,6 @@ import {
   CLUSTER_TSNE,
   DBL_CLICK_DELAY_TIME,
   DURATION,
-  FRAGMENTS_BASE_RES,
   FRAGMENT_PRECISION,
   FRAGMENT_SIZE,
   HIGHLIGHT_FRAME_LINE_WIDTH,
@@ -102,6 +104,7 @@ import {
   PILE_AREA_POINTS,
   PILE_LABEL_HEIGHT,
   PREVIEW_MAX,
+  SPECIAL_FIELDS,
   TSNE_PERPLEXITY,
   TSNE_EARLY_EXAGGERATION,
   TSNE_LEARNING_RATE,
@@ -143,6 +146,8 @@ import {
 import COLORS from 'configs/colors';
 
 import arraysEqual from 'utils/arrays-equal';
+import deepClone from 'utils/deep-clone';
+import downloadAsCvs from 'utils/download-as-csv';
 import downloadAsJson from 'utils/download-as-json';
 import hilbertCurve from 'utils/hilbert-curve';
 import objValsToStr from 'utils/object-values-to-string';
@@ -1453,6 +1458,166 @@ export class Fragments {
   }
 
   /**
+   * Data dimension changed handler.
+   *
+   * @param {object} event - Chaneg event object.
+   */
+  dataDimsChangeHandler (event) {
+    this.store.dispatch(setDataDims(parseInt(event.target.value, 10)));
+  }
+
+  /**
+   * Data dimension input handler.
+   *
+   * @param {object} event - Chaneg event object.
+   */
+  dataDimsInputHandler (event) {
+    this.dataDimsTmp = parseInt(event.target.value, 10);
+  }
+
+  /**
+   * Data dimension mouse down handler.
+   *
+   * @param {object} event - Mouse down event object.
+   */
+  dataDimsMousedownHandler (event) {
+    this.dataDimsTmp = parseInt(event.target.value, 10);
+
+    return true;
+  }
+
+  /**
+   * Data dimension mouse up handler.
+   *
+   * @param {object} event - Mouse up event object.
+   */
+  dataDimsMouseupHandler (event) {
+    this.dataDimsTmp = undefined;
+
+    return true;
+  }
+
+  /**
+   * Data padding changed handler.
+   *
+   * @param {object} event - Chaneg event object.
+   */
+  dataPaddingChangeHandler (event) {
+    this.store.dispatch(setDataPadding(parseInt(event.target.value, 10)));
+  }
+
+  /**
+   * Data padding input handler.
+   *
+   * @param {object} event - Chaneg event object.
+   */
+  dataPaddingInputHandler (event) {
+    this.dataPaddingTmp = parseInt(event.target.value, 10);
+  }
+
+  /**
+   * Data padding mouse down handler.
+   *
+   * @param {object} event - Mouse down event object.
+   */
+  dataPaddingMousedownHandler (event) {
+    this.dataPaddingTmp = parseInt(event.target.value, 10);
+
+    return true;
+  }
+
+  /**
+   * Data padding mouse up handler.
+   *
+   * @param {object} event - Mouse up event object.
+   */
+  dataPaddingMouseupHandler (event) {
+    this.dataPaddingTmp = undefined;
+
+    return true;
+  }
+
+  /**
+   * Data percentile changed handler.
+   *
+   * @param {object} event - Chaneg event object.
+   */
+  dataPercentileChangeHandler (event) {
+    this.store.dispatch(setDataPercentile(parseInt(event.target.value, 10)));
+  }
+
+  /**
+   * Data percentile input handler.
+   *
+   * @param {object} event - Chaneg event object.
+   */
+  dataPercentileInputHandler (event) {
+    this.dataPercentileTmp = parseInt(event.target.value, 10);
+  }
+
+  /**
+   * Data percentile mouse down handler.
+   *
+   * @param {object} event - Mouse down event object.
+   */
+  dataPercentileMousedownHandler (event) {
+    this.dataPercentileTmp = parseInt(event.target.value, 10);
+
+    return true;
+  }
+
+  /**
+   * Data percentile mouse up handler.
+   *
+   * @param {object} event - Mouse up event object.
+   */
+  dataPercentileMouseupHandler (event) {
+    this.dataPercentileTmp = undefined;
+
+    return true;
+  }
+
+  /**
+   * Data ignore diagonals changed handler.
+   *
+   * @param {object} event - Chaneg event object.
+   */
+  dataIgnoreDiagsChangeHandler (event) {
+    this.store.dispatch(setDataIgnoreDiags(parseInt(event.target.value, 10)));
+  }
+
+  /**
+   * Data ignore diagonals input handler.
+   *
+   * @param {object} event - Chaneg event object.
+   */
+  dataIgnoreDiagsInputHandler (event) {
+    this.dataIgnoreDiagsTmp = parseInt(event.target.value, 10);
+  }
+
+  /**
+   * Data ignore diagonals mouse down handler.
+   *
+   * @param {object} event - Mouse down event object.
+   */
+  dataIgnoreDiagsMousedownHandler (event) {
+    this.dataIgnoreDiagsTmp = parseInt(event.target.value, 10);
+
+    return true;
+  }
+
+  /**
+   * Data ignore diagonals mouse up handler.
+   *
+   * @param {object} event - Mouse up event object.
+   */
+  dataIgnoreDiagsMouseupHandler (event) {
+    this.dataIgnoreDiagsTmp = undefined;
+
+    return true;
+  }
+
+  /**
    * Decolor all matrices
    */
   decolorAll () {
@@ -1613,10 +1778,23 @@ export class Fragments {
   }
 
   /**
-   * Download export data as JSON
+   * Download snippets as a CSV table together with their annotations
    */
-  downloadExportedPiles () {
-    downloadAsJson(this.exportPiles());
+  downloadSnippets () {
+    downloadAsCvs(this.exportPiles());
+  }
+
+  /**
+   * Download view config
+   */
+  downloadViewConfig () {
+    const state = this.store.getState().present.explore;
+    const config = {
+      fgm: state.fragments.config,
+      hgl: state.higlass.config
+    };
+
+    downloadAsJson(config);
   }
 
   /**
@@ -1884,13 +2062,12 @@ export class Fragments {
    * @return {object} Export.
    */
   exportPiles () {
-    const output = [];
-
     try {
       const state = this.store.getState().present.explore.fragments;
+      const snippets = deepClone(state.config.fragments);
 
       Object.keys(state.piles).forEach((matrixId) => {
-        const trashed = matrixId[0] === '_';
+        let trashed = matrixId[0] === '_';
         const id = parseInt(trashed ? matrixId.slice(1) : matrixId, 10);
         const color = state.matricesColors[id];
         const numMats = state.piles[matrixId].length;
@@ -1899,26 +2076,31 @@ export class Fragments {
         if (!numMats) {
           // Pile as been piled
           pile = fgmState.matricesIdx[id].pile.idNumeric;
+          trashed = fgmState.matricesIdx[id].pile.id[0] === '_';
         }
 
         const notes = state.annotations[`_${id}`];
         const pileNotes = state.annotations[pile];
 
-        output.push({
-          id,
+        snippets[id + 1].push(
           pile,
           color,
           trashed,
           notes,
           pileNotes
-        });
-
-        output.sort((x, y) => {
-          if (x.id < y.id) { return -1; }
-          if (x.id > y.id) { return 1; }
-          return 0;
-        });
+        );
       });
+
+      // Upate header
+      snippets[0].push(
+        '_pile-id',
+        '_color-tag',
+        '_is-trashed',
+        'notes',
+        'pileNotes'
+      );
+
+      return snippets;
     } catch (error) {
       logger.error('Could not export piles', error);
       return {
@@ -1926,8 +2108,6 @@ export class Fragments {
         error
       };
     }
-
-    return output;
   }
 
   /**
@@ -2300,7 +2480,7 @@ export class Fragments {
           }
 
           case CAT_ZOOMOUT_LEVEL:
-            mapper = matrix => matrix.resolution;
+            mapper = matrix => matrix.zoomOutLevel;
             break;
 
           default:
@@ -2784,7 +2964,7 @@ export class Fragments {
 
     this.subscriptions.push(this.event.subscribe(
       'app.save',
-      this.downloadExportedPiles.bind(this)
+      this.downloadSnippets.bind(this)
     ));
 
     this.subscriptions.push(this.event.subscribe(
@@ -2856,8 +3036,6 @@ export class Fragments {
   initMatrices (fragments) {
     fgmState.matrices = [];
 
-    const baseRes = this.config.fragmentsBaseRes || FRAGMENTS_BASE_RES;
-
     fragments.forEach((fragment, index) => {
       const measures = {};
       const categories = {};
@@ -2882,7 +3060,7 @@ export class Fragments {
           end2: fragment[this.dataIdxEnd2]
         },
         fragment[this.dataIdxDataset],
-        baseRes * (2 ** fragment[this.dataIdxZoomOutLevel]),
+        fragment[this.dataIdxZoomOutLevel],
         {
           strand1: fragment[this.dataIdxStrand1],
           strand2: fragment[this.dataIdxStrand2]
@@ -2907,7 +3085,11 @@ export class Fragments {
     fgmState.measures = [];
 
     header.forEach((field, index) => {
-      if (usedIdx.indexOf(index) === -1 && field[0] !== '_') {
+      if (
+        usedIdx.indexOf(index) === -1 &&
+        field[0] !== '_' &&
+        SPECIAL_FIELDS.indexOf(field.toLowerCase()) === -1
+      ) {
         this.dataMeasures[field] = index;
         fgmState.measures.push({
           id: field,
@@ -3163,10 +3345,11 @@ export class Fragments {
    * Load fragment matrices.
    *
    * @param {object} config - Config.
+   * @param {boolean} isReload - If `true` force reload.
    * @return {object} A promise resolving to `true` if the data is successfully
    *   loaded.
    */
-  loadData (config) {
+  loadData (config, isReload) {
     this.isLoading = true;
 
     return new Promise((resolve, reject) => {
@@ -3175,35 +3358,41 @@ export class Fragments {
 
       const params = {
         precision: config.fragmentsPrecision || FRAGMENT_PRECISION,
-        dims: config.fragmentsDims || FRAGMENT_SIZE
+        dims: this.dataDims || config.fragmentsDims || FRAGMENT_SIZE
       };
 
-      if (config.fragmentsDomains) {
-        endpoint = API_DOMAINS;
+      if (config.fragmentsPadding || this.dataPadding) {
+        params.padding = (
+          this.dataPadding || config.fragmentsPadding
+        );
       }
 
-      if (config.fragmentsPadding) {
-        params.padding = config.fragmentsPadding;
+      if (config.fragmentsPercentile || this.dataPercentile) {
+        params.percentile = (
+          this.dataPercentile || config.fragmentsPercentile
+        );
+
+        params.percentile = Math.max(
+          0, Math.min(100, parseInt(params.percentile, 10))
+        );
       }
 
-      if (config.fragmentsNoCache) {
+      if (config.fragmentsIgnoreDiags || this.dataIgnoreDiags) {
+        params['ignore-diags'] = (
+          this.dataIgnoreDiags || config.fragmentsIgnoreDiags
+        );
+
+        params['ignore-diags'] = Math.max(
+          0, Math.min(10, parseInt(params['ignore-diags'], 10))
+        );
+      }
+
+      if (config.fragmentsNoCache || isReload) {
         params['no-cache'] = 1;
       }
 
       if (config.fragmentsNoBalance) {
         params['no-balance'] = 1;
-      }
-
-      if (config.fragmentsPercentile) {
-        params.percentile = Math.max(
-          0, Math.min(100, parseInt(config.fragmentsPercentile, 10))
-        );
-      }
-
-      if (config.fragmentsIgnoreDiags) {
-        params['ignore-diags'] = Math.max(
-          0, Math.min(10, parseInt(config.fragmentsIgnoreDiags, 10))
-        );
       }
 
       const queryString = this.prepareQueryString(params);
@@ -3236,9 +3425,22 @@ export class Fragments {
             config, results.fragments
           );
 
+          if (this.isInitialized) {
+            this.updateMatrices(results.fragments);
+          }
+
           this.resolve.isDataLoaded(finalResults);
         });
     });
+  }
+
+  updateMatrices (newRawMatrices) {
+    fgmState.matrices.forEach((matrix, i) => {
+      matrix.matrix = Matrix.to1d(newRawMatrices[i]);
+    });
+    this.piles.forEach(pile => pile.calculateCoverMatrix());
+    this.redrawPiles();
+    this.render();
   }
 
   /**
@@ -4621,7 +4823,31 @@ export class Fragments {
       ready.push(this.updateArrangeMeasures(stateFgm.arrangeMeasures, update));
       ready.push(this.updateCoverDispMode(stateFgm.coverDispMode, update));
       ready.push(this.updateCellSize(stateFgm.cellSize, update));
-      ready.push(this.updateConfig(stateFgm.config));
+      ready.push(this.updateDataDims(
+        stateFgm.dataDims,
+        stateFgm.config.fragmentsDims,
+        update,
+        init || noRendering
+      ));
+      ready.push(this.updateDataPadding(
+        stateFgm.dataPadding,
+        stateFgm.config.fragmentsPadding,
+        update,
+        init || noRendering
+      ));
+      ready.push(this.updateDataPercentile(
+        stateFgm.dataPercentile,
+        stateFgm.config.fragmentsPercentile,
+        update,
+        init || noRendering
+      ));
+      ready.push(this.updateDataIgnoreDiags(
+        stateFgm.dataIgnoreDiags,
+        stateFgm.config.fragmentsIgnoreDiags,
+        update,
+        init || noRendering
+      ));
+      ready.push(this.updateConfig(stateFgm.config, update.data));
       ready.push(this.updateGridSize(stateFgm.gridSize, update));
       ready.push(this.updateGridCellSizeLock(
         stateFgm.gridCellSizeLock, update
@@ -4897,16 +5123,104 @@ export class Fragments {
 
   /**
    * Handle updating the config.
-   *
    * @param {object} newConfig - New config
+   * @param {boolean} isDataConfigChange - Some data config changed so lets
+   *   reload them snippets
    */
-  updateConfig (newConfig) {
+  updateConfig (newConfig, isDataConfigChange) {
     if (
-      this.config !== newConfig &&
-      Object.keys(newConfig).length > 0
+      (
+        this.config !== newConfig &&
+        Object.keys(newConfig).length > 0
+      ) ||
+      isDataConfigChange
     ) {
       this.config = newConfig;
-      this.loadData(this.config);
+      this.loadData(this.config, isDataConfigChange);
+    }
+
+    return Promise.resolve();
+  }
+
+  /**
+   * Update data dimension.
+   *
+   * @param {number} dataDims - Data dimension.
+   * @param {object} update - Update object.
+   * @param {boolean} init - If not `true` reload the page.
+   */
+  updateDataDims (dataDims, configDims, update, init) {
+    const dims = dataDims || configDims;
+
+    if (this.dataDims !== dims) {
+      this.dataDims = dims;
+      // update.data = true;
+
+      // We currently don't support dynamic change of the dimension, hence, we
+      // need to force a hard reload. Since the state has a debounce of 25ms
+      // before it writes anything to the local storage we need to wait a bit
+      // before triggering the reload.
+      if (!init) setTimeout(() => { window.location.reload(); }, 100);
+    }
+
+    return Promise.resolve();
+  }
+
+  /**
+   * Update data padding.
+   *
+   * @param {number} dataPadding - Data padding.
+   * @param {object} update - Update object.
+   * @param {boolean} init - If not `true` reload the page.
+   */
+  updateDataPadding (dataPadding, configPadding, update, init) {
+    const padding = (dataPadding || configPadding) | 0;
+
+    if (this.dataPadding !== padding) {
+      this.dataPadding = padding;
+      update.data = !init;
+
+      // We currently don't support dynamic change of the dimension, hence, we
+      // need to force a hard reload. Since the state has a debounce of 25ms
+      // before it writes anything to the local storage we need to wait a bit
+      // before triggering the reload.
+      // if (!init) setTimeout(() => { window.location.reload(); }, 100);
+    }
+
+    return Promise.resolve();
+  }
+
+  /**
+   * Update data percentile.
+   *
+   * @param {number} dataPercentile - Data percentile.
+   * @param {object} update - Update object.
+   * @param {boolean} init - If `true` app is initializing.
+   */
+  updateDataPercentile (dataPercentile, configPercentile, update, init) {
+    const percentile = (dataPercentile || configPercentile) | 0;
+
+    if (this.dataPercentile !== percentile) {
+      this.dataPercentile = percentile;
+      update.data = !init;
+    }
+
+    return Promise.resolve();
+  }
+
+  /**
+   * Update data ignore diags.
+   *
+   * @param {number} dataIgnoreDiags - Data ignore diags.
+   * @param {object} update - Update object.
+   * @param {boolean} init - If `true` app is initializing.
+   */
+  updateDataIgnoreDiags (dataIgnoreDiags, configIgnoreDiags, update, init) {
+    const ignoreDiags = (dataIgnoreDiags || configIgnoreDiags) | 0;
+
+    if (this.dataIgnoreDiags !== ignoreDiags) {
+      this.dataIgnoreDiags = ignoreDiags;
+      update.data = !init;
     }
 
     return Promise.resolve();

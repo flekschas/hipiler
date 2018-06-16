@@ -7,7 +7,7 @@
       <h2 class="is-justified">Visual Exploration of</br>Large Genome Interaction Matrices</br>With Interactive Small Multiples.</h2>
 
       <div class="flex-c columns">
-        <p class="flex-g-1 text max-50 intro is-increased-line-height">HiPiler <span class="ref-link">[1]</span> is an interactive web application for exploring and visualizing many features in large genome interaction matrices. Genome interaction matrices approximate the physical distance of pairs of genomic regions to each other and can contain up to 3 million rows and columns. Traditional matrix aggregation or pan-and-zoom interfaces largely fail in supporting search, inspection, and comparison of local features. HiPiler represents features as thumbnail-like <em>snippets</em>. Snippets can be laid out automatically based on their data and meta attributes. They are linked back to the matrix, visualized with <a href="http://higlass.io" target="_blank">HiGlass</a> <span class="ref-link">[2]</span>, and can be explored interactively. <a class="prominent" route-href="route: about"><em>Find out more</em></a></p>
+        <p class="flex-g-1 text max-50 intro is-increased-line-height">HiPiler is an interactive web application for visually exploring many features in large genome interaction matrices. Genome interaction matrices approximate the physical distance of pairs of genomic regions to each other and enable studying the 3D genome. Traditional matrix aggregation or pan-and-zoom interfaces largely fail in supporting search, inspection, and comparison of local features. HiPiler represents features as thumbnail-like <em>snippets</em>. Snippets can be laid out automatically based on their data and meta attributes. They are linked back to the matrix, visualized with <a href="http://higlass.io" target="_blank">HiGlass</a>, and can be explored interactively. <a class="prominent" route-href="route: about"><em>Find out more</em></a></p>
 
         <div class="flex-g-1 flex-c flex-d-c wrap-extra max-50">
           <p class="is-align-center is-increased-line-height">Try HiPiler using one of the three methods:</p>
@@ -20,7 +20,7 @@
               <svg-icon icon-id="arrow-bottom"></svg-icon>
               <input
                 type="file"
-                accept=".json"
+                accept=".json, .csv, .tsv"
                 ref="inputConfigFile"
                 files.bind="selectedConfig"
                 change.delegate="selectedConfigChanged()"
@@ -52,43 +52,21 @@
       </h3>
       <ol class="extra-padding extra-line-height">
         <li>
-          Version 1.2 is <a href="https://github.com/flekschas/hipiler/releases/tag/v1.2.0" target="_blank">out</a>, supporting five color maps with custom color scaling and featuring HiGlass version 0.10.11 <a href="https://github.com/flekschas/hipiler/blob/master/CHANGELOG.md" target="_blank">among other things</a>.
+          <a href="https://github.com/flekschas/hipiler/releases/tag/v1.3.0" target="_blank">Version 1.3 is here</a>. It adds support for simple but fast CSV import, dynamic snippet reloading, and HiGlass v1.0.1 <a href="https://github.com/flekschas/hipiler/blob/master/CHANGELOG.md" target="_blank">among a few other bugfixes</a>.
+          <em class="date">June 16th, 2018</em>
+        </li>
+        <li>
+          <a href="https://github.com/flekschas/hipiler/releases/tag/v1.2.0" target="_blank">Version 1.2 is out</a>, supporting five color maps with custom color scaling and featuring HiGlass version 0.10.11 <a href="https://github.com/flekschas/hipiler/blob/master/CHANGELOG.md" target="_blank">among other things</a>.
           <em class="date">Jan 21st, 2018</em>
         </li>
         <li>
-          <a href="http://gehlenborg.com" target="_blank">Nils</a> talked about HiPiler and HiGlass at <a href="https://www.hsph.harvard.edu/2017-pqg-conference/" target="_blank">Harvard's 2017 PQG Conference</a>. <span class="data-links">[<a href="https://www.slideshare.net/ngehlenborg/higlass-hipiler-making-sense-of-chromosome-interaction-data-with-multiscale-data-visualization-tools-81568229" target="_blank">Slides</a>]</span>
-          <em class="date">Nov 2nd, 2017</em>
+          <a href="https://github.com/flekschas/hipiler/releases/tag/v1.1.0" target="_blank">Version 1.1 is available</a> and features improved rendering and a new pile details panel.
+          <em class="date">Aug 17th, 2017</em>
         </li>
         <li>
-          <a href="http://lekschas.de" target="_blank">Fritz</a> presented HiPiler and HiGlass at <a href="https://www.microsoft.com/en-us/research/event/cabi-2017/" target="_blank">Microsoft's Computational Aspects of Biological Information 2017</a>. <span class="data-links">[<a href="https://vcg.seas.harvard.edu/publications/hipiler-visual-exploration-of-large-genome-interaction-matrices-with-interactive-small-multiples/higlass-hipiler-cabi-2017.pdf" target="_blank">Poster</a>]</span>
-          <em class="date">Oct 13th, 2017</em>
+          <a href="https://github.com/flekschas/hipiler/releases/tag/v1.0.0" target="_blank">Version 1.0 is here</a> with 5-10x faster snippets rendering and several other additions and bug fixes.
+          <em class="date">Jul 16th, 2017</em>
         </li>
-        <li>
-          <a href="http://lekschas.de" target="_blank">Fritz</a> presented HiPiler at <a href="http://ieeevis.org/year/2017/info/overview-amp-topics/papers-sessions" target="_blank">IEEE VIS</a> in Phoenix at InfoVis. <span class="data-links">[<a href="https://vimeo.com/238502606" target="_blank">Presentation</a> | <a href="https://speakerdeck.com/flekschas/hipiler-visual-exploration-of-large-genome-interaction-matrices-with-interactive-small-multiples" target="_blank">Slides</a>]</span>
-          <em class="date">Oct 5th, 2017</em>
-        </li>
-        <li>
-          <a href="http://lekschas.de" target="_blank">Fritz</a> was invited to pitch HiPiler at Harvard - Novartis Machine Learning and Computational Meeting.
-          <em class="date">Sep 22nd, 2017</em>
-        </li>
-        <li>
-          Nature published a <a href="http://blogs.nature.com/naturejobs/2017/09/11/techblog-hipiler-simplifies-chromatin-structure-analysis/" target="_blank">detailed blog post</a> about HiPiler.
-          <em class="date">Sep 11th, 2017</em>
-        </li>
-        <li>
-          <a href="http://lekschas.de" target="_blank">Fritz</a> demonstrated HiPiler at <a href="https://www.4dnucleome.org" target="_blank">4D Nucleome</a> Annual Meeting 2017. <span class="data-links">[<a href="https://speakerdeck.com/flekschas/hipiler-exploring-many-hi-c-features-through-visual-decomposition" target="_blank">Slides</a> | <a href="https://vcg.seas.harvard.edu/publications/hipiler-visual-exploration-of-large-genome-interaction-matrices-with-interactive-small-multiples/poster" target="_blank">Poster</a>]</span>
-          <em class="date">Sep 7th, 2017</em>
-        </li>
-        <li>
-          HiPiler got accepted at <a href="http://ieeevis.org/year/2017/info/overview-amp-topics/papers-sessions" target="_blank">IEEE VIS (InfoVis)</a>.
-          <em class="date">Jul 11th, 2017</em>
-        </li>
-      </ol>
-
-      <h4 id="references">References</h4>
-      <ol class="extra-padding extra-line-height smaller lighter">
-        <li id="ref-hipiler">[1] Lekschas <em>et al.</em>, "HiPiler: Visual Exploration of Large Genome Interaction Matrices with Interactive Small Multiples", IEEE Transactions on Visualization and Computer Graphics, 2017. <a href="https://doi.org/10.1109/TVCG.2017.2745978" target="_blank">doi:10.1109/TVCG.2017.2745978</a></li>
-        <li id="ref-higlass">[2] Kerpedjiev <em>et al.</em>, "HiGlass: Web-based visual comparison and exploration of genome interaction maps." bioRxiv, 2017. <a href="https://doi.org/10.1101/121889" target="_blank">doi:10.1101/121889</a></li>
       </ol>
 
       <div class="bg full-dim"><div class="fade-in full-dim"></div></div>

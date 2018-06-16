@@ -123,7 +123,9 @@ export class PileMenu {
       const left = typeof this.position.left !== 'undefined' ?
         `${this.position.left}px` : undefined;
 
-      this.css = { top, right, bottom, left };
+      this.css = {
+        top, right, bottom, left
+      };
     } catch (error) {
       logger.error(error);
     }

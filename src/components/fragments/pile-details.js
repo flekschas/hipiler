@@ -130,7 +130,11 @@ export class PileDetails {
   }
 
   drawPreviewPreviews () {
-    if (!this.pile.isDrawn || !this.pile.previewsMesh) { return; }
+    if (!this.pile.isDrawn) { return; }
+    if (!this.pile.previewsMesh) {
+      this.previewsRatioCss = { paddingTop: 0 };
+      return;
+    }
 
     const ctx = this.previewPreviewsEl.getContext('2d');
     const previewCan = this.pile.previewsMesh.material.map.image;
@@ -166,7 +170,9 @@ export class PileDetails {
     // Init the measure array
     this.measures = Object
       .keys(this.pile.pileMatrices[0].measures)
-      .map(key => ({ key, max: -Infinity, min: Infinity, values: [] }));
+      .map(key => ({
+        key, max: -Infinity, min: Infinity, values: []
+      }));
 
     // Populate the values
     this.pile.pileMatrices

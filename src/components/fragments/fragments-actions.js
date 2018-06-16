@@ -20,12 +20,40 @@ export const closePilesInspection = () => ({
   type: CLOSE_PILES_INSPECTION
 });
 
-export const DISPERSE_PILES = 'DISPERSE_PILES';
-
 export const closePilesInspectionSelect = piles => batchActions([
   selectPile(null),
   closePilesInspection()
 ]);
+
+export const SET_DATA_DIMS = 'SET_DATA_DIMS';
+
+export const setDataDims = dataDims => ({
+  type: SET_DATA_DIMS,
+  payload: { dataDims }
+});
+
+export const SET_DATA_PADDING = 'SET_DATA_PADDING';
+
+export const setDataPadding = dataPadding => ({
+  type: SET_DATA_PADDING,
+  payload: { dataPadding }
+});
+
+export const SET_DATA_PERCENTILE = 'SET_DATA_PERCENTILE';
+
+export const setDataPercentile = dataPercentile => ({
+  type: SET_DATA_PERCENTILE,
+  payload: { dataPercentile }
+});
+
+export const SET_DATA_IGNORE_DIAGS = 'SET_DATA_IGNORE_DIAGS';
+
+export const setDataIgnoreDiags = dataIgnoreDiags => ({
+  type: SET_DATA_IGNORE_DIAGS,
+  payload: { dataIgnoreDiags }
+});
+
+export const DISPERSE_PILES = 'DISPERSE_PILES';
 
 export const dispersePiles = piles => ({
   type: DISPERSE_PILES,

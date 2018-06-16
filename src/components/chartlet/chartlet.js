@@ -7,15 +7,11 @@ import {
 
 import { EventAggregator } from 'aurelia-event-aggregator';  // eslint-disable-line
 
-import {
-  GRAY_DARK
-} from 'configs/colors';
+import { GRAY_DARK } from 'configs/colors';
 
 import debounce from 'utils/debounce';
 
-import {
-  requestNextAnimationFrame
-} from 'utils/request-animation-frame';
+import { requestNextAnimationFrame } from 'utils/request-animation-frame';
 
 import drawing from 'components/chartlet/chartlet-drawing';
 

@@ -1,4 +1,3 @@
-import chroma from 'chroma';
 import * as THREE from 'three';
 import threeLine2d from 'three-line-2d';
 import threeLine2dShader from 'three-line-2d-shader';
@@ -9,8 +8,6 @@ import COLORS from 'configs/colors';
 export const ANIMATION = true;
 
 export const ANNOTATIONS = {};
-
-export const API_DOMAINS = 'domains_by_loci';
 
 export const API_FRAGMENTS = 'fragments_by_loci';
 
@@ -33,6 +30,14 @@ export const CELL_THRESHOLD = 0.0;  // only cells above are shown
 export const CLICK_DELAY_TIME = 300;
 
 export const CLUSTER_TSNE = '_cluster_tsne';
+
+export const DATA_DIMS = 20;
+
+export const DATA_PADDING = 0;
+
+export const DATA_PERCENTILE = 100;
+
+export const DATA_IGNORE_DIAGS = 0;
 
 export const COLOR_BW = 'bw';
 
@@ -75,8 +80,6 @@ export const DURATION = 250;
 export const FONT_URL = 'assets/fonts/rubik-regular.json';
 
 export const FPS = 25;
-
-export const FRAGMENTS_BASE_RES = 1000;
 
 export const FRAGMENT_PRECISION = 2;
 
@@ -203,6 +206,8 @@ export const PILES = {};
 export const PREVIEW_MAX = 8;
 
 export const SELECTED_PILE = null;
+
+export const SPECIAL_FIELDS = ['server', 'coords', 'notes', 'pilenotes'];
 
 export const SHOW_MATRICES = 1000;
 

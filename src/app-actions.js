@@ -3,6 +3,10 @@ import {
 } from 'components/higlass/higlass-actions';
 
 import {
+  setDataDims,
+  setDataPadding,
+  setDataPercentile,
+  setDataIgnoreDiags,
   selectPile,
   updateConfig as updateFgmConfig
 } from 'components/fragments/fragments-actions';
@@ -18,6 +22,19 @@ export const updateConfigs = config => (dispatch) => {
   dispatch(selectPile(null));
   dispatch(updateHglConfig(config.hgl));
   dispatch(updateFgmConfig(config.fgm));
+
+  if (config.fgm.fragmentsDims) {
+    dispatch(setDataDims(config.fgm.fragmentsDims));
+  }
+  if (config.fgm.fragmentsPadding) {
+    dispatch(setDataPadding(config.fgm.fragmentsPadding));
+  }
+  if (config.fgm.fragmentsPercentile) {
+    dispatch(setDataPercentile(config.fgm.fragmentsPercentile));
+  }
+  if (config.fgm.fragmentsIgnoreDiags) {
+    dispatch(setDataIgnoreDiags(config.fgm.fragmentsIgnoreDiags));
+  }
 };
 
 

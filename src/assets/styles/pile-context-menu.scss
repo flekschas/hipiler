@@ -30,6 +30,19 @@
 
   .is-multiple {
     text-align: center;
+
+    button {
+      margin: 0.125rem;
+      font-weight: bold;
+
+      &:first-child {
+        margin-left: 0;
+      }
+
+      &:last-child {
+        margin-right: 0;
+      }
+    }
   }
 
   ul {
@@ -47,6 +60,7 @@
     padding: 0.125rem 0.25rem;
     font: inherit;
     text-align: right;
+    border-radius: 0.125rem;
     background: transparent;
 
     &:hover {

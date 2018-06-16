@@ -7,7 +7,7 @@
     css.bind="css">
     <ul class="no-list-style rel flex-c flex-d-c">
       <li
-        class="flex-c flex-d-c ${command.buttons.length ? 'is-multiple' : ''} ${command.isActive ? 'is-active' : ''}"
+        class="flex-c flex-d-c ${command.buttons.length > 1 ? 'is-multiple' : ''} ${command.isActive ? 'is-active' : ''}"
         repeat.for="command of commands"
         if.bind="command.isVisible">
         <div class="separator" if.bind="command.isSeparator"></div>
