@@ -89,7 +89,7 @@
     "minimatch": "3.0.4",
     "redux-freeze": "0.1.5",
     "through2": "2.0.3",
-    "uglify-js": "2.8.27",
+    "uglify-js": "3.4.0",
     "vinyl-fs": "2.4.4"
   },
   "scripts": {
@@ -97,7 +97,6 @@
     "build-app": "npm run update && gulp clean && gulp clean-dist && gulp --build && au build --env prod && gulp build && cd build && zip -r ../build.zip ./*",
     "ghp": "npm run update && gulp clean && gulp clean-dist && gulp --ghp && au build --env prod && gulp ghp && scripts/cp-prod.sh hipiler-ghp",
     "start": "gulp && au run --watch",
-    "test": "gulp",
     "update": "git pull && git submodule update --init --recursive --remote --merge && npm install && gulp"
   }
 }
