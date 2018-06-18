@@ -241,7 +241,6 @@ export function coverDispMode (state = MODE_AVERAGE, action) {
 export function dataDims (state = DATA_DIMS, action) {
   switch (action.type) {
     case SET_DATA_DIMS:
-      console.log(action.payload.dataDims);
       return action.payload.dataDims;
 
     default:
