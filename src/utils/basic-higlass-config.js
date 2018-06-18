@@ -35,7 +35,7 @@ const viewTemplate = {
         uid: '<VIEW>.1',
         type: 'horizontal-gene-annotations',
         tilesetUid: '<GENES>',
-        server: 'http://higlass.io/api/v1',
+        server: '//higlass.io/api/v1',
         options: {
           minusStrandColor: '#999',
           plusStrandColor: '#999'
@@ -44,7 +44,7 @@ const viewTemplate = {
       {
         uid: '<VIEW>.2',
         chromInfoPath:
-          'http://higlass.io/api/v1/chrom-sizes/?id=<CHROMS>',
+          '//higlass.io/api/v1/chrom-sizes/?id=<CHROMS>',
         type: 'horizontal-chromosome-labels'
       }
     ],
@@ -52,7 +52,7 @@ const viewTemplate = {
       {
         uid: '<VIEW>.3',
         chromInfoPath:
-          'http://higlass.io/api/v1/chrom-sizes/?id=<CHROMS>',
+          '//higlass.io/api/v1/chrom-sizes/?id=<CHROMS>',
         type: 'vertical-chromosome-labels'
       }
     ],
@@ -67,7 +67,8 @@ const viewTemplate = {
             tilesetUid: '<MATRIX>',
             type: 'heatmap',
             options: {
-              colorRange: ['#FFFFFF', '#ffed1a', '#ff5500', '#540000']
+              colorRange: ['#FFFFFF', '#ffed1a', '#ff5500', '#540000'],
+              backgroundColor: 'white'
             }
           }
         ]
