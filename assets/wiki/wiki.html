@@ -244,13 +244,84 @@ npm run build
   
 <p>This pages describes how to load snippets into HiPiler and extract the location of snippets. It also explains how to load HiPiler in a Jupyter notebook.</p>
 
-<h2 id="data/config-file" class="underlined anchored">
-  <a href="/docs#data/config-file" class="hidden-anchor">
+<h2 id="data/csv" class="underlined anchored">
+  <a href="/docs#data/csv" class="hidden-anchor">
     <svg-icon icon-id="link"></svg-icon>
   </a>
-  <span>Config file</span>
+  <span>CSV</span>
 </h2>
-  <p>HiPiler&#39;s configuration is specified in JSON and consists of two main parts: one for the snippet location and display and another one for HiGlass. The snippet configuration is stored under <code>fgm</code> and HiGlass is configured under <code>hgl</code>.</p>
+  <p>Using a CSV file is the fastest way to explore annotations. The table should have the following form:</p>
+<table>
+<thead>
+<tr>
+<th>chrom1</th>
+<th>start1</th>
+<th>end1</th>
+<th>strand1</th>
+<th>chrom2</th>
+<th>start2</th>
+<th>end2</th>
+<th>strand2</th>
+<th>dataset</th>
+<th>zoomOutLevel</th>
+<th>server</th>
+<th>coords</th>
+<th>pVal</th>
+<th>_group</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>str</td>
+<td>int</td>
+<td>int</td>
+<td>str</td>
+<td>str</td>
+<td>int</td>
+<td>int</td>
+<td>str</td>
+<td>str</td>
+<td>int</td>
+<td>str</td>
+<td>str</td>
+<td>float</td>
+<td>str</td>
+</tr>
+<tr>
+<td>4</td>
+<td>69285000</td>
+<td>70075000</td>
+<td>+</td>
+<td>4</td>
+<td>69285000</td>
+<td>70075000</td>
+<td>+</td>
+<td>CQMd6V_cRw6iCI_-Unl3PQ</td>
+<td>0</td>
+<td>//higlass.io</td>
+<td>hg19</td>
+<td>0.001</td>
+<td>A</td>
+</tr>
+</tbody>
+</table>
+<p>The first row defines the data type and the second row gives an example. The last two columns are optional. After <code>coords</code> any additional column that <em>does not</em> start with an underscore (e.g., <code>pVal</code>) is assumed to be some kind of numerical measurement and can be used to explore the annotations in HiPiler. Any additional column starting <em>with</em> an underscore (e.g., <code>_group</code>) are assumed to be a categorical attribute of the annotation and can be used for automatic grouping of annotations in HiPiler.</p>
+
+<h4 id="data/examples" class="underlined anchored">
+  <a href="/docs#data/examples" class="hidden-anchor">
+    <svg-icon icon-id="link"></svg-icon>
+  </a>
+  <span>Examples</span>
+</h4>
+  <p>A set of example are <a href="https://gist.github.com/flekschas">available here</a>. Look for <em>HiPiler CSV Example</em>. A concrete example is available at <a href="https://gist.github.com/flekschas/f3ebccf8156af5d22aa0d90e7cbc925f">https://gist.github.com/flekschas/f3ebccf8156af5d22aa0d90e7cbc925f</a>.</p>
+
+<h2 id="data/view-config" class="underlined anchored">
+  <a href="/docs#data/view-config" class="hidden-anchor">
+    <svg-icon icon-id="link"></svg-icon>
+  </a>
+  <span>View Config</span>
+</h2>
+  <p>HiPiler&#39;s view config is specified in JSON and consists of two main parts: one for the snippet location and display and another one for HiGlass. The snippet configuration is stored under <code>fgm</code> and HiGlass is configured under <code>hgl</code>.</p>
 <p>This is an example for the snippet configuration:</p>
 <pre><code>{
   &quot;fgm&quot;: {
@@ -324,7 +395,7 @@ npm run build
 </h2>
   <p>There are three options to load a configuration:</p>
 <ol>
-<li>Drag and drop JSON onto the browser window of HiPiler.</li>
+<li>Drag and drop JSON view config or CSV file onto the browser window of HiPiler.</li>
 <li>Go to the home page and click on <em>Select a config</em>.</li>
 <li>You can direct load hosted config files by going to <a href="http://hipiler.higlass.io/?config=URL_TO_YOUR_CONFIG">http://hipiler.higlass.io/?config=URL_TO_YOUR_CONFIG</a>, where <code>URL_TO_YOUR_CONFIG</code> should point to your config. E.g.: <a href="http://hipiler.higlass.io/?config=https://rawgit.com/flekschas/8b0163f25fd4ffb067aaba2a595da447/raw/rao-2014-gm12878-mbol-1kb-mres-chr22-loops.json">http://hipiler.higlass.io/?config=https://rawgit.com/flekschas/8b0163f25fd4ffb067aaba2a595da447/raw/rao-2014-gm12878-mbol-1kb-mres-chr22-loops.json</a></li>
 </ol>
@@ -335,12 +406,14 @@ npm run build
   </a>
   <span>Export</span>
 </h2>
-  <p>There are two options to export the snippets / pile configuration, including annotations, as JSON:</p>
-<p><em>Note: You have to be at <code>/explore</code> to export anything.</em></p>
+  <p>There are two things you can export:</p>
 <ol>
-<li>Open the snippet&#39;s menu by clicking on <em>More</em> at the bottom and then on <em>Export Piles</em>.</li>
-<li>Hit <em>CMD + S</em>.</li>
+<li>The <strong>annotations</strong> you have explored as CSV that have been augmented with grouping and trashing information
+Open the snippet&#39;s menu by clicking on <em>More</em> at the bottom and then on <em>Export Piles</em> or hit <em>CMD + S</em>.</li>
+<li>The <strong>view config</strong>, which you can send somebody else for exploring the data.
+Open the snippet&#39;s menu by clicking on <em>More</em> at the bottom and then on <em>Export View</em>.</li>
 </ol>
+<p><em>Note: You have to be at <code>/explore</code> to export something.</em></p>
 
 <h2 id="data/jupyter-notebook-integration" class="underlined anchored">
   <a href="/docs#data/jupyter-notebook-integration" class="hidden-anchor">
