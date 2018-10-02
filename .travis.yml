@@ -1,7 +1,7 @@
 language: node_js
 
 node_js:
-  - "7"
+  - "8"
 
 branches:
   only:
@@ -18,12 +18,12 @@ before_script:
   - npm install
 
 before_deploy:
-  - npm run build-app
+  - npm run prerelease
 
 deploy:
   provider: releases
   api_key:
-    secure: gHgdamFQGb5UX05AHAtwf/Cv8DqdkoL0ObU9pm3D6ZLLvHfGB7liZp6twWElxihKOAHOqqqJ0Qw3oD1He/0nRZ3Jco64PueZoC82QadCIOqPHv0LAACK609vyC7K1u7X2zQNV+Fxs+YaQn6N+EJW06rBGicTnHFqXAB80jACYEnhuRMOKGMTWLteET2iCofWgm3X5V3Ab5QIQOw5hc4+DtlmbeSWr9AHFrvRerc8Mk/gfQmvpgYDIgqNrGDaV+X4FLuxwLPmuUNlGHKemsZ3+f3x1CRs7JAD+AKUonbTbEByLwWuKG8IKcvXwbNu0FLEWVxbC2ZAMGzPLQFd+WAGf800unDQS5D/Jq7odahzEjPvSiLvfYFtfqS/Z92cySrFmH9KMXcfmQKd9hOtgmCZIKI3zNDBW3o+vaD3kAUYQyuzhhTNUax1xSg2eLcbP6hOD+3braNZApOgv4y6bB++wjV7ldte9AOn4xfnHiVs/vXmLoN1bTc87zDDjLLds8gIwlkQEgBxOeOzn9TcsM5KwvN05ySTIEnULJXN8fzpoW38gQYuNKJS6n77qVaBxQlXp4rex9NanXZdF6Gk6lX9hGNKDZOK8CsqUOUbhVK0Ag6rkMC0Qi2aeSFDvxbdb3ubgSYKIVwXgwtQIP8lkJf19oq1ONoxar0t4gGT4hQSwZs=
+    secure: tdKSO9AWVyis5PRncToYJJ4N82wivD8wDMPfinjqYDZFdI5p0JEuPHKvztM5NAnAfHMmxANbczQgQJEWA69GPy/IiRs3IwBRB9aaN40XYKh7eTOBULZzU+2hhvwxEnEgre0aMlnXy6X2Ughp7jVIMrEay9RhS6jsPCmLZ1LLVkNSDwLpqWz2rN0jxAZHhHqmIEtLVFI+LoF15lqJ5FV0R5JscyuL9zDFLc2aO1Hhczrm+0RofFn7jT7BexbCwCvXC4hUo9IjPjoLWqODYPxwjAgoi6hk+txW1Vs14s0pB7+gvCZtqanbVjQj+68uhvSzZYyOtZpBNE+rXuY5lsJRaE1V9dMiZAOMAPqQJKaoa8DKQWgL9zYX3XiX4Xt4iHokjLZTiOQ/oPbN1bd7rds1GC7b9L9TTALua5sBtqeERKNzs5RZDJz8yFR0KmHCigm1ZBU5rGgUyXSi5DJ/0nmXE5vhlS6wLQzrzLZrD7k2AdyleNe9MDNNXzBi7IahSL3JrN1ml9lV6uKBJgU68BjJjrC9adY7PkH7uLMnNMxI3Wo6sq+chHYAwgatU5mQw9VN1Oy/EHWv4TjXdmuQrsR1eX4xHoeOgmM4ZPKi81EnqeTgYH2g7cDx425kIE2Ov27VngqAxK11JmJA/D/tfRQUd408RqVZr/NEojrz/tw8n5g=
   file: build.zip
   skip_cleanup: true
   on:
