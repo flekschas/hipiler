@@ -1,3 +1,8 @@
+**v1.3.1** - 2018-10-02
+
+- Update to HiGlass `v1.2.3`
+- Fix minor code style issues
+
 **v1.3.0** - 2018-05-07
 
 - Add support for CSV import
