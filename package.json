@@ -15,7 +15,7 @@
     "chroma-js": "1.3.7",
     "d3": "4.13.0",
     "gulp-marked": "flekschas/gulp-marked",
-    "higlass": "v1.0.1",
+    "higlass": "v1.2.3",
     "hull.js": "0.2.10",
     "javascript-detect-element-resize": "0.5.3",
     "localforage": "1.7.1",
@@ -93,10 +93,13 @@
     "vinyl-fs": "2.4.4"
   },
   "scripts": {
-    "build": "npm run update && gulp clean && gulp && au build --env prod && gulp index",
-    "build-app": "npm run update && gulp clean && gulp clean-dist && gulp --build && au build --env prod && gulp build && cd build && zip -r ../build.zip ./*",
-    "ghp": "npm run update && gulp clean && gulp clean-dist && gulp --ghp && au build --env prod && gulp ghp && scripts/cp-prod.sh hipiler-ghp",
-    "start": "gulp && au run --watch",
-    "update": "git pull && git submodule update --init --recursive --remote --merge && npm install && gulp"
+    "build": "npm run update; gulp clean; gulp; au build --env prod; gulp index",
+    "lint": "eslint src",
+    "prepublishOnly": "npm run lint",
+    "prerelease": "npm run update; gulp clean; gulp clean-dist; gulp --build; au build --env prod; gulp build; cd build; zip -r ../build.zip ./*",
+    "ghp": "npm run update; gulp clean; gulp clean-dist; gulp --ghp; au build --env prod; gulp ghp; scripts/cp-prod.sh hipiler-ghp",
+    "ghp-no-update": "gulp clean; gulp clean-dist; gulp --ghp; au build --env prod; gulp ghp; scripts/cp-prod.sh hipiler-ghp",
+    "start": "gulp; au run --watch",
+    "update": "git pull; git submodule update --init --recursive --remote --merge; npm install; gulp"
   }
 }
