@@ -2,12 +2,14 @@
 
 # Move CNAME one dir up
 mv ../$1/CNAME ../__CNAME__
+mv ../$1/sitemap.xml ../__sitemap.xml__
 
 rm -r ../$1/*
 cp -r ghp/* ../$1/
 
 # Move CNAME back
 mv ../__CNAME__ ../$1/CNAME
+mv ../__sitemap.xml__ ../$1/sitemap.xml
 
 cd ../$1/
 
