@@ -109,14 +109,23 @@ const basicHiglassConfig = (server, dataSets) => {
       .replace(/<SERVER>/g, server)
       .replace(/<MATRIX>/g, dataset.matrix);
 
+    const geneAnnotationTilesetUuid = genes[dataset.coords] || dataset._gene_annotation_tileset;
+    if (!geneAnnotationTilesetUuid) {
+      console.warn(`We could't find a gene annotation tileset for the "${dataset.coords}" coordinate system. You can specify the tileset via a "_gene_annotation_tileset" column in your CSV file.`);
+    }
     view.tracks.top[0].tilesetUid = view.tracks.top[0].tilesetUid
       .replace(/<GENES>/g, genes[dataset.coords]);
 
-    view.tracks.top[1].chromInfoPath = view.tracks.top[1].chromInfoPath
-      .replace(/<CHROMS>/g, chroms[dataset.coords]);
-
-    view.tracks.left[0].chromInfoPath = view.tracks.left[0].chromInfoPath
-      .replace(/<CHROMS>/g, chroms[dataset.coords]);
+    if (chroms[dataset.coords]) {
+      view.tracks.top[1].chromInfoPath = view.tracks.top[1].chromInfoPath
+        .replace(/<CHROMS>/g, chroms[dataset.coords]);
+      view.tracks.left[0].chromInfoPath = view.tracks.left[0].chromInfoPath
+        .replace(/<CHROMS>/g, chroms[dataset.coords]);
+    } else {
+      const chromInfoPath = `${server}/api/v1/chrom-sizes/?id=${dataset.matrix}`;
+      view.tracks.top[1].chromInfoPath = chromInfoPath;
+      view.tracks.left[0].chromInfoPath = chromInfoPath;
+    }
 
     const centerTrack = view.tracks.center[0].contents[0];
 
