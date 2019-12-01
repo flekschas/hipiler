@@ -362,10 +362,10 @@ export class Higlass {
     const dataIdxEnd2 = header.indexOf('end2');
 
     const loci = config.fragments.slice(1).map(fragment => [
-      `chr${fragment[dataIdxChrom2]}`,
+      fragment[dataIdxChrom2],
       fragment[dataIdxStart2],
       fragment[dataIdxEnd2],
-      `chr${fragment[dataIdxChrom1]}`,
+      fragment[dataIdxChrom1],
       fragment[dataIdxStart1],
       fragment[dataIdxEnd1],
       'rgba(255, 85, 0, 0.8)',
