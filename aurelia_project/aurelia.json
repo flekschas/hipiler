@@ -170,7 +170,7 @@
       {
         "name": "vendor-bundle.js",
         "prepend": [
-          "node_modules/higlass/dist/scripts/hglib.js",
+          "node_modules/higlass/dist/hglib.js",
           "node_modules/bluebird/js/browser/bluebird.core.min.js",
           "node_modules/aurelia-cli/lib/resources/scripts/configure-bluebird.js",
           "node_modules/requirejs/require.js"
