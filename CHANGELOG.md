@@ -1,3 +1,12 @@
+**v1.4.0** - 2018-12-12
+
+- Update to HiGlass `v1.7.2`
+- Use file specific chrom sizes when internal chrom sizes are not available
+- Allow specifiying custom gene annotation tileset for custom coordinate system via the `_gene_annotation_tileset` column in the CSV config file
+
+**Breaking Change:**
+- HiPiler now expects you to specify the exact chromosome names. Previously it would ensure that `chr` is prepend for convenience when working with hg19 and mm9
+
 **v1.3.1** - 2018-10-02
 
 - Update to HiGlass `v1.2.3`
