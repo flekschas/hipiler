@@ -1,6 +1,7 @@
 **v1.4.0** - 2018-12-12
 
 - Update to HiGlass `v1.7.2`
+- Add support for cooler v2
 - Add support for dm6 and ce11 gene annotations
 - Use file specific chrom sizes when internal chrom sizes are not available
 - Allow specifiying custom gene annotations via the `_gene_annotations` column in the CSV config file. `_gene_annotations` can either be the name of a preexisting coords (e.g., `hg19`, `hg38`, `mm9`, `mm10`, `dm6`, `danRer10`, or `ce11`) or you can specify the tileset UUID of a locally hosted gene annotation tileset.
