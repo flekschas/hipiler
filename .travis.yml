@@ -1,30 +1,23 @@
 language: node_js
-
 node_js:
-  - "8"
-
+- '8'
 branches:
   only:
   - master
   - develop
   - "/^v.*$/"
-
 before_install:
-  - export CHROME_BIN=chromium-browser
-
+- export CHROME_BIN=chromium-browser
 services:
-  - xvfb
-
+- xvfb
 before_script:
-  - npm install
-
+- npm install
 before_deploy:
-  - npm run prerelease
-
+- npm run prerelease
 deploy:
   provider: releases
   api_key:
-    secure: tdKSO9AWVyis5PRncToYJJ4N82wivD8wDMPfinjqYDZFdI5p0JEuPHKvztM5NAnAfHMmxANbczQgQJEWA69GPy/IiRs3IwBRB9aaN40XYKh7eTOBULZzU+2hhvwxEnEgre0aMlnXy6X2Ughp7jVIMrEay9RhS6jsPCmLZ1LLVkNSDwLpqWz2rN0jxAZHhHqmIEtLVFI+LoF15lqJ5FV0R5JscyuL9zDFLc2aO1Hhczrm+0RofFn7jT7BexbCwCvXC4hUo9IjPjoLWqODYPxwjAgoi6hk+txW1Vs14s0pB7+gvCZtqanbVjQj+68uhvSzZYyOtZpBNE+rXuY5lsJRaE1V9dMiZAOMAPqQJKaoa8DKQWgL9zYX3XiX4Xt4iHokjLZTiOQ/oPbN1bd7rds1GC7b9L9TTALua5sBtqeERKNzs5RZDJz8yFR0KmHCigm1ZBU5rGgUyXSi5DJ/0nmXE5vhlS6wLQzrzLZrD7k2AdyleNe9MDNNXzBi7IahSL3JrN1ml9lV6uKBJgU68BjJjrC9adY7PkH7uLMnNMxI3Wo6sq+chHYAwgatU5mQw9VN1Oy/EHWv4TjXdmuQrsR1eX4xHoeOgmM4ZPKi81EnqeTgYH2g7cDx425kIE2Ov27VngqAxK11JmJA/D/tfRQUd408RqVZr/NEojrz/tw8n5g=
+    secure: wccs2hgDobPEwKUqzSIWGbDUGUFrGaLMu3NFTttgVgDsXQnqEXBg7XqTHML6yW4vdk1ug/frKvKrasyvTxNZ16kFQWNutUL8wiyoUc9dkYyCOt1oUdH9rv8L4ZhJPC/XQ+Y5A9Yi/V+Imcw+P0woukMQYsbADWFvlJh4FF2ObDklxghUp/KbeaKANrqlRg99JvAcJE0JdADuAbtyJUBzMJPqtaFdGW6q8sJzwdSY1tP18Hk8YWZl+kDErRQW/KA/YMDAkf0S009eeLcy3CZkTT1OcO3TuddboevfgxQnXufbEmDg+O4/gzZN9fSSllBnDM+UUyb4ebzlKmPQmXHcH7ab00IKyNfGUNQJ2g/tfHBPLnuL3k2+NKtLzXASu2Lbkp11Ycsgcb3XGE93Nzf/qaPj7KOz88WpWohTs2y3xbSK6i9xn4bdotL4Af9OgVg6NCNoH5z9NLgJO+bUEdyxXXpCghR5iSGu3bir898PU7pLCU8218VNMGRCREptUneYv58X1CQmqdtzyszfx0UkM8sw3TZS7zJUciEulaJElV7Ab60Cd3JqMgdyL2QpQa9sgqpFgZuVko1RANqFgdCLuk5tubFuBS4ZM68sNx+VB5iqmC7f25ltaviVjI7i+C12ZTpbI3U6l2tpWnW15t3DjZPRHKWzVtwerMAnVmfWEBs=
   file: build.zip
   skip_cleanup: true
   on:
