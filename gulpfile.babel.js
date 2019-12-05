@@ -218,7 +218,7 @@ gulp.task('copy-ghp-assets', () => gulp
 
 // Copy hglib.css
 gulp.task('copy-hglib-css', () => gulp
-  .src('node_modules/higlass/dist/styles/hglib.css')
+  .src('node_modules/higlass/dist/hglib.css')
   .pipe(plumber())
   .pipe(gulp.dest('ghp/node_modules/higlass/dist/styles/'))
 );
