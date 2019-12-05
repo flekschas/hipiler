@@ -5174,11 +5174,14 @@ export class Fragments {
    * @param {boolean} init - If not `true` reload the page.
    */
   updateDataPadding (dataPadding, configPadding, update, init) {
-    const padding = parseInt(dataPadding || configPadding, 10);
+    const padding = parseInt(
+      Number.isNaN(+dataPadding) ? configPadding : dataPadding,
+      10
+    );
 
     if (this.dataPadding !== padding) {
       this.dataPadding = padding;
-      update.data = !init;
+      update.data = true;
 
       // We currently don't support dynamic change of the dimension, hence, we
       // need to force a hard reload. Since the state has a debounce of 25ms
@@ -5195,14 +5198,16 @@ export class Fragments {
    *
    * @param {number} dataPercentile - Data percentile.
    * @param {object} update - Update object.
-   * @param {boolean} init - If `true` app is initializing.
    */
-  updateDataPercentile (dataPercentile, configPercentile, update, init) {
-    const percentile = parseInt(dataPercentile || configPercentile, 10);
+  updateDataPercentile (dataPercentile, configPercentile, update) {
+    const percentile = parseInt(
+      Number.isNaN(+dataPercentile) ? configPercentile : dataPercentile,
+      10
+    );
 
     if (this.dataPercentile !== percentile) {
       this.dataPercentile = percentile;
-      update.data = !init;
+      update.data = true;
     }
 
     return Promise.resolve();
@@ -5213,14 +5218,16 @@ export class Fragments {
    *
    * @param {number} dataIgnoreDiags - Data ignore diags.
    * @param {object} update - Update object.
-   * @param {boolean} init - If `true` app is initializing.
    */
-  updateDataIgnoreDiags (dataIgnoreDiags, configIgnoreDiags, update, init) {
-    const ignoreDiags = parseInt(dataIgnoreDiags || configIgnoreDiags, 10);
+  updateDataIgnoreDiags (dataIgnoreDiags, configIgnoreDiags, update) {
+    const ignoreDiags = parseInt(
+      Number.isNaN(+dataIgnoreDiags) ? configIgnoreDiags : dataIgnoreDiags,
+      10
+    );
 
     if (this.dataIgnoreDiags !== ignoreDiags) {
       this.dataIgnoreDiags = ignoreDiags;
-      update.data = !init;
+      update.data = true;
     }
 
     return Promise.resolve();
