@@ -5,7 +5,9 @@ const genes = {
   hg38: 'P0PLbQMwTYGy-5uPIQid7A',
   mm9: 'GUm5aBiLRCyz2PsBea7Yzg',
   mm10: 'QDutvmyiSrec5nX4pA5WGQ',
-  danRer10: 'OwA1ouTzRamg5lOeDFUGIw'
+  danRer10: 'OwA1ouTzRamg5lOeDFUGIw',
+  dm6: 'B2skqtzdSLyWYPTYM8t8lQ',
+  ce11: 'PooX-P8zTXaI927e1mBrnQ'
 };
 
 const chroms = {
@@ -13,7 +15,11 @@ const chroms = {
   hg38: 'NyITQvZsS_mOFNlz5C2LJg',
   mm9: 'WAVhNHYxQVueq6KulwgWiQ',
   mm10: 'EtrWT0VtScixmsmwFSd7zg',
-  danRer10: 'Yl1IWCeVRI65yOEMvmpIZQ'
+  danRer10: 'Yl1IWCeVRI65yOEMvmpIZQ',
+  dm3: 'd2UOjWDsQMe6Ahx8rT_X7g',
+  dm6: 'f2FZsbCBTbyIx7A-xiRq5Q',
+  ce11: 'NskcugMOSiqbSqecqMCosw',
+  b37: 'Ajn_ttUUQbqgtOD4nOt-IA'
 };
 
 const baseTemplate = {
@@ -109,13 +115,6 @@ const basicHiglassConfig = (server, dataSets) => {
       .replace(/<SERVER>/g, server)
       .replace(/<MATRIX>/g, dataset.matrix);
 
-    const geneAnnotationTilesetUuid = genes[dataset.coords] || dataset._gene_annotation_tileset;
-    if (!geneAnnotationTilesetUuid) {
-      console.warn(`We could't find a gene annotation tileset for the "${dataset.coords}" coordinate system. You can specify the tileset via a "_gene_annotation_tileset" column in your CSV file.`);
-    }
-    view.tracks.top[0].tilesetUid = view.tracks.top[0].tilesetUid
-      .replace(/<GENES>/g, genes[dataset.coords]);
-
     if (chroms[dataset.coords]) {
       view.tracks.top[1].chromInfoPath = view.tracks.top[1].chromInfoPath
         .replace(/<CHROMS>/g, chroms[dataset.coords]);
@@ -125,6 +124,19 @@ const basicHiglassConfig = (server, dataSets) => {
       const chromInfoPath = `${server}/api/v1/chrom-sizes/?id=${dataset.matrix}`;
       view.tracks.top[1].chromInfoPath = chromInfoPath;
       view.tracks.left[0].chromInfoPath = chromInfoPath;
+    }
+
+    const geneAnnotationTilesetUuid = (
+      genes[dataset.coords] ||
+      genes[dataset.geneAnnotations] ||
+      dataset.geneAnnotations
+    );
+    if (!geneAnnotationTilesetUuid) {
+      console.warn(`We could't find a gene annotation tileset for the "${dataset.coords}" coordinate system. You can specify the tileset via a "_gene_annotations" column in your CSV file.`);
+      view.tracks.top.splice(0, 1);
+    } else {
+      view.tracks.top[0].tilesetUid = view.tracks.top[0].tilesetUid
+        .replace(/<GENES>/g, geneAnnotationTilesetUuid);
     }
 
     const centerTrack = view.tracks.center[0].contents[0];

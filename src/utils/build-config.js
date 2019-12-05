@@ -62,7 +62,10 @@ const buildConfig = (rows) => {
         }
       });
       fragments.push(parsedRow);
-      datasets[parsedRow[colIds.dataset]] = parsedRow[colIds.coords] || 'hg19';
+      datasets[parsedRow[colIds.dataset]] = {
+        coords: parsedRow[colIds.coords] || 'hg19',
+        geneAnnotations: parsedRow[colIds._gene_annotations]
+      };
       server = parsedRow[colIds.server];
     }
   }
@@ -75,7 +78,7 @@ const buildConfig = (rows) => {
     },
     hgl: basicHiglassConfig(
       server, Object.keys(datasets)
-        .map(matrix => ({ matrix, coords: datasets[matrix] }))
+        .map(matrix => ({ matrix, ...datasets[matrix] }))
     )
   };
 
